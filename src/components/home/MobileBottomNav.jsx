@@ -212,183 +212,34 @@ export default function MobileBottomNav() {
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (5 Tabs: Home | Shop | AI Doctor (FAB) | Blogs | Menu) */}
-      <nav 
-        className="sathya-mobile-bottom-nav" 
-        aria-label="Mobile Navigation"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '62px',
-          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(8px)',
-          borderTop: '1px solid #e2e8f0',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-          zIndex: 9999,
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08)',
-          padding: '4px 6px calc(4px + env(safe-area-inset-bottom, 0px))'
-        }}
-      >
-        {/* 1. Home */}
-        <Link 
-          to="/" 
-          onClick={() => setIsMenuOpen(false)}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textDecoration: 'none',
-            color: isHome ? '#059669' : '#64748b',
-            fontSize: '0.68rem',
-            fontWeight: isHome ? 700 : 500,
-            gap: '2px',
-            background: 'none',
-            border: 'none',
-            padding: '4px 0'
-          }}
-        >
-          <Home size={20} strokeWidth={isHome ? 2.5 : 2} />
+      {/* MOBILE BOTTOM NAVIGATION BAR: Home | Shop | AI Doctor | Blogs | Menu.
+          The same floating white pill as the storefront's bottom bar
+          (index.css .bighaat-mobile-bottom-nav / .mobile-nav-link). */}
+      <nav className="sathya-mobile-bottom-nav bighaat-mobile-bottom-nav" aria-label="Mobile Navigation">
+        <Link to="/" onClick={() => setIsMenuOpen(false)} className={`mobile-nav-link ${isHome ? 'active' : ''}`} aria-current={isHome ? 'page' : undefined}>
+          <Home size={20} />
           <span>Home</span>
         </Link>
 
-        {/* 2. Shop: opens the Brands section of Categories */}
-        <Link
-          to="/categories?ct=Brands"
-          onClick={() => setIsMenuOpen(false)}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textDecoration: 'none',
-            color: isShop ? '#059669' : '#64748b',
-            fontSize: '0.68rem',
-            fontWeight: isShop ? 700 : 500,
-            gap: '2px',
-            background: 'none',
-            border: 'none',
-            padding: '4px 0'
-          }}
-        >
-          <ShoppingBag size={20} strokeWidth={isShop ? 2.5 : 2} />
+        {/* Shop opens the Brands section of Categories */}
+        <Link to="/categories?ct=Brands" onClick={() => setIsMenuOpen(false)} className={`mobile-nav-link ${isShop ? 'active' : ''}`} aria-current={isShop ? 'page' : undefined}>
+          <ShoppingBag size={20} />
           <span>Shop</span>
         </Link>
 
-        {/* 3. AI Doctor (Raised Center FAB) */}
-        <button 
-          type="button" 
-          onClick={handleAIDoctorClick}
-          aria-label="AI Leaf Doctor"
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '0',
-            color: '#064e3b',
-            fontSize: '0.68rem',
-            fontWeight: 700
-          }}
-        >
-          <div 
-            style={{
-              width: '48px',
-              height: '48px',
-              marginTop: '-22px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-              border: '4px solid #ffffff',
-              boxShadow: '0 6px 16px rgba(4, 120, 87, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              transition: 'transform 0.15s ease'
-            }}
-          >
-            <Sparkles size={22} />
-          </div>
-          <span style={{ marginTop: '2px' }}>AI Doctor</span>
+        <button type="button" onClick={handleAIDoctorClick} className="mobile-nav-link mobile-nav-link-fab" aria-label="AI Leaf Doctor">
+          <Sparkles size={20} />
+          <span>AI Doctor</span>
         </button>
 
-        {/* 4. Blogs */}
-        <Link 
-          to="/blog" 
-          onClick={() => setIsMenuOpen(false)}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textDecoration: 'none',
-            color: isBlog ? '#059669' : '#64748b',
-            fontSize: '0.68rem',
-            fontWeight: isBlog ? 700 : 500,
-            gap: '2px',
-            background: 'none',
-            border: 'none',
-            padding: '4px 0'
-          }}
-        >
-          <BookOpen size={20} strokeWidth={isBlog ? 2.5 : 2} />
+        <Link to="/blog" onClick={() => setIsMenuOpen(false)} className={`mobile-nav-link ${isBlog ? 'active' : ''}`} aria-current={isBlog ? 'page' : undefined}>
+          <BookOpen size={20} />
           <span>Blogs</span>
         </Link>
 
-        {/* 5. Menu */}
-        <button 
-          type="button" 
-          onClick={() => setIsMenuOpen(open => !open)}
-          aria-label="Menu"
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: isMenuOpen ? '#059669' : '#64748b',
-            fontSize: '0.68rem',
-            fontWeight: isMenuOpen ? 700 : 500,
-            gap: '2px',
-            padding: '4px 0',
-            position: 'relative'
-          }}
-        >
-          {isMenuOpen ? <X size={20} strokeWidth={2.5} /> : <Menu size={20} strokeWidth={2} />}
-          {cartCount > 0 && (
-            <span 
-              style={{
-                position: 'absolute',
-                top: '0px',
-                right: '18%',
-                background: '#ef4444',
-                color: '#fff',
-                fontSize: '9px',
-                fontWeight: 800,
-                width: '15px',
-                height: '15px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {cartCount}
-            </span>
-          )}
+        <button type="button" onClick={() => setIsMenuOpen(open => !open)} className={`mobile-nav-link ${isMenuOpen ? 'active' : ''}`} aria-label="Menu" aria-expanded={isMenuOpen}>
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          {cartCount > 0 && <span className="mobile-nav-badge">{cartCount}</span>}
           <span>Menu</span>
         </button>
       </nav>

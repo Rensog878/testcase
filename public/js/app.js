@@ -3195,7 +3195,7 @@ async function fetchLiveProducts() {
   const userId = currentUser ? currentUser.id : '';
 
   try {
-    const res = await fetch(`/api/products?userId=${encodeURIComponent(userId)}`);
+    const res = await fetch(`/api/products?userId=${encodeURIComponent(userId)}&onlineOnly=true`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (json.success && Array.isArray(json.data)) {

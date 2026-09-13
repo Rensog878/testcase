@@ -929,8 +929,13 @@ class DatabaseManager {
 
   async getProducts(options = {}) {
         await connectDB();
-        const { userId, category, crop, disease, search, sortBy } = options;
+        const { userId, category, crop, disease, search, sortBy, onlineOnly } = options;
         let list = (await Product.find({}).lean()).map(serialize).map(normalizeProduct);
+
+      // Offline products are sold at the billing counter only, never on the website.
+      if (onlineOnly) {
+              list = list.filter(p => p.online !== false);
+      }
 
       if (category && category !== 'All') {
               list = list.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -1094,6 +1099,7 @@ class DatabaseManager {
                         prodData.description ||
                         'Scientifically formulated for modern organic and integrated pest management.',
               targetUserId: prodData.targetUserId || 'all',
+              online: prodData.online !== false,
               targetUserName,
               sortOrder: Number(prodData.sortOrder) || 1,
               createdAt: new Date().toISOString(),

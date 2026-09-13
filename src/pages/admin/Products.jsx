@@ -41,6 +41,7 @@ export default function AdminProducts() {
     badge: '',
     crops: '',
     description: '',
+    online: true,
     targetUserId: 'all',
     activeIngredient: '',
     dosage: '250g - 500g per Acre',
@@ -142,6 +143,7 @@ export default function AdminProducts() {
       badge: 'Best Seller',
       crops: 'Paddy / Rice, Wheat',
       description: '',
+      online: true,
       targetUserId: userFilter !== 'all' && userFilter !== 'general' ? userFilter : 'all',
       activeIngredient: '100% Bio-Active Formulation',
       dosage: '250g per Acre',
@@ -168,6 +170,7 @@ export default function AdminProducts() {
       badge: p.badge || '',
       crops: Array.isArray(p.crops) ? p.crops.join(', ') : (p.crops || ''),
       description: p.description || '',
+      online: p.online !== false,
       targetUserId: p.targetUserId || 'all',
       activeIngredient: p.activeIngredient || '',
       dosage: p.dosage || '250g per Acre',
@@ -563,17 +566,17 @@ export default function AdminProducts() {
               </div>
 
               {/* TARGET USER / SORTING BY USER */}
-              <div className="product-form-full" style={{ background: 'rgba(59, 130, 246, 0.08)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(96, 165, 250, 0.25)' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#93c5fd', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <div className="product-form-full product-target-user" style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '2px solid #111827' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#000', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                   <User size={15} /> Target / Assign To User (Sorting by User)
                 </label>
-                <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <p style={{ fontSize: '0.74rem', color: '#111827', marginBottom: '8px' }}>
                   Assign this product to a specific user to personalize their catalog & prioritize it at the top of their store page:
                 </p>
                 <select
                   value={form.targetUserId}
                   onChange={e => setForm({ ...form, targetUserId: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: '#fff', border: '1px solid #111827', color: '#000', fontWeight: 700 }}
                 >
                   <option value="all">🌐 All Users (General Public E-Commerce)</option>
                   <optgroup label="Assign to Registered Farmer">
@@ -591,6 +594,25 @@ export default function AdminProducts() {
                     ))}
                   </optgroup>
                 </select>
+              </div>
+
+              <div className="product-form-full product-visibility-panel">
+                <div>
+                  <label className="product-visibility-title">Product visibility</label>
+                  <p>Choose where this product can be used.</p>
+                </div>
+                <div className="product-visibility-options">
+                  <label className={`product-visibility-option ${form.online ? 'active' : ''}`}>
+                    <input type="radio" name="product-visibility" checked={form.online} onChange={() => setForm({ ...form, online: true })} />
+                    <strong>Online</strong>
+                    <span>Visible on the customer website</span>
+                  </label>
+                  <label className={`product-visibility-option ${!form.online ? 'active offline' : ''}`}>
+                    <input type="radio" name="product-visibility" checked={!form.online} onChange={() => setForm({ ...form, online: false })} />
+                    <strong>Offline</strong>
+                    <span>Billing portal only, hidden from website</span>
+                  </label>
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>

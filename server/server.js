@@ -758,8 +758,8 @@ function productInputError(body, { partial = false } = {}) {
 
 app.get('/api/products', async (req, res) => {
   try {
-    const { userId, category, crop, disease, search, sortBy } = req.query;
-    const data = await db.getProducts({ userId, category, crop, disease, search, sortBy });
+    const { userId, category, crop, disease, search, sortBy, onlineOnly } = req.query;
+    const data = await db.getProducts({ userId, category, crop, disease, search, sortBy, onlineOnly: onlineOnly === 'true' });
     res.json({ success: true, data });
   } catch (err) {
     sendError(res, err, 'Products');
@@ -769,7 +769,8 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/products/:id', async (req, res) => {
   try {
     const product = await db.getProductById(req.params.id);
-    if (!product) {
+    // Offline products are sold at the billing counter only, never on the website.
+    if (!product || product.online === false) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
     res.json({ success: true, data: product });

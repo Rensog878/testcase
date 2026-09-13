@@ -41,6 +41,7 @@ export default function ProductDetail() {
   const [activeImage, setActiveImage] = useState(0)
   const [selectedPack, setSelectedPack] = useState('')
   const [wishlisted, setWishlisted] = useState(false)
+  const [cartAdded, setCartAdded] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -52,13 +53,21 @@ export default function ProductDetail() {
         const loadedProduct = data.data || FALLBACK_PRODUCT
         setProduct(loadedProduct)
         setSelectedPack(loadedProduct.selectedPack || loadedProduct.packSizes?.[0] || '')
-        const wishlistParams = new URLSearchParams(getWishlistIdentity())
-        const wishlist = await axios.get(`/api/wishlist?${wishlistParams}`)
-        setWishlisted((wishlist.data.data || []).some(item => item.productId === loadedProduct.id))
-        const { data: related } = await axios.get('/api/products')
-        if (!cancelled) {
-          const ids = loadedProduct.relatedProductIds || []
-          setRelatedProducts((related.data || []).filter(item => ids.includes(item.id)))
+        try {
+          const wishlistParams = new URLSearchParams(getWishlistIdentity())
+          const wishlist = await axios.get(`/api/wishlist?${wishlistParams}`)
+          if (!cancelled) setWishlisted((wishlist.data.data || []).some(item => item.productId === loadedProduct.id))
+        } catch (wishlistError) {
+          console.warn('Could not load wishlist state:', wishlistError)
+        }
+        try {
+          const { data: related } = await axios.get('/api/products?onlineOnly=true')
+          if (!cancelled) {
+            const ids = loadedProduct.relatedProductIds || []
+            setRelatedProducts((related.data || []).filter(item => ids.includes(item.id)))
+          }
+        } catch (relatedError) {
+          console.warn('Could not load related products:', relatedError)
         }
       } catch {
         if (!cancelled) setProduct(id === FALLBACK_PRODUCT.id ? FALLBACK_PRODUCT : null)
@@ -101,6 +110,10 @@ export default function ProductDetail() {
     if (existing) existing.qty = (existing.qty || 1) + 1
     else cart.push({ ...product, _id: productId, price: selectedPrice, originalPrice: selectedOriginalPrice, selectedPack, qty: 1 })
     localStorage.setItem('sathya_cart_guest', JSON.stringify(cart))
+    setCartAdded(true)
+  }
+  const proceedToCheckout = () => {
+    if (!cartAdded) addToCart()
     navigate('/checkout.html')
   }
   const toggleWishlist = async () => {
@@ -148,7 +161,10 @@ export default function ProductDetail() {
             <div><strong>Pack sizes</strong><span>{product.packSizes?.join(', ') || 'Not specified'}</span></div>
             <div><strong>Suitable crops</strong><span>{product.crops?.join(', ') || 'Not specified'}</span></div>
           </div>
-          <button className="btn btn-primary btn-lg" onClick={addToCart}><ShoppingCart size={18} /> Add to cart</button>
+          <div className="product-detail-actions">
+            <button className="btn btn-primary btn-lg" onClick={addToCart}><ShoppingCart size={18} /> {cartAdded ? 'Added to cart' : 'Add to cart'}</button>
+            <button className="btn btn-secondary btn-lg" onClick={proceedToCheckout}>Proceed to checkout</button>
+          </div>
         </div>
       </div>
 

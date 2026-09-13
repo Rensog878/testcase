@@ -3,19 +3,29 @@ import assert from 'node:assert/strict';
 
 import { FARMER_STRINGS, formatDay, formatRupees, placeholdersOf, translate, translateCount } from '../i18n/strings.js';
 
-test('every English string has a Tamil translation with the same placeholders', () => {
-  const en = FARMER_STRINGS.en;
-  const ta = FARMER_STRINGS.ta;
-  assert.deepEqual(Object.keys(ta).sort(), Object.keys(en).sort());
-  for (const key of Object.keys(en)) {
-    assert.ok(ta[key].trim(), `${key} is blank in Tamil`);
-    assert.deepEqual(placeholdersOf(ta[key]), placeholdersOf(en[key]), key);
-  }
-});
+// Each language's own script, to catch text pasted into the wrong language.
+const SCRIPTS = { ta: /[஀-௿]/, kn: /[ಀ-೿]/, te: /[ఀ-౿]/, hi: /[ऀ-ॿ]/ };
+
+for (const [lang, script] of Object.entries(SCRIPTS)) {
+  test(`every English string has a ${lang} translation with the same placeholders`, () => {
+    const en = FARMER_STRINGS.en;
+    const strings = FARMER_STRINGS[lang];
+    assert.ok(strings, `${lang} strings exist`);
+    assert.deepEqual(Object.keys(strings).sort(), Object.keys(en).sort());
+    for (const key of Object.keys(en)) {
+      assert.ok(strings[key].trim(), `${key} is blank in ${lang}`);
+      assert.deepEqual(placeholdersOf(strings[key]), placeholdersOf(en[key]), key);
+      // Only "{name}"-style placeholders and symbols may be script-free.
+      const words = strings[key].replace(/\{\w+\}/g, '');
+      if (/\p{L}/u.test(words)) assert.match(words, script, `${lang} ${key} is in ${lang} script`);
+    }
+  });
+}
 
 test('translate fills placeholders and falls back to English, then the key', () => {
   assert.equal(translate('ta', 'greeting.named', { name: 'Ravi' }), 'வணக்கம், Ravi');
-  assert.equal(translate('hi', 'greeting.named', { name: 'Ravi' }), 'Vanakkam, Ravi');
+  assert.equal(translate('hi', 'greeting.named', { name: 'Ravi' }), 'नमस्ते, Ravi');
+  assert.equal(translate('ml', 'greeting.named', { name: 'Ravi' }), 'Vanakkam, Ravi');
   assert.equal(translate('en', 'no.such.key'), 'no.such.key');
   assert.equal(translate('en', 'orders.total', {}), 'Total {amount}');
 });

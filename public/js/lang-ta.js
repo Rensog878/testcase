@@ -471,5 +471,8 @@ window.SB_LANG_TA = {
     // Hints read "Enter all 10 digits (3/10)."; the closing ")." is kept as written.
     [/^Enter all 10 digits \((\d+)\/10$/, '10 இலக்கங்களையும் உள்ளிடுங்கள் ($1/10'],
     [/^Mobile number needs 10 digits \((\d+)\/10$/, 'மொபைல் எண்ணுக்கு 10 இலக்கங்கள் தேவை ($1/10']
-  ]
+  ],
+
+  // Shown once after switching to this language.
+  languageChanged: 'மொழி தமிழுக்கு மாற்றப்பட்டது'
 };

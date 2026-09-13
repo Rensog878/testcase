@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
+// Same order as the storefront's language menu (public/js/app.js LANGUAGES).
 export const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English', flag: '🇬🇧' },
   { code: 'ta', label: 'Tamil',   native: 'தமிழ்',   flag: '🇮🇳' },
-  { code: 'hi', label: 'Hindi',   native: 'हिन्दी',  flag: '🇮🇳' },
-  { code: 'te', label: 'Telugu',  native: 'తెలుగు',  flag: '🇮🇳' },
   { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ',  flag: '🇮🇳' },
+  { code: 'te', label: 'Telugu',  native: 'తెలుగు',  flag: '🇮🇳' },
+  { code: 'hi', label: 'Hindi',   native: 'हिन्दी',  flag: '🇮🇳' },
 ]
 
 export const TRANSLATIONS = {

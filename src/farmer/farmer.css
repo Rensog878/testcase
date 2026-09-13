@@ -238,47 +238,72 @@
 
 /* ---------- Language switch ---------- */
 
+/* A pill showing the current language over an invisible native select, so
+   tapping it opens the phone's own picker. */
 .fd-lang {
+  position: relative;
   display: inline-flex;
-  gap: 8px;
-}
-
-.fd-lang-option {
-  min-height: 48px;
+  align-items: center;
+  gap: 6px;
   min-width: 48px;
-  padding: 8px 12px;
+  min-height: 48px;
+  padding: 0 10px 0 12px;
   border: 2px solid var(--fd-border);
   border-radius: 12px;
   background: var(--fd-surface);
-  color: var(--fd-text);
-  font: inherit;
+  color: var(--fd-brand-deep);
   font-weight: 700;
-  cursor: pointer;
+  white-space: nowrap;
 }
 
-.fd-lang-option[aria-pressed='true'] {
+.fd-lang:hover {
   border-color: var(--fd-brand);
-  background: var(--fd-brand-tint);
-  color: var(--fd-brand-deep);
+}
+
+.fd-lang:focus-within {
+  border-color: var(--fd-brand);
+  box-shadow: 0 0 0 3px var(--fd-brand-tint);
+}
+
+.fd-lang-icon,
+.fd-lang-chevron {
+  flex: none;
+  color: var(--fd-text-soft);
+}
+
+.fd-lang-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .fd-lang-short {
   display: none;
 }
 
-/* Narrow phones: "EN" in the header, "English" still read out. */
+/* Narrow phones: a one-letter mark ("EN", "ಕ") so the header still fits. */
 @media (max-width: 419px) {
+  .fd-topbar .fd-lang {
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .fd-topbar .fd-lang-icon {
+    display: none;
+  }
+
   .fd-topbar .fd-lang-short {
     display: inline;
   }
 
   .fd-topbar .fd-lang-full {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    display: none;
   }
 }
 
@@ -333,8 +358,8 @@
   white-space: nowrap;
 }
 
-/* Tamil words run longer: at 10px the longest tab label fits a 58px tab on a 360px phone. */
-html[lang='ta'] .fd-bottom-link {
+/* Indian-language words run longer: at 10px the longest tab label fits a 58px tab on a 360px phone. */
+html:is([lang='ta'], [lang='kn'], [lang='te'], [lang='hi']) .fd-bottom-link {
   font-size: 0.625rem;
 }
 

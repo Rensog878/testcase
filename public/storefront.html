@@ -48,8 +48,9 @@
           <select id="langSelectTop" class="lang-select">
             <option value="en">English</option>
             <option value="ta">தமிழ் (Tamil)</option>
-            <option value="te">తెలుగు (Telugu)</option>
             <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
             <option value="ml">മലയാളം (Malayalam)</option>
             <option value="tulu">ತುಳು (Tulu)</option>
           </select>
@@ -99,8 +100,9 @@
             <select id="langSelectHeader" class="header-lang-dropdown">
               <option value="en">English</option>
               <option value="ta">தமிழ்</option>
-              <option value="te">తెలుగు</option>
               <option value="kn">ಕನ್ನಡ</option>
+              <option value="te">తెలుగు</option>
+              <option value="hi">हिन्दी</option>
               <option value="ml">മലയാളം</option>
               <option value="tulu">ತುಳು</option>
             </select>
@@ -1417,8 +1419,9 @@
         <select id="mobileMenuLang" aria-label="Language">
           <option value="en">English</option>
           <option value="ta">தமிழ்</option>
-          <option value="te">తెలుగు</option>
           <option value="kn">ಕನ್ನಡ</option>
+          <option value="te">తెలుగు</option>
+          <option value="hi">हिन्दी</option>
           <option value="ml">മലയാളം</option>
           <option value="tulu">ತುಳು</option>
         </select>
@@ -1458,7 +1461,16 @@
 
   <!-- JavaScript Application Engine -->
   <script src="./js/toast.js" defer></script>
-  <script src="./js/lang-ta.js" defer></script>
+  <!-- Only the saved language's pack is loaded here (defer keeps it ahead of
+       app.js); app.js loads another when the visitor picks it. -->
+  <script>
+    (function () {
+      var packs = { ta: 1, kn: 1, te: 1, hi: 1 };
+      var lang = 'en';
+      try { lang = localStorage.getItem('sathya_bio_lang') || 'en'; } catch (e) {}
+      if (packs[lang] === 1) document.write('<script src="./js/lang-' + lang + '.js" defer><\/script>');
+    })();
+  </script>
   <script src="./js/app.js" defer></script>
 
 </body>

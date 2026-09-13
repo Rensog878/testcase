@@ -84,7 +84,12 @@ test('matchCrops covers exact, general, none and unknown', () => {
 
 test('display names use the language, then English, then the typed text', () => {
   assert.equal(cropDisplayName(resolveCrop('Paddy/Rice'), 'ta'), 'நெல்');
-  assert.equal(cropDisplayName(resolveCrop('Paddy/Rice'), 'hi'), 'Paddy / Rice');
+  assert.equal(cropDisplayName(resolveCrop('Paddy/Rice'), 'hi'), 'धान');
+  assert.equal(cropDisplayName(resolveCrop('Paddy/Rice'), 'kn'), 'ಭತ್ತ');
+  assert.equal(cropDisplayName(resolveCrop('Paddy/Rice'), 'te'), 'వరి');
+  assert.equal(cropDisplayName(resolveCrop('Paddy/Rice'), 'ml'), 'Paddy / Rice');
+  assert.equal(cropDisplayName(resolveCrop('All Crops'), 'hi'), 'सभी फसलें');
+  assert.equal(resolveCrop('ಭತ್ತ').id, 'paddy', 'a crop typed in Kannada is still found');
   assert.equal(cropDisplayName(resolveCrop('All Crops'), 'ta'), 'அனைத்து பயிர்கள்');
   assert.equal(cropDisplayName(resolveCrop('Banana'), 'ta'), 'Banana');
   assert.equal(cropDisplayName(resolveCrop(''), 'en'), null);
@@ -96,7 +101,7 @@ test('registry entries are complete and unambiguous', () => {
   for (const crop of CROPS) {
     assert.ok(!ids.has(crop.id), `duplicate id ${crop.id}`);
     ids.add(crop.id);
-    assert.ok(crop.names.en && crop.names.ta, `${crop.id} needs en and ta names`);
+    for (const lang of ['en', 'ta', 'kn', 'te', 'hi']) assert.ok(crop.names[lang], `${crop.id} needs a ${lang} name`);
     for (const text of [crop.id, ...Object.values(crop.names), ...crop.aliases]) {
       const key = normalizeCropText(text);
       assert.ok(!owners.has(key) || owners.get(key) === crop.id, `"${text}" belongs to ${owners.get(key)} and ${crop.id}`);

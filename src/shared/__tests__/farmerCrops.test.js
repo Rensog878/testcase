@@ -66,5 +66,5 @@ test('updates keep crop and crops consistent whichever one is sent', () => {
 test('picker choices come from the registry in stored (English) names', () => {
   const choices = farmerCropChoices();
   assert.ok(choices.length >= 9);
-  assert.deepEqual(choices[0], { id: 'paddy', label: 'Paddy / Rice', names: { en: 'Paddy / Rice', ta: 'நெல்' } });
+  assert.deepEqual(choices[0], { id: 'paddy', label: 'Paddy / Rice', names: { en: 'Paddy / Rice', ta: 'நெல்', kn: 'ಭತ್ತ', te: 'వరి', hi: 'धान' } });
 });

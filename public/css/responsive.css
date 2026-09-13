@@ -1206,7 +1206,7 @@ pre {
     line-height: 1.15;
     letter-spacing: 0.09em;
   }
-  html[lang="ta"] .logo-sub {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .logo-sub {
     letter-spacing: 0;
   }
   .header-actions {
@@ -2929,6 +2929,124 @@ pre {
   padding: 8px 0 var(--auth-pad-bottom);
 }
 
+/* Phones: the same design a size smaller, so a step fits the screen with the
+   browser bars showing. Touch targets stay 48px and body text 16px. */
+@media (max-width: 480px) {
+  #authModal {
+    --auth-pad: 16px;
+    --auth-pad-top: 18px;
+    --auth-pad-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    --auth-radius: 12px;
+  }
+  #authModal .modal-close {
+    top: calc(var(--auth-pad-top) + 2px) !important;
+  }
+  .auth-topbar {
+    min-height: 52px;
+    margin-bottom: 14px;
+    padding-right: 56px;
+  }
+  .auth-tabs {
+    padding: 2px;
+    border-radius: 14px;
+  }
+  .auth-tabs::before {
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: calc(50% - 2px);
+  }
+  .auth-steps {
+    margin: -2px 0 16px;
+  }
+  .auth-steps li {
+    gap: 6px;
+  }
+  .auth-form,
+  .auth-step {
+    gap: 14px;
+  }
+  .auth-head {
+    margin-bottom: 0;
+  }
+  .auth-title {
+    font-size: 1.375rem;
+  }
+  .auth-sub {
+    margin-top: 4px;
+    line-height: 1.45;
+  }
+  .auth-badge {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    font-size: 1.2rem;
+  }
+  .auth-notice {
+    margin: -2px 0 14px;
+    padding: 10px 12px;
+  }
+  .auth-label {
+    margin-bottom: 6px;
+  }
+  .auth-help {
+    margin-top: 6px;
+  }
+  .auth-input {
+    height: 48px;
+    padding-left: 44px;
+  }
+  .auth-control-icon {
+    left: 14px;
+  }
+  .auth-control--prefix .auth-input {
+    padding-left: 62px;
+  }
+  .auth-prefix {
+    width: 50px;
+    border-radius: 10.5px 0 0 10.5px;
+  }
+  .auth-icon-btn {
+    top: 0;
+    right: 0;
+  }
+  .auth-stepper {
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+  }
+  .auth-stepper-btn {
+    height: 48px;
+    min-height: 48px;
+  }
+  .auth-otp-cells {
+    gap: 6px;
+  }
+  .auth-otp-cells span {
+    height: 52px;
+    font-size: 1.375rem;
+  }
+  .auth-number {
+    min-height: 52px;
+    padding: 2px 2px 2px 14px;
+  }
+  .auth-head + .auth-number {
+    margin-top: -2px;
+  }
+  .auth-forgot-row {
+    margin: -8px -12px -6px 0;
+  }
+  .auth-resend {
+    margin-top: -4px;
+  }
+  .auth-actions {
+    padding-top: 10px;
+  }
+  .auth-cta {
+    min-height: 50px;
+    font-size: 1rem;
+  }
+}
+
 /* ------------------------------------------------------------
    7g. FLOATING PILL BOTTOM BAR (One UI style)
    A solid white capsule floating above the gesture area, centred
@@ -3220,44 +3338,45 @@ pre {
   background: var(--border-light);
 }
 
-/* Tamil runs longer and its vowel signs sit above and below the line, so
-   tight English line-heights clip it and fixed-width labels overflow. */
-html[lang="ta"] .bento-title[data-i18n="hero_title"] {
+/* Tamil, Kannada, Telugu and Hindi run longer than English and their vowel
+   signs sit above and below the line, so tight English line-heights clip them
+   and fixed-width labels overflow. */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .bento-title[data-i18n="hero_title"] {
   white-space: pre-line;
 }
-html[lang="ta"] h1,
-html[lang="ta"] h2,
-html[lang="ta"] h3,
-html[lang="ta"] h4,
-html[lang="ta"] .bento-title,
-html[lang="ta"] .section-title,
-html[lang="ta"] .deal-title,
-html[lang="ta"] .welcome-poster-title {
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) h1,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) h2,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) h3,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) h4,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .bento-title,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .section-title,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .deal-title,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .welcome-poster-title {
   line-height: 1.4;
   letter-spacing: 0;
 }
-html[lang="ta"] .bento-tag,
-html[lang="ta"] .mms-title,
-html[lang="ta"] .lang-quick-title {
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .bento-tag,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .lang-quick-title {
   letter-spacing: 0;
   text-transform: none;
 }
 
 @media (max-width: 768px) {
-  html[lang="ta"] .bento-card.bento-span-2.bento-row-2 .bento-title {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .bento-card.bento-span-2.bento-row-2 .bento-title {
     font-size: 1.08rem !important;
   }
-  html[lang="ta"] .bento-card .bento-title {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .bento-card .bento-title {
     font-size: 0.98rem !important;
   }
-  html[lang="ta"] .section-title {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .section-title {
     font-size: 1.2rem;
   }
-  html[lang="ta"] .mobile-nav-item {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mobile-nav-item {
     min-width: 0;
   }
   /* Tags are one-line pills; a wrapped Tamil tag became a two-line blob. */
-  html[lang="ta"] .bento-tag {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .bento-tag {
     max-width: 100%;
     overflow: hidden;
     white-space: nowrap;
@@ -3265,8 +3384,8 @@ html[lang="ta"] .lang-quick-title {
   }
   /* Wrap between words only (a long Tamil word was split mid-syllable) and
      leave room for the vowel signs above the first line. */
-  html[lang="ta"] .mms-account-text strong,
-  html[lang="ta"] .mms-account-text span {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-account-text strong,
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-account-text span {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
@@ -3274,10 +3393,10 @@ html[lang="ta"] .lang-quick-title {
     word-break: normal;
     line-height: 1.45;
   }
-  html[lang="ta"] .mms-account-text strong {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-account-text strong {
     font-size: 0.84rem;
   }
-  html[lang="ta"] .mobile-nav-item > span:last-child {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mobile-nav-item > span:last-child {
     max-width: 100%;
     overflow: hidden;
     white-space: nowrap;
@@ -3295,7 +3414,7 @@ html[lang="ta"] .lang-quick-title {
     padding-left: 0;
     padding-right: 0;
   }
-  html[lang="ta"] .mobile-bottom-nav.has-farm-tab .mobile-nav-item > span:last-child {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mobile-bottom-nav.has-farm-tab .mobile-nav-item > span:last-child {
     font-size: 0.54rem;
     letter-spacing: 0;
   }

@@ -679,30 +679,62 @@ const TRANSLATIONS = {
 };
 
 
-// Tamil ships in js/lang-ta.js. The other South Indian languages are listed
-// as "coming soon" until their packs exist.
+// Each language ships as js/lang-<code>.js and is loaded only when it is used:
+// storefront.html loads the saved language's pack ahead of this script, and
+// picking another one loads it then (loadLanguagePack). Malayalam and Tulu
+// are listed as "coming soon" until their packs exist.
+const LANGUAGE_PACK_GLOBALS = { ta: 'SB_LANG_TA', kn: 'SB_LANG_KN', te: 'SB_LANG_TE', hi: 'SB_LANG_HI' };
 const TEXT_PACKS = {};
-if (window.SB_LANG_TA) {
-  TRANSLATIONS.ta = window.SB_LANG_TA.keys;
-  TEXT_PACKS.ta = window.SB_LANG_TA;
+
+function registerLanguagePack(code) {
+  const pack = window[LANGUAGE_PACK_GLOBALS[code]];
+  if (!pack) return false;
+  TRANSLATIONS[code] = pack.keys;
+  TEXT_PACKS[code] = pack;
+  return true;
 }
+Object.keys(LANGUAGE_PACK_GLOBALS).forEach(registerLanguagePack);
 
 const LANGUAGES = [
   { code: 'en', native: 'English', english: 'English', glyph: 'A' },
   { code: 'ta', native: 'தமிழ்', english: 'Tamil', glyph: 'த' },
-  { code: 'te', native: 'తెలుగు', english: 'Telugu', glyph: 'తె' },
   { code: 'kn', native: 'ಕನ್ನಡ', english: 'Kannada', glyph: 'ಕ' },
+  { code: 'te', native: 'తెలుగు', english: 'Telugu', glyph: 'తె' },
+  { code: 'hi', native: 'हिन्दी', english: 'Hindi', glyph: 'हि' },
   { code: 'ml', native: 'മലയാളം', english: 'Malayalam', glyph: 'മ' },
   { code: 'tulu', native: 'ತುಳು', english: 'Tulu', glyph: 'ತು' },
 ];
 const LANGUAGE_SELECT_IDS = ['langSelectTop', 'langSelectHeader', 'mobileMenuLang'];
-const isLanguageReady = code => Boolean(TRANSLATIONS[code]);
+// Can be chosen: English, or any language with a pack (loaded yet or not).
+const isLanguageReady = code => code === 'en' || Object.hasOwn(LANGUAGE_PACK_GLOBALS, code);
+const isLanguageLoaded = code => Boolean(TRANSLATIONS[code]);
 
-let currentLang = (() => {
-  let saved = 'en';
-  try { saved = localStorage.getItem('sathya_bio_lang') || 'en'; } catch {}
-  return isLanguageReady(saved) ? saved : 'en';
-})();
+function savedLanguage() {
+  try { return localStorage.getItem('sathya_bio_lang') || 'en'; } catch { return 'en'; }
+}
+
+let currentLang = isLanguageLoaded(savedLanguage()) ? savedLanguage() : 'en';
+
+// Resolves true once the pack is registered, false if it could not be loaded.
+const languagePackLoads = {};
+function loadLanguagePack(code) {
+  if (isLanguageLoaded(code)) return Promise.resolve(true);
+  if (!Object.hasOwn(LANGUAGE_PACK_GLOBALS, code)) return Promise.resolve(false);
+  if (registerLanguagePack(code)) return Promise.resolve(true);
+  languagePackLoads[code] ||= new Promise(resolve => {
+    const script = document.createElement('script');
+    script.src = `./js/lang-${code}.js`;
+    script.onload = () => resolve(registerLanguagePack(code));
+    script.onerror = () => {
+      // Allow another try later (e.g. once the connection is back).
+      delete languagePackLoads[code];
+      script.remove();
+      resolve(false);
+    };
+    document.head.append(script);
+  });
+  return languagePackLoads[code];
+}
 
 
 // The translation for key, or undefined when no dictionary has it.
@@ -730,16 +762,33 @@ function setLanguage(langCode) {
 
 // Every language control (header selects, Menu sheet, quick switch) goes
 // through here so they always agree.
-function changeLanguage(langCode) {
+let languageRequest = 0;
+// The previous "language changed" message goes when another language is picked,
+// so a Kannada note never lingers on a page that is now in Hindi.
+let dismissLanguageToast = null;
+
+async function changeLanguage(langCode, { announce = true } = {}) {
   if (langCode === currentLang || !isLanguageReady(langCode)) {
     syncLanguageControls();
+    return;
+  }
+  // Only the latest choice applies if two packs are still loading.
+  const request = ++languageRequest;
+  const loaded = await loadLanguagePack(langCode);
+  if (request !== languageRequest) return;
+  if (!loaded) {
+    syncLanguageControls();
+    showToast('Could not load this language. Please check your connection and try again.', 'error');
     return;
   }
   setLanguage(langCode);
   // Product cards build some labels with t(), so they are drawn again.
   renderProducts();
   renderTrendingProducts();
-  showToast(langCode === 'ta' ? 'மொழி தமிழுக்கு மாற்றப்பட்டது' : 'Language changed to English', 'success', 2500);
+  dismissLanguageToast?.();
+  dismissLanguageToast = announce
+    ? showToast(TEXT_PACKS[langCode]?.languageChanged || 'Language changed to English', 'success', 2500)
+    : null;
 }
 
 function syncLanguageControls() {
@@ -770,6 +819,11 @@ function initLanguageSelector() {
       select.value = currentLang;
       select.addEventListener('change', e => changeLanguage(e.target.value));
     });
+
+  // The saved language's pack normally arrives before this script; if it did
+  // not (a slow or failed load), fetch it now and switch without a toast.
+  const saved = savedLanguage();
+  if (saved !== currentLang && isLanguageReady(saved)) changeLanguage(saved, { announce: false });
 }
 
 // Header "EN / த" pill on phones and tablets: a small menu of languages.
@@ -820,7 +874,8 @@ function initLanguageQuickSwitch() {
 
     const title = document.createElement('div');
     title.className = 'lang-quick-title';
-    title.textContent = 'மொழி · Language';
+    // In the current language, with "Language" alongside for anyone who cannot read it.
+    title.textContent = currentLang === 'en' ? 'Language' : `${t('lang_label')} · Language`;
     menu.append(title);
 
     let dividerAdded = false;

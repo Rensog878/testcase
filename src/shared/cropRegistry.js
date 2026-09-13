@@ -16,24 +16,24 @@ export const ALL_CROPS_ID = 'all';
 export const CUSTOM_CROP_PREFIX = 'custom:';
 
 export const CROPS = [
-  { id: 'paddy', names: { en: 'Paddy / Rice', ta: 'நெல்' }, aliases: ['paddy', 'rice', 'nel', 'அரிசி'] },
-  { id: 'wheat', names: { en: 'Wheat', ta: 'கோதுமை' }, aliases: ['gehun'] },
-  { id: 'cotton', names: { en: 'Cotton', ta: 'பருத்தி' }, aliases: ['kapas'] },
-  { id: 'tomato', names: { en: 'Tomato', ta: 'தக்காளி' }, aliases: ['tomatoes', 'thakkali'] },
-  { id: 'corn', names: { en: 'Corn / Maize', ta: 'மக்காச்சோளம்' }, aliases: ['corn', 'maize', 'makka cholam'] },
-  { id: 'sugarcane', names: { en: 'Sugarcane', ta: 'கரும்பு' }, aliases: ['sugar cane', 'karumbu'] },
-  { id: 'citrus', names: { en: 'Citrus', ta: 'எலுமிச்சை வகைகள்' }, aliases: ['lemon', 'lime', 'orange', 'sweet lime', 'mosambi'] },
-  { id: 'grapes', names: { en: 'Grapes', ta: 'திராட்சை' }, aliases: ['grape'] },
-  { id: 'potato', names: { en: 'Potato', ta: 'உருளைக்கிழங்கு' }, aliases: ['potatoes'] },
+  { id: 'paddy', names: { en: 'Paddy / Rice', ta: 'நெல்', kn: 'ಭತ್ತ', te: 'వరి', hi: 'धान' }, aliases: ['paddy', 'rice', 'nel', 'அரிசி', 'ಅಕ್ಕಿ', 'బియ్యం', 'चावल'] },
+  { id: 'wheat', names: { en: 'Wheat', ta: 'கோதுமை', kn: 'ಗೋಧಿ', te: 'గోధుమ', hi: 'गेहूँ' }, aliases: ['gehun', 'गेहूं'] },
+  { id: 'cotton', names: { en: 'Cotton', ta: 'பருத்தி', kn: 'ಹತ್ತಿ', te: 'పత్తి', hi: 'कपास' }, aliases: ['kapas'] },
+  { id: 'tomato', names: { en: 'Tomato', ta: 'தக்காளி', kn: 'ಟೊಮೆಟೊ', te: 'టమాటా', hi: 'टमाटर' }, aliases: ['tomatoes', 'thakkali'] },
+  { id: 'corn', names: { en: 'Corn / Maize', ta: 'மக்காச்சோளம்', kn: 'ಮೆಕ್ಕೆಜೋಳ', te: 'మొక్కజొన్న', hi: 'मक्का' }, aliases: ['corn', 'maize', 'makka cholam'] },
+  { id: 'sugarcane', names: { en: 'Sugarcane', ta: 'கரும்பு', kn: 'ಕಬ್ಬು', te: 'చెరకు', hi: 'गन्ना' }, aliases: ['sugar cane', 'karumbu'] },
+  { id: 'citrus', names: { en: 'Citrus', ta: 'எலுமிச்சை வகைகள்', kn: 'ನಿಂಬೆ ಜಾತಿ ಹಣ್ಣುಗಳು', te: 'నిమ్మజాతి పండ్లు', hi: 'नींबू वर्गीय फल' }, aliases: ['lemon', 'lime', 'orange', 'sweet lime', 'mosambi'] },
+  { id: 'grapes', names: { en: 'Grapes', ta: 'திராட்சை', kn: 'ದ್ರಾಕ್ಷಿ', te: 'ద్రాక్ష', hi: 'अंगूर' }, aliases: ['grape'] },
+  { id: 'potato', names: { en: 'Potato', ta: 'உருளைக்கிழங்கு', kn: 'ಆಲೂಗಡ್ಡೆ', te: 'బంగాళదుంప', hi: 'आलू' }, aliases: ['potatoes'] },
 ];
 
 // Values that mean "every crop": the registration default and admin wording.
-const ALL_CROPS_TEXT = ['all', 'all crops', 'all crop', 'all crops general', 'general', 'general crop', 'அனைத்து பயிர்கள்'];
+const ALL_CROPS_TEXT = ['all', 'all crops', 'all crop', 'all crops general', 'general', 'general crop', 'அனைத்து பயிர்கள்', 'ಎಲ್ಲಾ ಬೆಳೆಗಳು', 'అన్ని పంటలు', 'सभी फसलें'];
 
 // Values that mean "not given". Seed data uses "N/A" for staff accounts.
 const NO_CROP_TEXT = ['', 'n a', 'na', 'none', 'nil', 'not applicable'];
 
-export const ALL_CROPS_NAMES = { en: 'All crops', ta: 'அனைத்து பயிர்கள்' };
+export const ALL_CROPS_NAMES = { en: 'All crops', ta: 'அனைத்து பயிர்கள்', kn: 'ಎಲ್ಲಾ ಬೆಳೆಗಳು', te: 'అన్ని పంటలు', hi: 'सभी फसलें' };
 
 export function normalizeCropText(value) {
   if (value === null || value === undefined) return '';

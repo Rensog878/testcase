@@ -1095,15 +1095,55 @@ async function priceCart(rawItems) {
   };
 }
 
+// Checkout sends the delivery address field by field; `address` is the
+// single line kept on the order for messages and older screens.
 function readCustomerDetails(source) {
   const customerName = cleanText(source?.customerName, 80);
   const customerPhone = normalizePhone(source?.customerPhone);
-  const address = cleanText(source?.address, 300);
-  if (!customerName || !customerPhone || !address) {
-    throw new HttpError(400, 'Please enter your name, a valid 10-digit mobile number and your delivery address.');
+  const addressDetails = {
+    label: cleanText(source?.addressLabel, 30) || 'Home',
+    doorNo: cleanText(source?.doorNo, 40),
+    street: cleanText(source?.street, 120),
+    area: cleanText(source?.area, 100),
+    taluk: cleanText(source?.taluk, 80),
+    pincode: String(source?.pincode || '').replace(/\D/g, '').slice(0, 6),
+    district: cleanText(source?.district, 80),
+    state: cleanText(source?.state, 80),
+  };
+  const address = [addressDetails.doorNo, addressDetails.street, addressDetails.area, addressDetails.taluk, addressDetails.district, addressDetails.state, addressDetails.pincode].filter(Boolean).join(', ');
+  if (!customerName || !customerPhone || !addressDetails.doorNo || !addressDetails.street || !addressDetails.area || !addressDetails.taluk || !/^\d{6}$/.test(addressDetails.pincode) || !addressDetails.district || !addressDetails.state) {
+    throw new HttpError(400, 'Please complete your name, mobile number, and every delivery address field.');
   }
-  return { customerName, customerPhone, address };
+  return { customerName, customerPhone, address, addressDetails };
 }
+
+// ============================================================
+// SAVED DELIVERY ADDRESSES (the signed-in user's own)
+// ============================================================
+
+app.get('/api/addresses', requireAuth(), async (req, res) => {
+  try {
+    res.json({ success: true, data: await db.getAddresses(req.user.id) });
+  } catch (err) {
+    sendError(res, err, 'Addresses');
+  }
+});
+
+app.post('/api/addresses', requireAuth(), async (req, res) => {
+  try {
+    res.json({ success: true, data: await db.saveAddress(req.user.id, req.body || {}) });
+  } catch (err) {
+    sendError(res, userInputError(err), 'Save address');
+  }
+});
+
+app.delete('/api/addresses/:id', requireAuth(), async (req, res) => {
+  try {
+    res.json({ success: true, deleted: await db.deleteAddress(req.user.id, req.params.id) });
+  } catch (err) {
+    sendError(res, err, 'Delete address');
+  }
+});
 
 // ============================================================
 // RAZORPAY PAYMENTS
@@ -1192,6 +1232,7 @@ async function finalizePaidOrder(razorpayOrderId, paymentId) {
       customerName: session.customerName,
       customerPhone: session.customerPhone,
       address: session.address,
+      addressDetails: session.addressDetails,
       items: session.lines,
       subtotal: session.subtotal,
       gst: session.gst,

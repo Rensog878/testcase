@@ -301,6 +301,7 @@ export default function AdminUsers() {
               <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--dark-700)' }}>
                 <th style={{ padding: '14px 16px' }}>User Details</th>
                 <th style={{ padding: '14px 16px' }}>Contact & Login</th>
+                <th style={{ padding: '14px 16px' }}>Saved Addresses</th>
                 <th style={{ padding: '14px 16px' }}>System Role</th>
                 <th style={{ padding: '14px 16px' }}>Farm / Department</th>
                 <th style={{ padding: '14px 16px' }}>Target Products</th>
@@ -312,13 +313,13 @@ export default function AdminUsers() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     Loading database records...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     No users matching criteria in database. Click "Create Login Credentials" to add one!
                   </td>
                 </tr>
@@ -341,6 +342,13 @@ export default function AdminUsers() {
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{u.id}</div>
                         </div>
                       </div>
+                    </td>
+
+                    {/* Saved delivery addresses */}
+                    <td style={{ padding: '14px 16px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      {Array.isArray(u.addresses) && u.addresses.length ? (
+                        <><strong>{u.addresses.length} saved</strong><div style={{ color: 'var(--text-muted)', marginTop: 3 }}>{u.addresses.map(address => address.label).join(', ')}</div></>
+                      ) : 'None saved'}
                     </td>
 
                     {/* Contact & Phone */}

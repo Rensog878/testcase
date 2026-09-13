@@ -69,12 +69,13 @@ export default function AdminOrders() {
       <div className="card">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Order ID</th><th>Farmer</th><th>Items</th><th>Amount</th><th>Status</th><th>Agent</th><th>WhatsApp</th><th>Action</th></tr></thead>
+            <thead><tr><th>Order ID</th><th>Customer & contact</th><th>Delivery address</th><th>Items</th><th>Amount</th><th>Status</th><th>Agent</th><th>WhatsApp</th><th>Action</th></tr></thead>
             <tbody>
               {orders.map(o => (
                 <tr key={o.id}>
                   <td><strong style={{ color: 'var(--brand-400)' }}>{o.id}</strong></td>
-                  <td><div style={{ fontWeight: 600 }}>{o.farmer || o.customerName}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{o.village || o.address}</div></td>
+                  <td><div style={{ fontWeight: 600 }}>{o.farmer || o.customerName}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{o.customerPhone || 'No phone'}</div></td>
+                  <td style={{ maxWidth: 220, fontSize: '0.78rem' }} title={o.address}>{o.addressDetails ? <><strong>{o.addressDetails.label || 'Address'}</strong><br />{[o.addressDetails.doorNo, o.addressDetails.street, o.addressDetails.area, o.addressDetails.taluk, o.addressDetails.district, o.addressDetails.state, o.addressDetails.pincode].filter(Boolean).join(', ')}</> : o.address}</td>
                   <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={itemSummary(o.items)}>{itemSummary(o.items)}</td>
                   <td style={{ fontWeight: 700, color: 'var(--brand-400)' }}>₹{Number(o.amount || o.total || 0).toLocaleString()}</td>
                   <td>

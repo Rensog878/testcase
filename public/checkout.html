@@ -24,6 +24,19 @@
     .checkout-row { display:flex; justify-content:space-between; gap:16px; padding:8px 0; }
     .checkout-form { display:grid; gap:12px; }
     .checkout-form input,.checkout-form textarea,.checkout-form select { width:100%; padding:12px; border:1px solid #bbf7d0; border-radius:8px; box-sizing:border-box; }
+    .checkout-step { display:grid; gap:14px; padding:18px; border:1px solid #d1fae5; border-radius:14px; background:#fbfffc; }
+    .checkout-step-heading { display:flex; align-items:center; gap:10px; }
+    .checkout-step-heading > span { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; color:#fff; background:#15803d; font-weight:800; }
+    .checkout-step-heading h2 { margin:0; font-size:1.05rem; color:#14532d; }
+    .checkout-step-heading p { margin:3px 0 0; color:#64748b; font-size:.82rem; }
+    .checkout-fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .checkout-fields-grid input:first-child { grid-column:1 / -1; }
+    .saved-address-select { background:#fff; }
+    .address-labels { display:flex; flex-wrap:wrap; gap:14px; color:#166534; font-size:.85rem; font-weight:700; }
+    .address-labels input,.save-address-check input { width:auto; }
+    .save-address-check { color:#475569; font-size:.82rem; }
+    .selected-address-summary { padding:12px; border-radius:10px; color:#14532d; background:#ecfdf5; font-size:.88rem; line-height:1.5; }
+    .checkout-next-btn { width:100%; }
     .checkout-actions { display:flex; gap:12px; margin-top:18px; }
     button { border:0; border-radius:8px; padding:12px 18px; cursor:pointer; font-weight:700; }
     .primary { background:#15803d; color:#fff; } .secondary { background:#dcfce7; color:#166534; }
@@ -108,6 +121,7 @@
       .checkout-page { margin-bottom: max(24px, env(safe-area-inset-bottom)); }
     }
     @media (max-width:520px) { .footer-grid { grid-template-columns:1fr; } .checkout-page { margin:24px 14px; } }
+    @media (max-width:600px) { .checkout-fields-grid { grid-template-columns:1fr; } .checkout-fields-grid input:first-child { grid-column:auto; } .checkout-step { padding:14px; } }
 
     /* --- Phone polish -----------------------------------------------------
        Item rows become cards with a compact quantity pill and an X to remove;
@@ -176,14 +190,33 @@
     <div id="items" class="checkout-items"></div>
     <div id="totals" class="totals"></div>
     <form id="checkoutForm" class="checkout-form">
-      <input name="customerName" placeholder="Full name" required />
-      <input name="customerPhone" placeholder="Mobile number" type="tel" required />
-      <textarea name="address" placeholder="Farm delivery address" rows="3" required></textarea>
-      <div class="checkout-actions">
-        <button type="button" class="secondary" onclick="location.href='/'">Continue shopping</button>
-        <button type="button" class="secondary" id="codBtn">Cash on Delivery</button>
-        <button type="button" class="primary" id="payBtn"><i class="fa-solid fa-lock"></i> Pay online (UPI / Card)</button>
-      </div>
+      <section id="addressStep" class="checkout-step">
+        <div class="checkout-step-heading"><span>1</span><div><h2>Delivery details</h2><p>Choose a saved address or add a new one.</p></div></div>
+        <select id="savedAddress" class="saved-address-select" aria-label="Saved addresses"><option value="">Add a new address</option></select>
+        <div class="address-labels"><label><input type="radio" name="addressLabel" value="Home" checked /> Home</label><label><input type="radio" name="addressLabel" value="Office" /> Office</label><label><input type="radio" name="addressLabel" value="Farm" /> Farm</label></div>
+        <div class="checkout-fields-grid">
+          <input name="customerName" placeholder="Full name" autocomplete="name" required />
+          <input name="customerPhone" placeholder="Mobile number" type="tel" autocomplete="tel" required />
+          <input name="doorNo" placeholder="Door no. / house no." required />
+          <input name="street" placeholder="Street / road" autocomplete="address-line1" required />
+          <input name="area" placeholder="Area / village" autocomplete="address-line2" required />
+          <input name="taluk" placeholder="Taluk" required />
+          <input name="pincode" placeholder="PIN code" inputmode="numeric" maxlength="6" autocomplete="postal-code" required />
+          <input name="district" placeholder="District" required />
+          <select name="state" required aria-label="State"><option value="">Select state</option><option>Tamil Nadu</option><option>Karnataka</option><option>Kerala</option><option>Andhra Pradesh</option><option>Telangana</option><option>Maharashtra</option><option>Other</option></select>
+        </div>
+        <label class="save-address-check"><input type="checkbox" id="saveAddress" checked /> Save this address for future orders</label>
+        <button type="button" class="primary checkout-next-btn" id="continueToPayment">Continue to payment</button>
+      </section>
+      <section id="paymentStep" class="checkout-step payment-step" hidden>
+        <div class="checkout-step-heading"><span>2</span><div><h2>Choose payment</h2><p>Review your address, then complete the order.</p></div></div>
+        <div id="selectedAddressSummary" class="selected-address-summary"></div>
+        <div class="checkout-actions">
+          <button type="button" class="secondary" id="backToAddress">Edit address</button>
+          <button type="button" class="secondary" id="codBtn">Cash on Delivery</button>
+          <button type="button" class="primary" id="payBtn"><i class="fa-solid fa-lock"></i> Pay online (UPI / Card)</button>
+        </div>
+      </section>
       <p class="pay-note">Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser.</p>
     </form>
   </main>
@@ -222,6 +255,11 @@
     const form = document.getElementById('checkoutForm');
     const payBtn = document.getElementById('payBtn');
     const codBtn = document.getElementById('codBtn');
+    const addressStep = document.getElementById('addressStep');
+    const paymentStep = document.getElementById('paymentStep');
+    const savedAddressSelect = document.getElementById('savedAddress');
+    const selectedAddressSummary = document.getElementById('selectedAddressSummary');
+    let savedAddresses = [];
 
     const authHeaders = () => (token ? { Authorization: 'Bearer ' + token } : {});
     const keyOf = item => item.id || item._id;
@@ -351,12 +389,63 @@
 
     function customerDetails() {
       const data = Object.fromEntries(new FormData(form));
-      if (!data.customerName || !data.customerPhone || !data.address) {
-        toast.warning('Please fill in your name, mobile number and delivery address.');
+      data.addressDetails = {
+        label: data.addressLabel || 'Home', doorNo: data.doorNo, street: data.street,
+        area: data.area, taluk: data.taluk, pincode: data.pincode,
+        district: data.district, state: data.state
+      };
+      data.address = [data.doorNo, data.street, data.area, data.taluk, data.district, data.state, data.pincode].filter(Boolean).join(', ');
+      if (!data.customerName || !/^\d{10}$/.test(String(data.customerPhone || '').replace(/\D/g, '').slice(-10)) || !data.doorNo || !data.street || !data.area || !data.taluk || !/^\d{6}$/.test(data.pincode || '') || !data.district || !data.state) {
+        toast.warning('Please complete your name, mobile number, and every delivery address field.');
         return null;
       }
       return data;
     }
+
+    function fillAddress(address) {
+      if (!address) return;
+      ['doorNo', 'street', 'area', 'taluk', 'pincode', 'district', 'state'].forEach(key => {
+        if (form.elements[key]) form.elements[key].value = address[key] || '';
+      });
+      const label = form.querySelector(`input[name="addressLabel"][value="${address.label || 'Home'}"]`);
+      if (label) label.checked = true;
+    }
+
+    async function loadSavedAddresses() {
+      if (!token || !savedAddressSelect) return;
+      try {
+        const res = await fetch('/api/addresses', { headers: authHeaders() });
+        const json = await res.json();
+        savedAddresses = json.success && Array.isArray(json.data) ? json.data : [];
+        savedAddresses.forEach(address => {
+          const option = document.createElement('option');
+          option.value = address.id;
+          option.textContent = `${address.label || 'Address'} — ${address.doorNo}, ${address.area}, ${address.pincode}`;
+          savedAddressSelect.appendChild(option);
+        });
+      } catch {}
+    }
+
+    savedAddressSelect?.addEventListener('change', () => fillAddress(savedAddresses.find(address => address.id === savedAddressSelect.value)));
+    document.getElementById('continueToPayment')?.addEventListener('click', async () => {
+      const details = customerDetails();
+      if (!details) return;
+      if (document.getElementById('saveAddress')?.checked && token) {
+        const response = await fetch('/api/addresses', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+          body: JSON.stringify({ ...details.addressDetails, id: savedAddressSelect?.value || undefined })
+        }).catch(() => null);
+        if (!response || !response.ok) { toast.error('Could not save this address.'); return; }
+      }
+      selectedAddressSummary.textContent = `${details.addressDetails.label}: ${details.address}`;
+      addressStep.hidden = true;
+      paymentStep.hidden = false;
+      paymentStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('backToAddress')?.addEventListener('click', () => {
+      paymentStep.hidden = true;
+      addressStep.hidden = false;
+    });
 
     function clearLocalCart() {
       try { localStorage.removeItem(GUEST_CART_KEY); } catch {}
@@ -454,10 +543,12 @@
     if (user) {
       form.customerName.value = user.name || '';
       form.customerPhone.value = user.phone || user.mobile || '';
-      form.address.value = [user.village, user.district, user.state].filter(Boolean).join(', ');
+      form.area.value = user.village || '';
+      form.district.value = user.district || '';
+      form.state.value = user.state || '';
     }
 
-    if (!redirecting) loadCart().then(loaded => { if (!redirecting) { cart = loaded; render(); } });
+    if (!redirecting) loadCart().then(loaded => { if (!redirecting) { cart = loaded; render(); loadSavedAddresses(); } });
   </script>
   <footer style="background: var(--primary-dark); color: #ffffff; padding: 50px 0 20px;"><div class="container"><div class="footer-grid" style="gap: 30px; margin-bottom: 40px;"><div><div class="logo-text" style="color: #ffffff; font-size: 1.6rem; margin-bottom: 10px;">SATHYA <span style="color: var(--accent-gold);">BIO</span></div><p style="font-size: 0.85rem; color: #d1fae5; line-height: 1.6; margin-bottom: 16px;">Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers. Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.</p><div style="display: flex; gap: 12px; font-size: 1.2rem;"><a href="#" style="color: white;"><i class="fa-brands fa-whatsapp"></i></a><a href="#" style="color: white;"><i class="fa-brands fa-facebook"></i></a><a href="#" style="color: white;"><i class="fa-brands fa-youtube"></i></a><a href="#" style="color: white;"><i class="fa-brands fa-instagram"></i></a></div></div><div><h4 style="color: var(--accent-gold); margin-bottom: 14px; font-size: 0.95rem;">Store Categories</h4><ul style="list-style: none; font-size: 0.82rem; display: flex; flex-direction: column; gap: 8px; color: #d1fae5;"><li><a href="./index.html#catalog">Bio-Fungicides</a></li><li><a href="./index.html#catalog">Insecticides</a></li><li><a href="./index.html#catalog">Herbicides</a></li><li><a href="./index.html#catalog">Bio-Stimulants</a></li><li><a href="./index.html#catalog">Nematicides</a></li></ul></div><div><h4 style="color: var(--accent-gold); margin-bottom: 14px; font-size: 0.95rem;">Top Crops</h4><ul style="list-style: none; font-size: 0.82rem; display: flex; flex-direction: column; gap: 8px; color: #d1fae5;"><li><a href="./index.html#catalog">Paddy / Rice Care</a></li><li><a href="./index.html#catalog">Cotton Protection</a></li><li><a href="./index.html#catalog">Tomato &amp; Vegetables</a></li><li><a href="./index.html#catalog">Sugarcane Care</a></li><li><a href="./index.html#catalog">Horticulture &amp; Fruits</a></li></ul></div><div><h4 style="color: var(--accent-gold); margin-bottom: 14px; font-size: 0.95rem;">Customer Support</h4><p style="font-size: 0.85rem; color: #d1fae5; margin-bottom: 8px;"><i class="fa-solid fa-phone"></i> Toll Free: 1800-425-9999</p><p style="font-size: 0.85rem; color: #d1fae5; margin-bottom: 8px;"><i class="fa-solid fa-envelope"></i> support@sathyabio.com</p><p style="font-size: 0.85rem; color: #d1fae5; margin-bottom: 12px;"><i class="fa-solid fa-location-dot"></i> Sathya Bio Tech Park, Hyderabad, India</p><div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; font-size: 0.78rem;"><i class="fa-solid fa-lock" style="color: var(--accent-gold);"></i> 100% Secure Payment (UPI, COD, NetBanking)</div></div></div><div style="border-top: 1px solid rgba(255,255,255,0.15); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #a7f3d0;"><span>© 2026 Sathya Bio Agro Tech Ltd. All rights reserved. Inspired by BigHaat.</span><div style="display: flex; gap: 15px;"><span>Privacy Policy</span><span>Terms of Sale</span><span>Refund Policy</span></div></div></div></footer>
   <!-- MOBILE MENU SHEET -->

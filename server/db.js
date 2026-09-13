@@ -824,6 +824,56 @@ class DatabaseManager {
       return serializeUser(user.toObject());
   }
 
+  // ================= SAVED DELIVERY ADDRESSES =================
+
+  async getAddresses(userId) {
+        if (!userId) return [];
+        await connectDB();
+        const user = await User.findById(String(userId), { addresses: 1 }).lean();
+        return Array.isArray(user?.addresses) ? user.addresses : [];
+  }
+
+  async saveAddress(userId, address) {
+        if (!userId) return [];
+        await connectDB();
+        const cleaned = {
+            id: typeof address.id === 'string' && address.id ? address.id.slice(0, 40) : newId('ADDR'),
+            label: String(address.label || 'Home').trim().slice(0, 30),
+            doorNo: String(address.doorNo || '').trim().slice(0, 40),
+            street: String(address.street || '').trim().slice(0, 120),
+            area: String(address.area || '').trim().slice(0, 100),
+            taluk: String(address.taluk || '').trim().slice(0, 80),
+            pincode: String(address.pincode || '').replace(/\D/g, '').slice(0, 6),
+            district: String(address.district || '').trim().slice(0, 80),
+            state: String(address.state || '').trim().slice(0, 80),
+            updatedAt: new Date().toISOString()
+        };
+        // Same fields checkout requires, so a saved address can always be used to order.
+        if (!cleaned.doorNo || !cleaned.street || !cleaned.area || !cleaned.taluk || !/^\d{6}$/.test(cleaned.pincode) || !cleaned.district || !cleaned.state) {
+            throw inputError('INVALID_ADDRESS', 'Please complete every delivery address field.');
+        }
+        const user = await User.findById(String(userId), { addresses: 1 });
+        if (!user) return [];
+        const addresses = (Array.isArray(user.addresses) ? user.addresses : []).filter(item => item.id !== cleaned.id);
+        addresses.push(cleaned);
+        user.set('addresses', addresses.slice(-20));
+        await user.save();
+        return addresses.slice(-20);
+  }
+
+  async deleteAddress(userId, addressId) {
+        if (!userId || !addressId) return false;
+        await connectDB();
+        const user = await User.findById(String(userId), { addresses: 1 });
+        if (!user) return false;
+        const addresses = Array.isArray(user.addresses) ? user.addresses : [];
+        const next = addresses.filter(item => item.id !== String(addressId));
+        if (next.length === addresses.length) return false;
+        user.set('addresses', next);
+        await user.save();
+        return true;
+  }
+
   async createUser(userData) {
         await connectDB();
 
@@ -1318,6 +1368,9 @@ class DatabaseManager {
                 customerName: orderData.customerName || 'Farmer Customer',
                 customerPhone: orderData.customerPhone || '9876543210',
                 address: orderData.address || 'Farm Delivery Address',
+                addressDetails: orderData.addressDetails || {},
+                district: orderData.district || orderData.addressDetails?.district || '',
+                state: orderData.state || orderData.addressDetails?.state || '',
                 items: orderData.items || [],
                 subtotal: Number(orderData.subtotal) || 0,
                 gst: Number(orderData.gst) || 0,

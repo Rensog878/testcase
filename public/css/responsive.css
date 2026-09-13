@@ -2555,6 +2555,21 @@ html[lang="ta"] .lang-quick-title {
     text-overflow: ellipsis;
     font-size: 0.58rem;
   }
+  /* Signed-in farmers get a sixth tab (Farm, app.js checkStorefrontAuth), which
+     leaves each tab about 55px on a 360px phone. Without this, "மருத்துவர்" and
+     "பண்ணை" were cut to an ellipsis; measured at 58px and 54px wide at 0.58rem. */
+  .mobile-bottom-nav.has-farm-tab {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .mobile-bottom-nav.has-farm-tab .mobile-nav-item {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  html[lang="ta"] .mobile-bottom-nav.has-farm-tab .mobile-nav-item > span:last-child {
+    font-size: 0.54rem;
+    letter-spacing: 0;
+  }
 }
 
 /* ------------------------------------------------------------

@@ -1,0 +1,45 @@
+{
+  "success": true,
+  "data": {
+    "period": { "id": "12m", "from": "2025-09-14", "to": "2026-09-13" },
+    "currency": "INR",
+    "totals": { "orders": 6, "cancelled": 1, "spend": 9120, "spendPerAcre": 2026.67 },
+    "spendByMonth": [
+      { "month": "2026-06", "amount": 2040 },
+      { "month": "2026-07", "amount": 2773 },
+      { "month": "2026-08", "amount": 4307 }
+    ],
+    "spendByCategory": [
+      { "category": "Fungicide", "amount": 5440, "share": 0.6 },
+      { "category": "Bio-Stimulant", "amount": 2970, "share": 0.33 },
+      { "category": "Other", "amount": 710, "share": 0.08 }
+    ],
+    "topProducts": [
+      { "productId": "sb-01", "name": "Sathya Bio BlastShield 75 WP", "orders": 3, "quantity": 8, "amount": 5440, "lastOrderedAt": "2026-08-20T05:00:00.000Z" },
+      { "productId": "sb-04", "name": "Sathya Bio RootVigor Gold", "orders": 2, "quantity": 3, "amount": 2970, "lastOrderedAt": "2026-08-02T05:00:00.000Z" }
+    ],
+    "reorder": [
+      {
+        "productId": "sb-01",
+        "name": "Sathya Bio BlastShield 75 WP",
+        "cropIds": ["paddy", "wheat", "corn"],
+        "lastOrderedAt": "2026-08-20T05:00:00.000Z",
+        "intervalDays": 28,
+        "intervalSource": "order_history",
+        "nextDueAt": "2026-09-17T05:00:00.000Z"
+      },
+      {
+        "productId": "sb-04",
+        "name": "Sathya Bio RootVigor Gold",
+        "cropIds": ["all"],
+        "lastOrderedAt": "2026-08-02T05:00:00.000Z",
+        "intervalDays": 120,
+        "intervalSource": "order_history",
+        "nextDueAt": "2026-11-30T05:00:00.000Z"
+      }
+    ],
+    "generatedAt": "2026-09-13T03:00:00.000Z",
+    "fetchedAt": "2026-09-13T03:00:00.000Z",
+    "stale": false
+  }
+}

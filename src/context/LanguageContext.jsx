@@ -238,13 +238,45 @@ export const TRANSLATIONS = {
 
 const LanguageContext = createContext(null)
 
+// The storefront (public/js/app.js) saves the visitor's choice under
+// sathya_bio_lang. Reading it first means a farmer who picked Tamil on the
+// storefront gets Tamil here too; sathya_lang is this app's older key.
+const SHARED_LANG_KEY = 'sathya_bio_lang'
+const APP_LANG_KEY = 'sathya_lang'
+
+function readSavedLanguage() {
+  try {
+    for (const key of [SHARED_LANG_KEY, APP_LANG_KEY]) {
+      const saved = localStorage.getItem(key)
+      if (TRANSLATIONS[saved]) return saved
+    }
+  } catch {
+    // Storage blocked: fall through to English.
+  }
+  return 'en'
+}
+
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem('sathya_lang') || 'en')
+  const [lang, setLang] = useState(readSavedLanguage)
 
   useEffect(() => {
-    localStorage.setItem('sathya_lang', lang)
+    try {
+      localStorage.setItem(SHARED_LANG_KEY, lang)
+      localStorage.setItem(APP_LANG_KEY, lang)
+    } catch {
+      // Storage blocked: the choice lasts for this page only.
+    }
     document.documentElement.lang = lang
   }, [lang])
+
+  // A language change in another tab (storefront or app) applies here as well.
+  useEffect(() => {
+    const onStorage = event => {
+      if (event.key === SHARED_LANG_KEY && TRANSLATIONS[event.newValue]) setLang(event.newValue)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const t = (key) => {
     return TRANSLATIONS[lang]?.[key] || TRANSLATIONS.en[key] || key

@@ -385,7 +385,15 @@ window.SB_LANG_TA = {
     // Short on purpose: the tab is ~64px wide and its camera icon already says "scan".
     'AI Doctor': 'மருத்துவர்',
     'Cart': 'கூடை',
-    'Menu': 'மெனு'
+    'Menu': 'மெனு',
+    // Farmer dashboard entry points (signed-in farmers only). Short for the bar.
+    'Farm': 'பண்ணை',
+    'My Farm Dashboard': 'என் பண்ணை பலகை',
+
+    // Several crops on one account
+    'Other crops (optional)': 'பிற பயிர்கள் (விருப்பத்தேர்வு)',
+    'Citrus': 'எலுமிச்சை வகைகள்',
+    'Tailored for your crops': 'உங்கள் பயிர்களுக்கு ஏற்றது'
   },
 
   patterns: [

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
@@ -44,6 +44,9 @@ import BillingDashboard from './pages/billing/Dashboard'
 // Tickets & Chat (shared between admin/employee)
 import Tickets     from './pages/shared/Tickets'
 import ChatRecords from './pages/shared/ChatRecords'
+
+// Farmer dashboard: its code and styles download only when a farmer opens it.
+const FarmerDashboard = lazy(() => import('./pages/farmer/FarmerDashboard'))
 
 function PublicPageShell({ children }) {
   return <><Navigation /><main className="public-page-shell">{children}</main><Footer /></>
@@ -95,6 +98,15 @@ export default function App() {
       <Route path="/whatsapp-ai" element={<PublicPageShell><StoreSection type="n8n" /></PublicPageShell>} />
       <Route path="/support" element={<PublicPageShell><StoreSection type="support" /></PublicPageShell>} />
       <Route path="/agronomists" element={<PublicPageShell><StoreSection type="agronomists" /></PublicPageShell>} />
+
+      {/* Farmer dashboard - opened from the storefront's account menu and bottom bar */}
+      <Route path="/farmer" element={
+        <PrivateRoute allowedRoles={['farmer']}>
+          <Suspense fallback={<div className="loading-screen" role="status" aria-label="Loading"><div className="spinner spinner-lg" /></div>}>
+            <FarmerDashboard />
+          </Suspense>
+        </PrivateRoute>
+      } />
 
       {/* Admin Routes — signed-out visitors get the admin sign-in here */}
       <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>

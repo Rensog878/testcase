@@ -1,0 +1,65 @@
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "asOf": "2026-09-12",
+    "unit": "INR_PER_QUINTAL",
+    "district": "Thanjavur",
+    "prices": [
+      {
+        "cropId": "paddy",
+        "commodity": "Paddy(Common)",
+        "variety": "Common",
+        "grade": "FAQ",
+        "market": "Thanjavur",
+        "marketId": "tamil nadu|thanjavur|thanjavur",
+        "district": "Thanjavur",
+        "state": "Tamil Nadu",
+        "arrivalDate": "2026-09-12",
+        "minPrice": 2300,
+        "maxPrice": 2450,
+        "modalPrice": 2400,
+        "change7d": { "previousModalPrice": 2150, "previousDate": "2026-09-05", "pct": 11.6 }
+      },
+      {
+        "cropId": "paddy",
+        "commodity": "Paddy(Common)",
+        "variety": "Common",
+        "grade": "FAQ",
+        "market": "Kumbakonam",
+        "marketId": "tamil nadu|thanjavur|kumbakonam",
+        "district": "Thanjavur",
+        "state": "Tamil Nadu",
+        "arrivalDate": "2026-09-12",
+        "minPrice": 2310,
+        "maxPrice": 2420,
+        "modalPrice": 2380,
+        "change7d": { "previousModalPrice": 2350, "previousDate": "2026-09-05", "pct": 1.3 }
+      },
+      {
+        "cropId": "cotton",
+        "commodity": "Cotton",
+        "variety": "LRA",
+        "grade": "FAQ",
+        "market": "Avinashi",
+        "marketId": "tamil nadu|tiruppur|avinashi",
+        "district": "Tiruppur",
+        "state": "Tamil Nadu",
+        "arrivalDate": "2026-09-11",
+        "minPrice": 6800,
+        "maxPrice": 7300,
+        "modalPrice": 7100,
+        "change7d": null
+      }
+    ],
+    "source": {
+      "provider": "data.gov.in",
+      "dataset": "9ef84268-d588-465a-a308-a864a43d0070",
+      "credits": [
+        { "name": "Open Government Data Platform India", "url": "https://data.gov.in/", "licence": "Government Open Data License - India" }
+      ]
+    },
+    "fetchedAt": "2026-09-12T14:05:00.000Z",
+    "stale": false
+  }
+}

@@ -1139,6 +1139,8 @@ function initApp() {
 
   initFormValidation();
 
+  initRegistrationCropChoices();
+
   initTicker();
 
   initDealCountdown();
@@ -1652,13 +1654,19 @@ function renderProducts() {
 
   container.innerHTML = filtered.map(p => {
     const isUserTargeted = currentUser && p.targetUserId === currentUser.id;
-    const isCropMatch = currentUser && currentUser.crop && p.crops && p.crops.some(c => currentUser.crop.toLowerCase().includes(c.toLowerCase()));
+    // The server marks products for any of the user's crops (userCropMatch, from
+    // GET /api/products?userId=). The text match remains for the built-in
+    // catalogue shown when the server cannot be reached.
+    const isCropMatch = currentUser && (typeof p.userCropMatch === 'boolean'
+      ? p.userCropMatch
+      : Boolean(currentUser.crop && p.crops && p.crops.some(c => currentUser.crop.toLowerCase().includes(c.toLowerCase()))));
+    const tailoredFor = Array.isArray(currentUser?.crops) && currentUser.crops.length > 1 ? 'your crops' : currentUser?.crop;
 
     let personalBadge = '';
     if (isUserTargeted) {
       personalBadge = `<div style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-star"></i> Recommended for You</div>`;
     } else if (isCropMatch) {
-      personalBadge = `<div style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; margin-bottom: 6px; border: 1px solid rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-seedling"></i> Tailored for ${currentUser.crop}</div>`;
+      personalBadge = `<div style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; margin-bottom: 6px; border: 1px solid rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-seedling"></i> Tailored for ${tailoredFor}</div>`;
     }
 
     return `
@@ -3097,6 +3105,16 @@ function getStoredUser() {
   }
 }
 
+// The farmer dashboard (/farmer) saves the farmer's last orders and profile
+// under this prefix so they show without signal (src/farmer/data/resourceCache.js).
+function clearFarmerDashboardData() {
+  try {
+    Object.keys(localStorage)
+      .filter(key => key.startsWith('sathya_fd:'))
+      .forEach(key => localStorage.removeItem(key));
+  } catch {}
+}
+
 async function fetchLiveProducts() {
   const currentUser = getStoredUser();
   const userId = currentUser ? currentUser.id : '';
@@ -3148,6 +3166,15 @@ function checkStorefrontAuth() {
   const loggedOutView = document.getElementById('authLoggedOutView');
   const adminLink = document.getElementById('adminPortalLink');
 
+  // The farmer dashboard is for farmer accounts only; src/App.jsx guards /farmer the same way.
+  const isFarmer = Boolean(user) && user.role === 'farmer';
+  [['farmerDashboardLink', 'flex'], ['mmsFarmLink', 'flex'], ['mobileNavFarm', '']].forEach(([id, shown]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isFarmer ? shown : 'none';
+  });
+  // Six tabs instead of five: responsive.css tightens the bar so Tamil labels still fit.
+  document.getElementById('mobileBottomNav')?.classList.toggle('has-farm-tab', isFarmer);
+
   if (user) {
     const role = user.role || 'farmer';
     const crop = user.crop || user.primaryCrop || 'All Crops';
@@ -3184,7 +3211,9 @@ function checkStorefrontAuth() {
       roleBadge.textContent = role === 'farmer' ? `🌾 ${crop} Farmer` : `🛡️ ${role.toUpperCase()} Staff`;
     }
     if (phoneEl) phoneEl.textContent = user.phone || user.mobile || 'Verified Customer';
-    if (cropEl) cropEl.textContent = `${crop} (${acreage} Acres)`;
+    // Every crop the farmer grows; accounts from before multi-crop support have only `crop`.
+    const allCrops = Array.isArray(user.crops) && user.crops.length ? user.crops.join(', ') : crop;
+    if (cropEl) cropEl.textContent = `${allCrops} (${acreage} Acres)`;
     if (locEl) locEl.textContent = `${user.village || 'Farm'}, ${user.district || 'Tamil Nadu'}`;
 
     if (adminLink) {
@@ -3628,6 +3657,8 @@ window.handleStorefrontLogout = function() {
   cart = [];
   localStorage.removeItem(GUEST_CART_KEY);
   updateCartUI();
+  // Nor the orders the farmer dashboard saved.
+  clearFarmerDashboardData();
 
   checkStorefrontAuth();
   fetchLiveProducts();
@@ -3645,6 +3676,54 @@ let storefrontOtpSeconds = 30;
 
 
 // ============================================================
+// OTHER CROPS ON THE SIGN-UP FORM
+// ============================================================
+
+// Tick boxes for other crops the farmer grows, below the primary crop. The
+// choices come from the crop registry (GET /api/crops). If that request fails
+// the section stays hidden and sign-up works exactly as before.
+async function initRegistrationCropChoices() {
+  const section = document.getElementById('regOtherCrops');
+  const list = document.getElementById('regOtherCropsList');
+  const primary = document.getElementById('regCrop');
+  if (!section || !list) return;
+
+  try {
+    const res = await fetch('/api/crops');
+    if (!res.ok) return;
+    const json = await res.json();
+    const choices = json.success && Array.isArray(json.data) ? json.data : [];
+    if (!choices.length) return;
+
+    list.replaceChildren(...choices.map(choice => {
+      const label = document.createElement('label');
+      label.style.cssText = 'display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 4px 12px; border: 1px solid var(--border-light); border-radius: 999px; font-size: 0.85rem; cursor: pointer;';
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.value = choice.label;
+      // The English name is the text key lang-ta.js translates.
+      label.append(box, ` ${choice.label}`);
+      return label;
+    }));
+
+    // The primary crop is not offered again as an "other" crop.
+    const hidePrimary = () => {
+      list.querySelectorAll('label').forEach(label => {
+        const box = label.querySelector('input');
+        const isPrimary = Boolean(primary) && box.value === primary.value;
+        label.style.display = isPrimary ? 'none' : 'inline-flex';
+        if (isPrimary) box.checked = false;
+      });
+    };
+    primary?.addEventListener('change', hidePrimary);
+    hidePrimary();
+    section.hidden = false;
+  } catch (err) {
+    console.warn('Crop choices unavailable:', err);
+  }
+}
+
+// ============================================================
 // SUBMIT STOREFRONT REGISTRATION (SENDS OTP)
 // ============================================================
 
@@ -3655,6 +3734,7 @@ window.submitStorefrontRegister = async function(e) {
   const phone = document.getElementById('regPhone')?.value?.trim();
   const password = document.getElementById('regPassword')?.value;
   const crop = document.getElementById('regCrop')?.value;
+  const otherCrops = [...document.querySelectorAll('#regOtherCropsList input:checked')].map(box => box.value);
   const acreage = document.getElementById('regAcreage')?.value;
   const village = document.getElementById('regVillage')?.value?.trim();
   const btn = document.getElementById('regSubmitBtn');
@@ -3723,6 +3803,7 @@ window.submitStorefrontRegister = async function(e) {
       phone,
       password,
       crop,
+      crops: [crop, ...otherCrops],
       acreage: Number(acreage) || 1,
       village: village || 'Coimbatore'
     };
@@ -3790,6 +3871,7 @@ window.verifyStorefrontOtp = async function() {
         phone: storefrontPendingRegistration.phone,
         password: storefrontPendingRegistration.password,
         crop: storefrontPendingRegistration.crop,
+        crops: storefrontPendingRegistration.crops,
         acreage: storefrontPendingRegistration.acreage,
         village: storefrontPendingRegistration.village,
         role: 'farmer'

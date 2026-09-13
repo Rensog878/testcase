@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { clearFarmerCaches } from '../farmer/data/resourceCache.js'
 
 const AuthContext = createContext(null)
 
@@ -74,6 +75,8 @@ setUser(nextUser)
 const clearSession = () => {
 localStorage.removeItem(TOKEN_KEY)
 localStorage.removeItem(USER_KEY)
+// The farmer dashboard's saved orders and profile belong to this session too.
+clearFarmerCaches()
 setToken(null)
 setUser(null)
 }

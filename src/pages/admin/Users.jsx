@@ -7,6 +7,10 @@ import {
 } from 'lucide-react'
 import PasswordChecklist from '../../components/PasswordChecklist'
 import { generateStrongPassword, isPasswordValid, passwordPlaceholder } from '../../utils/passwordRules'
+import { farmerCropChoices, farmerCropLabels } from '../../shared/farmerCrops.js'
+
+// Crop names come from the crop registry (src/shared/cropRegistry.js).
+const CROP_CHOICES = farmerCropChoices()
 
 const ROLES = [
   { key: 'all', label: 'All Roles' },
@@ -40,6 +44,7 @@ export default function AdminUsers() {
     password: '',
     role: 'farmer',
     crop: 'Paddy / Rice',
+    otherCrops: [],
     acreage: 3,
     village: '',
     district: 'Coimbatore',
@@ -98,6 +103,7 @@ export default function AdminUsers() {
       password: generateStrongPassword(),
       role: 'farmer',
       crop: 'Paddy / Rice',
+      otherCrops: [],
       acreage: 3,
       village: 'Coimbatore',
       district: 'Coimbatore',
@@ -120,7 +126,8 @@ export default function AdminUsers() {
     }
 
     try {
-      const { data } = await axios.post('/api/admin/users', form)
+      const { otherCrops, ...details } = form
+      const { data } = await axios.post('/api/admin/users', { ...details, crops: [form.crop, ...otherCrops] })
       if (data.success) {
         toast.success(`User credentials created for ${data.user.name}! 🔐`)
         setCreateModalOpen(false)
@@ -366,7 +373,7 @@ export default function AdminUsers() {
                     <td style={{ padding: '14px 16px', fontSize: '0.82rem' }}>
                       {u.role === 'farmer' ? (
                         <div>
-                          <div style={{ color: 'var(--brand-400)', fontWeight: 600 }}>🌾 {u.crop || 'General Crop'}</div>
+                          <div style={{ color: 'var(--brand-400)', fontWeight: 600 }}>🌾 {farmerCropLabels(u).join(', ') || 'General Crop'}</div>
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                             {u.acreage ? `${u.acreage} Acres • ` : ''}{u.village || u.district}
                           </div>
@@ -545,13 +552,7 @@ export default function AdminUsers() {
                         onChange={e => setForm({ ...form, crop: e.target.value })}
                         style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
                       >
-                        <option value="Paddy / Rice">Paddy / Rice</option>
-                        <option value="Cotton">Cotton</option>
-                        <option value="Tomato">Tomato / Vegetables</option>
-                        <option value="Wheat">Wheat</option>
-                        <option value="Sugarcane">Sugarcane</option>
-                        <option value="Corn / Maize">Corn / Maize</option>
-                        <option value="Grapes / Fruits">Grapes / Fruits</option>
+                        {CROP_CHOICES.map(c => <option key={c.id} value={c.label}>{c.label}</option>)}
                         <option value="All Crops">All Crops (General)</option>
                       </select>
                     </div>
@@ -566,6 +567,25 @@ export default function AdminUsers() {
                       />
                     </div>
                   </div>
+
+                  <fieldset style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+                    <legend style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px', padding: 0 }}>Other Crops (optional)</legend>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {CROP_CHOICES.filter(c => c.label !== form.crop).map(c => (
+                        <label key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', minHeight: '40px', padding: '4px 12px', borderRadius: '999px', border: '1px solid var(--dark-700)', fontSize: '0.82rem', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={form.otherCrops.includes(c.label)}
+                            onChange={() => setForm({
+                              ...form,
+                              otherCrops: form.otherCrops.includes(c.label) ? form.otherCrops.filter(x => x !== c.label) : [...form.otherCrops, c.label],
+                            })}
+                          />
+                          {c.label}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
@@ -642,6 +662,7 @@ export default function AdminUsers() {
 
             {viewOnly && <div className="admin-customer-profile-summary">
               {profileFields.map(field => <div key={field.id}><span>{field.title}</span><strong>{selectedUser.profile?.[field.id] ?? selectedUser[field.id] ?? 'Not provided'}</strong></div>)}
+              <div><span>All crops</span><strong>{farmerCropLabels(selectedUser).join(', ') || 'Not provided'}</strong></div>
             </div>}
 
             <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

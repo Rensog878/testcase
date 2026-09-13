@@ -1145,6 +1145,11 @@
               <input type="number" id="regAcreage" class="text-input" placeholder="Acres" value="3" style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
             </div>
           </div>
+          <!-- Filled from GET /api/crops by initRegistrationCropChoices(); stays hidden if that fails. -->
+          <fieldset id="regOtherCrops" hidden style="border: 0; padding: 0; margin: 0; min-width: 0;">
+            <legend style="font-size: 0.8rem; font-weight: 700; padding: 0;">Other crops (optional)</legend>
+            <div id="regOtherCropsList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;"></div>
+          </fieldset>
           <div>
             <label style="font-size: 0.8rem; font-weight: 700;">Village / Farm Address</label>
             <input type="text" id="regVillage" class="text-input" placeholder="e.g. Karur, Coimbatore" style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
@@ -1219,6 +1224,9 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a id="farmerDashboardLink" href="/farmer" class="btn btn-primary" style="display: none; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px; text-decoration: none;">
+            <i class="fa-solid fa-seedling"></i> My Farm Dashboard
+          </a>
           <a id="adminPortalLink" href="/admin" class="btn btn-primary" style="display: none; justify-content: center; padding: 10px; text-decoration: none;">
             <i class="fa-solid fa-gauge-high"></i> Open Admin Panel
           </a>
@@ -1243,6 +1251,9 @@
       </div>
       <button type="button" class="mms-account-btn" id="mmsAccountBtn" onclick="toggleMobileMenu(false); handleAccountClick();">Sign In</button>
     </div>
+    <a href="/farmer" id="mmsFarmLink" style="display: none; align-items: center; justify-content: center; gap: 8px; min-height: 48px; margin: 12px 0 4px; padding: 10px 16px; border-radius: 14px; background: #065f46; color: #ffffff; font-weight: 700; text-decoration: none;">
+      <i class="fa-solid fa-seedling"></i> My Farm Dashboard
+    </a>
 
     <h3 class="mms-title">Quick actions</h3>
     <div class="mms-grid">
@@ -1310,6 +1321,10 @@
       <span class="mobile-badge" id="mobileCartBadge">0</span>
       <span>Cart</span>
     </button>
+    <a href="/farmer" class="mobile-nav-item" id="mobileNavFarm" style="display: none;">
+      <i class="fa-solid fa-seedling"></i>
+      <span>Farm</span>
+    </a>
     <button type="button" class="mobile-nav-item" id="mobileNavMenu" data-nav="menu" onclick="toggleMobileMenu()" aria-label="Menu" aria-controls="mobileMenuSheet" aria-expanded="false">
       <i class="fa-solid fa-bars"></i>
       <span>Menu</span>

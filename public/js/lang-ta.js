@@ -393,7 +393,70 @@ window.SB_LANG_TA = {
     // Several crops on one account
     'Other crops (optional)': 'பிற பயிர்கள் (விருப்பத்தேர்வு)',
     'Citrus': 'எலுமிச்சை வகைகள்',
-    'Tailored for your crops': 'உங்கள் பயிர்களுக்கு ஏற்றது'
+    'Tailored for your crops': 'உங்கள் பயிர்களுக்கு ஏற்றது',
+
+    // Sign-in sheet: sign in, new farmer steps, WhatsApp code
+    'Mobile number or email': 'மொபைல் எண் அல்லது மின்னஞ்சல்',
+    'e.g. 9876543210': 'எ.கா. 9876543210',
+    'Show password': 'கடவுச்சொல்லைக் காட்டு',
+    'Signing in': 'உள்நுழைகிறது',
+    // Short: one of three progress labels sharing a phone's width.
+    'Details': 'விவரம்',
+    'Verify': 'சரிபார்ப்பு',
+    'Back': 'பின்செல்',
+    'Continue': 'தொடரவும்',
+    'Change': 'மாற்று',
+    'Optional': 'விருப்பத்தேர்வு',
+    'Create your farmer account': 'உங்கள் விவசாயி கணக்கை உருவாக்குங்கள்',
+    'Full name': 'முழுப் பெயர்',
+    'e.g. Murugan Selvam': 'எ.கா. முருகன் செல்வம்',
+    'Mobile number': 'மொபைல் எண்',
+    "We'll send a code on WhatsApp to verify it": 'சரிபார்க்க வாட்ஸ்அப்பில் ஒரு குறியீட்டை அனுப்புவோம்',
+    'Create a password': 'கடவுச்சொல்லை உருவாக்குங்கள்',
+    'Done': 'முடிந்தது',
+    'Not yet': 'இன்னும் இல்லை',
+    'About your farm': 'உங்கள் பண்ணை பற்றி',
+    'We show products and advice for these crops first': 'இந்தப் பயிர்களுக்கான பொருட்களையும் ஆலோசனைகளையும் முதலில் காட்டுவோம்',
+    'Main crop': 'முதன்மைப் பயிர்',
+    'Farm size': 'பண்ணை அளவு',
+    'acres': 'ஏக்கர்',
+    'Fewer acres': 'ஏக்கரைக் குறை',
+    'More acres': 'ஏக்கரைக் கூட்டு',
+    'Other crops you grow': 'நீங்கள் பயிரிடும் பிற பயிர்கள்',
+    'Village or town': 'கிராமம் அல்லது ஊர்',
+    'e.g. Thiruvaiyaru, Thanjavur': 'எ.கா. திருவையாறு',
+    'Used for local weather and spraying advice': 'உள்ளூர் வானிலை மற்றும் மருந்து தெளிப்பு ஆலோசனைக்குப் பயன்படும்',
+    'Send code on WhatsApp': 'வாட்ஸ்அப்பில் குறியீடு பெறு',
+    'Sending code': 'குறியீடு அனுப்பப்படுகிறது',
+    'Sending': 'அனுப்பப்படுகிறது',
+    'Verify your number': 'உங்கள் எண்ணைச் சரிபார்க்கவும்',
+    'We sent a 6-digit code on WhatsApp to': 'இந்த எண்ணின் வாட்ஸ்அப்பிற்கு 6 இலக்கக் குறியீட்டை அனுப்பியுள்ளோம்',
+    'Verify & create account': 'சரிபார்த்துப் பதிவு செய்',
+    'Verifying': 'சரிபார்க்கப்படுகிறது',
+    'Resetting': 'மீட்டமைக்கப்படுகிறது',
+    'That code did not work. Check WhatsApp and try again': 'இந்தக் குறியீடு சரியில்லை. வாட்ஸ்அப்பைப் பார்த்து மீண்டும் முயலுங்கள்',
+    'Registration session expired. Please register again': 'பதிவு நேரம் முடிந்தது. மீண்டும் பதிவு செய்யுங்கள்',
+
+    // Checks shown under the sign-in and new farmer fields
+    'Please enter your name': 'உங்கள் பெயரை உள்ளிடுங்கள்',
+    'Please enter your name, not a number': 'எண் அல்ல, உங்கள் பெயரை உள்ளிடுங்கள்',
+    'Mobile number is required': 'மொபைல் எண் தேவை',
+    'An Indian mobile number must start with 6, 7, 8 or 9': 'இந்திய மொபைல் எண் 6, 7, 8 அல்லது 9 இல் தொடங்க வேண்டும்',
+    'Looks good': 'சரியாக உள்ளது',
+    'Please create a password': 'ஒரு கடவுச்சொல்லை உருவாக்குங்கள்',
+    'Your password does not meet all the rules above': 'உங்கள் கடவுச்சொல் மேலே உள்ள அனைத்து விதிகளையும் பூர்த்தி செய்யவில்லை',
+    'Enter your mobile number or email': 'மொபைல் எண் அல்லது மின்னஞ்சலை உள்ளிடுங்கள்',
+    'Enter your password': 'கடவுச்சொல்லை உள்ளிடுங்கள்',
+    'Number must start with 6, 7, 8 or 9': 'எண் 6, 7, 8 அல்லது 9 இல் தொடங்க வேண்டும்',
+    'Enter a valid mobile number or email address': 'சரியான மொபைல் எண் அல்லது மின்னஞ்சல் முகவரியை உள்ளிடுங்கள்',
+
+    // Messages around signing in
+    'Login or Sign Up is mandatory to access checkout': 'ஆர்டர் செய்ய உள்நுழைவு அல்லது பதிவு அவசியம்',
+    'Login or Sign Up is mandatory to access your basket and complete checkout': 'கூடையைப் பார்க்கவும் ஆர்டரை முடிக்கவும் உள்நுழைவு அல்லது பதிவு அவசியம்',
+    'Login or Sign Up is mandatory to access your basket and checkout. Please sign in': 'கூடையைப் பார்க்கவும் ஆர்டர் செய்யவும் உள்நுழைவு அல்லது பதிவு அவசியம். உள்நுழையுங்கள்',
+    'Registration successful! Please sign in with your mobile number and password': 'பதிவு முடிந்தது! மொபைல் எண் மற்றும் கடவுச்சொல்லுடன் உள்நுழையுங்கள்',
+    'This number is already registered. Please sign in with your password': 'இந்த எண் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. கடவுச்சொல்லுடன் உள்நுழையுங்கள்',
+    'A new code has been sent to your WhatsApp': 'புதிய குறியீடு உங்கள் வாட்ஸ்அப்பிற்கு அனுப்பப்பட்டது'
   },
 
   patterns: [
@@ -405,6 +468,8 @@ window.SB_LANG_TA = {
     [/^([\d.]+ ★) \((\d+)\+ Calls$/, '$1 ($2+ அழைப்புகள்'],
     [/^Resend in (\d+)s$/, '$1 வினாடியில் மீண்டும் அனுப்பலாம்'],
     [/^Please wait (\d+) seconds before requesting another code$/, 'மற்றொரு குறியீடு கேட்க $1 வினாடிகள் காத்திருக்கவும்'],
-    [/^Enter the code sent to WhatsApp on \+91 (\d{10}), then choose a new password$/, '+91 $1 வாட்ஸ்அப்பிற்கு அனுப்பிய குறியீட்டை உள்ளிட்டு, புதிய கடவுச்சொல்லைத் தேர்ந்தெடுக்கவும்']
+    // Hints read "Enter all 10 digits (3/10)."; the closing ")." is kept as written.
+    [/^Enter all 10 digits \((\d+)\/10$/, '10 இலக்கங்களையும் உள்ளிடுங்கள் ($1/10'],
+    [/^Mobile number needs 10 digits \((\d+)\/10$/, 'மொபைல் எண்ணுக்கு 10 இலக்கங்கள் தேவை ($1/10']
   ]
 };

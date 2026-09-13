@@ -1139,6 +1139,8 @@ function initApp() {
 
   initFormValidation();
 
+  initAuthSheet();
+
   initRegistrationCropChoices();
 
   initTicker();
@@ -2817,6 +2819,34 @@ function ensureFieldErrorStyles() {
   document.head.appendChild(style);
 }
 
+// Hints and the password checklist belong to the whole field - label, input
+// and any icon, +91 prefix or show-password button around it - so they go
+// under that wrapper rather than inside the input's own row.
+function fieldHost(el) {
+  return el.closest('.auth-field') || el.parentElement;
+}
+
+function fieldRow(el) {
+  return el.closest('.auth-control') || el;
+}
+
+// Adds or removes one id in aria-describedby, keeping help text already linked.
+function linkDescription(el, id, linked) {
+  if (!id) return;
+  const ids = new Set((el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+  if (linked) ids.add(id);
+  else ids.delete(id);
+  if (ids.size) el.setAttribute('aria-describedby', [...ids].join(' '));
+  else el.removeAttribute('aria-describedby');
+}
+
+function removeFieldHint(el) {
+  const hint = fieldHost(el)?.querySelector('.sb-field-error, .sb-field-ok');
+  if (!hint) return;
+  linkDescription(el, hint.id, false);
+  hint.remove();
+}
+
 function setFieldError(el, message) {
   if (!el) return;
   ensureFieldErrorStyles();
@@ -2824,10 +2854,13 @@ function setFieldError(el, message) {
   el.classList.remove('sb-input-valid');
   el.setAttribute('aria-invalid', 'true');
 
-  let hint = el.parentElement?.querySelector('.sb-field-error, .sb-field-ok');
+  const host = fieldHost(el);
+  let hint = host?.querySelector('.sb-field-error, .sb-field-ok');
   if (!hint) {
     hint = document.createElement('small');
-    el.parentElement?.appendChild(hint);
+    if (el.id) hint.id = `${el.id}Hint`;
+    host?.appendChild(hint);
+    linkDescription(el, hint.id, true);
   }
   hint.className = 'sb-field-error';
   hint.textContent = message;
@@ -2840,13 +2873,13 @@ function setFieldValid(el, message = '') {
   el.classList.add('sb-input-valid');
   el.removeAttribute('aria-invalid');
 
-  const hint = el.parentElement?.querySelector('.sb-field-error, .sb-field-ok');
+  const hint = fieldHost(el)?.querySelector('.sb-field-error, .sb-field-ok');
   if (!hint) return;
   if (message) {
     hint.className = 'sb-field-ok';
     hint.textContent = message;
   } else {
-    hint.remove();
+    removeFieldHint(el);
   }
 }
 
@@ -2854,7 +2887,7 @@ function clearField(el) {
   if (!el) return;
   el.classList.remove('sb-input-invalid', 'sb-input-valid');
   el.removeAttribute('aria-invalid');
-  el.parentElement?.querySelector('.sb-field-error, .sb-field-ok')?.remove();
+  removeFieldHint(el);
 }
 
 // Returns true when the field currently holds a valid value.
@@ -2897,33 +2930,38 @@ function farmerPasswordChecks(password, phone) {
 }
 
 // Shows the password rules under the field, ticking each one off as it is met,
-// so people know what to type before they are told it is wrong.
-function renderPasswordChecklist(el) {
-  ensureFieldErrorStyles();
-  let list = el.parentElement?.querySelector('.sb-password-rules');
+// so people know what to type before they are told it is wrong. The tick or
+// ring is drawn by CSS; "Done" / "Not yet" are read out by screen readers.
+function renderPasswordRules(el, checks) {
+  const host = fieldHost(el);
+  let list = host?.querySelector('.sb-password-rules');
   if (!list) {
     list = document.createElement('ul');
     list.className = 'sb-password-rules';
     list.setAttribute('aria-live', 'polite');
-    el.insertAdjacentElement('afterend', list);
+    fieldRow(el).insertAdjacentElement('afterend', list);
   }
-
-  const phone = document.getElementById('regPhone')?.value?.trim() || '';
-  const checks = farmerPasswordChecks(el.value, phone);
   list.replaceChildren(...checks.map(check => {
     const item = document.createElement('li');
     if (check.ok) item.className = 'ok';
-    item.textContent = `${check.ok ? '✓' : '○'} ${check.label}`;
+    const state = document.createElement('span');
+    state.className = 'auth-sr';
+    state.textContent = check.ok ? 'Done: ' : 'Not yet: ';
+    item.append(state, check.label);
     return item;
   }));
   return checks.every(check => check.ok);
 }
 
+function renderPasswordChecklist(el) {
+  ensureFieldErrorStyles();
+  const phone = document.getElementById('regPhone')?.value?.trim() || '';
+  return renderPasswordRules(el, farmerPasswordChecks(el.value, phone));
+}
+
 function validatePasswordField(el) {
   const ok = renderPasswordChecklist(el);
-  el.parentElement?.querySelector('.sb-field-error, .sb-field-ok')?.remove();
-  el.classList.remove('sb-input-invalid');
-  el.removeAttribute('aria-invalid');
+  clearField(el);
   el.classList.toggle('sb-input-valid', ok);
   return ok;
 }
@@ -2975,7 +3013,7 @@ function initFormValidation() {
     regPassword.addEventListener('input', () => validatePasswordField(regPassword));
     // "Not your mobile number" depends on the number, so refresh the list when it changes.
     regPhone?.addEventListener('input', () => {
-      if (regPassword.parentElement?.querySelector('.sb-password-rules')) validatePasswordField(regPassword);
+      if (fieldHost(regPassword)?.querySelector('.sb-password-rules')) validatePasswordField(regPassword);
     });
   }
 
@@ -3264,48 +3302,247 @@ window.handleAccountClick = function() {
   openModal('authModal');
 };
 
-function switchAuthTab(tab) {
-  const loginTabBtn = document.getElementById('authTabLogin');
-  const regTabBtn = document.getElementById('authTabRegister');
-  const loginForm = document.getElementById('storefrontLoginForm');
-  const regForm = document.getElementById('storefrontRegisterForm');
+// ---- The signed-out sheet shows one view at a time ----
+// 'login', 'register' (step 1 details, step 2 farm), 'otp' (step 3, the
+// WhatsApp code) or 'forgot'. Every change of view goes through setAuthView().
+const AUTH_PANELS = {
+  login: 'storefrontLoginForm',
+  register: 'storefrontRegisterForm',
+  otp: 'storefrontOtpContainer',
+  forgot: 'storefrontForgotForm',
+};
+const ACRE_LIMITS = { min: 1, max: 9999 };
+let authView = 'login';
+let registerStep = 1;
 
-  // Leaving the forgot-password view brings the tabs back.
-  const forgotForm = document.getElementById('storefrontForgotForm');
-  if (forgotForm) forgotForm.style.display = 'none';
+function authTitleId(view) {
+  if (view === 'register') return registerStep === 1 ? 'authRegisterTitle' : 'authFarmTitle';
+  return { login: 'authLoginTitle', otp: 'authOtpTitle', forgot: 'authForgotTitle' }[view];
+}
+
+// focusTitle moves focus to the new heading: screen readers announce the new
+// step, and the phone keyboard left open by the previous step closes.
+function setAuthView(view, { focusTitle = false } = {}) {
+  const shell = document.getElementById('authLoggedOutView');
+  if (!shell) return;
+  const card = shell.closest('.modal-card');
+  const changed = shell.dataset.view !== view || shell.dataset.step !== String(registerStep);
+  authView = view;
+  shell.dataset.view = view;
+  shell.dataset.step = String(registerStep);
+
+  Object.entries(AUTH_PANELS).forEach(([name, id]) => {
+    const panel = document.getElementById(id);
+    if (panel) panel.hidden = name !== view;
+  });
+  const accountStep = document.getElementById('regStepAccount');
+  const farmStep = document.getElementById('regStepFarm');
+  if (accountStep) accountStep.hidden = registerStep !== 1;
+  if (farmStep) farmStep.hidden = registerStep !== 2;
+
+  // The Sign In / New Farmer switch where it applies; a back button deeper in.
+  const tabbed = view === 'login' || (view === 'register' && registerStep === 1);
   const tabsBar = document.getElementById('authTabsBar');
-  if (tabsBar) tabsBar.style.display = 'flex';
+  if (tabsBar) {
+    tabsBar.hidden = !tabbed;
+    tabsBar.dataset.active = view === 'login' ? 'login' : 'register';
+  }
+  [['authTabLogin', view === 'login'], ['authTabRegister', view !== 'login']].forEach(([id, selected]) => {
+    const tab = document.getElementById(id);
+    if (!tab) return;
+    tab.setAttribute('aria-selected', String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  });
+  const back = document.getElementById('authBackBtn');
+  if (back) back.hidden = tabbed;
+  const backText = document.getElementById('authBackText');
+  const backLabel = view === 'forgot' ? 'Back to sign in' : 'Back';
+  if (backText && backText.dataset.label !== backLabel) {
+    backText.dataset.label = backLabel;
+    backText.textContent = backLabel;
+  }
 
+  const steps = document.getElementById('authSteps');
+  if (steps) {
+    const current = view === 'otp' ? 3 : registerStep;
+    steps.hidden = view !== 'register' && view !== 'otp';
+    [...steps.children].forEach((item, index) => {
+      item.classList.toggle('is-done', index + 1 < current);
+      if (index + 1 === current) item.setAttribute('aria-current', 'step');
+      else item.removeAttribute('aria-current');
+    });
+  }
+
+  const title = document.getElementById(authTitleId(view));
+  if (title) card?.setAttribute('aria-labelledby', title.id);
+  if (changed) card?.scrollTo({ top: 0 });
+  if (focusTitle) title?.focus({ preventScroll: true });
+}
+
+function switchAuthTab(tab) {
   if (tab === 'login') {
-    if (loginTabBtn) {
-      loginTabBtn.style.background = 'rgba(52, 211, 153, 0.15)';
-      loginTabBtn.style.color = 'var(--primary)';
-    }
-
-    if (regTabBtn) {
-      regTabBtn.style.background = 'transparent';
-      regTabBtn.style.color = 'var(--text-main)';
-    }
-
-    if (loginForm) loginForm.style.display = 'flex';
-    if (regForm) regForm.style.display = 'none';
-
+    setAuthView('login');
   } else {
-    if (regTabBtn) {
-      regTabBtn.style.background = 'rgba(52, 211, 153, 0.15)';
-      regTabBtn.style.color = 'var(--primary)';
-    }
-
-    if (loginTabBtn) {
-      loginTabBtn.style.background = 'transparent';
-      loginTabBtn.style.color = 'var(--text-main)';
-    }
-
-    if (loginForm) loginForm.style.display = 'none';
-    if (regForm) regForm.style.display = 'flex';
+    // A code has already been sent: carry on where the farmer left off.
+    setAuthView(storefrontPendingRegistration ? 'otp' : 'register');
   }
 }
 window.switchAuthTab = switchAuthTab;
+
+function goToRegisterStep(step, { focus } = {}) {
+  registerStep = step;
+  setAuthView('register', { focusTitle: !focus });
+  focus?.focus();
+}
+
+window.authBack = function() {
+  if (authView === 'forgot') closeForgotPassword();
+  // The code stays valid: coming forward again with the same number does not send another.
+  else if (authView === 'otp') goToRegisterStep(2);
+  else goToRegisterStep(1);
+};
+
+// 9876501234 -> "+91 98765 01234", grouped the way the number is read out.
+function formatMobile(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  return digits.length === 10 ? `+91 ${digits.slice(0, 5)} ${digits.slice(5)}` : `+91 ${digits}`;
+}
+
+// "Code sent on WhatsApp. Resend in 28s", counting down to "Didn't get it?
+// Resend code". Returns the interval, or null when there is nothing to wait for.
+function startResendCountdown(button, text, seconds) {
+  let left = Math.max(0, Math.ceil(Number(seconds) || 0));
+  const render = () => {
+    const waiting = left > 0;
+    if (button) {
+      button.disabled = waiting;
+      button.textContent = waiting ? `Resend in ${left}s` : 'Resend code';
+    }
+    if (text) text.textContent = waiting ? 'Code sent on WhatsApp.' : "Didn't get it?";
+    return waiting;
+  };
+  if (!render()) return null;
+  const timer = setInterval(() => {
+    left -= 1;
+    if (!render()) clearInterval(timer);
+  }, 1000);
+  return timer;
+}
+
+// A code field is one real input (so WhatsApp/SMS autofill and paste work)
+// drawn as six boxes. Called whenever its value changes.
+function syncOtpCells(input) {
+  const cells = input?.parentElement?.querySelectorAll('.auth-otp-cells span');
+  if (!cells?.length) return;
+  const digits = input.value.replace(/\D/g, '').slice(0, cells.length);
+  const focused = document.activeElement === input;
+  cells.forEach((cell, index) => {
+    const digit = digits[index] || '';
+    if (cell.textContent !== digit) cell.textContent = digit;
+    cell.classList.toggle('is-filled', Boolean(digit));
+    cell.classList.toggle('is-active', focused && index === Math.min(digits.length, cells.length - 1));
+  });
+}
+
+function clearOtpInput(id) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  input.value = '';
+  clearField(input);
+  syncOtpCells(input);
+}
+
+function resetPasswordToggles(root) {
+  root?.querySelectorAll('[data-password-toggle]').forEach(button => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+    if (input) input.type = 'password';
+    button.setAttribute('aria-pressed', 'false');
+    button.querySelector('i')?.classList.replace('fa-eye-slash', 'fa-eye');
+  });
+}
+
+function syncAcreageButtons() {
+  const value = parseInt(document.getElementById('regAcreage')?.value, 10) || 0;
+  document.querySelectorAll('[data-acre-step]').forEach(button => {
+    const atLimit = Number(button.dataset.acreStep) < 0 ? value <= ACRE_LIMITS.min : value >= ACRE_LIMITS.max;
+    button.setAttribute('aria-disabled', String(atLimit));
+  });
+}
+
+function initAuthSheet() {
+  // Show / hide password. Pressing the button keeps focus in the field, so
+  // the phone keyboard stays open.
+  document.querySelectorAll('[data-password-toggle]').forEach(button => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+    if (!input) return;
+    button.addEventListener('pointerdown', event => event.preventDefault());
+    button.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.setAttribute('aria-pressed', String(show));
+      button.querySelector('i')?.classList.replace(show ? 'fa-eye' : 'fa-eye-slash', show ? 'fa-eye-slash' : 'fa-eye');
+    });
+  });
+
+  // "Enter your password." goes away as soon as something is typed.
+  const loginPassword = document.getElementById('loginPassword');
+  loginPassword?.addEventListener('input', () => {
+    if (loginPassword.value) clearField(loginPassword);
+  });
+
+  // Farm size - and + buttons.
+  const acreage = document.getElementById('regAcreage');
+  document.querySelectorAll('[data-acre-step]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (!acreage || button.getAttribute('aria-disabled') === 'true') return;
+      const next = (parseInt(acreage.value, 10) || 0) + Number(button.dataset.acreStep);
+      acreage.value = String(Math.min(ACRE_LIMITS.max, Math.max(ACRE_LIMITS.min, next)));
+      syncAcreageButtons();
+    });
+  });
+  acreage?.addEventListener('input', syncAcreageButtons);
+  syncAcreageButtons();
+
+  // Arrow keys move between the Sign In and New Farmer tabs.
+  const tabs = [...document.querySelectorAll('#authTabsBar [role="tab"]')];
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      next.click();
+      next.focus();
+    });
+  });
+
+  // Six-box code fields. Typing always continues after the last digit, where
+  // the lit box is.
+  document.querySelectorAll('.auth-otp-input').forEach(input => {
+    const caretToEnd = () => input.setSelectionRange(input.value.length, input.value.length);
+    input.addEventListener('input', () => syncOtpCells(input));
+    input.addEventListener('focus', () => {
+      syncOtpCells(input);
+      requestAnimationFrame(caretToEnd);
+    });
+    input.addEventListener('blur', () => syncOtpCells(input));
+    input.addEventListener('click', caretToEnd);
+    syncOtpCells(input);
+  });
+
+  // A complete sign-up code is checked straight away.
+  const signupCode = document.getElementById('storefrontOtpInput');
+  signupCode?.addEventListener('input', () => {
+    if (signupCode.value.length === 6) verifyStorefrontOtp();
+    else clearField(signupCode);
+  });
+
+  // A complete reset code moves on to the new password.
+  const resetCode = document.getElementById('forgotOtp');
+  resetCode?.addEventListener('input', () => {
+    const password = document.getElementById('forgotNewPassword');
+    if (resetCode.value.length === 6 && password && !password.value) password.focus();
+  });
+}
 
 // ============================================================
 // FORGOT PASSWORD - WhatsApp code to the registered number
@@ -3320,11 +3557,11 @@ let forgotResendTimer = null;
 function forgotEls() {
   return {
     form: document.getElementById('storefrontForgotForm'),
-    tabs: document.getElementById('authTabsBar'),
     intro: document.getElementById('forgotIntro'),
     stepPhone: document.getElementById('forgotStepPhone'),
     stepReset: document.getElementById('forgotStepReset'),
     phone: document.getElementById('forgotPhone'),
+    phoneShown: document.getElementById('forgotPhoneShown'),
     otp: document.getElementById('forgotOtp'),
     password: document.getElementById('forgotNewPassword'),
     confirm: document.getElementById('forgotConfirmPassword'),
@@ -3342,7 +3579,9 @@ function showForgotStep(step) {
   els.stepReset.hidden = step !== 'reset';
   els.intro.textContent = step === 'phone'
     ? "Enter your registered mobile number. We'll send a 6-digit code to its WhatsApp."
-    : `Enter the code sent to WhatsApp on +91 ${forgotPhone}, then choose a new password.`;
+    : 'We sent a 6-digit code on WhatsApp to';
+  if (els.phoneShown) els.phoneShown.textContent = forgotPhone ? formatMobile(forgotPhone) : '';
+  syncOtpCells(els.otp);
 }
 
 function resetForgotForm() {
@@ -3353,15 +3592,14 @@ function resetForgotForm() {
     if (els[key]) { els[key].value = ''; clearField(els[key]); }
   });
   els.form?.querySelectorAll('.sb-password-rules').forEach(list => list.remove());
+  resetPasswordToggles(els.form);
+  syncOtpCells(els.otp);
 }
 
 window.openForgotPassword = function() {
   const els = forgotEls();
   if (!els.form) return;
-  document.getElementById('storefrontLoginForm').style.display = 'none';
-  document.getElementById('storefrontRegisterForm').style.display = 'none';
-  if (els.tabs) els.tabs.style.display = 'none';
-  els.form.style.display = 'flex';
+  setAuthView('forgot');
   // Carry over a mobile number already typed into the sign-in form.
   const typed = (document.getElementById('loginIdentifier')?.value || '').replace(/\D/g, '');
   if (!els.phone.value && /^[6-9]\d{9}$/.test(typed)) els.phone.value = typed;
@@ -3370,9 +3608,6 @@ window.openForgotPassword = function() {
 };
 
 window.closeForgotPassword = function() {
-  const els = forgotEls();
-  if (els.form) els.form.style.display = 'none';
-  if (els.tabs) els.tabs.style.display = 'flex';
   switchAuthTab('login');
 };
 
@@ -3383,25 +3618,9 @@ window.forgotChangeNumber = function() {
 };
 
 function startForgotResendCountdown(seconds) {
-  const els = forgotEls();
   clearInterval(forgotResendTimer);
-  let left = Math.max(0, Math.round(Number(seconds) || 0));
-  const tick = () => {
-    if (!els.resendBtn) return;
-    if (left <= 0) {
-      clearInterval(forgotResendTimer);
-      els.resendBtn.disabled = false;
-      els.resendBtn.textContent = 'Resend code';
-      els.resendText.textContent = "Didn't get it?";
-      return;
-    }
-    els.resendBtn.disabled = true;
-    els.resendBtn.textContent = `Resend in ${left}s`;
-    els.resendText.textContent = 'Code sent on WhatsApp.';
-    left -= 1;
-  };
-  tick();
-  forgotResendTimer = setInterval(tick, 1000);
+  const els = forgotEls();
+  forgotResendTimer = startResendCountdown(els.resendBtn, els.resendText, seconds);
 }
 
 window.sendForgotPasswordCode = async function(isResend = false) {
@@ -3467,21 +3686,7 @@ function validateResetPassword() {
   const el = document.getElementById('forgotNewPassword');
   if (!el) return false;
   ensureFieldErrorStyles();
-  let list = el.nextElementSibling?.classList?.contains('sb-password-rules') ? el.nextElementSibling : null;
-  if (!list) {
-    list = document.createElement('ul');
-    list.className = 'sb-password-rules';
-    list.setAttribute('aria-live', 'polite');
-    el.insertAdjacentElement('afterend', list);
-  }
-  const checks = farmerPasswordChecks(el.value, forgotPhone);
-  list.replaceChildren(...checks.map(check => {
-    const item = document.createElement('li');
-    if (check.ok) item.className = 'ok';
-    item.textContent = `${check.ok ? '✓' : '○'} ${check.label}`;
-    return item;
-  }));
-  const ok = checks.every(check => check.ok);
+  const ok = renderPasswordRules(el, farmerPasswordChecks(el.value, forgotPhone));
   el.classList.toggle('sb-input-valid', ok);
   return ok;
 }
@@ -3524,7 +3729,7 @@ window.submitForgotPassword = async function(e) {
 
     if (!res.ok || !data.success) {
       showToast(data.message || 'Could not reset your password. Please try again.', 'error', 6000);
-      if (/expired|request a new code/i.test(data.message || '')) els.otp.value = '';
+      if (/expired|request a new code/i.test(data.message || '')) clearOtpInput('forgotOtp');
       return;
     }
 
@@ -3577,12 +3782,11 @@ document.getElementById('forgotPhone')?.addEventListener('input', event => {
 window.submitStorefrontLogin = async function(e) {
   e.preventDefault();
 
-  const identifier = document.getElementById('loginIdentifier')?.value?.trim();
-  const password = document.getElementById('loginPassword')?.value;
-  const btn = document.getElementById('loginSubmitBtn');
-
   const idEl = document.getElementById('loginIdentifier');
   const pwEl = document.getElementById('loginPassword');
+  const identifier = idEl?.value?.trim();
+  const password = pwEl?.value;
+  const btn = document.getElementById('loginSubmitBtn');
   let bad = null;
 
   if (!identifier) { setFieldError(idEl, 'Enter your mobile number or email.'); bad = bad || idEl; }
@@ -3595,7 +3799,7 @@ window.submitStorefrontLogin = async function(e) {
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Signing in...';
   }
 
   try {
@@ -3614,6 +3818,10 @@ window.submitStorefrontLogin = async function(e) {
 
     localStorage.setItem('sathya_token', data.token);
     localStorage.setItem('sathya_user', JSON.stringify(data.user));
+
+    // The password does not stay in the sheet for the next person on this phone.
+    if (pwEl) pwEl.value = '';
+    resetPasswordToggles(document.getElementById('storefrontLoginForm'));
 
     checkStorefrontAuth();
     closeModal('authModal');
@@ -3644,7 +3852,7 @@ window.submitStorefrontLogin = async function(e) {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Sign In to Sathya Bio';
+      btn.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
     }
   }
 };
@@ -3672,14 +3880,13 @@ window.handleStorefrontLogout = function() {
 
 let storefrontPendingRegistration = null;
 let storefrontOtpTimer = null;
-let storefrontOtpSeconds = 30;
 
 
 // ============================================================
 // OTHER CROPS ON THE SIGN-UP FORM
 // ============================================================
 
-// Tick boxes for other crops the farmer grows, below the primary crop. The
+// Tick-box chips for other crops the farmer grows, below the main crop. The
 // choices come from the crop registry (GET /api/crops). If that request fails
 // the section stays hidden and sign-up works exactly as before.
 async function initRegistrationCropChoices() {
@@ -3697,21 +3904,27 @@ async function initRegistrationCropChoices() {
 
     list.replaceChildren(...choices.map(choice => {
       const label = document.createElement('label');
-      label.style.cssText = 'display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 4px 12px; border: 1px solid var(--border-light); border-radius: 999px; font-size: 0.85rem; cursor: pointer;';
+      label.className = 'auth-chip';
       const box = document.createElement('input');
       box.type = 'checkbox';
       box.value = choice.label;
+      const face = document.createElement('span');
+      face.className = 'auth-chip-face';
+      face.innerHTML = '<i class="fa-solid fa-plus" aria-hidden="true"></i><i class="fa-solid fa-check" aria-hidden="true"></i>';
+      const name = document.createElement('span');
       // The English name is the text key lang-ta.js translates.
-      label.append(box, ` ${choice.label}`);
+      name.textContent = choice.label;
+      face.append(name);
+      label.append(box, face);
       return label;
     }));
 
-    // The primary crop is not offered again as an "other" crop.
+    // The main crop is not offered again as an "other" crop.
     const hidePrimary = () => {
       list.querySelectorAll('label').forEach(label => {
         const box = label.querySelector('input');
         const isPrimary = Boolean(primary) && box.value === primary.value;
-        label.style.display = isPrimary ? 'none' : 'inline-flex';
+        label.hidden = isPrimary;
         if (isPrimary) box.checked = false;
       });
     };
@@ -3724,47 +3937,93 @@ async function initRegistrationCropChoices() {
 }
 
 // ============================================================
-// SUBMIT STOREFRONT REGISTRATION (SENDS OTP)
+// NEW FARMER: STEP 1 DETAILS, STEP 2 FARM (SENDS THE CODE)
 // ============================================================
 
+// Checks the step 1 fields and shows each problem under its field. Returns
+// the first field that needs fixing, or null when all three are fine.
+function firstInvalidAccountField() {
+  const nameEl = document.getElementById('regName');
+  const phoneEl = document.getElementById('regPhone');
+  const passEl = document.getElementById('regPassword');
+  if (!nameEl || !phoneEl || !passEl) return null;
+  let firstBad = null;
+
+  if (!nameEl.value.trim()) { setFieldError(nameEl, 'Please enter your name.'); firstBad = firstBad || nameEl; }
+  else if (!validateNameField(nameEl)) { firstBad = firstBad || nameEl; }
+
+  if (!phoneEl.value.trim()) { setFieldError(phoneEl, 'Mobile number is required.'); firstBad = firstBad || phoneEl; }
+  else if (!validatePhoneField(phoneEl)) { firstBad = firstBad || phoneEl; }
+
+  if (!passEl.value) { setFieldError(passEl, 'Please create a password.'); firstBad = firstBad || passEl; }
+  else if (!validatePasswordField(passEl)) {
+    setFieldError(passEl, 'Your password does not meet all the rules above.');
+    firstBad = firstBad || passEl;
+  }
+
+  return firstBad;
+}
+
+// Empties the sign-up form once the account exists, so the next person on
+// this phone does not find the details - or the password - filled in.
+function resetRegisterForm() {
+  const form = document.getElementById('storefrontRegisterForm');
+  if (!form) return;
+  form.reset();
+  form.querySelectorAll('input[id], select[id]').forEach(clearField);
+  form.querySelectorAll('.sb-password-rules').forEach(list => list.remove());
+  resetPasswordToggles(form);
+  document.getElementById('regCrop')?.dispatchEvent(new Event('change'));
+  syncAcreageButtons();
+  clearOtpInput('storefrontOtpInput');
+  registerStep = 1;
+}
+
+// Step 1 only moves on to step 2; step 2 sends the WhatsApp code.
 window.submitStorefrontRegister = async function(e) {
   e.preventDefault();
 
-  const name = document.getElementById('regName')?.value?.trim();
-  const phone = document.getElementById('regPhone')?.value?.trim();
-  const password = document.getElementById('regPassword')?.value;
+  const invalid = firstInvalidAccountField();
+  if (invalid) {
+    goToRegisterStep(1, { focus: invalid });
+    return;
+  }
+  if (registerStep === 1) {
+    goToRegisterStep(2);
+    return;
+  }
+
+  const name = document.getElementById('regName').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value;
   const crop = document.getElementById('regCrop')?.value;
   const otherCrops = [...document.querySelectorAll('#regOtherCropsList input:checked')].map(box => box.value);
   const acreage = document.getElementById('regAcreage')?.value;
   const village = document.getElementById('regVillage')?.value?.trim();
   const btn = document.getElementById('regSubmitBtn');
 
-  // Show problems under each field rather than as one generic message.
-  const nameEl = document.getElementById('regName');
-  const phoneEl = document.getElementById('regPhone');
-  const passEl = document.getElementById('regPassword');
-  let firstBad = null;
+  const details = {
+    name,
+    phone,
+    password,
+    crop,
+    crops: [crop, ...otherCrops],
+    acreage: Number(acreage) || 1,
+    village: village || 'Coimbatore'
+  };
 
-  if (!name) { setFieldError(nameEl, 'Please enter your name.'); firstBad = firstBad || nameEl; }
-  else if (!validateNameField(nameEl)) { firstBad = firstBad || nameEl; }
-
-  if (!phone) { setFieldError(phoneEl, 'Mobile number is required.'); firstBad = firstBad || phoneEl; }
-  else if (!validatePhoneField(phoneEl)) { firstBad = firstBad || phoneEl; }
-
-  if (!password) { setFieldError(passEl, 'Please create a password.'); firstBad = firstBad || passEl; }
-  else if (!validatePasswordField(passEl)) {
-    setFieldError(passEl, 'Your password does not meet all the rules above.');
-    firstBad = firstBad || passEl;
-  }
-
-  if (firstBad) {
-    firstBad.focus();
+  // Back from the code screen with the same number: the code already sent
+  // still works, so no second message.
+  if (storefrontPendingRegistration?.phone === phone) {
+    storefrontPendingRegistration = details;
+    setAuthView('otp');
+    document.getElementById('storefrontOtpInput')?.focus();
     return;
   }
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending OTP...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Sending code...';
   }
 
   try {
@@ -3780,14 +4039,15 @@ window.submitStorefrontRegister = async function(e) {
       // The number already has an account — send them straight to Sign In with
       // the number filled in, rather than leaving them stuck on an error.
       if (data.alreadyRegistered) {
+        registerStep = 1;
         switchAuthTab('login');
 
         const identifier = document.getElementById('loginIdentifier');
-        const password = document.getElementById('loginPassword');
+        const loginPassword = document.getElementById('loginPassword');
         if (identifier) identifier.value = phone;
-        if (password) {
-          password.value = '';
-          password.focus();
+        if (loginPassword) {
+          loginPassword.value = '';
+          loginPassword.focus();
         }
 
         showToast('This number is already registered. Please sign in with your password.', 'info', 6000);
@@ -3798,16 +4058,7 @@ window.submitStorefrontRegister = async function(e) {
       return;
     }
 
-    storefrontPendingRegistration = {
-      name,
-      phone,
-      password,
-      crop,
-      crops: [crop, ...otherCrops],
-      acreage: Number(acreage) || 1,
-      village: village || 'Coimbatore'
-    };
-
+    storefrontPendingRegistration = details;
     showStorefrontOtpForm(phone, data.resendAfter);
 
   } catch (err) {
@@ -3816,50 +4067,54 @@ window.submitStorefrontRegister = async function(e) {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Register & Access Deals';
+      btn.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Send code on WhatsApp';
     }
   }
 };
 
 
 // ============================================================
-// VERIFY STOREFRONT OTP & COMPLETE REGISTRATION
+// NEW FARMER STEP 3: VERIFY THE CODE & CREATE THE ACCOUNT
 // ============================================================
 
 window.verifyStorefrontOtp = async function() {
-
   if (!storefrontPendingRegistration) {
     showToast('Registration session expired. Please register again.', 'warning');
     return;
   }
 
   const otpInput = document.getElementById('storefrontOtpInput');
-  const otp = otpInput?.value?.trim();
   const verifyBtn = document.getElementById('storefrontOtpVerifyBtn');
-  const phone = storefrontPendingRegistration.phone;
+  // A full code arriving while one is being checked (autofill, then a tap) is not sent twice.
+  if (verifyBtn?.disabled) return;
 
-  if (!otp || otp.length !== 6) {
-    showToast('Please enter the 6-digit OTP sent to your WhatsApp.', 'warning');
+  const otp = (otpInput?.value || '').replace(/\D/g, '');
+  const pending = storefrontPendingRegistration;
+
+  if (otp.length !== 6) {
+    setFieldError(otpInput, 'Enter the 6-digit code from WhatsApp.');
+    otpInput?.focus();
     return;
   }
+  clearField(otpInput);
 
   if (verifyBtn) {
     verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+    verifyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Verifying...';
   }
 
   try {
-
     const verifyRes = await fetch('/api/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, otp })
+      body: JSON.stringify({ phone: pending.phone, otp })
     });
 
     const verifyData = await verifyRes.json();
 
     if (!verifyRes.ok || !verifyData.success) {
-      showToast(verifyData.message || 'Invalid OTP. Please try again.', 'error');
+      setFieldError(otpInput, verifyData.message || 'That code did not work. Check WhatsApp and try again.');
+      otpInput?.focus();
       return;
     }
 
@@ -3867,13 +4122,13 @@ window.verifyStorefrontOtp = async function() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: storefrontPendingRegistration.name,
-        phone: storefrontPendingRegistration.phone,
-        password: storefrontPendingRegistration.password,
-        crop: storefrontPendingRegistration.crop,
-        crops: storefrontPendingRegistration.crops,
-        acreage: storefrontPendingRegistration.acreage,
-        village: storefrontPendingRegistration.village,
+        name: pending.name,
+        phone: pending.phone,
+        password: pending.password,
+        crop: pending.crop,
+        crops: pending.crops,
+        acreage: pending.acreage,
+        village: pending.village,
         role: 'farmer'
       })
     });
@@ -3887,402 +4142,119 @@ window.verifyStorefrontOtp = async function() {
 
     clearInterval(storefrontOtpTimer);
     storefrontPendingRegistration = null;
+    resetRegisterForm();
 
-    const otpContainer = document.getElementById('storefrontOtpContainer');
-    if (otpContainer) otpContainer.remove();
-
-    const regForm = document.getElementById('storefrontRegisterForm');
-    if (regForm) regForm.style.display = 'flex';
-
-    // --------------------------------------------------------
-    // SWITCH TO LOGIN
-    // --------------------------------------------------------
-
+    // The farmer signs in with the new password; there is no automatic sign-in.
     switchAuthTab('login');
+    const loginIdentifier = document.getElementById('loginIdentifier');
+    if (loginIdentifier) loginIdentifier.value = pending.phone;
+    document.getElementById('loginPassword')?.focus();
 
-    // Fill mobile number automatically
-    const loginIdentifier =
-      document.getElementById('loginIdentifier');
-
-    if (loginIdentifier) {
-      loginIdentifier.value = phone;
-    }
-
-    // Do NOT automatically login.
-    // User must enter password and click Sign In.
-
-    showToast(
-      'Registration successful! Please sign in with your mobile number and password.',
-      'success',
-      6000
-    );
+    showToast('Registration successful! Please sign in with your mobile number and password.', 'success', 6000);
 
   } catch (err) {
-
-    console.error(
-      'OTP verification error:',
-      err
-    );
-
-    showToast(
-      'Could not reach the server. Please try again.',
-      'error'
-    );
-
+    console.error('OTP verification error:', err);
+    showToast('Could not reach the server. Please try again.', 'error');
   } finally {
-
     if (verifyBtn) {
       verifyBtn.disabled = false;
-
-      verifyBtn.innerHTML =
-        '🔐 Verify OTP';
+      verifyBtn.innerHTML = '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verify &amp; create account';
     }
   }
 };
 
 
 // ============================================================
-// RESEND STOREFRONT OTP
+// RESEND THE SIGN-UP CODE
 // ============================================================
 
 window.resendStorefrontOtp = async function() {
-
   if (!storefrontPendingRegistration) {
-    showToast(
-      'Registration session expired. Please register again.',
-      'warning'
-    );
+    showToast('Registration session expired. Please register again.', 'warning');
     return;
   }
 
-  const resendBtn =
-    document.getElementById(
-      'storefrontOtpResendBtn'
-    );
+  const resendBtn = document.getElementById('storefrontOtpResendBtn');
+  const { name, phone } = storefrontPendingRegistration;
 
-  const phone =
-    storefrontPendingRegistration.phone;
-
+  clearInterval(storefrontOtpTimer);
   if (resendBtn) {
     resendBtn.disabled = true;
-
-    resendBtn.innerHTML =
-      '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    resendBtn.textContent = 'Sending...';
   }
 
   try {
+    const res = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone })
+    });
 
-    const res = await fetch(
-      '/api/auth/send-otp',
-      {
-        method: 'POST',
-
-        headers: {
-          'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
-          name:
-            storefrontPendingRegistration.name,
-
-          phone
-        })
-      }
-    );
-
-    const data =
-      await res.json();
+    const data = await res.json();
 
     if (!res.ok || !data.success) {
-
-      showToast(
-        data.message || 'Failed to resend OTP.',
-        'error'
-      );
-
+      showToast(data.message || 'Failed to resend OTP.', 'error');
+      // Asked too soon: wait out what the server says; otherwise allow a retry now.
+      startStorefrontOtpTimer(data.retryAfter || 0);
       return;
     }
 
-    showToast(
-      'A new OTP has been sent to your WhatsApp.',
-      'success'
-    );
-
+    showToast('A new code has been sent to your WhatsApp.', 'success');
+    clearOtpInput('storefrontOtpInput');
+    document.getElementById('storefrontOtpInput')?.focus();
     startStorefrontOtpTimer(data.resendAfter);
 
   } catch (err) {
-
-    console.error(
-      'Resend OTP error:',
-      err
-    );
-
-    showToast(
-      'Could not reach the OTP server.',
-      'error'
-    );
-
-  } finally {
-
-    if (resendBtn) {
-
-      // Timer controls when it becomes enabled again.
-      if (storefrontOtpSeconds > 0) {
-        resendBtn.disabled = true;
-      }
-
-      resendBtn.innerHTML =
-        '🔄 Resend OTP';
-    }
+    console.error('Resend OTP error:', err);
+    showToast('Could not reach the OTP server.', 'error');
+    startStorefrontOtpTimer(0);
   }
 };
 
 
 // ============================================================
-// CHANGE STOREFRONT MOBILE NUMBER
+// CHANGE THE SIGN-UP MOBILE NUMBER
 // ============================================================
 
 window.changeStorefrontNumber = function() {
-
   clearInterval(storefrontOtpTimer);
   storefrontPendingRegistration = null;
+  clearOtpInput('storefrontOtpInput');
 
-  const otpContainer =
-    document.getElementById(
-      'storefrontOtpContainer'
-    );
-
-  if (otpContainer) {
-    otpContainer.remove();
-  }
-
-  const regForm =
-    document.getElementById(
-      'storefrontRegisterForm'
-    );
-
-  if (regForm) {
-    regForm.style.display = 'flex';
-  }
-
-  const phoneInput =
-    document.getElementById('regPhone');
-
-  if (phoneInput) {
-    phoneInput.focus();
-  }
+  const phoneInput = document.getElementById('regPhone');
+  goToRegisterStep(1, { focus: phoneInput });
+  phoneInput?.select();
 };
 
 
 // ============================================================
-// SHOW STOREFRONT OTP FORM
+// SHOW THE SIGN-UP CODE SCREEN (STEP 3)
 // ============================================================
 
 function showStorefrontOtpForm(phone, resendAfter) {
-
-  const regForm =
-    document.getElementById('storefrontRegisterForm');
-
-  if (!regForm) {
-    console.error('storefrontRegisterForm not found');
-    return;
-  }
-
-  // Hide registration form
-  regForm.style.display = 'none';
-
-  // Remove old OTP container if it exists
-  const oldOtp =
-    document.getElementById(
-      'storefrontOtpContainer'
-    );
-
-  if (oldOtp) {
-    oldOtp.remove();
-  }
-
-  // Create OTP container
-  const otpContainer =
-    document.createElement('div');
-
-  otpContainer.id =
-    'storefrontOtpContainer';
-
-  otpContainer.innerHTML = `
-    <div style="
-      padding: 10px 0;
-      text-align: center;
-    ">
-
-      <div style="
-        font-size: 42px;
-        margin-bottom: 10px;
-      ">
-        🔐
-      </div>
-
-      <h3 style="
-        margin-bottom: 8px;
-      ">
-        Verify Your Mobile Number
-      </h3>
-
-      <p style="
-        margin-bottom: 20px;
-        color: #666;
-      ">
-        We sent a 6-digit OTP to
-        <strong>+91 ${phone}</strong>
-      </p>
-
-      <input
-        type="text"
-        id="storefrontOtpInput"
-        inputmode="numeric"
-        autocomplete="one-time-code"
-        maxlength="6"
-        placeholder="Enter 6-digit OTP"
-        style="
-          width: 100%;
-          padding: 14px;
-          text-align: center;
-          font-size: 24px;
-          letter-spacing: 8px;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          box-sizing: border-box;
-          margin-bottom: 15px;
-        "
-      >
-
-      <button
-        type="button"
-        id="storefrontOtpVerifyBtn"
-        onclick="verifyStorefrontOtp()"
-        class="btn btn-primary"
-        style="
-          width: 100%;
-          margin-bottom: 12px;
-        "
-      >
-        🔐 Verify OTP
-      </button>
-
-      <div style="
-        margin: 10px 0;
-        color: #666;
-      ">
-        <span id="storefrontOtpTimer">
-          Resend OTP in 00:30
-        </span>
-      </div>
-
-      <button
-        type="button"
-        id="storefrontOtpResendBtn"
-        onclick="resendStorefrontOtp()"
-        class="btn"
-        disabled
-        style="
-          width: 100%;
-          margin-bottom: 10px;
-        "
-      >
-        🔄 Resend OTP
-      </button>
-
-      <button
-        type="button"
-        onclick="changeStorefrontNumber()"
-        class="btn"
-        style="
-          width: 100%;
-        "
-      >
-        ← Change Mobile Number
-      </button>
-
-    </div>
-  `;
-
-  regForm.parentNode.insertBefore(
-    otpContainer,
-    regForm
-  );
-
-  const otpInput =
-    document.getElementById(
-      'storefrontOtpInput'
-    );
-
-  if (otpInput) {
-    otpInput.focus();
-
-    otpInput.addEventListener(
-      'input',
-      () => {
-        otpInput.value =
-          otpInput.value
-            .replace(/\D/g, '')
-            .slice(0, 6);
-      }
-    );
-
-    otpInput.addEventListener(
-      'keydown',
-      (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          verifyStorefrontOtp();
-        }
-      }
-    );
-  }
-
+  const shown = document.getElementById('storefrontOtpPhone');
+  if (shown) shown.textContent = formatMobile(phone);
+  clearOtpInput('storefrontOtpInput');
+  setAuthView('otp');
+  document.getElementById('storefrontOtpInput')?.focus();
   startStorefrontOtpTimer(resendAfter);
 }
 
 
 // ============================================================
-// STOREFRONT OTP RESEND TIMER
+// SIGN-UP CODE RESEND TIMER
 // ============================================================
 
 // The wait is decided by the server and varies per request, so it is passed in
 // rather than assumed. Falls back to 30s only if the server didn't say.
 function startStorefrontOtpTimer(seconds) {
-
   clearInterval(storefrontOtpTimer);
-  storefrontOtpSeconds = Number(seconds) > 0 ? Math.ceil(Number(seconds)) : 30;
-
-  const timerEl = document.getElementById('storefrontOtpTimer');
-  const resendBtn = document.getElementById('storefrontOtpResendBtn');
-
-  if (resendBtn) resendBtn.disabled = true;
-
-  function render() {
-    if (!timerEl) return;
-    if (storefrontOtpSeconds <= 0) {
-      timerEl.textContent = 'You can resend the OTP now.';
-      return;
-    }
-    // Can exceed 60s, so render as mm:ss.
-    const mm = String(Math.floor(storefrontOtpSeconds / 60)).padStart(2, '0');
-    const ss = String(storefrontOtpSeconds % 60).padStart(2, '0');
-    timerEl.textContent = `Resend OTP in ${mm}:${ss}`;
-  }
-
-  render();
-
-  storefrontOtpTimer = setInterval(() => {
-    storefrontOtpSeconds -= 1;
-
-    if (storefrontOtpSeconds <= 0) {
-      clearInterval(storefrontOtpTimer);
-      if (resendBtn) resendBtn.disabled = false;
-    }
-
-    render();
-  }, 1000);
+  const said = seconds !== undefined && seconds !== null && Number.isFinite(Number(seconds));
+  storefrontOtpTimer = startResendCountdown(
+    document.getElementById('storefrontOtpResendBtn'),
+    document.getElementById('storefrontOtpTimer'),
+    said ? Number(seconds) : 30,
+  );
 }
 
 // ---------------------------------------------------------------------------

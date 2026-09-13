@@ -1062,152 +1062,277 @@
     </div>
   </div>
 
-  <!-- MODAL: SATHYA BIO LOGIN & REGISTRATION -->
+  <!-- MODAL: SIGN IN, NEW FARMER AND PASSWORD RESET
+       One sheet with four views, switched by setAuthView() in js/app.js:
+       login, register (step 1 details, step 2 farm), otp (step 3, the
+       WhatsApp code) and forgot. Styles: css/responsive.css section 7f.
+       Error hints are added inside each .auth-field by setFieldError(). -->
   <div class="modal-overlay" id="authModal">
-    <div class="modal-card" style="max-width: 480px; padding: 24px;">
+    <div class="modal-card auth-card" role="dialog" aria-modal="true" aria-labelledby="authLoginTitle">
       <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
-      
+
       <!-- LOGGED OUT VIEW -->
-      <div id="authLoggedOutView">
-        <!-- MANDATORY AUTH NOTICE BANNER -->
-        <div id="authNoticeBanner" style="display: none; align-items: center; gap: 10px; background: #fef2f2; border: 1.5px solid #f87171; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; color: #991b1b; font-size: 0.88rem; font-weight: 600; line-height: 1.4;">
-          <i class="fa-solid fa-triangle-exclamation" style="color: #dc2626; font-size: 1.25rem; flex-shrink: 0;"></i>
+      <div id="authLoggedOutView" class="auth-shell" data-view="login">
+        <div class="auth-topbar">
+          <div id="authTabsBar" class="auth-tabs" role="tablist" data-active="login">
+            <button type="button" id="authTabLogin" class="auth-tab" role="tab" aria-selected="true" aria-controls="storefrontLoginForm" onclick="switchAuthTab('login')">Sign In</button>
+            <button type="button" id="authTabRegister" class="auth-tab" role="tab" aria-selected="false" aria-controls="storefrontRegisterForm" tabindex="-1" onclick="switchAuthTab('register')">New Farmer</button>
+          </div>
+          <button type="button" id="authBackBtn" class="auth-back" onclick="authBack()" hidden>
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span id="authBackText">Back</span>
+          </button>
+        </div>
+
+        <!-- Shown by setAuthNotice() when signing in is needed to continue -->
+        <div id="authNoticeBanner" class="auth-notice" role="status" style="display: none;">
+          <span class="auth-notice-icon" aria-hidden="true"><i class="fa-solid fa-lock"></i></span>
           <span id="authNoticeBannerText">Login or Sign Up is mandatory to access your basket and checkout.</span>
         </div>
 
-        <div id="authTabsBar" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px;">
-          <button id="authTabLogin" class="btn btn-outline" style="flex: 1; border: none; font-weight: 700; border-radius: 8px; background: rgba(52, 211, 153, 0.15); color: var(--primary);" onclick="switchAuthTab('login')">
-            <i class="fa-solid fa-right-to-bracket"></i> Sign In
-          </button>
-          <button id="authTabRegister" class="btn btn-outline" style="flex: 1; border: none; font-weight: 700; border-radius: 8px;" onclick="switchAuthTab('register')">
-            <i class="fa-solid fa-user-plus"></i> New Farmer
-          </button>
-        </div>
+        <ol id="authSteps" class="auth-steps" hidden>
+          <li aria-current="step"><span class="auth-steps-bar" aria-hidden="true"></span><span class="auth-steps-label">Details</span></li>
+          <li><span class="auth-steps-bar" aria-hidden="true"></span><span class="auth-steps-label">Farm</span></li>
+          <li><span class="auth-steps-bar" aria-hidden="true"></span><span class="auth-steps-label">Verify</span></li>
+        </ol>
 
-        <!-- LOGIN FORM -->
-        <form id="storefrontLoginForm" onsubmit="submitStorefrontLogin(event)" style="display: flex; flex-direction: column; gap: 14px;">
-          <div style="text-align: center; margin-bottom: 6px;">
-            <h3 style="color: var(--primary-dark); font-size: 1.25rem;">Welcome to Sathya Bio</h3>
-            <p style="font-size: 0.82rem; color: var(--text-muted);">Sign in to access personalized crop protection & exclusive farm deals</p>
-          </div>
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">Mobile Number or Email *</label>
-            <input type="text" id="loginIdentifier" class="text-input" placeholder="e.g. 9876543210 or farmer@farm.in" required style="width: 100%; padding: 10px 12px; margin-top: 4px; border: 1px solid var(--border-light); border-radius: 8px;" />
-          </div>
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">Password *</label>
-            <input type="password" id="loginPassword" class="text-input" placeholder="Enter password" required autocomplete="current-password" style="width: 100%; padding: 10px 12px; margin-top: 4px; border: 1px solid var(--border-light); border-radius: 8px;" />
-            <div class="forgot-link-row">
-              <button type="button" class="forgot-link" id="forgotPasswordLink" onclick="openForgotPassword()">Forgot password?</button>
+        <!-- SIGN IN -->
+        <form id="storefrontLoginForm" class="auth-form" role="tabpanel" aria-labelledby="authTabLogin" onsubmit="submitStorefrontLogin(event)" novalidate>
+          <header class="auth-head">
+            <h2 id="authLoginTitle" class="auth-title" tabindex="-1">Welcome to Sathya Bio</h2>
+            <p class="auth-sub">Sign in to access personalized crop protection &amp; exclusive farm deals.</p>
+          </header>
+
+          <div class="auth-field">
+            <label class="auth-label" for="loginIdentifier">Mobile number or email</label>
+            <div class="auth-control">
+              <input type="text" id="loginIdentifier" class="auth-input" autocomplete="username" autocapitalize="none" spellcheck="false" enterkeyhint="next" placeholder="e.g. 9876543210" />
+              <i class="fa-solid fa-mobile-screen-button auth-control-icon" aria-hidden="true"></i>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="justify-content: center; padding: 12px; font-weight: 700; font-size: 0.95rem; margin-top: 6px;">
-            <i class="fa-solid fa-shield-halved"></i> Sign In to Sathya Bio
-          </button>
+
+          <div class="auth-field">
+            <label class="auth-label" for="loginPassword">Password</label>
+            <div class="auth-control auth-control--action">
+              <input type="password" id="loginPassword" class="auth-input" autocomplete="current-password" enterkeyhint="go" />
+              <i class="fa-solid fa-lock auth-control-icon" aria-hidden="true"></i>
+              <button type="button" class="auth-icon-btn" data-password-toggle="loginPassword" aria-pressed="false">
+                <i class="fa-solid fa-eye" aria-hidden="true"></i><span class="auth-sr">Show password</span>
+              </button>
+            </div>
+          </div>
+          <div class="auth-forgot-row">
+            <button type="button" class="auth-link" id="forgotPasswordLink" onclick="openForgotPassword()">Forgot password?</button>
+          </div>
+
+          <div class="auth-actions">
+            <button type="submit" class="auth-cta" id="loginSubmitBtn">Sign In <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+          </div>
         </form>
 
-        <!-- REGISTER FORM -->
-        <form id="storefrontRegisterForm" onsubmit="submitStorefrontRegister(event)" style="display: none; flex-direction: column; gap: 12px;">
-          <div style="text-align: center; margin-bottom: 4px;">
-            <h3 style="color: var(--primary-dark); font-size: 1.2rem;">Create Farmer Account</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Join 15,000+ farmers for customized pesticides & advisories</p>
-          </div>
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 700;">Full Farmer Name *</label>
-            <input type="text" id="regName" class="text-input" placeholder="e.g. Rameshwar Patel" required style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 700;">Mobile Number *</label>
-              <input type="tel" id="regPhone" class="text-input" placeholder="10 Digit Number" required style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
+        <!-- NEW FARMER: step 1 details, step 2 farm. Step 3 is the code form below. -->
+        <form id="storefrontRegisterForm" class="auth-form" role="tabpanel" aria-labelledby="authTabRegister" onsubmit="submitStorefrontRegister(event)" novalidate hidden>
+          <div class="auth-step" id="regStepAccount">
+            <header class="auth-head">
+              <h2 id="authRegisterTitle" class="auth-title" tabindex="-1">Create your farmer account</h2>
+              <p class="auth-sub">Join 15,000+ farmers for customized pesticides &amp; advisories.</p>
+            </header>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regName">Full name</label>
+              <div class="auth-control">
+                <input type="text" id="regName" class="auth-input" autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder="e.g. Murugan Selvam" />
+                <i class="fa-solid fa-user auth-control-icon" aria-hidden="true"></i>
+              </div>
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 700;">Password *</label>
-              <input type="password" id="regPassword" class="text-input" placeholder="8+ characters: letters &amp; numbers" autocomplete="new-password" required style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
+
+            <div class="auth-field">
+              <label class="auth-label" for="regPhone">Mobile number</label>
+              <div class="auth-control auth-control--prefix">
+                <input type="tel" id="regPhone" class="auth-input" autocomplete="tel-national" enterkeyhint="next" placeholder="9876543210" aria-describedby="regPhoneHelp" />
+                <span class="auth-prefix" aria-hidden="true">+91</span>
+              </div>
+              <p class="auth-help" id="regPhoneHelp">We'll send a code on WhatsApp to verify it.</p>
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regPassword">Create a password</label>
+              <div class="auth-control auth-control--action">
+                <input type="password" id="regPassword" class="auth-input" autocomplete="new-password" enterkeyhint="next" />
+                <i class="fa-solid fa-lock auth-control-icon" aria-hidden="true"></i>
+                <button type="button" class="auth-icon-btn" data-password-toggle="regPassword" aria-pressed="false">
+                  <i class="fa-solid fa-eye" aria-hidden="true"></i><span class="auth-sr">Show password</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="auth-actions">
+              <button type="submit" class="auth-cta" id="regContinueBtn">Continue <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px;">
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 700;">Primary Crop *</label>
-              <select id="regCrop" class="select-input" style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;">
-                <option value="Paddy / Rice">Paddy / Rice</option>
-                <option value="Cotton">Cotton</option>
-                <option value="Tomato">Tomato</option>
-                <option value="Wheat">Wheat</option>
-                <option value="Sugarcane">Sugarcane</option>
-                <option value="Corn / Maize">Corn / Maize</option>
-                <option value="Grapes">Grapes / Fruits</option>
-                <option value="All Crops">All Crops</option>
-              </select>
+
+          <div class="auth-step" id="regStepFarm" hidden>
+            <header class="auth-head">
+              <h2 id="authFarmTitle" class="auth-title" tabindex="-1">About your farm</h2>
+              <p class="auth-sub">We show products and advice for these crops first.</p>
+            </header>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regCrop">Main crop</label>
+              <div class="auth-control auth-control--select">
+                <select id="regCrop" class="auth-input">
+                  <option value="Paddy / Rice">Paddy / Rice</option>
+                  <option value="Cotton">Cotton</option>
+                  <option value="Tomato">Tomato</option>
+                  <option value="Wheat">Wheat</option>
+                  <option value="Sugarcane">Sugarcane</option>
+                  <option value="Corn / Maize">Corn / Maize</option>
+                  <option value="Grapes">Grapes / Fruits</option>
+                  <option value="All Crops">All Crops</option>
+                </select>
+                <i class="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
+                <i class="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>
+              </div>
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 700;">Land Size</label>
-              <input type="number" id="regAcreage" class="text-input" placeholder="Acres" value="3" style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
+
+            <div class="auth-field">
+              <label class="auth-label" for="regAcreage">Farm size</label>
+              <div class="auth-stepper">
+                <button type="button" class="auth-stepper-btn" data-acre-step="-1" aria-controls="regAcreage">
+                  <i class="fa-solid fa-minus" aria-hidden="true"></i><span class="auth-sr">Fewer acres</span>
+                </button>
+                <div class="auth-control auth-control--suffix">
+                  <input type="text" id="regAcreage" class="auth-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="3" aria-describedby="regAcreageUnit" />
+                  <span class="auth-suffix" id="regAcreageUnit">acres</span>
+                </div>
+                <button type="button" class="auth-stepper-btn" data-acre-step="1" aria-controls="regAcreage">
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i><span class="auth-sr">More acres</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filled from GET /api/crops by initRegistrationCropChoices(); stays hidden if that fails. -->
+            <fieldset id="regOtherCrops" class="auth-fieldset" hidden>
+              <legend class="auth-label">Other crops you grow <span class="auth-optional">Optional</span></legend>
+              <div id="regOtherCropsList" class="auth-chips"></div>
+            </fieldset>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regVillage">Village or town <span class="auth-optional">Optional</span></label>
+              <div class="auth-control">
+                <input type="text" id="regVillage" class="auth-input" autocomplete="address-level2" enterkeyhint="send" placeholder="e.g. Thiruvaiyaru, Thanjavur" aria-describedby="regVillageHelp" />
+                <i class="fa-solid fa-location-dot auth-control-icon" aria-hidden="true"></i>
+              </div>
+              <p class="auth-help" id="regVillageHelp">Used for local weather and spraying advice.</p>
+            </div>
+
+            <div class="auth-actions">
+              <button type="submit" class="auth-cta" id="regSubmitBtn"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Send code on WhatsApp</button>
             </div>
           </div>
-          <!-- Filled from GET /api/crops by initRegistrationCropChoices(); stays hidden if that fails. -->
-          <fieldset id="regOtherCrops" hidden style="border: 0; padding: 0; margin: 0; min-width: 0;">
-            <legend style="font-size: 0.8rem; font-weight: 700; padding: 0;">Other crops (optional)</legend>
-            <div id="regOtherCropsList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;"></div>
-          </fieldset>
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 700;">Village / Farm Address</label>
-            <input type="text" id="regVillage" class="text-input" placeholder="e.g. Karur, Coimbatore" style="width: 100%; padding: 8px 12px; margin-top: 2px; border: 1px solid var(--border-light); border-radius: 8px;" />
-          </div>
-          <button type="submit" class="btn btn-primary" id="regSubmitBtn" style="justify-content: center; padding: 12px; font-weight: 700; margin-top: 4px;">
-            <i class="fa-solid fa-seedling"></i> Register & Access Deals
-          </button>
         </form>
 
-        <!-- FORGOT PASSWORD -->
-        <form id="storefrontForgotForm" class="forgot-form" onsubmit="submitForgotPassword(event)" novalidate style="display: none;">
-          <button type="button" class="forgot-back" onclick="closeForgotPassword()">
-            <i class="fa-solid fa-arrow-left"></i> Back to sign in
-          </button>
-          <div class="forgot-head">
-            <div class="forgot-icon" aria-hidden="true"><i class="fa-solid fa-key"></i></div>
-            <h3>Reset your password</h3>
-            <p id="forgotIntro">Enter your registered mobile number. We'll send a 6-digit code to its WhatsApp.</p>
+        <!-- NEW FARMER step 3: the WhatsApp code. Opened by showStorefrontOtpForm(). -->
+        <form id="storefrontOtpContainer" class="auth-form" onsubmit="event.preventDefault(); verifyStorefrontOtp();" novalidate hidden>
+          <header class="auth-head">
+            <span class="auth-badge" aria-hidden="true"><i class="fa-brands fa-whatsapp"></i></span>
+            <h2 id="authOtpTitle" class="auth-title" tabindex="-1">Verify your number</h2>
+            <p class="auth-sub">We sent a 6-digit code on WhatsApp to</p>
+          </header>
+
+          <div class="auth-number">
+            <strong id="storefrontOtpPhone" class="notranslate"></strong>
+            <button type="button" class="auth-link" onclick="changeStorefrontNumber()">Change</button>
           </div>
 
-          <div class="forgot-step" id="forgotStepPhone">
-            <div class="forgot-field">
-              <label for="forgotPhone">Registered mobile number *</label>
-              <input type="tel" id="forgotPhone" class="text-input" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="10-digit mobile number" />
+          <!-- One real input, drawn as six boxes, so WhatsApp/SMS autofill and paste work -->
+          <div class="auth-field">
+            <label class="auth-sr" for="storefrontOtpInput">6-digit code</label>
+            <div class="auth-otp">
+              <input type="text" id="storefrontOtpInput" class="auth-otp-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" enterkeyhint="done" />
+              <div class="auth-otp-cells notranslate" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             </div>
-            <button type="submit" class="btn btn-primary" id="forgotSendBtn">
-              <i class="fa-brands fa-whatsapp"></i> Send reset code
-            </button>
           </div>
 
-          <div class="forgot-step" id="forgotStepReset" hidden>
-            <!-- One wrapper per field: error hints are placed inside the input's parent. -->
-            <div class="forgot-field">
-              <label for="forgotOtp">6-digit code *</label>
-              <input type="text" id="forgotOtp" class="text-input forgot-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" />
+          <p class="auth-resend">
+            <span id="storefrontOtpTimer">Code sent on WhatsApp.</span>
+            <button type="button" id="storefrontOtpResendBtn" class="auth-link" onclick="resendStorefrontOtp()" disabled>Resend code</button>
+          </p>
+
+          <div class="auth-actions">
+            <button type="submit" class="auth-cta" id="storefrontOtpVerifyBtn"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verify &amp; create account</button>
+          </div>
+        </form>
+
+        <!-- FORGOT PASSWORD: mobile number, then the WhatsApp code and a new password -->
+        <form id="storefrontForgotForm" class="auth-form" onsubmit="submitForgotPassword(event)" novalidate hidden>
+          <header class="auth-head">
+            <span class="auth-badge" aria-hidden="true"><i class="fa-solid fa-key"></i></span>
+            <h2 id="authForgotTitle" class="auth-title" tabindex="-1">Reset your password</h2>
+            <p class="auth-sub" id="forgotIntro">Enter your registered mobile number. We'll send a 6-digit code to its WhatsApp.</p>
+          </header>
+
+          <div class="auth-step" id="forgotStepPhone">
+            <div class="auth-field">
+              <label class="auth-label" for="forgotPhone">Registered mobile number</label>
+              <div class="auth-control auth-control--prefix">
+                <input type="tel" id="forgotPhone" class="auth-input" inputmode="numeric" autocomplete="tel-national" maxlength="10" enterkeyhint="send" placeholder="9876543210" />
+                <span class="auth-prefix" aria-hidden="true">+91</span>
+              </div>
             </div>
-            <div class="forgot-resend">
+            <div class="auth-actions">
+              <button type="submit" class="auth-cta" id="forgotSendBtn"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Send reset code</button>
+            </div>
+          </div>
+
+          <div class="auth-step" id="forgotStepReset" hidden>
+            <div class="auth-number">
+              <strong id="forgotPhoneShown" class="notranslate"></strong>
+              <button type="button" class="auth-link" onclick="forgotChangeNumber()">Change</button>
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="forgotOtp">6-digit code</label>
+              <div class="auth-otp">
+                <input type="text" id="forgotOtp" class="auth-otp-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" enterkeyhint="next" />
+                <div class="auth-otp-cells notranslate" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              </div>
+            </div>
+            <p class="auth-resend">
               <span id="forgotResendText">Code sent on WhatsApp.</span>
-              <button type="button" class="forgot-link" id="forgotResendBtn" onclick="sendForgotPasswordCode(true)" disabled>Resend code</button>
+              <button type="button" class="auth-link" id="forgotResendBtn" onclick="sendForgotPasswordCode(true)" disabled>Resend code</button>
+            </p>
+
+            <div class="auth-field">
+              <label class="auth-label" for="forgotNewPassword">New password</label>
+              <div class="auth-control auth-control--action">
+                <input type="password" id="forgotNewPassword" class="auth-input" autocomplete="new-password" enterkeyhint="next" />
+                <i class="fa-solid fa-lock auth-control-icon" aria-hidden="true"></i>
+                <button type="button" class="auth-icon-btn" data-password-toggle="forgotNewPassword" aria-pressed="false">
+                  <i class="fa-solid fa-eye" aria-hidden="true"></i><span class="auth-sr">Show password</span>
+                </button>
+              </div>
             </div>
-            <div class="forgot-field">
-              <label for="forgotNewPassword">New password *</label>
-              <input type="password" id="forgotNewPassword" class="text-input" autocomplete="new-password" placeholder="8+ characters: letters & numbers" />
+            <div class="auth-field">
+              <label class="auth-label" for="forgotConfirmPassword">Confirm new password</label>
+              <div class="auth-control auth-control--action">
+                <input type="password" id="forgotConfirmPassword" class="auth-input" autocomplete="new-password" enterkeyhint="go" placeholder="Type it again" />
+                <i class="fa-solid fa-lock auth-control-icon" aria-hidden="true"></i>
+                <button type="button" class="auth-icon-btn" data-password-toggle="forgotConfirmPassword" aria-pressed="false">
+                  <i class="fa-solid fa-eye" aria-hidden="true"></i><span class="auth-sr">Show password</span>
+                </button>
+              </div>
             </div>
-            <div class="forgot-field">
-              <label for="forgotConfirmPassword">Confirm new password *</label>
-              <input type="password" id="forgotConfirmPassword" class="text-input" autocomplete="new-password" placeholder="Type it again" />
+
+            <div class="auth-actions">
+              <button type="submit" class="auth-cta" id="forgotResetBtn"><i class="fa-solid fa-lock" aria-hidden="true"></i> Reset password &amp; sign in</button>
             </div>
-            <button type="submit" class="btn btn-primary" id="forgotResetBtn">
-              <i class="fa-solid fa-lock"></i> Reset password &amp; sign in
-            </button>
-            <button type="button" class="forgot-link forgot-change-number" onclick="forgotChangeNumber()">Use a different number</button>
           </div>
         </form>
       </div>
 
       <!-- LOGGED IN USER PROFILE VIEW -->
-      <div id="authLoggedInView" style="display: none; text-align: center;">
+      <div id="authLoggedInView" class="auth-account" style="display: none; text-align: center;">
         <div style="width: 60px; height: 60px; border-radius: 50%; background: #ecfdf5; color: var(--primary); font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; border: 2px solid #34d399;">
           <span id="loggedInUserInitial">R</span>
         </div>

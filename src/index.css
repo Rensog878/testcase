@@ -3838,6 +3838,180 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   margin-top: 1px;
 }
 
+/* ==========================================================================
+   CATEGORIES ON PHONES: floating white cards on a soft green page, in the
+   style of the floating bottom bar.
+   ========================================================================== */
+@media (max-width: 767px) {
+  .bighaat-categories-page {
+    background: #f0fdf4;
+  }
+
+  .bighaat-mobile-header {
+    background: transparent;
+    border-bottom: 0;
+    box-shadow: none;
+    padding: 10px 12px 4px;
+  }
+
+  .mobile-cat-search-bar {
+    padding: 2px 14px;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  }
+
+  .mobile-cat-search-bar:focus-within {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15), 0 6px 18px rgba(15, 23, 42, 0.08);
+  }
+
+  .bighaat-categories-wrapper {
+    padding: 8px 10px 0;
+  }
+
+  .bighaat-split-container {
+    gap: 10px;
+    background: transparent;
+  }
+
+  .bighaat-aside-rail {
+    width: 86px;
+    background: #ffffff;
+    border-right: 0;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+  }
+
+  .aside-rail-scroll {
+    padding: 6px 0 calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bighaat-rail-tab {
+    width: auto;
+    margin: 2px 6px;
+    padding: 10px 4px;
+    border-radius: 14px;
+  }
+
+  .bighaat-rail-tab.active {
+    background: #ecfdf5;
+  }
+
+  /* The tinted tile marks the current category. */
+  .active-pill-bar {
+    display: none;
+  }
+
+  .bighaat-subcat-pane {
+    background: transparent;
+    padding: 0 0 calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .subcat-banner-card {
+    margin-bottom: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .subcat-groups-stack {
+    gap: 12px;
+  }
+
+  .subcat-group-block {
+    padding: 14px 10px 12px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .subcat-group-header {
+    padding: 0 4px;
+  }
+
+  .subcat-circle-img-wrap {
+    background-color: #f0fdf4;
+    border-color: #dcfce7;
+  }
+
+  .sathya-assurance-banner {
+    margin-top: 12px;
+    background: #ffffff;
+    border: 0;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  }
+}
+
+/* ==========================================================================
+   STAFF SIGN-IN AND REGISTER ON PHONES: a compact floating card on a soft
+   green page. (Register sets some layout inline, hence !important.)
+   ========================================================================== */
+@media (max-width: 767px) {
+  .login-page {
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    background: radial-gradient(120% 60% at 50% 0%, #d1fae5 0%, #ecfdf5 45%, #f0fdf4 100%);
+  }
+
+  .login-left {
+    width: 100%;
+    padding: 0;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px !important;
+    margin: 0 auto;
+    padding: 22px 18px 20px;
+    background: #ffffff;
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(6, 78, 59, 0.14), 0 2px 8px rgba(15, 23, 42, 0.05);
+  }
+
+  .login-title {
+    font-size: 1.35rem;
+  }
+
+  .login-subtitle {
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+  }
+
+  .role-selector {
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .role-chip {
+    min-height: 40px;
+    padding: 8px 6px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+  }
+
+  .login-card .form-group {
+    margin-bottom: 12px;
+  }
+
+  .login-card .btn-lg {
+    min-height: 48px;
+    border-radius: 14px;
+  }
+
+  .login-card .divider {
+    margin: 14px 0;
+  }
+}
+
 /* Mobile Bottom Navigation Bar (BigHaat App Style) */
 /* White floating pill, matching the storefront's One UI bottom bar
    (public/css/responsive.css, section 7g). */

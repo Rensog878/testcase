@@ -509,96 +509,6 @@ let PESTICIDES = [
 ];
 
 
-const INITIAL_TICKETS = [
-  {
-    id: 'TK-8942',
-    subject: 'Leaf Yellowing & Stunting in Paddy Field',
-    category: 'Field Advisory',
-    crop: 'Paddy/Rice',
-    severity: 'High',
-    status: 'In Progress',
-    date: '2026-08-25',
-    assignedExpert: 'Dr. Ramesh Agronomist',
-    messages: [
-      {
-        sender: 'Farmer',
-        text: 'My 3-acre paddy field leaves are turning light yellow from tips after heavy rainfall.',
-        time: '10:15 AM'
-      },
-      {
-        sender: 'Sathya Bio Expert',
-        text: 'Hello! This indicates possible Nitrogen leaching or early sheath blight.',
-        time: '10:42 AM'
-      }
-    ]
-  }
-];
-
-
-const EXPERTS = [
-  {
-    id: 'exp-1',
-    name: 'Dr. V. K. Sathyanarayana',
-    title: 'Chief Agronomist & Soil Pathology Lead',
-    experience: '22+ Years Exp',
-    specialties: [
-      'Soil Nutrient Balancing',
-      'Paddy & Wheat Diseases',
-      'Organic Bio-stimulants'
-    ],
-    availability: 'Available Today',
-    rating: '4.9 ★ (420+ Calls)',
-    avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=300&q=80'
-  },
-
-  {
-    id: 'exp-2',
-    name: 'Ananya Deshmukh',
-    title: 'Senior Crop Protection Specialist',
-    experience: '14+ Years Exp',
-    specialties: [
-      'Cotton Whitefly Control',
-      'Horticulture Pest Management'
-    ],
-    availability: 'Next Available: 2:30 PM',
-    rating: '4.8 ★ (315+ Calls)',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&q=80'
-  }
-];
-
-
-const N8N_WORKFLOW_NODES = [
-  {
-    id: 1,
-    name: 'WhatsApp Webhook',
-    type: 'trigger',
-    status: 'Active',
-    desc: 'Receives farmer incoming message & photo'
-  },
-  {
-    id: 2,
-    name: 'AI Disease Parser',
-    type: 'action',
-    status: 'Success',
-    desc: 'Extracts crop type & symptoms'
-  },
-  {
-    id: 3,
-    name: 'Catalog Lookup DB',
-    type: 'search',
-    status: 'Success',
-    desc: 'Matches exact fungicide remedy'
-  },
-  {
-    id: 4,
-    name: 'WhatsApp Response',
-    type: 'response',
-    status: 'Ready',
-    desc: 'Sends instant dosage & order button'
-  }
-];
-
-
 const SAMPLE_DISEASE_DIAGNOSES = [
   {
     keyword: 'blight',
@@ -959,7 +869,7 @@ function applyTranslations() {
 // Leading/trailing punctuation, symbols and emoji stay as written, so
 // "🌾 Paddy / Rice", "Password *" and "Forgot password?" share plain keys.
 const TEXT_AFFIX = /^([\s\p{P}\p{S}\p{M}\u200d]*)([\s\S]*?)([\s\p{P}\p{S}]*)$/u;
-const SKIP_TEXT = 'script, style, noscript, textarea, [data-i18n], .notranslate, #n8nExecutionLog';
+const SKIP_TEXT = 'script, style, noscript, textarea, [data-i18n], .notranslate';
 // Text node or element -> { source: English, shown: what we wrote }.
 const localizedSources = new WeakMap();
 
@@ -1178,15 +1088,11 @@ function initApp() {
   initAdvisorySignup();
   initChatbot();
 
-  initSoilUpload();
 
   initPhotoScanner();
 
-  initTicketSystem();
 
-  initN8nVisualizer();
 
-  initExpertBooking();
 
   initModals();
 
@@ -2275,11 +2181,11 @@ function respondAutoChatbot(userText) {
     reply = `🐛 <strong>Cotton Whitefly Defense:</strong> Use <strong>Sathya Bio FlyKill Ultra</strong> (₹840) or <strong>NeemGuard 10000 PPM</strong> (₹580). Spray early morning.<br/>
     <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem; margin-top: 6px;" onclick="addToCart('sb-02')"><i class="fa-solid fa-cart-plus"></i> Add FlyKill Ultra to Cart</button>`;
   } else if (lower.includes('soil')) {
-    reply = `🌱 <strong>Soil Analyzer:</strong> Upload your soil test lab PDF/image in our Soil Analyzer section to get N-P-K nutrient recommendations.<br/>
-    <button class="btn btn-gold" style="padding: 4px 10px; font-size: 0.75rem; margin-top: 6px;" onclick="document.getElementById('soil').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-flask"></i> Go to Soil Analyzer</button>`;
+    reply = `🌱 <strong>Soil Health:</strong> Send your soil test report to our agronomists on WhatsApp for N-P-K nutrient recommendations.<br/>
+    <a class="btn btn-gold" style="padding: 4px 10px; font-size: 0.75rem; margin-top: 6px;" href="https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Send it on WhatsApp</a>`;
   } else if (lower.includes('agronomist') || lower.includes('speak') || lower.includes('doctor')) {
-    reply = `📞 <strong>Senior Agronomist Consultation:</strong> Call toll-free <strong>1800-425-9999</strong> or book a 1-on-1 consultation video call.<br/>
-    <button class="btn btn-gold" style="padding: 4px 10px; font-size: 0.75rem; margin-top: 6px;" onclick="openModal('expertModal')"><i class="fa-solid fa-calendar-check"></i> Book Agronomist Call</button>`;
+    reply = `📞 <strong>Senior Agronomist Consultation:</strong> Call toll-free <strong>1800-425-9999</strong> or chat with an agronomist on WhatsApp.<br/>
+    <a class="btn btn-gold" style="padding: 4px 10px; font-size: 0.75rem; margin-top: 6px;" href="https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Chat with an Agronomist</a>`;
   } else if (lower.includes('weed') || lower.includes('herbicide')) {
     reply = `🌿 <strong>Weed Control:</strong> Use <strong>WeedClear 24-D</strong> (₹340) for broadleaf weeds or <strong>GrassOut 10 EC</strong> (₹480) for grass weeds.<br/>
     <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem; margin-top: 6px;" onclick="addToCart('sb-26')"><i class="fa-solid fa-cart-plus"></i> Add WeedClear to Cart</button>`;
@@ -2289,45 +2195,6 @@ function respondAutoChatbot(userText) {
 
   addChatMessage('bot', reply);
 }
-
-
-// --- SOIL TEST UPLOAD & ANALYSIS ---
-function initSoilUpload() {
-  const dropzone = document.getElementById('soilDropzone');
-  const fileInput = document.getElementById('soilFileInput');
-
-  if (dropzone && fileInput) {
-    dropzone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        processSoilDocument(e.target.files[0].name);
-      }
-    });
-  }
-}
-
-window.processSoilDocument = function(filename) {
-  const resultDiv = document.getElementById('soilAnalysisResult');
-  if (!resultDiv) return;
-
-  resultDiv.innerHTML = `
-    <div style="text-align: center; padding: 16px;">
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
-      <p style="color: var(--text-muted); font-size: 0.88rem;">Analyzing "${filename}" with Sathya Bio AI Soil Engine...</p>
-    </div>
-  `;
-
-  setTimeout(() => {
-    resultDiv.innerHTML = `
-      <div style="background: #f0fdf4; border: 1px solid var(--border-green); border-radius: 8px; padding: 14px; margin-top: 12px;">
-        <h4 style="color: var(--primary-dark); margin-bottom: 8px;"><i class="fa-solid fa-square-check" style="color: var(--primary);"></i> Soil Report Processed</h4>
-        <p style="font-size: 0.85rem; color: var(--text-main);">Prescription: Apply <strong>Sathya Bio RootVigor Gold (₹990)</strong> to boost root growth and soil organic matter.</p>
-        <button class="btn btn-primary" onclick="addToCart('sb-04')" style="margin-top: 10px; font-size: 0.8rem;"><i class="fa-solid fa-cart-plus"></i> Add RootVigor to Cart</button>
-      </div>
-    `;
-  }, 1200);
-};
-
 
 
 // --- PHOTO SCANNER ---
@@ -2373,93 +2240,6 @@ function processPhotoScan(file) {
       </div>
     `;
   }, 1200);
-}
-
-
-// --- TICKETS & N8N & EXPERT ---
-let tickets = [...INITIAL_TICKETS];
-
-function initTicketSystem() {
-  renderTickets();
-  document.getElementById('newTicketForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newId = `TK-${Math.floor(1000 + Math.random() * 9000)}`;
-    tickets.unshift({
-      id: newId,
-      subject: e.target.querySelector('input[type="text"]')?.value || 'Field Inquiry',
-      category: 'Field Advisory',
-      crop: 'Paddy/Rice',
-
-
-            severity: 'High',
-      status: 'In Progress',
-      date: new Date().toISOString().split('T')[0],
-      assignedExpert: 'Sathya Bio Advisory Team'
-    });
-    renderTickets();
-    closeModal('ticketModal');
-    showToast(`Support ticket ${newId} created successfully.`, 'success');
-  });
-}
-
-function renderTickets() {
-  const container = document.getElementById('ticketListContainer');
-  if (!container) return;
-
-  container.innerHTML = tickets.map(t => `
-    <div style="background: #ffffff; border: 1px solid var(--border-light); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <strong style="color: var(--text-main); font-size: 0.9rem;">${t.subject}</strong>
-        <span style="display: block; font-size: 0.78rem; color: var(--text-muted);">${t.id} | ${t.crop} | ${t.date}</span>
-      </div>
-      <span style="background: #ecfdf5; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;">${t.status}</span>
-    </div>
-  `).join('');
-}
-
-function initN8nVisualizer() {
-  const container = document.getElementById('n8nNodesContainer');
-  const testBtn = document.getElementById('testN8nBtn');
-  const logEl = document.getElementById('n8nExecutionLog');
-
-  if (container) {
-    container.innerHTML = N8N_WORKFLOW_NODES.map(node => `
-      <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-        <div>
-          <strong style="font-size: 0.85rem; color: var(--primary-dark);">${node.name}</strong>
-          <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">${node.desc}</span>
-        </div>
-        <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">${node.status}</span>
-      </div>
-    `).join('');
-  }
-
-  if (testBtn && logEl) {
-    testBtn.addEventListener('click', () => {
-      logEl.innerHTML = '// Connecting to WhatsApp Webhook...<br/>';
-      setTimeout(() => { logEl.innerHTML += '[OK] Incoming message: "My paddy leaves have yellow spots"<br/>'; }, 500);
-      setTimeout(() => { logEl.innerHTML += '[OK] AI LLM Node: Extracted Crop="Paddy", Symptoms="Yellow Blast Spots"<br/>'; }, 1000);
-      setTimeout(() => { logEl.innerHTML += '[OK] Catalog Node: Matched "BlastShield 75 WP"<br/>'; }, 1500);
-      setTimeout(() => { logEl.innerHTML += '<strong style="color:#16a34a;">[SUCCESS] Sent WhatsApp remedy guide & 1-click buy button to +91-9876543210</strong>'; }, 2000);
-    });
-  }
-}
-
-function initExpertBooking() {
-  const grid = document.getElementById('expertsGrid');
-  if (!grid) return;
-
-  grid.innerHTML = EXPERTS.map(exp => `
-    <div style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px; display: flex; gap: 14px; align-items: center;">
-      <img loading="lazy" decoding="async" src="${exp.avatar}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);" />
-      <div>
-        <h4 style="font-size: 0.95rem; color: var(--primary-dark);">${exp.name}</h4>
-        <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">${exp.title}</span>
-        <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700;">${exp.rating}</div>
-        <button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem; margin-top: 8px;" onclick="openModal('expertModal')">Book Consultation</button>
-      </div>
-    </div>
-  `).join('');
 }
 
 

@@ -21,26 +21,6 @@ const SECTION_CONTENT = {
     intro: 'Discover Sathya Bio products and trusted crop-care solutions.',
     links: [['/product/sb-6928', 'Sathya Bio', 'Bio-certified crop protection'], ['/products', 'All formulations', 'Compare available products']]
   },
-  soil: {
-    title: 'Soil Analyzer',
-    intro: 'Use your soil report to plan a more precise crop-care program.',
-    links: [['/support', 'Talk to an agronomist', 'Get guidance for your farm'], ['/agronomists', 'Our experts', 'Browse crop specialists']]
-  },
-  n8n: {
-    title: 'WhatsApp N8N AI',
-    intro: 'Connect with Sathya Bio support for quick crop and dosage guidance.',
-    links: [['/support', 'Contact support', 'Send a support request'], ['/agronomists', 'Crop advisory', 'Review recommendations']]
-  },
-  support: {
-    title: 'Support Tickets',
-    intro: 'Get help with products, orders, delivery, or your account.',
-    links: [['/support', 'Open support centre', 'Find help for your request'], ['/orders', 'Order status', 'Review recent orders']]
-  },
-  agronomists: {
-    title: 'Agronomists',
-    intro: 'Reach experienced crop advisors for practical field guidance.',
-    links: [['/agronomists', 'Crop advisory', 'View crop recommendations'], ['/support', 'Book support', 'Ask the support team']]
-  }
 }
 
 export default function StoreSection({ type }) {

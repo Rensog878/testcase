@@ -35,8 +35,6 @@
     <div class="container topbar-content">
       <div class="topbar-left-links">
         <a href="#catalog" class="topbar-link">Sell on Sathya Bio</a>
-        <a href="#tickets" class="topbar-link">Bulk Order Inquiries</a>
-        <a href="#experts" class="topbar-link">Corporate Site</a>
         <span class="topbar-badge" id="topbarUserGreeting" style="display: none; background: rgba(52, 211, 153, 0.2); color: #34d399; font-weight: 600; padding: 2px 8px; border-radius: 6px;"></span>
         <span class="topbar-badge"><i class="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>1800-425-9999</strong></span>
       </div>
@@ -169,10 +167,6 @@
         <li><a href="#categoriesSection"><i class="fa-solid fa-layer-group"></i> Categories</a></li>
         <li><a href="#cropSection"><i class="fa-solid fa-wheat-awn"></i> Shop by Crop</a></li>
         <li><a href="#brandsSection"><i class="fa-solid fa-award"></i> Brands</a></li>
-        <li><a href="#soil"><i class="fa-solid fa-flask"></i> Soil Analyzer</a></li>
-        <li><a href="#n8n"><i class="fa-brands fa-whatsapp"></i> WhatsApp N8N AI</a></li>
-        <li><a href="#tickets"><i class="fa-solid fa-headset"></i> Support Tickets</a></li>
-        <li><a href="#experts"><i class="fa-solid fa-user-doctor"></i> Agronomists</a></li>
       </ul>
 
       <div style="display: flex; gap: 10px;">
@@ -199,23 +193,12 @@
             </p>
             <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px;">
               <a href="#catalog" class="btn btn-primary bento-btn"><span data-i18n="hero_shop_btn">Shop Catalog</span></a>
-              <button class="btn btn-gold bento-btn" data-modal-target="soilModal"><span data-i18n="hero_soil_btn">Upload Soil Report</span></button>
             </div>
           </div>
         </div>
 
-        <!-- BENTO CARD 2: SOIL REPORT ANALYZER -->
-        <div class="bento-card" data-modal-target="soilModal" style="cursor: pointer;">
-          <img src="https://images.unsplash.com/photo-1589923188900-85dae523342b?w=600&q=80" class="bento-bg-img" alt="Soil Testing Laboratory" loading="lazy" decoding="async">
-          <div class="bento-overlay">
-            <span class="bento-tag">AI Soil Engine</span>
-            <h3 class="bento-title" style="font-size: 1.15rem;">Soil Report Analyzer</h3>
-            <p class="bento-desc">Upload lab PDF & get N-P-K nutrient remedies</p>
-          </div>
-        </div>
-
         <!-- BENTO CARD 3: AI LEAF DOCTOR SCANNER -->
-        <div class="bento-card" data-modal-target="photoScannerModal" style="cursor: pointer;">
+        <div class="bento-card bento-span-2" data-modal-target="photoScannerModal" style="cursor: pointer;">
           <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=600&q=80" class="bento-bg-img" alt="Crop Leaf Scan" loading="lazy" decoding="async">
           <div class="bento-overlay">
             <span class="bento-tag">Instant Diagnostic</span>
@@ -225,7 +208,7 @@
         </div>
 
         <!-- BENTO CARD 4: WHATSAPP N8N AUTOMATION (SPAN 2 COLUMNS) -->
-        <div class="bento-card bento-span-2" style="background: linear-gradient(135deg, #064e3b, #047857); cursor: pointer;" onclick="document.getElementById('n8n').scrollIntoView({behavior:'smooth'})">
+        <div class="bento-card bento-span-2" style="background: linear-gradient(135deg, #064e3b, #047857); cursor: pointer;" onclick="window.open('https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice', '_blank', 'noopener')">
           <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800&q=80" class="bento-bg-img" style="opacity: 0.35;" alt="Farmer Consultation" loading="lazy" decoding="async">
           <div class="bento-overlay">
             <span class="bento-tag" style="background: #25d366; color: white;">24/7 WhatsApp AI</span>
@@ -606,83 +589,6 @@
     </div>
   </section>
 
-  <!-- SOIL TEST DOCUMENT ANALYSIS SECTION -->
-  <section class="section" id="soil" style="background: var(--bg-section);">
-    <div class="container">
-      <div class="soil-grid">
-        <div>
-          <h2 class="section-title" data-i18n="soil_title">Soil Test Report Analyzer</h2>
-          <p style="color: var(--text-muted); margin-bottom: 16px;" data-i18n="soil_desc">
-            Upload your laboratory soil test document (PDF or image). Our AI engine parses Nitrogen, Phosphorus, Potassium levels and suggests targeted Sathya Bio bio-stimulants.
-          </p>
-          <button class="btn btn-primary" data-modal-target="soilModal"><i class="fa-solid fa-upload"></i> <span data-i18n="soil_upload_btn">Upload Soil Report</span></button>
-        </div>
-
-        <div style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 24px;">
-          <div class="dropzone" id="soilDropzone" style="border: 2px dashed var(--border-green); padding: 30px; text-align: center; cursor: pointer; background: #f0fdf4;">
-            <input type="file" id="soilFileInput" style="display: none;" accept=".pdf,.jpg,.png" />
-            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px;"></i>
-            <strong style="display: block; color: var(--primary-dark);" data-i18n="soil_dropzone">Drag & Drop Soil Document</strong>
-            <span style="font-size: 0.8rem; color: var(--text-muted);" data-i18n="soil_formats">PDF, PNG, JPG supported</span>
-          </div>
-          <div id="soilAnalysisResult"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- WHATSAPP N8N AUTOMATION AGENT -->
-  <section class="section" id="n8n">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title" data-i18n="n8n_title">WhatsApp N8N Automation Agent</h2>
-        <p class="section-subtitle" data-i18n="n8n_subtitle">See how automated N8N workflows assist farmers via WhatsApp 24/7</p>
-      </div>
-
-      <div class="n8n-grid">
-        <div style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 20px;">
-          <h4 style="margin-bottom: 12px; color: var(--primary-dark);"><i class="fa-solid fa-diagram-project"></i> N8N Workflow Graph</h4>
-          <div class="n8n-flow-container" id="n8nNodesContainer"></div>
-        </div>
-
-        <div style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 20px;">
-          <h4 style="margin-bottom: 12px; color: #25d366;"><i class="fa-brands fa-whatsapp"></i> Test N8N Webhook Agent</h4>
-          <button class="btn btn-gold" id="testN8nBtn" style="margin-bottom: 12px;"><i class="fa-solid fa-play"></i> <span data-i18n="n8n_test_btn">Run N8N Test Flow</span></button>
-          <div id="n8nExecutionLog" style="background: #f8fafc; border: 1px solid var(--border-light); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.82rem; min-height: 140px;">
-            // Click 'Run N8N Test Flow' to simulate WhatsApp incoming message...
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SUPPORT TICKETS SECTION -->
-  <section class="section" id="tickets" style="background: var(--bg-section);">
-    <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <div>
-          <h2 class="section-title" style="margin-bottom: 0;" data-i18n="tickets_title">Supporting Ticket System</h2>
-          <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="tickets_subtitle">Technical field assistance & dosage queries</p>
-        </div>
-        <button class="btn btn-primary" data-modal-target="ticketModal"><i class="fa-solid fa-plus"></i> <span data-i18n="ticket_new_btn">Submit Ticket</span></button>
-      </div>
-
-      <div id="ticketListContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-  </section>
-
-  <!-- CONNECT TO AN EXPERT SECTION -->
-  <section class="section" id="experts">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title" data-i18n="experts_title">Connect to a Plant Doctor Expert</h2>
-        <p class="section-subtitle" data-i18n="experts_subtitle">1-on-1 consultation calls with senior agricultural scientists</p>
-      </div>
-
-      <div id="expertsGrid" class="experts-grid"></div>
-    </div>
-  </section>
-
   <!-- FARMER TESTIMONIALS SECTION (BIGHAAT STYLE) -->
   <section class="section" style="background: #ffffff; padding: 50px 0;">
     <div class="container">
@@ -910,18 +816,6 @@
     </div>
   </div>
 
-  <!-- MODAL: SOIL TEST UPLOAD & ANALYZER -->
-  <div class="modal-overlay" id="soilModal">
-    <div class="modal-card">
-      <button class="modal-close">&times;</button>
-      <h3 style="color: var(--primary-dark); margin-bottom: 14px;"><i class="fa-solid fa-flask"></i> <span data-i18n="soil_title">Soil Test Report Analyzer</span></h3>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">Upload your soil PDF/image to automatically receive recommended Sathya Bio bio-stimulants.</p>
-      <input type="file" id="modalSoilInput" class="text-input" accept=".pdf,.png,.jpg" style="margin-bottom: 14px;" />
-      <button class="btn btn-primary" id="modalAnalyzeBtn" style="width: 100%; justify-content: center;"><i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Soil Report</button>
-      <div id="modalSoilResult" style="margin-top: 14px;"></div>
-    </div>
-  </div>
-
   <!-- MODAL: AI PHOTO SCANNER -->
   <div class="modal-overlay" id="photoScannerModal">
     <div class="modal-card">
@@ -936,50 +830,6 @@
       </label>
       <button class="btn btn-gold" id="analyzePhotoBtn" style="width: 100%; justify-content: center;"><i class="fa-solid fa-microscope"></i> Diagnose Crop Disease</button>
       <div id="photoScannerResult" style="margin-top: 14px;"></div>
-    </div>
-  </div>
-
-  <!-- MODAL: SUBMIT TICKET -->
-  <div class="modal-overlay" id="ticketModal">
-    <div class="modal-card">
-      <button class="modal-close">&times;</button>
-      <h3 style="color: var(--primary-dark); margin-bottom: 14px;"><i class="fa-solid fa-headset"></i> Submit Field Advisory Ticket</h3>
-      <form id="newTicketForm" style="display: flex; flex-direction: column; gap: 12px;">
-        <input type="text" class="text-input" placeholder="Subject (e.g., Leaf yellowing in paddy)" required />
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <select class="select-input">
-            <option>Field Advisory</option>
-            <option>Product Dosage</option>
-            <option>Order Delivery Query</option>
-          </select>
-          <select class="select-input">
-            <option>Paddy/Rice</option>
-            <option>Cotton</option>
-            <option>Tomato</option>
-            <option>Wheat</option>
-          </select>
-        </div>
-        <textarea class="text-input" rows="3" placeholder="Describe crop symptoms..." required></textarea>
-        <button type="submit" class="btn btn-primary" style="justify-content: center;"><i class="fa-solid fa-paper-plane"></i> Submit Ticket</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: EXPERT BOOKING -->
-  <div class="modal-overlay" id="expertModal">
-    <div class="modal-card">
-      <button class="modal-close">&times;</button>
-      <h3 style="color: var(--primary-dark); margin-bottom: 14px;"><i class="fa-solid fa-user-doctor"></i> Book Agronomist Call</h3>
-      <form onsubmit="event.preventDefault(); showToast('Call requested. Our agronomist will contact you shortly.', 'success'); closeModal('expertModal');" style="display: flex; flex-direction: column; gap: 12px;">
-        <input type="text" class="text-input" placeholder="Your Name & Phone Number" required />
-        <input type="datetime-local" class="text-input" required />
-        <select class="select-input">
-          <option>Paddy & Grain Diseases Expert</option>
-          <option>Cotton Whitefly Specialist</option>
-          <option>Soil & Fertigation Agronomist</option>
-        </select>
-        <button type="submit" class="btn btn-gold" style="justify-content: center;"><i class="fa-solid fa-phone"></i> Confirm Consultation</button>
-      </form>
     </div>
   </div>
 
@@ -1053,7 +903,7 @@
           </div>
         </div>
         <div class="welcome-poster-btn-row">
-          <button class="wp-btn-primary" onclick="closeModal('welcomePosterModal'); openModal('expertModal');">
+          <button class="wp-btn-primary" onclick="closeModal('welcomePosterModal'); window.open('https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice', '_blank', 'noopener');">
             <i class="fa-solid fa-user-doctor"></i> Connect With Expert
           </button>
           <button class="wp-btn-secondary" onclick="closeModal('welcomePosterModal')">
@@ -1378,10 +1228,7 @@
       <button type="button" class="mms-tile" data-modal-target="photoScannerModal" data-close-menu><span class="mms-tile-icon" style="--tile:#d97706"><i class="fa-solid fa-camera-retro"></i></span>AI Leaf Doctor</button>
       <a href="/blog" class="mms-tile"><span class="mms-tile-icon" style="--tile:#7c3aed"><i class="fa-solid fa-book-open"></i></span>Blog</a>
       <button type="button" class="mms-tile" onclick="toggleMobileMenu(false); handleBasketClick(event);"><span class="mms-tile-icon" style="--tile:#dc2626"><i class="fa-solid fa-bag-shopping"></i></span>My Cart</button>
-      <a href="#soil" class="mms-tile"><span class="mms-tile-icon" style="--tile:#0d9488"><i class="fa-solid fa-flask"></i></span>Soil Analyzer</a>
-      <a href="#experts" class="mms-tile"><span class="mms-tile-icon" style="--tile:#db2777"><i class="fa-solid fa-user-doctor"></i></span>Agronomists</a>
       <a href="./order-status.html" class="mms-tile"><span class="mms-tile-icon" style="--tile:#2563eb"><i class="fa-solid fa-truck-fast"></i></span>Track Order</a>
-      <a href="#tickets" class="mms-tile"><span class="mms-tile-icon" style="--tile:#475569"><i class="fa-solid fa-headset"></i></span>Support</a>
       <a href="https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice" target="_blank" rel="noopener" class="mms-tile"><span class="mms-tile-icon" style="--tile:#16a34a"><i class="fa-brands fa-whatsapp"></i></span>WhatsApp Expert</a>
     </div>
 

@@ -38,8 +38,8 @@ export default function MobileBottomNav() {
 
   const handleAIDoctorClick = () => {
     setIsMenuOpen(false)
-    // If on products page, trigger AI scanner or navigate to AI doctor section
-    navigate('/whatsapp-ai')
+    // The AI Leaf Doctor lives on the storefront.
+    window.location.href = '/storefront.html#catalog'
   }
 
   const handleAccountClick = () => {
@@ -168,19 +168,7 @@ export default function MobileBottomNav() {
             My Cart
           </a>
 
-          <Link to="/soil-analyzer" onClick={() => setIsMenuOpen(false)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 6px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #eef2f7', color: '#1e293b', textDecoration: 'none', fontSize: '0.74rem', fontWeight: 600, textAlign: 'center' }}>
-            <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(13, 148, 136, 0.1)', color: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FlaskConical size={18} />
-            </span>
-            Soil Analyzer
-          </Link>
 
-          <Link to="/agronomists" onClick={() => setIsMenuOpen(false)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 6px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #eef2f7', color: '#1e293b', textDecoration: 'none', fontSize: '0.74rem', fontWeight: 600, textAlign: 'center' }}>
-            <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(219, 39, 119, 0.1)', color: '#db2777', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Stethoscope size={18} />
-            </span>
-            Agronomists
-          </Link>
 
           <Link to="/orders" onClick={() => setIsMenuOpen(false)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 6px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #eef2f7', color: '#1e293b', textDecoration: 'none', fontSize: '0.74rem', fontWeight: 600, textAlign: 'center' }}>
             <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -189,12 +177,6 @@ export default function MobileBottomNav() {
             Track Order
           </Link>
 
-          <Link to="/support" onClick={() => setIsMenuOpen(false)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 6px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #eef2f7', color: '#1e293b', textDecoration: 'none', fontSize: '0.74rem', fontWeight: 600, textAlign: 'center' }}>
-            <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(71, 85, 105, 0.1)', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Headphones size={18} />
-            </span>
-            Support
-          </Link>
 
           <a href="https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 6px', borderRadius: '14px', background: '#f8fafc', border: '1px solid #eef2f7', color: '#1e293b', textDecoration: 'none', fontSize: '0.74rem', fontWeight: 600, textAlign: 'center' }}>
             <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(22, 163, 74, 0.1)', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -108,10 +108,6 @@ export default function App() {
       <Route path="/categories" element={<Categories />} />
       <Route path="/crops" element={<PublicPageShell><StoreSection type="crops" /></PublicPageShell>} />
       <Route path="/brands" element={<PublicPageShell><StoreSection type="brands" /></PublicPageShell>} />
-      <Route path="/soil-analyzer" element={<PublicPageShell><StoreSection type="soil" /></PublicPageShell>} />
-      <Route path="/whatsapp-ai" element={<PublicPageShell><StoreSection type="n8n" /></PublicPageShell>} />
-      <Route path="/support" element={<PublicPageShell><StoreSection type="support" /></PublicPageShell>} />
-      <Route path="/agronomists" element={<PublicPageShell><StoreSection type="agronomists" /></PublicPageShell>} />
       <Route path="/blog" element={<PublicPageShell><Blog /></PublicPageShell>} />
       <Route path="/blog/:id" element={<PublicPageShell><BlogDetail /></PublicPageShell>} />
 

@@ -58,7 +58,7 @@ export async function sendOrderConfirmation(order, { resend = false } = {}) {
     const cms = await db.getCMS().catch(() => ({}));
     const siteUrl = publicSiteUrl();
     const text = buildOrderConfirmationMessage(order, {
-      trackUrl: siteUrl ? `${siteUrl}/order-status.html` : '',
+      trackUrl: siteUrl ? `${siteUrl}/orders` : '',
       supportPhone: cms?.contactPhone,
     });
 
@@ -92,7 +92,7 @@ export async function sendDeliveryStatusUpdate(order, newStatus) {
     const cms = await db.getCMS().catch(() => ({}));
     const siteUrl = publicSiteUrl();
     const text = buildDeliveryStatusMessage(order, newStatus, {
-      trackUrl: siteUrl ? `${siteUrl}/order-status.html` : '',
+      trackUrl: siteUrl ? `${siteUrl}/orders` : '',
       supportPhone: cms?.contactPhone,
     });
     if (!text) return 'skipped';

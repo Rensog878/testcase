@@ -14,6 +14,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/responsive.css">
+  <!-- Shop, Blog, Products and Track Order are React pages: Chrome starts
+       loading them when a link to one is touched, so they open at once. -->
+  <script type="speculationrules">
+  {
+    "prerender": [{ "where": { "href_matches": ["/categories*", "/blog*", "/products*", "/orders*"] }, "eagerness": "moderate" }]
+  }
+  </script>
 </head>
 <body id="top" class="has-bottom-nav">
   <!-- SITE CONTENT (loads before React) -->
@@ -106,7 +113,7 @@
         </div>
 
         <!-- TRACK ORDER -->
-        <div class="action-item action-track" onclick="window.location.assign('./order-status.html')" role="button" tabindex="0">
+        <div class="action-item action-track" onclick="window.location.assign('/orders')" role="button" tabindex="0">
           <i class="fa-solid fa-truck-ramp-box action-icon"></i>
           <div>
             <span class="action-sub">Track</span>
@@ -1102,7 +1109,7 @@
       <button type="button" class="mms-tile" data-modal-target="photoScannerModal" data-close-menu><span class="mms-tile-icon" style="--tile:#d97706"><i class="fa-solid fa-camera-retro"></i></span>AI Leaf Doctor</button>
       <a href="/blog" class="mms-tile"><span class="mms-tile-icon" style="--tile:#7c3aed"><i class="fa-solid fa-book-open"></i></span>Blog</a>
       <button type="button" class="mms-tile" onclick="toggleMobileMenu(false); handleBasketClick(event);"><span class="mms-tile-icon" style="--tile:#dc2626"><i class="fa-solid fa-bag-shopping"></i></span>My Cart</button>
-      <a href="./order-status.html" class="mms-tile"><span class="mms-tile-icon" style="--tile:#2563eb"><i class="fa-solid fa-truck-fast"></i></span>Track Order</a>
+      <a href="/orders" class="mms-tile"><span class="mms-tile-icon" style="--tile:#2563eb"><i class="fa-solid fa-truck-fast"></i></span>Track Order</a>
       <a href="https://wa.me/919442562423?text=Hello%20Sathya%20Bio%20Expert%2C%20I%20need%20crop%20advice" target="_blank" rel="noopener" class="mms-tile"><span class="mms-tile-icon" style="--tile:#16a34a"><i class="fa-brands fa-whatsapp"></i></span>WhatsApp Expert</a>
     </div>
 

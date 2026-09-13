@@ -33,6 +33,16 @@
        bottom bar looks identical on every page -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+  <!-- Home is the standalone storefront page. Chrome loads it ahead in the
+       background (links to it start prerendering on touch), so tapping Home
+       opens it at once instead of loading the whole page and bar again. -->
+  <script type="speculationrules">
+  {
+    "prefetch": [{ "urls": ["/storefront.html"], "eagerness": "eager" }],
+    "prerender": [{ "where": { "href_matches": "/storefront.html*" }, "eagerness": "moderate" }]
+  }
+  </script>
+
   <!-- Razorpay Checkout SDK -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 

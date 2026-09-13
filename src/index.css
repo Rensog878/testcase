@@ -5868,6 +5868,151 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   white-space: nowrap;
 }
 
+/* ==========================================================================
+   ORDER STATUS (/orders, pages/OrderStatus.jsx) - the design of the former
+   public/order-status.html.
+   ========================================================================== */
+.sb-orders-page {
+  max-width: 860px;
+  min-height: 60vh;
+  margin: 0 auto;
+  padding: 52px 5vw;
+  color: #173b2a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.sb-orders-page h1 {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 2.2rem;
+}
+
+.sb-orders-page .muted {
+  color: #64748b;
+}
+
+.sb-orders-page .muted a {
+  color: #047857;
+  font-weight: 700;
+}
+
+.sb-orders-page .status-card {
+  margin-top: 20px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(20, 83, 45, 0.12);
+}
+
+.sb-orders-page .order-row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 16px 0;
+  border-bottom: 1px solid #dcfce7;
+}
+
+.sb-orders-page .order-row:last-child {
+  border-bottom: 0;
+}
+
+.sb-orders-page .order-card-head {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sb-orders-page .order-card-id {
+  font-weight: 800;
+  color: #064e3b;
+  word-break: break-all;
+}
+
+.sb-orders-page .order-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 0.88rem;
+}
+
+.sb-orders-page .order-card-meta i {
+  width: 16px;
+  color: #16a34a;
+}
+
+.sb-orders-page .order-card-otp {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fefce8;
+  color: #854d0e;
+  font-size: 0.84rem;
+}
+
+.sb-orders-page .order-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.sb-orders-page .order-badge.is-transit {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.sb-orders-page .order-badge.is-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sb-orders-page .retry-button {
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #15803d;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .sb-orders-page {
+    min-height: 0;
+    padding: 20px 14px 32px;
+  }
+  .sb-orders-page h1 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+  }
+  /* Each order is its own card. */
+  .sb-orders-page .status-card {
+    margin-top: 14px;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+    background: transparent;
+    box-shadow: none;
+  }
+  .sb-orders-page .order-row {
+    display: block;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #e3f4ea !important;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(20, 83, 45, 0.06);
+  }
+}
+
 /* SATHYA BIO UNIFIED MOBILE BOTTOM NAVIGATION BAR
    Uses the floating pill above (.bighaat-mobile-bottom-nav / .mobile-nav-link),
    which matches the storefront's bottom bar. Phones only. */
@@ -5917,6 +6062,265 @@ button.mobile-nav-link {
   color: #ffffff;
   font-size: 0.62rem;
   font-weight: 800;
+}
+
+/* PAGE-TO-PAGE: HEADER AND BOTTOM BAR STAY PUT (phones). The storefront and
+   checkout are separate documents; with a cross-document view transition the
+   ticker, header row and bottom bar stay in place and only the content
+   cross-fades. Same names as public/css/responsive.css section 7k. */
+@media (max-width: 768px) {
+  @view-transition {
+    navigation: auto;
+  }
+  .public-ticker {
+    view-transition-name: sb-ticker;
+  }
+  .sb-store-head {
+    view-transition-name: sb-header;
+  }
+  .sathya-mobile-bottom-nav {
+    view-transition-name: sb-bottom-nav;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.18s;
+  }
+  ::view-transition-group(sb-ticker),
+  ::view-transition-group(sb-header),
+  ::view-transition-group(sb-bottom-nav),
+  ::view-transition-new(sb-ticker),
+  ::view-transition-new(sb-header),
+  ::view-transition-new(sb-bottom-nav) {
+    animation: none;
+  }
+  ::view-transition-old(sb-ticker),
+  ::view-transition-old(sb-header),
+  ::view-transition-old(sb-bottom-nav) {
+    display: none;
+  }
+}
+
+/* MOBILE MENU SHEET (MobileBottomNav.jsx) - the storefront's Menu sheet,
+   copied from public/css/responsive.css (7d and 7g) so both pages match.
+   Closed, it stays painted just below the screen, so a tap slides it at once. */
+.mobile-menu-sheet,
+.mobile-menu-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 9980;
+    background: rgba(15, 23, 42, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    touch-action: none;
+  }
+  .mobile-menu-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Under the bottom bar (z 9999), so the Menu tab - now an X - closes it. */
+  .mobile-menu-sheet {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9985;
+    box-sizing: border-box;
+    max-height: calc(100vh - 72px);
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: #ffffff;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.12);
+    padding: 6px 16px calc(96px + env(safe-area-inset-bottom, 0px));
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transform: translateY(calc(100% + 16px));
+    will-change: transform;
+    contain: layout paint;
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .mobile-menu-sheet.active {
+    transform: translateY(0);
+  }
+  .mms-handle {
+    width: 40px;
+    height: 4px;
+    margin: 4px auto 12px;
+    border-radius: 4px;
+    background: #cbd5e1;
+  }
+  .mms-account {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+    border: 1px solid #d1fae5;
+  }
+  .mms-avatar {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #059669;
+    color: #ffffff;
+    font-size: 1.05rem;
+  }
+  .mms-account-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+  .mms-account-text strong {
+    font-size: 0.92rem;
+    color: #064e3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mms-account-text span {
+    font-size: 0.74rem;
+    color: #475569;
+  }
+  .mms-account-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 10px;
+    background: #059669;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .mms-title {
+    margin: 18px 2px 10px;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #475569;
+  }
+  .mms-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .mms-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    min-height: 86px;
+    padding: 12px 4px 10px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+  .mms-tile:active {
+    transform: scale(0.97);
+    background: #f1f5f9;
+  }
+  .mms-tile-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--tile, #059669);
+    background: #ecfdf5;
+    background: color-mix(in srgb, var(--tile, #059669) 13%, #ffffff);
+  }
+  .mms-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .mms-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    border: 1px solid #d1fae5;
+    background: #ffffff;
+    color: #064e3b;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mms-chip:active {
+    background: #ecfdf5;
+  }
+  .mms-footer-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .mms-lang,
+  .mms-call {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #064e3b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .mms-lang select {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    outline: none;
+  }
 }
 
 @media (max-width: 768px) {

@@ -103,6 +103,7 @@ export default function App() {
       <Route path="/product/:id/ingredients" element={<PublicPageShell><IngredientDetail /></PublicPageShell>} />
       <Route path="/wishlist" element={<PublicPageShell><Wishlist /></PublicPageShell>} />
       <Route path="/orders" element={<PublicPageShell><OrderStatus /></PublicPageShell>} />
+      <Route path="/order-status" element={<Navigate to="/orders" replace />} />
       <Route path="/products" element={<AllProducts />} />
       <Route path="/shop" element={<Navigate to="/products" replace />} />
       <Route path="/categories" element={<Categories />} />

@@ -3555,6 +3555,48 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .lang-quick-title {
   }
 }
 
+/* ------------------------------------------------------------
+   7k. PAGE-TO-PAGE: HEADER AND BOTTOM BAR STAY PUT (phones)
+   The storefront and the React pages (Shop, Blog, Products, Track Order)
+   are separate documents. With a cross-document view transition the
+   browser keeps the ticker, header row and bottom bar in place and only
+   cross-fades the content between them, instead of redrawing everything.
+   The React side has the same names (src/index.css, "PAGE-TO-PAGE").
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+  @view-transition {
+    navigation: auto;
+  }
+  .ticker-wrap {
+    view-transition-name: sb-ticker;
+  }
+  .header-main {
+    view-transition-name: sb-header;
+  }
+  .mobile-bottom-nav {
+    view-transition-name: sb-bottom-nav;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.18s;
+  }
+  ::view-transition-group(sb-ticker),
+  ::view-transition-group(sb-header),
+  ::view-transition-group(sb-bottom-nav) {
+    animation: none;
+  }
+  ::view-transition-old(sb-ticker),
+  ::view-transition-old(sb-header),
+  ::view-transition-old(sb-bottom-nav) {
+    display: none;
+  }
+  ::view-transition-new(sb-ticker),
+  ::view-transition-new(sb-header),
+  ::view-transition-new(sb-bottom-nav) {
+    animation: none;
+  }
+}
+
 @media print {
   .topbar,
   .ticker-wrap,

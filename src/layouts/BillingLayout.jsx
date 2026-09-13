@@ -4,7 +4,10 @@ import Sidebar from '../components/Sidebar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { Menu } from 'lucide-react'
 
-const BILL_NAV = [{ title: 'BILLING', links: [{ to: '/billing', end: true, icon: '🧾', label: 'POS Counter' }] }]
+const BILL_NAV = [{ title: 'BILLING', links: [
+  { to: '/billing', end: true, icon: '🧾', label: 'Create invoice' },
+  { to: '/billing/history', icon: '🗂️', label: 'Invoice history' },
+] }]
 
 export default function BillingLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)

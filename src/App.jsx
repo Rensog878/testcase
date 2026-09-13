@@ -45,6 +45,7 @@ import DeliveryDashboard from './pages/delivery/Dashboard'
 // Billing Pages
 import BillingLayout    from './layouts/BillingLayout'
 import BillingDashboard from './pages/billing/Dashboard'
+import InvoiceHistory from './pages/billing/InvoiceHistory'
 
 // Tickets & Chat (shared between admin/employee)
 import Tickets     from './pages/shared/Tickets'
@@ -136,6 +137,7 @@ export default function App() {
       {/* Billing Routes */}
       <Route path="/billing" element={<PrivateRoute allowedRoles={['billing']}><BillingLayout /></PrivateRoute>}>
         <Route index element={<BillingDashboard />} />
+        <Route path="history" element={<InvoiceHistory />} />
       </Route>
 
       {/* Catch all */}

@@ -117,6 +117,8 @@ const blogSchema = new mongoose.Schema({ _id: String }, permissive);
 const videoSchema = new mongoose.Schema({ _id: String }, permissive);
 const Blog = mongoose.models.Blog || mongoose.model('Blog', blogSchema);
 const Video = mongoose.models.Video || mongoose.model('Video', videoSchema);
+const invoiceSchema = new mongoose.Schema({ _id: String }, permissive);
+const Invoice = mongoose.models.Invoice || mongoose.model('Invoice', invoiceSchema);
 
 export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing'];
 
@@ -1655,6 +1657,21 @@ class DatabaseManager {
             { returnDocument: 'after', lean: true }
         );
         return doc ? doc.value : null;
+  }
+
+  // ================= BILLING INVOICES =================
+
+  async createInvoice(invoiceData) {
+        await connectDB();
+        const id = invoiceData.id || newId('INV');
+        const created = await Invoice.create({ ...invoiceData, _id: id, id });
+        return serialize(created.toObject());
+  }
+
+  async getInvoices() {
+        await connectDB();
+        const invoices = await Invoice.find({}).sort({ date: -1 }).lean();
+        return invoices.map(serialize);
   }
 
   // ================= BLOGS TABLE =================

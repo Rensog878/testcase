@@ -1,29 +1,47 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
-const CATALOG = [
-  { id: 'p1', name: 'BlastShield 75 WP', price: 480, hsn: '380899', gst: 18 },
-  { id: 'p2', name: 'RootVigor Gold',    price: 890, hsn: '310100', gst: 18 },
-  { id: 'p3', name: 'BioNeem Gold',      price: 390, hsn: '380899', gst: 18 },
-  { id: 'p4', name: 'CottonGuard 20 EC', price: 620, hsn: '380899', gst: 18 },
-  { id: 'p5', name: 'TomatoSaver FC',    price: 340, hsn: '380899', gst: 18 },
-]
+import axios from 'axios'
 
 export default function BillingDashboard() {
   const [items, setItems] = useState([])
-  const [selected, setSelected] = useState(CATALOG[0].id)
+  const [catalog, setCatalog] = useState([])
+  const [selected, setSelected] = useState('')
+  const [productSearch, setProductSearch] = useState('')
   const [qty, setQty] = useState(1)
   const [discount, setDiscount] = useState(0)
   const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
+  const [paymentMode, setPaymentMode] = useState('Cash')
   const [invoiceVisible, setInvoiceVisible] = useState(false)
+  const [invoice, setInvoice] = useState(null)
+
+  useEffect(() => {
+    axios.get('/api/products')
+      .then(({ data }) => {
+        if (data.success) {
+          const products = (data.data || []).map(product => ({
+            ...product,
+            hsn: product.hsn || '380899',
+            gst: 18,
+            price: Number(product.price) || 0
+          }))
+          setCatalog(products)
+          setSelected(products[0]?.id || '')
+        }
+      })
+      .catch(() => toast.error('Could not load products for billing'))
+  }, [])
 
   const addItem = () => {
-    const product = CATALOG.find(p => p.id === selected)
+    const product = catalog.find(p => p.id === selected)
+    if (!product) { toast.error('Select a product first'); return }
     const existing = items.find(i => i.id === selected)
     if (existing) setItems(items.map(i => i.id === selected ? { ...i, qty: i.qty + qty } : i))
     else setItems([...items, { ...product, qty }])
     toast.success(`${product.name} added`)
   }
+
+  const filteredCatalog = catalog.filter(product => `${product.name} ${product.category || ''} ${product.id}`.toLowerCase().includes(productSearch.toLowerCase()))
 
   const removeItem = (id) => setItems(items.filter(i => i.id !== id))
 
@@ -35,8 +53,22 @@ export default function BillingDashboard() {
   const total     = taxable + cgst + sgst
   const invNo     = `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random()*9000)+1000).padStart(4,'0')}`
 
-  const printInvoice = () => {
+  const printInvoice = async () => {
     if (items.length === 0) { toast.error('Add items first'); return }
+    try {
+      const { data } = await axios.post('/api/billing/invoice', {
+        customerName,
+        customerPhone,
+        paymentMode,
+        discountAmount: discAmt,
+        items: items.map(item => ({ id: item.id, name: item.name, hsn: item.hsn, price: item.price, qty: item.qty }))
+      })
+      if (!data.success) throw new Error(data.message || 'Could not create invoice')
+      setInvoice(data.invoice)
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Could not create invoice')
+      return
+    }
     setInvoiceVisible(true)
     setTimeout(() => window.print(), 300)
   }
@@ -93,15 +125,19 @@ export default function BillingDashboard() {
         </div>
       </div>
 
-      <div className="pos-billing-layout">
+      <div className="pos-billing-layout billing-workspace">
         <div>
           <div className="card" style={{ marginBottom: '20px' }}>
             <div className="card-header"><div className="card-title">Add item to bill</div></div>
             <div className="pos-add-item-row">
+              <div className="form-group billing-product-search" style={{ marginBottom: 0 }}>
+                <label className="form-label">Search product</label>
+                <input className="form-input" value={productSearch} onChange={e => setProductSearch(e.target.value)} placeholder="Search by product name or category" />
+              </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Product</label>
                 <select className="form-select" value={selected} onChange={e => setSelected(e.target.value)}>
-                  {CATALOG.map(p => <option key={p.id} value={p.id}>{p.name} — ₹{p.price}</option>)}
+                  {filteredCatalog.map(p => <option key={p.id} value={p.id}>{p.name} — ₹{p.price}{p.online === false ? ' (Offline)' : ''}</option>)}
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
@@ -146,6 +182,14 @@ export default function BillingDashboard() {
               <input className="form-input" placeholder="Walk-in Customer" value={customerName} onChange={e => setCustomerName(e.target.value)} />
             </div>
             <div className="form-group">
+              <label className="form-label">Customer Phone</label>
+              <input className="form-input" placeholder="Mobile number" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Payment mode</label>
+              <select className="form-select" value={paymentMode} onChange={e => setPaymentMode(e.target.value)}><option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option></select>
+            </div>
+            <div className="form-group">
               <label className="form-label">Discount (%)</label>
               <input className="form-input" type="number" min="0" max="100" value={discount} onChange={e => setDiscount(Number(e.target.value))} />
             </div>
@@ -166,14 +210,11 @@ export default function BillingDashboard() {
               </div>
             </div>
           </div>
-          <button className="btn btn-primary btn-full btn-lg" onClick={printInvoice}>🖨️ Print GST invoice</button>
+          <button className="btn btn-primary btn-full btn-lg" onClick={printInvoice}>🖨️ Create & print GST invoice</button>
         </div>
       </div>
 
-      {invoiceVisible && (
-        <div id="gst-invoice" style={{ display: 'none' }} className="print-invoice">
-        </div>
-      )}
+      {invoiceVisible && invoice && <div id="gst-invoice" className="print-invoice"><div className="invoice-brand">SATHYA <span>BIO</span></div><h1>GST TAX INVOICE</h1><div className="invoice-meta"><span>Invoice: {invoice.id}</span><span>Date: {new Date(invoice.date).toLocaleString('en-IN')}</span></div><div className="invoice-customer"><strong>Bill to</strong><br />{invoice.customerName}<br />{invoice.customerPhone || 'Walk-in customer'}</div><table><thead><tr><th>Product</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>{invoice.items.map(item => <tr key={item.id}><td>{item.name}</td><td>{item.hsn}</td><td>{item.qty}</td><td>₹{Number(item.price).toLocaleString()}</td><td>₹{(Number(item.price) * Number(item.qty)).toLocaleString()}</td></tr>)}</tbody></table><div className="invoice-total"><span>Subtotal ₹{invoice.subtotal.toLocaleString()}</span><span>Discount ₹{invoice.discountAmount.toLocaleString()}</span><span>GST ₹{invoice.totalGst.toLocaleString()}</span><strong>Total ₹{invoice.grandTotal.toLocaleString()}</strong></div><p>Payment mode: {invoice.paymentMode} · Cashier: {invoice.cashier}</p></div>}
     </div>
   )
 }

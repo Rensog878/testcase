@@ -1705,9 +1705,19 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
       status: 'PAID',
     };
 
-    res.json({ success: true, message: 'POS GST Tax Invoice Generated', invoice });
+    const savedInvoice = await db.createInvoice(invoice);
+    res.json({ success: true, message: 'POS GST Tax Invoice Generated', invoice: savedInvoice });
   } catch (err) {
     sendError(res, err, 'Create invoice');
+  }
+});
+
+app.get('/api/billing/invoices', requireAuth('billing', 'admin'), async (req, res) => {
+  try {
+    const data = await db.getInvoices();
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Invoice history');
   }
 });
 

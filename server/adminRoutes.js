@@ -8,7 +8,7 @@ import { getWhatsAppSenderStatus } from './whatsapp.js';
 // so req.user is always the signed-in admin.
 const router = express.Router();
 
-const USER_FIELDS = ['name', 'phone', 'email', 'password', 'role', 'crop', 'crops', 'acreage', 'village', 'district', 'state', 'department', 'status'];
+const USER_FIELDS = ['name', 'phone', 'email', 'password', 'role', 'crop', 'acreage', 'village', 'district', 'state', 'department', 'status'];
 const USER_STATUSES = ['active', 'inactive'];
 
 // Only known user fields are accepted, so a request cannot set ids, createdBy,
@@ -44,8 +44,7 @@ function matchesSearch(user, search) {
     const needle = String(search).toLowerCase();
     return ['name', 'phone', 'email', 'crop', 'village', 'district', 'state'].some((key) =>
           String(user[key] || '').toLowerCase().includes(needle)
-                                                                                     ) ||
-          (Array.isArray(user.crops) && user.crops.some((crop) => String(crop).toLowerCase().includes(needle)));
+                                                                                     );
 }
 
 router.get('/users', async (req, res) => {

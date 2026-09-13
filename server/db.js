@@ -8,8 +8,6 @@
 import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { hashPassword, isPasswordHash, passwordProblems, weakPasswordMessage } from './security.js';
-import { resolveCrop, resolveCropList } from '../src/shared/cropRegistry.js';
-import { applyCropUpdate, farmerCropLabels, farmerCropMatch, normalizeFarmerCrops } from '../src/shared/farmerCrops.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
 
@@ -677,12 +675,7 @@ async function seedIfEmpty() {
   console.log('Seeding Sathya Bio database with initial demo data...');
 
   await User.insertMany(
-        await Promise.all(INITIAL_USERS.map(async u => ({
-            ...u,
-            ...(u.role === 'farmer' ? { crops: normalizeFarmerCrops(u.crop).crops } : {}),
-            _id: u.id,
-            password: await hashPassword(u.password)
-        })))
+        await Promise.all(INITIAL_USERS.map(async u => ({ ...u, _id: u.id, password: await hashPassword(u.password) })))
   );
     await Product.insertMany(INITIAL_PRODUCTS.map(p => ({ ...p, _id: p.id })));
     await Order.insertMany(INITIAL_ORDERS.map(o => ({ ...o, _id: o.id })));
@@ -728,8 +721,7 @@ class DatabaseManager {
                                     u.phone?.includes(q) ||
                                     u.email?.toLowerCase().includes(q) ||
                                     u.village?.toLowerCase().includes(q) ||
-                                    u.crop?.toLowerCase().includes(q) ||
-                                    farmerCropLabels(u).some(label => label.toLowerCase().includes(q))
+                                    u.crop?.toLowerCase().includes(q)
                       );
       }
 
@@ -807,8 +799,6 @@ class DatabaseManager {
 
       const fields = await this.getProfileFields();
         const editableFields = new Set(fields.filter(field => field.editable).map(field => field.id));
-        // The crops list follows the primary crop field: whoever may change one may change both.
-        if (editableFields.has('crop')) editableFields.add('crops');
         const allowed = {};
         // Even if an admin configures a profile field with one of these ids, a
         // user must never be able to change them from their own profile.
@@ -816,10 +806,6 @@ class DatabaseManager {
         for (const [key, value] of Object.entries(profileUpdates || {})) {
                 if (editableFields.has(key) && !reserved.has(key)) allowed[key] = value;
         }
-
-      // Keep crop (primary) and crops (all) in step whichever one was sent.
-        const cropChange = applyCropUpdate(user.toObject(), allowed);
-        if (cropChange) Object.assign(allowed, cropChange);
 
       const existingProfile = (user.toObject().profile) || {};
         const mergedProfile = { ...existingProfile, ...allowed };
@@ -858,8 +844,6 @@ class DatabaseManager {
         }
 
         const id = newId('USR');
-        // Farmers: crop is the primary crop, crops every crop they grow (primary first).
-        const farmerCrops = role === 'farmer' ? normalizeFarmerCrops(userData.crop || '', userData.crops) : null;
         const newUser = {
                 _id: id,
                 id,
@@ -869,8 +853,7 @@ class DatabaseManager {
                 email: userData.email || '',
                 password: await hashPassword(userData.password),
                 role,
-                crop: farmerCrops ? farmerCrops.crop || 'All Crops' : userData.crop || 'All Crops',
-                ...(farmerCrops ? { crops: farmerCrops.crops.length ? farmerCrops.crops : ['All Crops'] } : {}),
+                crop: userData.crop || 'All Crops',
                 acreage: Number(userData.acreage) || 0,
                 village: userData.village || 'Farm Village',
                 district: userData.district || 'Coimbatore',
@@ -892,15 +875,6 @@ class DatabaseManager {
         if (!user) return null;
 
       const { _id, id: _ignoredId, password, ...rest } = updates || {};
-        if ((rest.role ?? user.get('role')) === 'farmer') {
-            const cropChange = applyCropUpdate(user.toObject(), rest);
-            if (cropChange) {
-                rest.crop = cropChange.crop || 'All Crops';
-                rest.crops = cropChange.crops.length ? cropChange.crops : ['All Crops'];
-            }
-        } else {
-            delete rest.crops;
-        }
         if (rest.role !== undefined && !USER_ROLES.includes(rest.role)) {
             throw inputError('INVALID_ROLE', 'Unknown user role.');
         }
@@ -963,13 +937,7 @@ class DatabaseManager {
       }
 
       if (crop && crop !== 'all' && crop !== 'All Crops') {
-              // The same crop under another spelling ("Paddy / Rice", "Paddy/Rice") matches
-              // through the crop registry; the earlier text match still applies too.
-              const wantedCrop = resolveCrop(crop).id;
-              list = list.filter(p => p.crops && (
-                        (wantedCrop && resolveCropList(p.crops).includes(wantedCrop)) ||
-                        p.crops.some(c => c.toLowerCase().includes(crop.toLowerCase()))
-              ));
+              list = list.filter(p => p.crops && p.crops.some(c => c.toLowerCase().includes(crop.toLowerCase())));
       }
 
       if (disease && disease !== 'all') {
@@ -990,15 +958,27 @@ class DatabaseManager {
 
       if (userId) {
               const targetUser = await this.getUserById(userId);
-              // userCropMatch: the product lists one of the user's crops (any of
-              // them, any spelling). The storefront shows its "Tailored for" badge from it.
-              list = list.map(p => ({ ...p, userCropMatch: Boolean(targetUser) && farmerCropMatch(targetUser, p.crops) === 'exact' }));
               list.sort((a, b) => {
                         const aTarget = a.targetUserId === userId ? 1 : 0;
                         const bTarget = b.targetUserId === userId ? 1 : 0;
                         if (aTarget !== bTarget) return bTarget - aTarget;
-                        if (a.userCropMatch !== b.userCropMatch) return a.userCropMatch ? -1 : 1;
-                        return (a.sortOrder || 99) - (b.sortOrder || 99);
+
+                                if (targetUser && targetUser.crop && targetUser.crop !== 'All Crops') {
+                                            const userCrop = targetUser.crop.toLowerCase();
+                                            const aCropMatch = a.crops?.some(
+                                                          c => userCrop.includes(c.toLowerCase()) || c.toLowerCase().includes(userCrop)
+                                                        )
+                                              ? 1
+                                                          : 0;
+                                            const bCropMatch = b.crops?.some(
+                                                          c => userCrop.includes(c.toLowerCase()) || c.toLowerCase().includes(userCrop)
+                                                        )
+                                              ? 1
+                                                          : 0;
+                                            if (aCropMatch !== bCropMatch) return bCropMatch - aCropMatch;
+                                }
+
+                                return (a.sortOrder || 99) - (b.sortOrder || 99);
               });
       } else if (sortBy === 'user') {
               list.sort((a, b) => {
@@ -1209,14 +1189,13 @@ class DatabaseManager {
       return users.map(u => {
               const assignedProducts = products.filter(p => p.targetUserId === u.id);
               const matchingCropProducts = products.filter(
-                        p => farmerCropMatch(u, p.crops) === 'exact'
+                        p => u.crop && p.crops && p.crops.some(c => u.crop.toLowerCase().includes(c.toLowerCase()))
                       );
               return {
                         userId: u.id,
                         userName: u.name,
                         role: u.role,
                         crop: u.crop,
-                        crops: farmerCropLabels(u),
                         acreage: u.acreage,
                         village: u.village,
                         assignedCount: assignedProducts.length,

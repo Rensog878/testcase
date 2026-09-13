@@ -386,14 +386,7 @@ window.SB_LANG_TA = {
     'AI Doctor': 'மருத்துவர்',
     'Cart': 'கூடை',
     'Menu': 'மெனு',
-    // Farmer dashboard entry points (signed-in farmers only). Short for the bar.
-    'Farm': 'பண்ணை',
-    'My Farm Dashboard': 'என் பண்ணை பலகை',
-
-    // Several crops on one account
-    'Other crops (optional)': 'பிற பயிர்கள் (விருப்பத்தேர்வு)',
     'Citrus': 'எலுமிச்சை வகைகள்',
-    'Tailored for your crops': 'உங்கள் பயிர்களுக்கு ஏற்றது',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'மொபைல் எண் அல்லது மின்னஞ்சல்',
@@ -422,7 +415,6 @@ window.SB_LANG_TA = {
     'acres': 'ஏக்கர்',
     'Fewer acres': 'ஏக்கரைக் குறை',
     'More acres': 'ஏக்கரைக் கூட்டு',
-    'Other crops you grow': 'நீங்கள் பயிரிடும் பிற பயிர்கள்',
     'Village or town': 'கிராமம் அல்லது ஊர்',
     'e.g. Thiruvaiyaru, Thanjavur': 'எ.கா. திருவையாறு',
     'Used for local weather and spraying advice': 'உள்ளூர் வானிலை மற்றும் மருந்து தெளிப்பு ஆலோசனைக்குப் பயன்படும்',

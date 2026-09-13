@@ -375,13 +375,7 @@ window.SB_LANG_HI = {
     'AI Doctor': 'डॉक्टर',
     'Cart': 'टोकरी',
     'Menu': 'मेन्यू',
-    'Farm': 'खेत',
-    'My Farm Dashboard': 'मेरा खेत डैशबोर्ड',
-
-    // Several crops on one account
-    'Other crops (optional)': 'दूसरी फसलें (वैकल्पिक)',
     'Citrus': 'नींबू वर्गीय फल',
-    'Tailored for your crops': 'आपकी फसलों के लिए',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'मोबाइल नंबर या ईमेल',
@@ -409,7 +403,6 @@ window.SB_LANG_HI = {
     'acres': 'एकड़',
     'Fewer acres': 'एकड़ घटाएँ',
     'More acres': 'एकड़ बढ़ाएँ',
-    'Other crops you grow': 'आपकी दूसरी फसलें',
     'Village or town': 'गाँव या कस्बा',
     'e.g. Thiruvaiyaru, Thanjavur': 'जैसे तिरुवैयारु',
     'Used for local weather and spraying advice': 'स्थानीय मौसम और छिड़काव सलाह के लिए',

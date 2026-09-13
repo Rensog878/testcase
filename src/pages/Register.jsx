@@ -4,10 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import { toast } from 'sonner'
 import PasswordChecklist from '../components/PasswordChecklist'
 import { isPasswordValid, passwordPlaceholder } from '../utils/passwordRules'
-import { farmerCropChoices } from '../shared/farmerCrops.js'
-
-// Crop names come from the crop registry (src/shared/cropRegistry.js).
-const CROP_CHOICES = farmerCropChoices()
 
 export default function Register() {
   const navigate = useNavigate()
@@ -19,14 +15,10 @@ export default function Register() {
   const timerRef = useRef(null)
   const [form, setForm] = useState({
     name: '', email: '', phone: '', password: '', confirmPassword: '',
-    crop: 'Paddy / Rice', otherCrops: [], acreage: 3, village: '', district: '', state: 'Tamil Nadu'
+    crop: 'Paddy / Rice', acreage: 3, village: '', district: '', state: 'Tamil Nadu'
   })
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
-  const toggleOtherCrop = label => setForm(f => ({
-    ...f,
-    otherCrops: f.otherCrops.includes(label) ? f.otherCrops.filter(c => c !== label) : [...f.otherCrops, label],
-  }))
 
   // Phone accepts digits only, filtered as the user types.
   const setPhone = e => {
@@ -120,8 +112,7 @@ export default function Register() {
     setLoading(true)
     try {
       await verifyRegistrationOtp(form.phone.trim(), otp.trim())
-      const { otherCrops, ...details } = form
-      await register({ ...details, crops: [form.crop, ...otherCrops.filter(c => c !== form.crop)], role: 'farmer' })
+      await register({ ...form, role: 'farmer' })
       toast.success('Registration successful! Welcome to Sathya Bio 🌿')
       navigate('/', { replace: true })
     } catch (err) {
@@ -195,7 +186,7 @@ export default function Register() {
                 <div className="form-group">
                   <label className="form-label">Primary Crop *</label>
                   <select className="form-select" value={form.crop} onChange={set('crop')}>
-                    {[...CROP_CHOICES.map(c => c.label), 'All Crops'].map(c => (
+                    {['Paddy / Rice', 'Cotton', 'Tomato', 'Wheat', 'Sugarcane', 'Corn / Maize', 'Citrus / Fruits', 'Grapes / Fruits', 'Potato', 'All Crops'].map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -205,21 +196,6 @@ export default function Register() {
                   <input className="form-input" type="number" placeholder="e.g. 5" value={form.acreage} onChange={set('acreage')} min="0.5" step="0.5" />
                 </div>
               </div>
-
-              <fieldset className="form-group" style={{ border: 0, padding: 0, margin: '0 0 18px', minWidth: 0 }}>
-                <legend className="form-label">Other crops you grow (optional)</legend>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {CROP_CHOICES.filter(c => c.label !== form.crop).map(c => (
-                    <label
-                      key={c.id}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', minHeight: '48px', padding: '6px 14px', border: '1px solid var(--surface-border)', borderRadius: '999px', cursor: 'pointer', fontSize: '0.9rem' }}
-                    >
-                      <input type="checkbox" checked={form.otherCrops.includes(c.label)} onChange={() => toggleOtherCrop(c.label)} />
-                      {c.label}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
 
               <div className="form-group">
                 <label className="form-label">State</label>

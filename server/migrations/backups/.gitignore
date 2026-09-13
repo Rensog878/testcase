@@ -1,3 +1,0 @@
-# Migration backups hold account ids; keep them out of git.
-*
-!.gitignore

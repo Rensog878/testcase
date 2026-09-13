@@ -375,13 +375,7 @@ window.SB_LANG_TE = {
     'AI Doctor': 'వైద్యుడు',
     'Cart': 'బుట్ట',
     'Menu': 'మెనూ',
-    'Farm': 'పొలం',
-    'My Farm Dashboard': 'నా పొలం డాష్‌బోర్డ్',
-
-    // Several crops on one account
-    'Other crops (optional)': 'ఇతర పంటలు (ఐచ్ఛికం)',
     'Citrus': 'నిమ్మజాతి పండ్లు',
-    'Tailored for your crops': 'మీ పంటలకు తగినవి',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'మొబైల్ నంబర్ లేదా ఇమెయిల్',
@@ -409,7 +403,6 @@ window.SB_LANG_TE = {
     'acres': 'ఎకరాలు',
     'Fewer acres': 'ఎకరాలు తగ్గించు',
     'More acres': 'ఎకరాలు పెంచు',
-    'Other crops you grow': 'మీరు పండించే ఇతర పంటలు',
     'Village or town': 'గ్రామం లేదా పట్టణం',
     'e.g. Thiruvaiyaru, Thanjavur': 'ఉదా. గుంటూరు',
     'Used for local weather and spraying advice': 'స్థానిక వాతావరణం, పిచికారీ సలహా కోసం',

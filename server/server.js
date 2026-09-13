@@ -11,8 +11,6 @@ import crypto from 'node:crypto';
 import Razorpay from 'razorpay';
 import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
-import farmerRoutes from './farmerRoutes.js';
-import { farmerCropChoices } from '../src/shared/farmerCrops.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout } from './otpTemplates.js';
 import { sendWhatsAppText } from './whatsapp.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
@@ -669,8 +667,6 @@ app.post('/api/auth/register', async (req, res) => {
       email,
       password,
       crop: cleanText(req.body?.crop, 60),
-      // Every crop the farmer grows; db.createUser keeps the primary crop first.
-      crops: Array.isArray(req.body?.crops) ? req.body.crops.slice(0, 20).map((value) => cleanText(value, 60)) : undefined,
       acreage: req.body?.acreage,
       village: cleanText(req.body?.village, 80),
       district: cleanText(req.body?.district, 80),
@@ -830,12 +826,6 @@ app.get('/api/catalog-options', async (req, res) => {
   } catch (err) {
     sendError(res, err, 'Catalog options');
   }
-});
-
-// Crop choices for sign-up and profile forms on both frontends (src/shared/cropRegistry.js).
-app.get('/api/crops', (req, res) => {
-  res.set('Cache-Control', 'public, max-age=3600');
-  res.json({ success: true, data: farmerCropChoices() });
 });
 
 app.get('/api/user-product-summary', requireAuth('admin'), async (req, res) => {
@@ -1604,13 +1594,6 @@ app.get('/api/chat/records', requireAuth('admin', 'employee'), async (req, res) 
     sendError(res, err, 'Chat records');
   }
 });
-
-// ============================================================
-// FARMER DASHBOARD
-// ============================================================
-
-// Weather and spraying advice for the farmer's own village (src/pages/farmer).
-app.use('/api/farmer', requireAuth('farmer'), farmerRoutes);
 
 // ============================================================
 // FALLBACKS

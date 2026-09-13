@@ -375,13 +375,7 @@ window.SB_LANG_KN = {
     'AI Doctor': 'ವೈದ್ಯ',
     'Cart': 'ಬುಟ್ಟಿ',
     'Menu': 'ಮೆನು',
-    'Farm': 'ಹೊಲ',
-    'My Farm Dashboard': 'ನನ್ನ ಹೊಲದ ಫಲಕ',
-
-    // Several crops on one account
-    'Other crops (optional)': 'ಇತರ ಬೆಳೆಗಳು (ಐಚ್ಛಿಕ)',
     'Citrus': 'ನಿಂಬೆ ಜಾತಿ ಹಣ್ಣುಗಳು',
-    'Tailored for your crops': 'ನಿಮ್ಮ ಬೆಳೆಗಳಿಗೆ ತಕ್ಕದ್ದು',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಥವಾ ಇಮೇಲ್',
@@ -409,7 +403,6 @@ window.SB_LANG_KN = {
     'acres': 'ಎಕರೆ',
     'Fewer acres': 'ಎಕರೆ ಕಡಿಮೆ ಮಾಡಿ',
     'More acres': 'ಎಕರೆ ಹೆಚ್ಚಿಸಿ',
-    'Other crops you grow': 'ನೀವು ಬೆಳೆಯುವ ಇತರ ಬೆಳೆಗಳು',
     'Village or town': 'ಗ್ರಾಮ ಅಥವಾ ಊರು',
     'e.g. Thiruvaiyaru, Thanjavur': 'ಉದಾ. ಮಂಡ್ಯ',
     'Used for local weather and spraying advice': 'ಸ್ಥಳೀಯ ಹವಾಮಾನ ಮತ್ತು ಸಿಂಪಡಣೆ ಸಲಹೆಗೆ ಬಳಸಲಾಗುತ್ತದೆ',

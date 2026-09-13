@@ -2387,12 +2387,6 @@ pre {
   flex-direction: column;
   min-width: 0;
 }
-.auth-fieldset {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
 /* A wrapping row, so an "Optional" tag that drops to its own line still lines up. */
 .auth-label {
   display: flex;
@@ -2584,65 +2578,6 @@ pre {
   font-weight: 600;
   pointer-events: none;
   transform: translateY(-50%);
-}
-
-/* Other crops: tick-box chips. + becomes a tick when chosen. */
-.auth-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.auth-chip {
-  position: relative;
-  display: inline-flex;
-}
-.auth-chip input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-.auth-chip-face {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 16px 0 14px;
-  border: 1.5px solid var(--auth-line-soft);
-  border-radius: 999px;
-  background: #ffffff;
-  color: var(--auth-ink);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-.auth-chip-face i {
-  width: 14px;
-  color: var(--auth-quiet);
-  font-size: 0.8rem;
-  text-align: center;
-}
-.auth-chip-face .fa-check,
-.auth-chip input:checked + .auth-chip-face .fa-plus {
-  display: none;
-}
-.auth-chip input:checked + .auth-chip-face {
-  border-color: var(--primary);
-  background: #ecfdf5;
-  color: var(--auth-green-deep);
-}
-.auth-chip input:checked + .auth-chip-face .fa-check {
-  display: inline-block;
-  color: var(--auth-green);
-}
-.auth-chip input:focus-visible + .auth-chip-face {
-  outline: var(--auth-focus);
-  outline-offset: 2px;
 }
 
 /* Six-box code: a transparent input over the boxes. */
@@ -3402,21 +3337,6 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .lang-quick-title {
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 0.58rem;
-  }
-  /* Signed-in farmers get a sixth tab (Farm, app.js checkStorefrontAuth), which
-     leaves each tab about 55px on a 360px phone. Without this, "மருத்துவர்" and
-     "பண்ணை" were cut to an ellipsis; measured at 58px and 54px wide at 0.58rem. */
-  .mobile-bottom-nav.has-farm-tab {
-    padding-left: 2px;
-    padding-right: 2px;
-  }
-  .mobile-bottom-nav.has-farm-tab .mobile-nav-item {
-    padding-left: 0;
-    padding-right: 0;
-  }
-  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mobile-bottom-nav.has-farm-tab .mobile-nav-item > span:last-child {
-    font-size: 0.54rem;
-    letter-spacing: 0;
   }
 }
 

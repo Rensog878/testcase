@@ -2038,7 +2038,11 @@ function updateCartUI() {
   const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
   if (cartBadge) cartBadge.textContent = totalItems;
   const mobileCartBadge = document.getElementById('mobileCartBadge');
-  if (mobileCartBadge) mobileCartBadge.textContent = totalItems;
+  if (mobileCartBadge) {
+    mobileCartBadge.textContent = totalItems;
+    // It sits on the Menu tab, where a "0" reads as an alert: show it only when the basket has items.
+    mobileCartBadge.style.display = totalItems ? '' : 'none';
+  }
 
   // Same rule as checkout.html and the server: GST is 18% of the subtotal,
   // rounded. The basket used to show the subtotal as the "Grand Total".

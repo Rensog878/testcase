@@ -415,7 +415,7 @@ export default function AllProducts() {
               <User size={20} />
             </Link>
 
-            <Link to="/checkout.html" className="mobile-header-icon-btn mobile-cart-icon-btn" aria-label="Cart">
+            <Link to="/checkout" className="mobile-header-icon-btn mobile-cart-icon-btn" aria-label="Cart">
               <ShoppingCart size={20} />
               {cartCount > 0 && <span className="mobile-cart-badge">{cartCount}</span>}
             </Link>

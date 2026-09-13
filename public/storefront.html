@@ -14,11 +14,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/responsive.css">
-  <!-- Shop, Blog, Products and Track Order are React pages: Chrome starts
-       loading them when a link to one is touched, so they open at once. -->
+  <!-- Shop, Blog, Products, Track Order and the basket are React pages: Chrome
+       starts loading them when a link to one is touched, so they open at once. -->
   <script type="speculationrules">
   {
-    "prerender": [{ "where": { "href_matches": ["/categories*", "/blog*", "/products*", "/orders*"] }, "eagerness": "moderate" }]
+    "prerender": [{ "where": { "href_matches": ["/categories*", "/blog*", "/products*", "/orders*", "/checkout*"] }, "eagerness": "moderate" }]
   }
   </script>
 </head>

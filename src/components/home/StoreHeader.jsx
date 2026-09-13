@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '../../context/LanguageContext'
+import TransitionLink from './TransitionLink'
 
 // The storefront's header row - logo, language, account, basket - shown on
 // phones on every React store page, so the top of the site looks the same
@@ -46,10 +47,14 @@ export default function StoreHeader() {
       if (event.key === 'sathya_user') setUser(readUser())
       if (event.key === 'sathya_cart_guest') setCount(guestCount())
     }
+    // The checkout page announces the new count as quantities change.
+    const onCartCount = event => setCount(Number(event.detail) || 0)
     window.addEventListener('storage', onStorage)
+    window.addEventListener('sathya:cart-count', onCartCount)
     return () => {
       cancelled = true
       window.removeEventListener('storage', onStorage)
+      window.removeEventListener('sathya:cart-count', onCartCount)
     }
   }, [])
 
@@ -107,10 +112,10 @@ export default function StoreHeader() {
             <i className={user ? 'fa-solid fa-circle-check sb-store-signed-in' : 'fa-regular fa-circle-user'} aria-hidden="true"></i>
           </a>
 
-          <a href="/checkout.html" className="sb-store-action" aria-label={count ? `Basket, ${count} items` : 'Basket'}>
+          <TransitionLink to="/checkout" className="sb-store-action" aria-label={count ? `Basket, ${count} items` : 'Basket'}>
             <i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>
             {count > 0 && <span className="sb-store-badge">{count}</span>}
-          </a>
+          </TransitionLink>
         </div>
       </div>
 

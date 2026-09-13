@@ -114,7 +114,7 @@ export default function ProductDetail() {
   }
   const proceedToCheckout = () => {
     if (!cartAdded) addToCart()
-    navigate('/checkout.html')
+    navigate('/checkout')
   }
   const toggleWishlist = async () => {
     const identity = getWishlistIdentity()

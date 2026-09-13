@@ -16,6 +16,7 @@ import Categories from './pages/Categories'
 import AllProducts from './pages/AllProducts'
 import Wishlist from './pages/Wishlist'
 import OrderStatus from './pages/OrderStatus'
+import Checkout from './pages/Checkout'
 import Blog from './pages/Blog'
 import BlogDetail from './pages/BlogDetail'
 
@@ -67,14 +68,6 @@ function StorefrontRedirect() {
   return null
 }
 
-// The basket and checkout live on the standalone checkout page.
-function CartRedirect() {
-  useEffect(() => {
-    window.location.replace('/checkout.html')
-  }, [])
-  return null
-}
-
 export default function App() {
   const { user } = useAuth()
 
@@ -95,7 +88,8 @@ export default function App() {
     <Routes>
       {/* Public Home - Vanilla HTML Page */}
       <Route path="/"        element={<HomePage />} />
-      <Route path="/cart"    element={<CartRedirect />} />
+      <Route path="/checkout" element={<PublicPageShell><Checkout /></PublicPageShell>} />
+      <Route path="/cart"    element={<Navigate to="/checkout" replace />} />
       <Route path="/login"   element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

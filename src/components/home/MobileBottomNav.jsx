@@ -207,9 +207,9 @@ export default function MobileBottomNav() {
           <TransitionLink to="/blog" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#7c3aed' }}><i className="fa-solid fa-book-open"></i></span>Blog
           </TransitionLink>
-          <a href="/checkout.html" className="mms-tile" onClick={closeMenu}>
+          <TransitionLink to="/checkout" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#dc2626' }}><i className="fa-solid fa-bag-shopping"></i></span>My Cart
-          </a>
+          </TransitionLink>
           <TransitionLink to="/orders" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#2563eb' }}><i className="fa-solid fa-truck-fast"></i></span>Track Order
           </TransitionLink>

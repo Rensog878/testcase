@@ -1848,10 +1848,10 @@ function goToCartPage() {
     return;
   }
 
-  // Persist first so checkout.html reads the same cart (server for signed-in
-  // users), then hand off to the checkout page.
+  // Persist first so the checkout page (/checkout) reads the same cart (server
+  // for signed-in users), then hand off to it.
   Promise.resolve(saveCart()).finally(() => {
-    window.top.location.href = '/checkout.html';
+    window.top.location.href = '/checkout';
   });
 }
 
@@ -1954,7 +1954,7 @@ function updateCartUI() {
     mobileCartBadge.style.display = totalItems ? '' : 'none';
   }
 
-  // Same rule as checkout.html and the server: GST is 18% of the subtotal,
+  // Same rule as the checkout page and the server: GST is 18% of the subtotal,
   // rounded. The basket used to show the subtotal as the "Grand Total".
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
   const gst = Math.round(subtotal * 0.18);

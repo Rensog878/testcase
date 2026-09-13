@@ -13,6 +13,7 @@ import Navigation from './components/home/Navigation'
 import Footer from './components/home/Footer'
 import StoreSection from './pages/StoreSection'
 import Categories from './pages/Categories'
+import AllProducts from './pages/AllProducts'
 import Wishlist from './pages/Wishlist'
 import OrderStatus from './pages/OrderStatus'
 import Blog from './pages/Blog'
@@ -91,7 +92,8 @@ export default function App() {
       <Route path="/product/:id/ingredients" element={<PublicPageShell><IngredientDetail /></PublicPageShell>} />
       <Route path="/wishlist" element={<PublicPageShell><Wishlist /></PublicPageShell>} />
       <Route path="/orders" element={<PublicPageShell><OrderStatus /></PublicPageShell>} />
-      <Route path="/products" element={<PublicPageShell><StoreSection type="products" /></PublicPageShell>} />
+      <Route path="/products" element={<AllProducts />} />
+      <Route path="/shop" element={<Navigate to="/products" replace />} />
       <Route path="/categories" element={<Categories />} />
       <Route path="/crops" element={<PublicPageShell><StoreSection type="crops" /></PublicPageShell>} />
       <Route path="/brands" element={<PublicPageShell><StoreSection type="brands" /></PublicPageShell>} />

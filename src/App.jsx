@@ -15,6 +15,8 @@ import StoreSection from './pages/StoreSection'
 import Categories from './pages/Categories'
 import Wishlist from './pages/Wishlist'
 import OrderStatus from './pages/OrderStatus'
+import Blog from './pages/Blog'
+import BlogDetail from './pages/BlogDetail'
 
 // Admin Pages
 import AdminLayout    from './layouts/AdminLayout'
@@ -28,6 +30,8 @@ import AdminUsers     from './pages/admin/Users'
 import AdminProfileFields from './pages/admin/ProfileFields'
 import Employees from './pages/admin/Employees'
 import SupportTickets from './pages/admin/SupportTickets'
+import AdminBlogs from './pages/admin/Blogs'
+import AdminVideos from './pages/admin/Videos'
 
 // Employee Pages
 import EmployeeLayout    from './layouts/EmployeeLayout'
@@ -95,6 +99,8 @@ export default function App() {
       <Route path="/whatsapp-ai" element={<PublicPageShell><StoreSection type="n8n" /></PublicPageShell>} />
       <Route path="/support" element={<PublicPageShell><StoreSection type="support" /></PublicPageShell>} />
       <Route path="/agronomists" element={<PublicPageShell><StoreSection type="agronomists" /></PublicPageShell>} />
+      <Route path="/blog" element={<PublicPageShell><Blog /></PublicPageShell>} />
+      <Route path="/blog/:id" element={<PublicPageShell><BlogDetail /></PublicPageShell>} />
 
       {/* Admin Routes — signed-out visitors get the admin sign-in here */}
       <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>
@@ -110,6 +116,8 @@ export default function App() {
         <Route path="support-tickets" element={<SupportTickets />} />
         <Route path="tickets"    element={<Tickets />} />
         <Route path="chat"       element={<ChatRecords />} />
+        <Route path="blogs"      element={<AdminBlogs />} />
+        <Route path="videos"     element={<AdminVideos />} />
       </Route>
 
       {/* Employee Routes */}

@@ -113,6 +113,10 @@ const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
 const WishlistItem = mongoose.models.WishlistItem || mongoose.model('WishlistItem', wishlistItemSchema);
 const Settings = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);
 const Ephemeral = mongoose.models.Ephemeral || mongoose.model('Ephemeral', ephemeralSchema);
+const blogSchema = new mongoose.Schema({ _id: String }, permissive);
+const videoSchema = new mongoose.Schema({ _id: String }, permissive);
+const Blog = mongoose.models.Blog || mongoose.model('Blog', blogSchema);
+const Video = mongoose.models.Video || mongoose.model('Video', videoSchema);
 
 export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing'];
 
@@ -174,6 +178,8 @@ function normalizeProduct(product) {
           howToUse: product.howToUse || '',
           whenToUse: product.whenToUse || '',
           relatedBlogs: Array.isArray(product.relatedBlogs) ? product.relatedBlogs : [],
+          taggedBlogs: Array.isArray(product.taggedBlogs) ? product.taggedBlogs : [],
+          taggedVideos: Array.isArray(product.taggedVideos) ? product.taggedVideos : [],
           relatedProductIds: Array.isArray(product.relatedProductIds) ? product.relatedProductIds : [],
           reviewsEnabled: product.reviewsEnabled === true,
           reviews,
@@ -1088,6 +1094,8 @@ class DatabaseManager {
               howToUse: prodData.howToUse || '',
               whenToUse: prodData.whenToUse || '',
               relatedBlogs: Array.isArray(prodData.relatedBlogs) ? prodData.relatedBlogs : [],
+              taggedBlogs: Array.isArray(prodData.taggedBlogs) ? prodData.taggedBlogs : [],
+              taggedVideos: Array.isArray(prodData.taggedVideos) ? prodData.taggedVideos : [],
               relatedProductIds: Array.isArray(prodData.relatedProductIds) ? prodData.relatedProductIds : [],
               reviewsEnabled: prodData.reviewsEnabled === true,
               reviews: Array.isArray(prodData.reviews) ? prodData.reviews : [],
@@ -1161,6 +1169,8 @@ class DatabaseManager {
               howToUse: updates.howToUse !== undefined ? updates.howToUse : existing.howToUse,
               whenToUse: updates.whenToUse !== undefined ? updates.whenToUse : existing.whenToUse,
               relatedBlogs: updates.relatedBlogs !== undefined ? updates.relatedBlogs : existing.relatedBlogs,
+              taggedBlogs: updates.taggedBlogs !== undefined ? (Array.isArray(updates.taggedBlogs) ? updates.taggedBlogs : []) : (existing.taggedBlogs || []),
+              taggedVideos: updates.taggedVideos !== undefined ? (Array.isArray(updates.taggedVideos) ? updates.taggedVideos : []) : (existing.taggedVideos || []),
               relatedProductIds:
                         updates.relatedProductIds !== undefined ? updates.relatedProductIds : existing.relatedProductIds,
               reviewsEnabled:
@@ -1593,6 +1603,160 @@ class DatabaseManager {
         );
         return doc ? doc.value : null;
   }
+
+  // ================= BLOGS TABLE =================
+
+  async getBlogs(filters = {}) {
+        await connectDB();
+        let list = (await Blog.find(filters.publishedOnly ? { published: { $ne: false } } : {}).lean()).map(serialize);
+        if (filters.category && filters.category !== 'All') {
+            list = list.filter(b => b.category?.toLowerCase() === filters.category.toLowerCase());
+        }
+        if (filters.tag) {
+            list = list.filter(b => Array.isArray(b.tags) && b.tags.some(t => String(t).toLowerCase() === filters.tag.toLowerCase()));
+        }
+        if (filters.search) {
+            const q = filters.search.toLowerCase().trim();
+            list = list.filter(b =>
+                b.title?.toLowerCase().includes(q) ||
+                b.summary?.toLowerCase().includes(q) ||
+                b.content?.toLowerCase().includes(q) ||
+                b.category?.toLowerCase().includes(q)
+            );
+        }
+        list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        return list;
+  }
+
+  async getBlogById(id) {
+        if (!id) return null;
+        await connectDB();
+        const blog = await Blog.findById(String(id)).lean();
+        return blog ? serialize(blog) : null;
+  }
+
+  async createBlog(data) {
+        await connectDB();
+        const id = newId('blog');
+        const newBlog = {
+            _id: id,
+            id,
+            title: data.title || 'Untitled Blog',
+            slug: (data.slug || data.title || id).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+            summary: data.summary || '',
+            content: data.content || '',
+            coverImage: data.coverImage || 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80',
+            author: data.author || 'Sathya Bio Agronomy Team',
+            category: data.category || 'Crop Advisory',
+            tags: splitTags(data.tags, ['Farming']),
+            taggedProducts: Array.isArray(data.taggedProducts) ? data.taggedProducts : [],
+            taggedVideos: Array.isArray(data.taggedVideos) ? data.taggedVideos : [],
+            readTime: data.readTime || '3 min read',
+            published: data.published !== false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        const created = await Blog.create(newBlog);
+        return serialize(created.toObject());
+  }
+
+  async updateBlog(id, updates) {
+        await connectDB();
+        const existing = await Blog.findById(String(id)).lean();
+        if (!existing) return null;
+        const { _id, id: _ignored, createdAt, ...rest } = updates;
+        const merged = {
+            ...serialize(existing),
+            ...rest,
+            tags: rest.tags !== undefined ? splitTags(rest.tags, []) : existing.tags,
+            updatedAt: new Date().toISOString()
+        };
+        const { id: _mergedId, ...toSave } = merged;
+        await Blog.findByIdAndUpdate(String(id), { $set: toSave }, { strict: false });
+        return merged;
+  }
+
+  async deleteBlog(id) {
+        await connectDB();
+        const res = await Blog.deleteOne({ _id: String(id) });
+        return res.deletedCount > 0;
+  }
+
+  // ================= VIDEOS TABLE =================
+
+  async getVideos(filters = {}) {
+        await connectDB();
+        let list = (await Video.find({}).lean()).map(serialize);
+        if (filters.category && filters.category !== 'All') {
+            list = list.filter(v => v.category?.toLowerCase() === filters.category.toLowerCase());
+        }
+        if (filters.search) {
+            const q = filters.search.toLowerCase().trim();
+            list = list.filter(v =>
+                v.title?.toLowerCase().includes(q) ||
+                v.description?.toLowerCase().includes(q) ||
+                v.category?.toLowerCase().includes(q)
+            );
+        }
+        list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        return list;
+  }
+
+  async getVideoById(id) {
+        if (!id) return null;
+        await connectDB();
+        const video = await Video.findById(String(id)).lean();
+        return video ? serialize(video) : null;
+  }
+
+  async createVideo(data) {
+        await connectDB();
+        const id = newId('vid');
+        const newVideo = {
+            _id: id,
+            id,
+            title: data.title || 'Untitled Video',
+            description: data.description || '',
+            videoUrl: data.videoUrl || '',
+            thumbnail: data.thumbnail || '',
+            category: data.category || 'Product Demo',
+            tags: splitTags(data.tags, []),
+            duration: data.duration || '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        const created = await Video.create(newVideo);
+        return serialize(created.toObject());
+  }
+
+  async updateVideo(id, updates) {
+        await connectDB();
+        const existing = await Video.findById(String(id)).lean();
+        if (!existing) return null;
+        const { _id, id: _ignored, createdAt, ...rest } = updates;
+        const merged = {
+            ...serialize(existing),
+            ...rest,
+            tags: rest.tags !== undefined ? splitTags(rest.tags, []) : existing.tags,
+            updatedAt: new Date().toISOString()
+        };
+        const { id: _mergedId, ...toSave } = merged;
+        await Video.findByIdAndUpdate(String(id), { $set: toSave }, { strict: false });
+        return merged;
+  }
+
+  async deleteVideo(id) {
+        await connectDB();
+        const res = await Video.deleteOne({ _id: String(id) });
+        return res.deletedCount > 0;
+  }
+}
+
+// Blog and video tags arrive as an array or as "a, b, c" from the admin form.
+function splitTags(tags, fallback) {
+    if (Array.isArray(tags)) return tags.map(tag => String(tag).trim()).filter(Boolean);
+    if (typeof tags === 'string') return tags.split(',').map(tag => tag.trim()).filter(Boolean);
+    return fallback;
 }
 
 // Export singleton database instance

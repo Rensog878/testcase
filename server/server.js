@@ -839,6 +839,140 @@ app.get('/api/user-product-summary', requireAuth('admin'), async (req, res) => {
 });
 
 // ============================================================
+// BLOGS
+// ============================================================
+
+// Drafts are for admins only: everyone else gets published posts.
+async function viewerIsAdmin(req) {
+  const user = await getAuthenticatedUser(req);
+  return user?.role === 'admin';
+}
+
+app.get('/api/blogs', async (req, res) => {
+  try {
+    const { category, tag, search, publishedOnly } = req.query;
+    const onlyPublished = publishedOnly === 'true' || !(await viewerIsAdmin(req));
+    const data = await db.getBlogs({ category, tag, search, publishedOnly: onlyPublished });
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Blogs');
+  }
+});
+
+app.get('/api/blogs/:id', async (req, res) => {
+  try {
+    const blog = await db.getBlogById(req.params.id);
+    if (!blog || (blog.published === false && !(await viewerIsAdmin(req)))) {
+      return res.status(404).json({ success: false, message: 'Blog post not found' });
+    }
+    res.json({ success: true, data: blog });
+  } catch (err) {
+    sendError(res, err, 'Blog');
+  }
+});
+
+app.post('/api/blogs', requireAuth('admin'), async (req, res) => {
+  try {
+    if (typeof req.body?.title !== 'string' || !req.body.title.trim()) {
+      return res.status(400).json({ success: false, message: 'Blog title is required' });
+    }
+    const blog = await db.createBlog(req.body);
+    res.json({ success: true, data: blog, message: 'Blog post published successfully!' });
+  } catch (err) {
+    sendError(res, err, 'Create blog');
+  }
+});
+
+app.put('/api/blogs/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const updated = await db.updateBlog(req.params.id, req.body || {});
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Blog post not found' });
+    }
+    res.json({ success: true, data: updated, message: 'Blog post updated successfully!' });
+  } catch (err) {
+    sendError(res, err, 'Update blog');
+  }
+});
+
+app.delete('/api/blogs/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const ok = await db.deleteBlog(req.params.id);
+    if (!ok) {
+      return res.status(404).json({ success: false, message: 'Blog post not found' });
+    }
+    res.json({ success: true, message: 'Blog post deleted successfully' });
+  } catch (err) {
+    sendError(res, err, 'Delete blog');
+  }
+});
+
+// ============================================================
+// VIDEOS
+// ============================================================
+
+app.get('/api/videos', async (req, res) => {
+  try {
+    const { category, search } = req.query;
+    const data = await db.getVideos({ category, search });
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Videos');
+  }
+});
+
+app.get('/api/videos/:id', async (req, res) => {
+  try {
+    const video = await db.getVideoById(req.params.id);
+    if (!video) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+    res.json({ success: true, data: video });
+  } catch (err) {
+    sendError(res, err, 'Video');
+  }
+});
+
+app.post('/api/videos', requireAuth('admin'), async (req, res) => {
+  try {
+    if (typeof req.body?.title !== 'string' || !req.body.title.trim()) {
+      return res.status(400).json({ success: false, message: 'Video title is required' });
+    }
+    if (typeof req.body?.videoUrl !== 'string' || !req.body.videoUrl.trim()) {
+      return res.status(400).json({ success: false, message: 'Video URL or YouTube link is required' });
+    }
+    const video = await db.createVideo(req.body);
+    res.json({ success: true, data: video, message: 'Video added successfully!' });
+  } catch (err) {
+    sendError(res, err, 'Create video');
+  }
+});
+
+app.put('/api/videos/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const updated = await db.updateVideo(req.params.id, req.body || {});
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+    res.json({ success: true, data: updated, message: 'Video updated successfully!' });
+  } catch (err) {
+    sendError(res, err, 'Update video');
+  }
+});
+
+app.delete('/api/videos/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const ok = await db.deleteVideo(req.params.id);
+    if (!ok) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+    res.json({ success: true, message: 'Video deleted successfully' });
+  } catch (err) {
+    sendError(res, err, 'Delete video');
+  }
+});
+
+// ============================================================
 // CART (per authenticated user)
 // ============================================================
 

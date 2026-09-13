@@ -17,6 +17,8 @@ const ADMIN_NAV = [
     links: [
       { to: '/admin/cms',         icon: '✏️', label: 'Live CMS Editor' },
       { to: '/admin/products',    icon: '🌿', label: 'Products Master' },
+      { to: '/admin/blogs',       icon: '📖', label: 'Blog Articles' },
+      { to: '/admin/videos',      icon: '🎬', label: 'Video Library' },
     ]
   },
   {

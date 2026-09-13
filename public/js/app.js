@@ -2036,7 +2036,11 @@ function updateCartUI() {
   const rupees = value => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
   const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
-  if (cartBadge) cartBadge.textContent = totalItems;
+  if (cartBadge) {
+    cartBadge.textContent = totalItems;
+    // No "0" on the header basket: the count shows only when it has items.
+    cartBadge.style.display = totalItems ? '' : 'none';
+  }
   const mobileCartBadge = document.getElementById('mobileCartBadge');
   if (mobileCartBadge) {
     mobileCartBadge.textContent = totalItems;

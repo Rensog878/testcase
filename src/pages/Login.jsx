@@ -44,6 +44,10 @@ export default function Login() {
     setLoading(true)
     try {
       const user = await login(mobile.trim(), password)
+      if (user.role !== selectedRole) {
+        toast.error(`This account is not a ${roleInfo?.label || selectedRole} account.`)
+        return
+      }
       toast.success(`Welcome back, ${user.name}! 🌿`)
       navigate(ROLE_HOME[user.role] || '/', { replace: true })
     } catch (err) {

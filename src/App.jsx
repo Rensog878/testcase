@@ -67,6 +67,14 @@ function StorefrontRedirect() {
   return null
 }
 
+// The basket and checkout live on the standalone checkout page.
+function CartRedirect() {
+  useEffect(() => {
+    window.location.replace('/checkout.html')
+  }, [])
+  return null
+}
+
 export default function App() {
   const { user } = useAuth()
 
@@ -87,6 +95,8 @@ export default function App() {
     <Routes>
       {/* Public Home - Vanilla HTML Page */}
       <Route path="/"        element={<HomePage />} />
+      <Route path="/cart"    element={<CartRedirect />} />
+      <Route path="/login"   element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/product/:id" element={<PublicPageShell><ProductDetail /></PublicPageShell>} />

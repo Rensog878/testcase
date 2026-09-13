@@ -196,4 +196,140 @@ router.get('/wishlist-summary', async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ANALYTICS  GET /api/admin/analytics?from=ISO&to=ISO
+// Returns live aggregated KPIs, trend, top products, and regional breakdown.
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/analytics', async (req, res) => {
+    try {
+        // Resolve the date window.
+        const IST_OFFSET_MS = 330 * 60 * 1000;
+        const DAY_MS       = 24 * 60 * 60 * 1000;
+        const now          = Date.now();
+
+        let fromMs, toMs;
+        if (req.query.from && req.query.to) {
+            fromMs = new Date(req.query.from).getTime();
+            toMs   = new Date(req.query.to).getTime();
+        } else {
+            const period = req.query.period || 'month';
+            const todayStartIst = Math.floor((now + IST_OFFSET_MS) / DAY_MS) * DAY_MS - IST_OFFSET_MS;
+            if (period === 'day') {
+                fromMs = todayStartIst;
+                toMs   = todayStartIst + DAY_MS;
+            } else if (period === 'week') {
+                fromMs = todayStartIst - 6 * DAY_MS;
+                toMs   = todayStartIst + DAY_MS;
+            } else {
+                // month
+                const istNow = new Date(now + IST_OFFSET_MS);
+                fromMs = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), 1)).getTime() - IST_OFFSET_MS;
+                toMs   = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth() + 1, 1)).getTime() - IST_OFFSET_MS;
+            }
+        }
+
+        const allOrders = await db.getOrders();
+        const orders = allOrders.filter(o => {
+            const t = new Date(o.createdAt).getTime();
+            return t >= fromMs && t < toMs;
+        });
+        const paid = orders.filter(o => o.paymentStatus === 'Paid');
+
+        // ── KPI cards ──────────────────────────────────────────────────────
+        const totalRevenue = Math.round(paid.reduce((s, o) => s + (Number(o.total) || 0), 0) * 100) / 100;
+        const totalOrders  = orders.length;
+        const paidOrders   = paid.length;
+
+        // Unique customers
+        const uniqueCustomers = new Set(
+            orders.map(o => o.customerPhone || o.userId || o.customerName)
+        ).size;
+
+        // Cancelled / return proxy (Cancelled orders)
+        const cancelled      = orders.filter(o => o.deliveryStatus === 'Cancelled' || o.status === 'Cancelled').length;
+        const returnRate     = totalOrders > 0 ? ((cancelled / totalOrders) * 100).toFixed(1) : '0.0';
+
+        // ── Revenue trend (grouped by day in the window) ─────────────────
+        const dayBuckets = {};
+        const dayCount = Math.max(1, Math.ceil((toMs - fromMs) / DAY_MS));
+        for (let d = 0; d < dayCount; d++) {
+            const dayStart = fromMs + d * DAY_MS;
+            const dayEnd   = dayStart + DAY_MS;
+            const dayLabel = new Date(dayStart + IST_OFFSET_MS).toISOString().slice(0, 10);
+            const dayRevenue = paid
+                .filter(o => { const t = new Date(o.createdAt).getTime(); return t >= dayStart && t < dayEnd; })
+                .reduce((s, o) => s + (Number(o.total) || 0), 0);
+            dayBuckets[dayLabel] = Math.round(dayRevenue * 100) / 100;
+        }
+
+        // ── Top products ───────────────────────────────────────────────────
+        const productMap = {};
+        for (const order of paid) {
+            const items = Array.isArray(order.items) ? order.items : [];
+            for (const item of items) {
+                const name = item.name || item.productName || 'Unknown';
+                if (!productMap[name]) productMap[name] = { sold: 0, revenue: 0 };
+                productMap[name].sold    += Number(item.qty) || 1;
+                productMap[name].revenue += (Number(item.qty) || 1) * (Number(item.price) || 0);
+            }
+        }
+        const topProducts = Object.entries(productMap)
+            .map(([name, v]) => ({ name, sold: v.sold, revenue: Math.round(v.revenue * 100) / 100 }))
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 10);
+
+        // ── Regional breakdown (by district field on order) ────────────────
+        const regionMap = {};
+        for (const order of paid) {
+            const region = order.district || order.state || 'Unknown';
+            if (!regionMap[region]) regionMap[region] = { orders: 0, revenue: 0 };
+            regionMap[region].orders  += 1;
+            regionMap[region].revenue += Number(order.total) || 0;
+        }
+        const regions = Object.entries(regionMap)
+            .map(([region, v]) => ({ region, orders: v.orders, revenue: Math.round(v.revenue * 100) / 100 }))
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 10);
+
+        // Compute share %
+        const maxOrd = regions[0]?.orders || 1;
+        regions.forEach(r => { r.share = Math.round((r.orders / maxOrd) * 100); });
+
+        // ── Delivery status mix ────────────────────────────────────────────
+        const statusMap = {};
+        for (const order of orders) {
+            const s = order.deliveryStatus || order.status || 'Pending';
+            statusMap[s] = (statusMap[s] || 0) + 1;
+        }
+        const deliveryMix = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+
+        res.json({
+            success: true,
+            data: {
+                kpi: { totalRevenue, totalOrders, paidOrders, uniqueCustomers, returnRate, cancelled },
+                trend: dayBuckets,
+                topProducts,
+                regions,
+                deliveryMix,
+                // Full order list for "actual data" view (limited to 500 for perf)
+                orders: orders.slice(0, 500).map(o => ({
+                    id:             o.id,
+                    date:           o.createdAt,
+                    customer:       o.customerName || 'Guest',
+                    phone:          o.customerPhone || '',
+                    district:       o.district || '',
+                    state:          o.state || '',
+                    items:          Array.isArray(o.items) ? o.items.map(i => `${i.name||'?'} x${i.qty||1}`).join(', ') : '',
+                    total:          Number(o.total) || 0,
+                    paymentStatus:  o.paymentStatus || '',
+                    deliveryStatus: o.deliveryStatus || o.status || '',
+                })),
+            },
+        });
+    } catch (err) {
+        sendError(res, err, 'Analytics');
+    }
+});
+
 export default router;
+

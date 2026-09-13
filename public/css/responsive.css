@@ -1341,6 +1341,30 @@ pre {
     display: none;
   }
 
+  /* Language pill · account · basket, one even gap apart. The account and
+     basket icons sat in 40px boxes (the account one widened further by its
+     empty label wrapper), so the space before the basket looked about three
+     times the space after the pill. Each icon now takes only its own width;
+     an invisible ::after keeps a ~44px tap area, as the pill does. */
+  .header-main .header-actions {
+    gap: 14px;
+    padding-right: 6px; /* room for the basket count badge */
+  }
+  .header-main .header-actions .action-item {
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    gap: 0;
+  }
+  .header-main .header-actions .action-item > div:not(.action-icon) {
+    display: none;
+  }
+  .header-main .header-actions .action-item::after {
+    content: '';
+    position: absolute;
+    inset: -12px -8px;
+  }
+
   /* Jumps from the menus land below the sticky header, not under it. */
   #catalog,
   #categoriesSection,

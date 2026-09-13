@@ -8,6 +8,7 @@ import {
 import { CATEGORIES_DATA, DEFAULT_CATEGORY_HANDLE } from '../data/categoriesData'
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
+import MobileBottomNav from '../components/home/MobileBottomNav'
 
 export default function Categories() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -294,6 +295,9 @@ export default function Categories() {
       <div className="desktop-only-footer">
         <Footer />
       </div>
+
+      {/* Phones: the header nav above is hidden, so the bottom bar is rendered here. */}
+      <MobileBottomNav />
     </div>
   )
 }

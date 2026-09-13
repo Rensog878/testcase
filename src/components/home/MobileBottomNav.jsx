@@ -256,9 +256,9 @@ export default function MobileBottomNav() {
           <span>Home</span>
         </Link>
 
-        {/* 2. Shop */}
-        <Link 
-          to="/products" 
+        {/* 2. Shop: opens the Brands section of Categories */}
+        <Link
+          to="/categories?ct=Brands"
           onClick={() => setIsMenuOpen(false)}
           style={{
             flex: 1,

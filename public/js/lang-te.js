@@ -376,6 +376,9 @@ window.SB_LANG_TE = {
     'Cart': 'బుట్ట',
     'Menu': 'మెనూ',
     'Citrus': 'నిమ్మజాతి పండ్లు',
+    'Blog': 'బ్లాగ్',
+    'Blogs': 'బ్లాగ్',
+    'My Cart': 'నా బుట్ట',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'మొబైల్ నంబర్ లేదా ఇమెయిల్',

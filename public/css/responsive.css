@@ -1326,12 +1326,18 @@ pre {
   .navbar {
     display: none;
   }
-  /* Header keeps Language + Account. Track Order is in the Menu sheet, and
-     the basket lives in the bottom bar's Cart tab - a second basket icon in
-     the header was a duplicate. */
+  /* Header keeps Language + Account + Cart (the bottom bar's Cart tab became
+     Blogs). Track Order is in the Menu sheet. */
   .header-actions .action-track,
-  .header-actions .action-wishlist,
+  .header-actions .action-wishlist {
+    display: none;
+  }
   .header-actions .cart-trigger-btn {
+    display: flex !important;
+    align-items: center;
+    cursor: pointer;
+  }
+  .header-actions .cart-trigger-btn > div:last-child {
     display: none;
   }
 

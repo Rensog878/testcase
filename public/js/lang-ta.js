@@ -387,6 +387,10 @@ window.SB_LANG_TA = {
     'Cart': 'கூடை',
     'Menu': 'மெனு',
     'Citrus': 'எலுமிச்சை வகைகள்',
+    // Blog entry points: menu tile and bottom-bar tab (short for the bar).
+    'Blog': 'வலைப்பதிவு',
+    'Blogs': 'பதிவுகள்',
+    'My Cart': 'என் கூடை',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'மொபைல் எண் அல்லது மின்னஞ்சல்',

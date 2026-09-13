@@ -376,6 +376,9 @@ window.SB_LANG_HI = {
     'Cart': 'टोकरी',
     'Menu': 'मेन्यू',
     'Citrus': 'नींबू वर्गीय फल',
+    'Blog': 'ब्लॉग',
+    'Blogs': 'ब्लॉग',
+    'My Cart': 'मेरी टोकरी',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'मोबाइल नंबर या ईमेल',

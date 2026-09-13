@@ -1250,7 +1250,9 @@
       <a href="#categoriesSection" class="mms-tile"><span class="mms-tile-icon" style="--tile:#0891b2"><i class="fa-solid fa-layer-group"></i></span>Categories</a>
       <a href="#cropSection" class="mms-tile"><span class="mms-tile-icon" style="--tile:#65a30d"><i class="fa-solid fa-wheat-awn"></i></span>Shop by Crop</a>
       <button type="button" class="mms-tile" data-modal-target="photoScannerModal" data-close-menu><span class="mms-tile-icon" style="--tile:#d97706"><i class="fa-solid fa-camera-retro"></i></span>AI Leaf Doctor</button>
-      <a href="#soil" class="mms-tile"><span class="mms-tile-icon" style="--tile:#7c3aed"><i class="fa-solid fa-flask"></i></span>Soil Analyzer</a>
+      <a href="/blog" class="mms-tile"><span class="mms-tile-icon" style="--tile:#7c3aed"><i class="fa-solid fa-book-open"></i></span>Blog</a>
+      <button type="button" class="mms-tile" onclick="toggleMobileMenu(false); handleBasketClick(event);"><span class="mms-tile-icon" style="--tile:#dc2626"><i class="fa-solid fa-bag-shopping"></i></span>My Cart</button>
+      <a href="#soil" class="mms-tile"><span class="mms-tile-icon" style="--tile:#0d9488"><i class="fa-solid fa-flask"></i></span>Soil Analyzer</a>
       <a href="#experts" class="mms-tile"><span class="mms-tile-icon" style="--tile:#db2777"><i class="fa-solid fa-user-doctor"></i></span>Agronomists</a>
       <a href="./order-status.html" class="mms-tile"><span class="mms-tile-icon" style="--tile:#2563eb"><i class="fa-solid fa-truck-fast"></i></span>Track Order</a>
       <a href="#tickets" class="mms-tile"><span class="mms-tile-icon" style="--tile:#475569"><i class="fa-solid fa-headset"></i></span>Support</a>
@@ -1305,13 +1307,13 @@
       <span class="mobile-nav-fab-icon"><i class="fa-solid fa-camera-retro"></i></span>
       <span>AI Doctor</span>
     </button>
-    <button type="button" class="mobile-nav-item" id="mobileNavCart" onclick="handleBasketClick(event)" aria-label="Shopping Cart">
-      <i class="fa-solid fa-bag-shopping"></i>
-      <span class="mobile-badge" id="mobileCartBadge">0</span>
-      <span>Cart</span>
-    </button>
+    <a href="/blog" class="mobile-nav-item" id="mobileNavBlog" data-nav="blog">
+      <i class="fa-solid fa-book-open"></i>
+      <span>Blogs</span>
+    </a>
     <button type="button" class="mobile-nav-item" id="mobileNavMenu" data-nav="menu" onclick="toggleMobileMenu()" aria-label="Menu" aria-controls="mobileMenuSheet" aria-expanded="false">
       <i class="fa-solid fa-bars"></i>
+      <span class="mobile-badge" id="mobileCartBadge" style="top:-2px;right:8px">0</span>
       <span>Menu</span>
     </button>
   </nav>

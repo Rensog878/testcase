@@ -376,6 +376,9 @@ window.SB_LANG_KN = {
     'Cart': 'ಬುಟ್ಟಿ',
     'Menu': 'ಮೆನು',
     'Citrus': 'ನಿಂಬೆ ಜಾತಿ ಹಣ್ಣುಗಳು',
+    'Blog': 'ಬ್ಲಾಗ್',
+    'Blogs': 'ಬ್ಲಾಗ್',
+    'My Cart': 'ನನ್ನ ಬುಟ್ಟಿ',
 
     // Sign-in sheet: sign in, new farmer steps, WhatsApp code
     'Mobile number or email': 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಥವಾ ಇಮೇಲ್',

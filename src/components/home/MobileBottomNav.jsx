@@ -213,32 +213,32 @@ export default function MobileBottomNav() {
       </div>
 
       {/* MOBILE BOTTOM NAVIGATION BAR: Home | Shop | AI Doctor | Blogs | Menu.
-          The same floating white pill as the storefront's bottom bar
-          (index.css .bighaat-mobile-bottom-nav / .mobile-nav-link). */}
+          Same icons, order, floating pill and position as the storefront's
+          bottom bar (index.css .bighaat-mobile-bottom-nav / .mobile-nav-link). */}
       <nav className="sathya-mobile-bottom-nav bighaat-mobile-bottom-nav" aria-label="Mobile Navigation">
         <Link to="/" onClick={() => setIsMenuOpen(false)} className={`mobile-nav-link ${isHome ? 'active' : ''}`} aria-current={isHome ? 'page' : undefined}>
-          <Home size={20} />
+          <i className="fa-solid fa-house" aria-hidden="true"></i>
           <span>Home</span>
         </Link>
 
         {/* Shop opens the Brands section of Categories */}
         <Link to="/categories?ct=Brands" onClick={() => setIsMenuOpen(false)} className={`mobile-nav-link ${isShop ? 'active' : ''}`} aria-current={isShop ? 'page' : undefined}>
-          <ShoppingBag size={20} />
+          <i className="fa-solid fa-store" aria-hidden="true"></i>
           <span>Shop</span>
         </Link>
 
         <button type="button" onClick={handleAIDoctorClick} className="mobile-nav-link mobile-nav-link-fab" aria-label="AI Leaf Doctor">
-          <Sparkles size={20} />
+          <i className="fa-solid fa-camera-retro" aria-hidden="true"></i>
           <span>AI Doctor</span>
         </button>
 
         <Link to="/blog" onClick={() => setIsMenuOpen(false)} className={`mobile-nav-link ${isBlog ? 'active' : ''}`} aria-current={isBlog ? 'page' : undefined}>
-          <BookOpen size={20} />
+          <i className="fa-solid fa-book-open" aria-hidden="true"></i>
           <span>Blogs</span>
         </Link>
 
         <button type="button" onClick={() => setIsMenuOpen(open => !open)} className={`mobile-nav-link ${isMenuOpen ? 'active' : ''}`} aria-label="Menu" aria-expanded={isMenuOpen}>
-          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          <i className="fa-solid fa-bars" aria-hidden="true"></i>
           {cartCount > 0 && <span className="mobile-nav-badge">{cartCount}</span>}
           <span>Menu</span>
         </button>

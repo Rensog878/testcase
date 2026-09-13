@@ -3868,19 +3868,21 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 0.64rem;
   font-weight: 600;
+  line-height: 1.2;
   letter-spacing: 0.01em;
   color: #64748b;
   text-decoration: none;
   gap: 3px;
   transition: color 0.15s ease;
   position: relative;
-  padding: 0 2px;
+  padding: 2px 4px;
   -webkit-tap-highlight-color: transparent;
 }
 
 /* Each icon sits in a 48x30 capsule, tinted for the current page. */
+.mobile-nav-link > i,
 .mobile-nav-link > svg,
 .mobile-nav-link > .active-dot-wrap {
   box-sizing: border-box;
@@ -3888,9 +3890,20 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   height: 30px;
   padding: 5px 14px;
   border-radius: 15px;
-  transition: background-color 0.15s ease, transform 0.12s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
+/* Font Awesome icons, sized as in the storefront's bottom bar. */
+.mobile-nav-link > i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.mobile-nav-link:active > i,
 .mobile-nav-link:active > svg,
 .mobile-nav-link:active > .active-dot-wrap {
   background-color: #eef2f6;
@@ -3901,6 +3914,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   color: #065f46;
 }
 
+.mobile-nav-link.active > i,
 .mobile-nav-link.active > .active-dot-wrap,
 .mobile-nav-link.active > svg {
   background-color: #d1fae5;
@@ -5384,32 +5398,32 @@ button.mobile-nav-link {
 }
 
 /* AI Doctor: the same capsule, filled - the bar's one call to action. */
-.mobile-nav-link.mobile-nav-link-fab {
-  color: #064e3b;
-}
-.mobile-nav-link.mobile-nav-link-fab > svg {
+.mobile-nav-link.mobile-nav-link-fab > i,
+.mobile-nav-link.mobile-nav-link-fab:active > i {
   background: linear-gradient(135deg, #10b981, #047857);
   color: #ffffff;
+  font-size: 1rem;
   box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
 }
 
-/* Basket count on the Menu tab, placed like the storefront's badge. */
+/* Basket count on the Menu tab, exactly as on the storefront's Menu tab. */
 .mobile-nav-badge {
   position: absolute;
-  top: 1px;
-  right: calc(50% - 24px);
-  min-width: 16px;
-  height: 16px;
+  top: -2px;
+  right: 8px;
+  min-width: 17px;
+  height: 17px;
   padding: 0 4px;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 2px solid #ffffff;
-  border-radius: 999px;
+  border-radius: 10px;
   background: #ef4444;
   color: #ffffff;
-  font-size: 9px;
+  font-size: 0.62rem;
   font-weight: 800;
-  line-height: 12px;
-  text-align: center;
 }
 
 @media (max-width: 768px) {

@@ -288,32 +288,7 @@ export default function Categories() {
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (BigHaat App Style - Mobile Only) */}
-      <nav className="bighaat-mobile-bottom-nav mobile-only-bottom-nav" aria-label="Mobile Navigation">
-        <Link to="/" className="mobile-nav-link">
-          <Home size={20} />
-          <span>Home</span>
-        </Link>
-        <Link to="/categories" className="mobile-nav-link active">
-          <div className="active-dot-wrap">
-            <Grid size={20} />
-            <span className="nav-active-dot" />
-          </div>
-          <span>Categories</span>
-        </Link>
-        <Link to="/orders" className="mobile-nav-link">
-          <Truck size={20} />
-          <span>Orders</span>
-        </Link>
-        <Link to="/agronomists" className="mobile-nav-link">
-          <Leaf size={20} />
-          <span>AI Doctor</span>
-        </Link>
-        <Link to="/checkout.html" className="mobile-nav-link">
-          <ShoppingBag size={20} />
-          <span>Cart</span>
-        </Link>
-      </nav>
+
 
       {/* Desktop Footer (Hidden on Mobile) */}
       <div className="desktop-only-footer">

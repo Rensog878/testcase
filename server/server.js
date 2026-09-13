@@ -1342,7 +1342,8 @@ app.post('/api/payments/webhook', async (req, res) => {
 // ORDERS
 // ============================================================
 
-const ORDER_STAFF_ROLES = ['admin', 'billing'];
+// Employees see every order for the operations dashboard (delivery OTPs are still stripped).
+const ORDER_STAFF_ROLES = ['admin', 'billing', 'employee'];
 
 // The delivery OTP proves the customer received the parcel, so only the
 // customer who placed the order may see it.

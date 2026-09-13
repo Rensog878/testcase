@@ -5375,6 +5375,325 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   border: 1px solid #ffffff;
 }
 
+/* ==========================================================================
+   STORE HEADER ROW (phones): logo · language · account · basket.
+   The same row as the storefront header (public/css/style.css and
+   responsive.css), on every React store page (components/home/StoreHeader).
+   ========================================================================== */
+.sb-store-head {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sb-store-head {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 8px 12px;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* This row replaces the pages' own phone headers. */
+  .public-utility,
+  .public-site-header,
+  .public-site-nav,
+  .bighaat-mobile-header .mobile-header-row,
+  .mobile-shop-header .mobile-shop-top-row {
+    display: none !important;
+  }
+}
+
+.sb-store-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sb-store-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sb-store-logo-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.sb-store-logo-words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sb-store-logo-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #064e3b;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.sb-store-logo-text span {
+  color: #059669;
+}
+
+.sb-store-logo-sub {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .sb-store-logo-text {
+    font-size: 1.05rem;
+    line-height: 1.1;
+  }
+  .sb-store-logo-sub {
+    margin-top: 2px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.09em;
+  }
+}
+
+.sb-store-head-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 6px; /* room for the basket count badge */
+}
+
+.sb-store-lang {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  min-height: 0;
+  padding: 0 8px;
+  border: 1px solid #a7f3d0;
+  border-radius: 15px;
+  background: #ecfdf5;
+  color: #064e3b;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sb-store-lang::after {
+  content: '';
+  position: absolute;
+  inset: -7px -4px;
+}
+
+.sb-store-lang i {
+  font-size: 0.88rem;
+}
+
+.sb-store-lang[aria-expanded="true"],
+.sb-store-lang:active {
+  background: #d1fae5;
+  border-color: #34d399;
+}
+
+.sb-store-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: #064e3b;
+  font-size: 1.25rem;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ~44px tap area around a small icon. */
+.sb-store-action::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
+}
+
+.sb-store-signed-in {
+  color: #10b981;
+}
+
+.sb-store-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* Language menu, as on the storefront. */
+.sb-lang-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  background: rgba(15, 23, 42, 0.18);
+}
+
+.sb-lang-menu {
+  position: fixed;
+  z-index: 10021;
+  right: 12px;
+  width: min(270px, calc(100vw - 24px));
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.08);
+  transform-origin: top right;
+  animation: sbLangMenuIn 0.16s ease-out;
+}
+
+@keyframes sbLangMenuIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-lang-menu { animation: none; }
+}
+
+.sb-lang-title {
+  padding: 6px 10px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.sb-lang-option {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: #0f172a;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sb-lang-option:not(:disabled):hover,
+.sb-lang-option:focus-visible {
+  background: #f1f5f9;
+  outline: none;
+}
+
+.sb-lang-option[aria-checked="true"] {
+  background: #ecfdf5;
+}
+
+.sb-lang-option:disabled {
+  cursor: default;
+}
+
+.sb-lang-option:disabled .sb-lang-glyph,
+.sb-lang-option:disabled .sb-lang-names {
+  opacity: 0.5;
+}
+
+.sb-lang-glyph {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #064e3b;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.sb-lang-option[aria-checked="true"] .sb-lang-glyph {
+  background: #059669;
+  color: #ffffff;
+}
+
+.sb-lang-names {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.sb-lang-names strong {
+  font-size: 0.95rem;
+}
+
+.sb-lang-names small {
+  font-size: 0.74rem;
+  color: #475569;
+}
+
+.sb-lang-check {
+  color: #059669;
+  visibility: hidden;
+}
+
+.sb-lang-option[aria-checked="true"] .sb-lang-check {
+  visibility: visible;
+}
+
+.sb-lang-soon {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* SATHYA BIO UNIFIED MOBILE BOTTOM NAVIGATION BAR
    Uses the floating pill above (.bighaat-mobile-bottom-nav / .mobile-nav-link),
    which matches the storefront's bottom bar. Phones only. */

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingCart, Menu, X, Truck, Sprout, Search, Languages, Heart, BookOpen } from 'lucide-react'
 import MobileBottomNav from './MobileBottomNav'
+import StoreHeader from './StoreHeader'
 
 export default function Navigation({ cartCount = 0 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -12,6 +13,7 @@ export default function Navigation({ cartCount = 0 }) {
   return <>
     <div className="public-ticker"><span>🚜 Free express delivery on orders above ₹999 across all 28 states</span><span>🌿 BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season</span><span>☘ WhatsApp us at 9000-425-999 for instant crop advisory in your language</span></div>
     <div className="public-utility"><div><Link to="/products">Sell on Sathya Bio</Link></div><div><strong>🌿 {user ? `Welcome, ${user.name || 'farmer'}` : 'Welcome, farmer'}</strong><span>📞 Missed Call to Order: 1800-425-9999</span><span>🚚 FREE Shipping on Agro Orders over ₹999</span><select aria-label="Language"><option>🌐 English</option></select></div></div>
+    <StoreHeader />
     <header className="public-site-header">
       <Link to="/" className="public-brand"><span><Sprout size={24} /></span><strong>SATHYA BIO</strong><small>AGRO PESTICIDE STORE</small></Link>
       <div className="public-search"><select aria-label="Search category"><option>All Categories</option><option>Fungicides</option><option>Insecticides</option><option>Herbicides</option></select><input placeholder="Search by crop, disease or chemical" /><button aria-label="Search"><Search size={20} /></button></div>

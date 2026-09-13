@@ -8,6 +8,7 @@ import {
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
 import MobileBottomNav from '../components/home/MobileBottomNav'
+import StoreHeader from '../components/home/StoreHeader'
 import axios from 'axios'
 import { 
   SHOP_CATEGORIES, 
@@ -376,6 +377,9 @@ export default function AllProducts() {
         <Navigation cartCount={cartCount} />
       </div>
 
+      {/* Phones: the storefront's header row, the same on every page. */}
+      <StoreHeader />
+
       {/* MOBILE TOP HEADER (BigHaat / Sathya Bio app style matching screenshot 1) */}
       <header className="mobile-shop-header mobile-only-header">
         <div className="mobile-shop-top-row">
@@ -419,7 +423,8 @@ export default function AllProducts() {
         </div>
 
         {/* Mobile Search input dropdown */}
-        {(mobileSearchOpen || searchQuery) && (
+        {/* Always shown on phones: the shared header row has no search toggle. */}
+        {(
           <div className="mobile-shop-search-expand">
             <div className="mobile-search-input-wrap">
               <Search size={16} className="search-icon-dim" />

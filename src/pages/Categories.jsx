@@ -9,6 +9,7 @@ import { CATEGORIES_DATA, DEFAULT_CATEGORY_HANDLE } from '../data/categoriesData
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
 import MobileBottomNav from '../components/home/MobileBottomNav'
+import StoreHeader from '../components/home/StoreHeader'
 
 export default function Categories() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -75,6 +76,9 @@ export default function Categories() {
       <div className="desktop-only-nav">
         <Navigation />
       </div>
+
+      {/* Phones: the storefront's header row, the same on every page. */}
+      <StoreHeader />
 
       {/* Mobile Top Header (BigHaat App Style - Visible only on Mobile) */}
       <header className="bighaat-mobile-header mobile-only-header">

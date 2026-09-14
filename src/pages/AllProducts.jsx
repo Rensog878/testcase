@@ -65,11 +65,14 @@ export default function AllProducts() {
     }
   })
 
+  // Basket lines use `qty`; `quantity` was written by older builds of this page.
+  const lineQty = item => Math.max(1, Math.floor(Number(item.qty ?? item.quantity)) || 1)
+
   // Cart count state
   const [cartCount, setCartCount] = useState(() => {
     try {
       const cart = JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]')
-      return cart.reduce((sum, item) => sum + (item.quantity || 1), 0)
+      return cart.reduce((sum, item) => sum + lineQty(item), 0)
     } catch {
       return 0
     }
@@ -171,23 +174,28 @@ export default function AllProducts() {
 
     const existingIndex = cart.findIndex(item => item.id === product.id && item.selectedPack === currentSize)
 
+    // The basket, the header and checkout all read `qty`.
     if (existingIndex > -1) {
-      cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + 1
+      cart[existingIndex].qty = lineQty(cart[existingIndex]) + 1
+      delete cart[existingIndex].quantity
     } else {
       cart.push({
         id: product.id,
+        _id: product.id,
         name: product.name,
         brand: product.brand,
-        price: effectivePrice,
+        price: Number(effectivePrice) || 0,
         originalPrice: effectiveOriginalPrice,
         selectedPack: currentSize,
         image: product.image,
-        quantity: 1
+        qty: 1
       })
     }
 
     localStorage.setItem('sathya_cart_guest', JSON.stringify(cart))
-    const newCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0)
+    const newCount = cart.reduce((sum, item) => sum + lineQty(item), 0)
+    // Keeps the header basket count in step (StoreHeader listens for this).
+    window.dispatchEvent(new CustomEvent('sathya:cart-count', { detail: newCount }))
     setCartCount(newCount)
     showToast(`Added ${product.name.slice(0, 24)}... (${currentSize}) to Basket! 🛒`)
   }

@@ -27,10 +27,13 @@ const orderLine = item => ({ id: keyOf(item), qty: Number(item.qty || 1), select
 const rupees = n => '₹' + Number(n || 0).toLocaleString('en-IN')
 const itemCount = items => items.reduce((sum, item) => sum + Number(item.qty || 1), 0)
 
+// Older builds of the All Products page saved `quantity` instead of `qty`.
+const normalizeCart = items => (Array.isArray(items) ? items.filter(item => item && typeof item === 'object') : [])
+  .map(item => ({ ...item, qty: Math.max(1, Math.floor(Number(item.qty ?? item.quantity)) || 1) }))
+
 const readGuestCart = () => {
   try {
-    const parsed = JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '[]')
-    return Array.isArray(parsed) ? parsed : []
+    return normalizeCart(JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '[]'))
   } catch {
     return []
   }
@@ -102,7 +105,7 @@ export default function Checkout() {
     const loadCart = async () => {
       try {
         const { data } = await axios.get('/api/cart')
-        const items = data?.success && Array.isArray(data.data) ? data.data : []
+        const items = data?.success ? normalizeCart(data.data) : []
         const guestCart = readGuestCart()
         if (guestCart.length) {
           guestCart.forEach(item => {

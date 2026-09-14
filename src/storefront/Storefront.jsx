@@ -46,10 +46,18 @@ const storedToken = () => {
   try { return localStorage.getItem('sathya_token') } catch { return null }
 }
 
+// Older builds of the All Products page saved `quantity` instead of `qty`;
+// without this those lines showed "NaN items" and ₹0 in the basket.
+const cartLine = item => ({
+  ...item,
+  qty: Math.max(1, Math.floor(Number(item.qty ?? item.quantity)) || 1),
+  price: Number(item.price) || 0,
+})
+const normalizeCart = items => (Array.isArray(items) ? items.filter(item => item && typeof item === 'object').map(cartLine) : [])
+
 function readGuestCart() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '[]')
-    return Array.isArray(parsed) ? parsed : []
+    return normalizeCart(JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '[]'))
   } catch {
     return []
   }
@@ -156,11 +164,11 @@ export default function Storefront() {
           return
         }
         const json = await res.json()
-        const serverCart = json.success && Array.isArray(json.data) ? json.data : []
+        const serverCart = json.success ? normalizeCart(json.data) : []
         const guestCart = readGuestCart()
         if (guestCart.length) {
           guestCart.forEach(item => {
-            const existing = serverCart.find(i => i.id === item.id)
+            const existing = serverCart.find(i => i.id === item.id && i.selectedPack === item.selectedPack)
             if (existing) existing.qty += item.qty
             else serverCart.push(item)
           })

@@ -18,7 +18,11 @@ export default function StoreTopChrome() {
       root.style.setProperty('--sb-head-h', `${headHeight}px`)
       root.style.setProperty('--sb-chrome-h', `${headHeight + (ticker?.offsetHeight || 0)}px`)
     }
-    update()
+    // No update() here: reading offsetHeight now would lay the page out before
+    // the storefront's layout effect adds body.sb-home-active, so its basket
+    // drawer and filter sheet would get unstyled positions first and then
+    // visibly slide away on every reload. ResizeObserver reports the first
+    // sizes after layout and before the first paint.
     const observer = new ResizeObserver(update)
     ;[ticker, head].forEach(el => el && observer.observe(el))
     return () => {

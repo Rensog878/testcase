@@ -330,23 +330,6 @@ body {
   text-align: center;
   line-height: 14px;
 }
-.public-menu-button {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: rgba(5, 150, 105, 0.08);
-  color: #064e3b;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s ease;
-}
-.public-menu-button:hover {
-  background: rgba(5, 150, 105, 0.15);
-}
-
 .public-site-nav {
   display: flex;
   align-items: center;
@@ -449,26 +432,10 @@ body {
     min-height: 44px;
     justify-content: center;
   }
-  .public-menu-button {
-    display: inline-flex;
-  }
+  /* Tablets keep the link strip (it scrolls sideways if it has to); there is
+     no second menu here - the Menu card is the phone bottom bar's. */
   .public-site-nav {
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 16px;
-    background: #064e3b;
-    border-bottom: 2px solid #10b981;
-  }
-  .public-site-nav.open {
-    display: flex;
-  }
-  .public-site-nav a {
-    padding: 10px 14px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.06);
-    font-size: 0.92rem;
+    justify-content: flex-start;
   }
   .public-footer-grid { grid-template-columns: 1fr 1fr; }
 }
@@ -489,7 +456,7 @@ body {
   }
   /* Phone header: the utility strip wrapped into a ~300px column and the
      ticker, icons and search pushed content ~700px down. Keep one ticker
-     line, one header row (brand, account, basket, menu) and a slim search. */
+     line, one header row (brand, account, basket) and a slim search. */
   .public-utility {
     display: none;
   }

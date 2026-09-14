@@ -6812,26 +6812,6 @@ button.mobile-nav-link {
   box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
 }
 
-/* Basket count on the Menu tab, exactly as on the storefront's Menu tab. */
-.mobile-nav-badge {
-  position: absolute;
-  top: -2px;
-  right: 8px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ffffff;
-  border-radius: 10px;
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 0.62rem;
-  font-weight: 800;
-}
-
 /* THE BAR WHILE SCROLLING (phones, MobileBottomNav.jsx). Reading down, it
    slides away; scrolling up brings it back. At the end of a list - the page,
    or either Categories column - it comes back as a slim icon-only dock with a
@@ -6887,9 +6867,6 @@ button.mobile-nav-link {
   .sathya-mobile-bottom-nav.is-compact .mobile-nav-link > span:last-child {
     max-height: 0;
     opacity: 0;
-  }
-  .sathya-mobile-bottom-nav.is-compact .mobile-nav-badge {
-    top: 1px;
   }
 }
 

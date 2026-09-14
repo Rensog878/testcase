@@ -41,22 +41,11 @@ const BAR_SHOW_AFTER = 8
 // Scrolling inside these never moves the bar.
 const BAR_IGNORE = '.mobile-menu-sheet, [role="dialog"], [aria-modal="true"]'
 
-const countItems = items => (Array.isArray(items) ? items.reduce((acc, i) => acc + (Number(i.qty) || 1), 0) : 0)
-
-const readGuestCount = () => {
-  try {
-    return countItems(JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]'))
-  } catch {
-    return 0
-  }
-}
-
 export default function MobileBottomNav() {
   const location = useLocation()
   const navigate = useNavigate()
   const { lang, setLang, languages } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [cartCount, setCartCount] = useState(readGuestCount)
   // The account row follows sign-in and sign-out as they happen, while the
   // sheet is closed. Read from storage as the sheet opened, the new name
   // re-laid out and repainted the whole sheet on the frame its slide started.
@@ -206,30 +195,6 @@ export default function MobileBottomNav() {
       cancelAnimationFrame(frame)
     }
   }, [showBar])
-
-  // Basket count: the page that owns the basket announces changes (storefront,
-  // checkout); otherwise the server basket, or this browser's guest basket.
-  useEffect(() => {
-    const onCount = event => setCartCount(Number(event.detail) || 0)
-    window.addEventListener('sathya:cart-count', onCount)
-    return () => window.removeEventListener('sathya:cart-count', onCount)
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    const token = localStorage.getItem('sathya_token')
-    if (!token) {
-      setCartCount(readGuestCount())
-      return undefined
-    }
-    fetch('/api/cart', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => (res.ok ? res.json() : null))
-      .then(json => {
-        if (!cancelled && json?.success) setCartCount(countItems(json.data) + readGuestCount())
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [path])
 
   // Closed, the sheet sits painted just below the screen: keep it out of focus
   // order, and back at the top for next time once the slide-out has finished.
@@ -467,8 +432,8 @@ export default function MobileBottomNav() {
         </TransitionLink>
 
         <button type="button" id="mobileNavMenu" onPointerDown={warmMenu} onClick={toggleMenu} className={`mobile-nav-link ${isMenuOpen ? 'active' : ''}`} aria-label="Menu" aria-expanded={isMenuOpen}>
+          {/* No basket count here: it shows only on the header's basket icon. */}
           <i className={isMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'} aria-hidden="true"></i>
-          {cartCount > 0 && <span className="mobile-nav-badge">{cartCount}</span>}
           <span>Menu</span>
         </button>
       </nav>

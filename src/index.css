@@ -3208,6 +3208,22 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   min-height: 100vh;
 }
 
+/* Phones: Categories is a full-screen view whose rail and pane scroll on
+   their own, so the document behind it must not scroll. It could by 88px
+   (the body's room for the floating bar): scrolling moved the ticker away and
+   the header row up, while this fixed page stayed put, leaving a gap under
+   the header. Categories.jsx sets the class while it is open. */
+@media (max-width: 767px) {
+  html.sb-fullscreen-page,
+  html.sb-fullscreen-page body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  html.sb-fullscreen-page body {
+    padding-bottom: 0;
+  }
+}
+
 @media (max-width: 767px) {
   .bighaat-categories-page {
     position: fixed;

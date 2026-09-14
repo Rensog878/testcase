@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import {
   Search, X, ArrowLeft,
@@ -48,6 +48,15 @@ export default function Categories() {
   const spyFrame = useRef(0)
 
   const activeCategory = findCategory(activeHandle)
+
+  // Phones: a full-screen view, so the document behind it does not scroll
+  // (index.css, html.sb-fullscreen-page). Set before paint, removed on leaving.
+  useLayoutEffect(() => {
+    const root = document.documentElement
+    root.classList.add('sb-fullscreen-page')
+    window.scrollTo(0, 0)
+    return () => root.classList.remove('sb-fullscreen-page')
+  }, [])
 
   // The pane's sections: every category, narrowed by the search.
   const sections = useMemo(() => {

@@ -6292,6 +6292,112 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) body.sb-home-active 
 }
 
 /* ------------------------------------------------------------
+   7h. SIGN IN & NEW FARMER - THE HOME PAGE'S TYPE SCALE
+   The sheet set nearly everything at 16px (labels, subtitle, notice,
+   links), a size larger than the page it opens over, so the forms
+   read loud next to the menu card, search pill and product cards.
+   Same fonts as the page (Outfit headings, Plus Jakarta Sans text)
+   at the page's sizes. Inputs keep 16px text - smaller makes iOS
+   zoom the page on focus - with a 14px placeholder, as in the search
+   pill. Tap targets stay 44px or more.
+   ------------------------------------------------------------ */
+body.sb-home-active .sb-home #authModal .auth-tab {
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+body.sb-home-active .sb-home #authModal .auth-back {
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+body.sb-home-active .sb-home #authModal .auth-notice {
+  gap: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+body.sb-home-active .sb-home #authModal .auth-notice-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 0.7rem;
+}
+body.sb-home-active .sb-home #authModal .auth-steps li {
+  font-size: 0.78rem;
+}
+body.sb-home-active .sb-home #authModal .auth-title {
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+body.sb-home-active .sb-home #authModal .auth-sub {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+body.sb-home-active .sb-home #authModal .auth-label {
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+}
+body.sb-home-active .sb-home #authModal .auth-optional {
+  font-size: 0.72rem;
+}
+body.sb-home-active .sb-home #authModal :is(.auth-help, .sb-field-error, .sb-field-ok, .sb-password-rules) {
+  font-size: 0.78rem;
+}
+body.sb-home-active .sb-home #authModal .auth-input {
+  height: 46px;
+  font-size: 16px;
+}
+body.sb-home-active .sb-home #authModal .auth-input::placeholder {
+  font-size: 14px;
+}
+body.sb-home-active .sb-home #authModal .auth-control-icon {
+  font-size: 0.9rem;
+}
+body.sb-home-active .sb-home #authModal .auth-icon-btn {
+  top: 1px;
+  right: 1px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  font-size: 0.95rem;
+}
+body.sb-home-active .sb-home #authModal .auth-prefix {
+  font-size: 0.9rem;
+}
+body.sb-home-active .sb-home #authModal .auth-stepper {
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
+}
+body.sb-home-active .sb-home #authModal .auth-stepper-btn {
+  height: 46px;
+  min-height: 46px;
+  font-size: 0.9rem;
+}
+body.sb-home-active .sb-home #authModal .auth-control--suffix .auth-input {
+  font-size: 1rem;
+}
+body.sb-home-active .sb-home #authModal .auth-suffix {
+  font-size: 0.84rem;
+}
+body.sb-home-active .sb-home #authModal .auth-otp-cells span {
+  height: 50px;
+  font-size: 1.25rem;
+}
+body.sb-home-active .sb-home #authModal .auth-number {
+  min-height: 48px;
+}
+body.sb-home-active .sb-home #authModal .auth-number strong {
+  font-size: 0.95rem;
+}
+body.sb-home-active .sb-home #authModal .auth-link {
+  min-height: 44px;
+  font-size: 0.84rem;
+}
+body.sb-home-active .sb-home #authModal .auth-resend {
+  font-size: 0.84rem;
+}
+body.sb-home-active .sb-home #authModal .auth-cta {
+  min-height: 48px;
+  font-size: 0.95rem;
+}
+
+/* ------------------------------------------------------------
    8. TOUCH DEVICES
    Comfortable hit areas and no iOS zoom-on-focus.
    ------------------------------------------------------------ */

@@ -1,0 +1,15 @@
+/* Touch screens: no scroll indicators on any page - the Menu card, the
+   Categories rail and pane, sheets and carousels still scroll, but without the
+   bar along their edge. Mouse and trackpad screens keep their scrollbars.
+   Outside any cascade layer, so it also wins over the storefront's reset
+   (src/storefront/storefront.css), which reverts layered rules on its page. */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}

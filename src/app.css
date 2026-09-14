@@ -5,3 +5,4 @@
    in unlayered files (toast.css) or use their variables (--fa-display). */
 @import './index.css' layer(app);
 @import './toast.css';
+@import './scrollbars.css';

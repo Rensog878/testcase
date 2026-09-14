@@ -3624,6 +3624,12 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   gap: 22px;
 }
 
+/* Every category is one section of the pane, one after another; the rail
+   follows the scroll (Categories.jsx). */
+.subcat-category-section + .subcat-category-section {
+  margin-top: 30px;
+}
+
 .subcat-group-block {
   display: flex;
   flex-direction: column;

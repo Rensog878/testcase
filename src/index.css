@@ -5794,12 +5794,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   color: #10b981;
 }
 
-/* The bag's body sits below its handle, so centred it read lower than the
-   account icon and the language pill: lift it into line (as on the storefront). */
-.sb-store-action .fa-bag-shopping {
-  transform: translateY(-2px);
-}
-
 .sb-store-badge {
   position: absolute;
   top: -8px;

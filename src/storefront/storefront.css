@@ -4740,9 +4740,10 @@ body.sb-home-active .sb-home #authModal .modal-card.auth-card {
   }
 }
 
-/* Close: a quiet 48px circle, centred on the top row at every width. */
+/* Close: a quiet 48px circle, centred on the top row (the 48px brand row)
+   at every width. */
 body.sb-home-active .sb-home #authModal .modal-close {
-  top: calc(var(--auth-pad-top) + 4px) !important;
+  top: var(--auth-pad-top) !important;
   right: var(--auth-pad) !important;
   box-sizing: border-box !important;
   width: 48px !important;
@@ -4779,13 +4780,67 @@ body.sb-home-active .sb-home .auth-shell [hidden] {
   display: none !important;
 }
 
-/* Top row: the Sign In / New Farmer switch or a back button, beside the close button. */
+/* Top row: the store brand, centred beside the close button. The same icon,
+   colours, weights and letter-spacing as the header brand, a size smaller
+   so it does not compete with the title. Equal side padding keeps it centred
+   and clear of the close button. */
+body.sb-home-active .sb-home .auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  margin-bottom: 12px;
+  padding: 0 60px;
+}
+body.sb-home-active .sb-home .auth-brand-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+body.sb-home-active .sb-home .auth-brand-words {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+body.sb-home-active .sb-home .auth-brand-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--primary-dark);
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+body.sb-home-active .sb-home .auth-brand-text span {
+  color: var(--primary);
+}
+body.sb-home-active .sb-home .auth-brand-sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.64rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+}
+
+/* Second row: the Sign In / New Farmer switch or a back button, full width
+   under the brand row. */
 body.sb-home-active .sb-home .auth-topbar {
   display: flex;
   align-items: center;
   min-height: 56px;
   margin-bottom: 20px;
-  padding-right: 60px;
 }
 
 body.sb-home-active .sb-home .auth-tabs {
@@ -5485,12 +5540,38 @@ body.sb-home-active .sb-home .auth-account {
     --auth-radius: 12px;
   }
   body.sb-home-active .sb-home #authModal .modal-close {
-    top: calc(var(--auth-pad-top) + 2px) !important;
+    top: var(--auth-pad-top) !important;
+  }
+  /* The header's phone sizes, a size smaller. 52px each side is the close
+     button and a 4px gap, so the brand stays centred on a 360px screen. */
+  body.sb-home-active .sb-home .auth-brand {
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 0 52px;
+  }
+  body.sb-home-active .sb-home .auth-brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 0.95rem;
+  }
+  body.sb-home-active .sb-home .auth-brand-text {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+  body.sb-home-active .sb-home .auth-brand-sub {
+    margin-top: 2px;
+    font-size: 0.56rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.09em;
+  }
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) body.sb-home-active .sb-home .auth-brand-sub {
+    letter-spacing: 0;
   }
   body.sb-home-active .sb-home .auth-topbar {
     min-height: 52px;
     margin-bottom: 14px;
-    padding-right: 56px;
   }
   body.sb-home-active .sb-home .auth-tabs {
     padding: 2px;

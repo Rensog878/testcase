@@ -127,7 +127,7 @@ function ResendRow({ textId, buttonId, left, sending, sendingLabel, onResend }) 
   )
 }
 
-export default memo(function AuthModal({ state, user, notice, loginRequest }) {
+export default memo(function AuthModal({ t, state, user, notice, loginRequest }) {
   const { afterSignIn, signOut } = useStore()
   const { login, setSession } = useAuth()
 
@@ -722,6 +722,15 @@ export default memo(function AuthModal({ state, user, notice, loginRequest }) {
   return (
     <Modal id="authModal" state={state} cardClassName="modal-card auth-card" cardProps={{ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId }}>
       <div id="authLoggedOutView" className="auth-shell" data-view={view} data-step={registerStep} style={{ display: user ? 'none' : 'block' }}>
+        {/* The store brand, as in the header. Not a link, so it takes no Tab stop. */}
+        <div className="auth-brand">
+          <span className="auth-brand-icon" aria-hidden="true"><i className="fa-solid fa-leaf"></i></span>
+          <span className="auth-brand-words">
+            <span className="auth-brand-text">SATHYA <span>BIO</span></span>
+            <span className="auth-brand-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
+          </span>
+        </div>
+
         <div className="auth-topbar">
           <div id="authTabsBar" className="auth-tabs" role="tablist" data-active={view === 'login' ? 'login' : 'register'} hidden={!tabbed}>
             <button type="button" id="authTabLogin" className="auth-tab" role="tab" aria-selected={view === 'login'} aria-controls="storefrontLoginForm" tabIndex={view === 'login' ? 0 : -1} onClick={() => switchAuthTab('login')} onKeyDown={onTabKey}>Sign In</button>

@@ -585,7 +585,7 @@ export default function Storefront() {
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />
         <Chatbot t={t} />
         <WelcomePoster state={modals.welcomePosterModal} />
-        <AuthModal state={modals.authModal} user={user} notice={authNotice} loginRequest={loginRequest} />
+        <AuthModal t={t} state={modals.authModal} user={user} notice={authNotice} loginRequest={loginRequest} />
       </div>
     </StoreContext.Provider>
   )

@@ -1,40 +1,10 @@
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import { useStore } from '../StoreContext'
+import FooterColumn from '../../components/FooterColumn'
 
 const COLUMN_TITLE_STYLE = { color: 'var(--accent-gold)', marginBottom: '14px', fontSize: '0.95rem' }
 const LIST_STYLE = { listStyle: 'none', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px', color: '#d1fae5' }
 const HELP_STYLE = { fontSize: '0.85rem', color: '#d1fae5', marginBottom: '8px' }
-
-// Footer link groups collapse into accordions on phones.
-function FooterColumn({ i18nKey, title, children }) {
-  const [open, setOpen] = useState(false)
-  const toggle = () => {
-    if (!window.matchMedia('(max-width: 768px)').matches) return
-    setOpen(current => !current)
-  }
-  return (
-    <div className={`footer-col${open ? ' open' : ''}`}>
-      <h4
-        className="footer-col-title"
-        role="button"
-        tabIndex={0}
-        aria-expanded={open}
-        style={COLUMN_TITLE_STYLE}
-        data-i18n={i18nKey}
-        onClick={toggle}
-        onKeyDown={event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            toggle()
-          }
-        }}
-      >
-        {title}
-      </h4>
-      {children}
-    </div>
-  )
-}
 
 export default memo(function Footer({ t }) {
   const { filterByCategory, filterByCrop } = useStore()
@@ -55,7 +25,7 @@ export default memo(function Footer({ t }) {
             </div>
           </div>
 
-          <FooterColumn i18nKey="footer_nav" title={t('footer_nav')}>
+          <FooterColumn i18nKey="footer_nav" title={t('footer_nav')} titleStyle={COLUMN_TITLE_STYLE}>
             <ul className="footer-col-body" style={LIST_STYLE}>
               <li><a href="#catalog" onClick={() => filterByCategory('Fungicide')}>Bio-Fungicides</a></li>
               <li><a href="#catalog" onClick={() => filterByCategory('Insecticide')}>Insecticides</a></li>
@@ -65,7 +35,7 @@ export default memo(function Footer({ t }) {
             </ul>
           </FooterColumn>
 
-          <FooterColumn i18nKey="footer_crops" title={t('footer_crops')}>
+          <FooterColumn i18nKey="footer_crops" title={t('footer_crops')} titleStyle={COLUMN_TITLE_STYLE}>
             <ul className="footer-col-body" style={LIST_STYLE}>
               <li><a href="#catalog" onClick={() => filterByCrop('Paddy/Rice')}>Paddy / Rice Care</a></li>
               <li><a href="#catalog" onClick={() => filterByCrop('Cotton')}>Cotton Protection</a></li>
@@ -75,7 +45,7 @@ export default memo(function Footer({ t }) {
             </ul>
           </FooterColumn>
 
-          <FooterColumn i18nKey="footer_help" title={t('footer_help')}>
+          <FooterColumn i18nKey="footer_help" title={t('footer_help')} titleStyle={COLUMN_TITLE_STYLE}>
             <div className="footer-col-body">
               <p style={HELP_STYLE}><i className="fa-solid fa-phone"></i> Toll Free: 1800-425-9999</p>
               <p style={HELP_STYLE}><i className="fa-solid fa-envelope"></i> support@sathyabio.com</p>

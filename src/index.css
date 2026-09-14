@@ -385,6 +385,8 @@ body {
 .public-footer-bottom { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 0; }
 .public-footer-bottom > div:nth-child(2) { display: flex; gap: 18px; }
 .public-social-links { display: flex; gap: 12px; }
+/* The social links sit in the bottom row; phones move them to the brand block. */
+.public-footer-brand-social { display: none; }
 .public-payment-strip { margin-top: 14px; padding: 14px 5vw; background: rgba(0,0,0,0.12); text-align: center; color: #c4f5da; font-size: 0.82rem; }
 /* The home page footer's type and colours (storefront Footer): Plus Jakarta
    Sans text, Outfit column titles, at its sizes - the app's Inter and Poppins
@@ -496,8 +498,173 @@ body {
     margin: 0 4px 0 0;
     border-radius: 50%;
   }
-  .public-footer-grid { grid-template-columns: 1fr; }
-  .public-footer-bottom { align-items: flex-start; flex-direction: column; }  .public-footer-bottom > div:nth-child(2) { flex-wrap: wrap; }
+}
+
+/* STORE PAGES' FOOTER ON PHONES (Footer.jsx). Stacked as one column it was
+   three screens long, with the bottom row against the screen edges. Now the
+   home page footer's layout (storefront.css, "Footer: collapsible groups"):
+   brand on top, the three link groups as tap-to-open rows (FooterColumn), a
+   centred bottom row, 16px sides as in the header row. The bottom bar's room
+   (--bottom-bar-room, the body's padding) is drawn inside the dark footer,
+   so no light strip shows under it and the last line clears the bar. */
+@media (max-width: 768px) {
+  .public-site-footer {
+    padding-top: 28px;
+    padding-bottom: var(--bottom-bar-room, 0px);
+    margin-bottom: calc(-1 * var(--bottom-bar-room, 0px));
+  }
+  .public-footer-grid {
+    width: auto;
+    padding: 0 16px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  /* Brand: name, one line of description, social links. */
+  .public-footer-brand {
+    padding-bottom: 14px;
+  }
+  .public-footer-grid h3 {
+    margin-bottom: 10px;
+  }
+  .public-footer-grid .public-footer-brand p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .public-footer-grid .public-footer-brand-more,
+  .public-footer-bottom-social {
+    display: none;
+  }
+  /* 40px tap areas; the first icon still lines up with the text edge. */
+  .public-footer-brand-social {
+    display: flex;
+    gap: 4px;
+    margin-left: -10px;
+    color: #ffffff;
+  }
+  .public-social-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Link groups: a 50px row with a chevron, closed until tapped. */
+  .public-footer-col {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .public-footer-grid .public-footer-col-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 50px;
+    margin: 0;
+    padding: 12px 2px;
+    line-height: var(--script-leading, 1.4);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .public-footer-col-title:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: -2px;
+    border-radius: 6px;
+  }
+  /* The chevron is drawn, not read out. */
+  .public-footer-col-title::after {
+    content: '\f078';
+    content: '\f078' / '';
+    flex: none;
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.72rem;
+    color: #a7f3d0;
+    transition: transform 0.2s ease;
+  }
+  .public-footer-col.open .public-footer-col-title::after {
+    transform: rotate(180deg);
+  }
+  .public-footer-grid .public-footer-col-body {
+    display: none;
+    gap: 0;
+    padding: 0 2px 12px;
+  }
+  .public-footer-grid .public-footer-col.open .public-footer-col-body {
+    display: grid;
+  }
+  .public-footer-col-body a {
+    flex: 1;
+    display: block;
+    padding: 8px 0;
+  }
+
+  /* Support: a small muted label over the value; the icon is centred on the
+     label's line in every language. The div steps aside so label and value
+     are the row's own grid cells. */
+  .public-footer-grid .public-footer-contact {
+    gap: 14px;
+    padding-top: 4px;
+    padding-bottom: 18px;
+  }
+  .public-footer-grid .public-footer-contact li {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    column-gap: 10px;
+  }
+  .public-footer-contact li > div {
+    display: contents;
+  }
+  .public-footer-contact li > svg {
+    grid-row: 1;
+    align-self: center;
+    color: #a7f3d0;
+  }
+  .public-footer-grid .public-footer-contact p {
+    grid-column: 2;
+    margin: 0;
+    color: #ecfdf5;
+    font-size: 0.875rem;
+    line-height: var(--script-leading, 1.5);
+    overflow-wrap: anywhere;
+  }
+  .public-footer-grid .public-footer-contact .public-footer-contact-label {
+    color: #a7f3d0;
+    font-size: 0.75rem;
+  }
+
+  /* Bottom row: centred, links wrap as whole words. */
+  .public-site-footer > hr {
+    margin: 0 16px;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .public-footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 16px 0;
+    text-align: center;
+  }
+  .public-footer-bottom p {
+    line-height: var(--script-leading, 1.5);
+  }
+  .public-footer-bottom > div:nth-child(2) {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 18px;
+  }
+  .public-footer-bottom > div:nth-child(2) a {
+    padding: 8px 0;
+  }
+  /* The payment line: no band of its own, wrapped into even lines. */
+  .public-payment-strip {
+    margin: 0;
+    padding: 6px 16px 18px;
+    background: none;
+    line-height: var(--script-leading, 1.5);
+    text-wrap: balance;
+  }
 }
 
 a { text-decoration: none; color: inherit; }
@@ -7017,9 +7184,13 @@ button.mobile-nav-link {
   .sathya-mobile-bottom-nav {
     display: flex !important;
   }
-  /* Room for the floating bar: 62px bar + 12px gap + 14px air, as on the storefront. */
+  /* Room for the floating bar: 62px bar + 12px gap + 14px air, as on the
+     storefront. The store pages' footer draws it in its own colour. */
+  :root {
+    --bottom-bar-room: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
   body {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--bottom-bar-room);
   }
 }
 

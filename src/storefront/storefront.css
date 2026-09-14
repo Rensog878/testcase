@@ -4157,6 +4157,11 @@ body.sb-home-active .sb-home .mobile-menu-backdrop {
     position: absolute;
     inset: -12px -8px;
   }
+  /* The bag's body sits below its handle, so centred it read lower than the
+     account icon and the language pill: lift it into line. */
+  body.sb-home-active .sb-home .header-main .header-actions .cart-trigger-btn .action-icon {
+    transform: translateY(-2px);
+  }
 
   /* Jumps from the menus land below the sticky header, not under it. */
   body.sb-home-active .sb-home #catalog,

@@ -1,5 +1,6 @@
 /**
- * WhatsApp text messages through WaSenderAPI. Used for OTPs and order updates.
+ * WhatsApp messages through WaSenderAPI: text, or an image with a caption.
+ * Used for OTPs and order updates.
  *
  * Messages are spread over a pool of WaSender sessions (one API key per
  * WhatsApp number), so no single number carries all the traffic:
@@ -257,6 +258,30 @@ async function recordSuccess(sender, phone, ranked) {
 // `phone` is a 10-digit Indian mobile number. Resolves with WaSender's response
 // plus `sender` (e.g. "sender 2"); throws WhatsAppSendError.
 export async function sendWhatsAppText(phone, text) {
+  return sendMessage(phone, { text });
+}
+
+// An image with `caption` under it. `imageUrl` must be a public HTTPS JPEG or
+// PNG. With no `imageUrl`, or when WaSender refuses the image before sending
+// it (a 4xx such as a bad URL), the caption goes out as a text message instead.
+// Never after a timeout or a server error: the image may already have been
+// delivered, and the customer would get the message twice.
+// Resolves like sendWhatsAppText, plus `image`: whether the image was sent.
+export async function sendWhatsAppImage(phone, { imageUrl, caption }) {
+  if (imageUrl) {
+    try {
+      return { ...(await sendMessage(phone, { text: caption, imageUrl })), image: true };
+    } catch (err) {
+      const refusedBeforeSending = err.code === 'REJECTED' && err.status >= 400 && err.status < 500;
+      if (!refusedBeforeSending) throw err;
+      console.warn(`🖼️ WhatsApp image refused, sending the text alone: ${err.message}`);
+    }
+  }
+  return { ...(await sendMessage(phone, { text: caption })), image: false };
+}
+
+// `content` is { text } or { text, imageUrl }.
+async function sendMessage(phone, content) {
   const pool = senders();
   if (!pool.length) {
     throw new WhatsAppSendError('WaSenderAPI key is missing. Add WASENDER_API_KEY to .env', { code: 'NOT_CONFIGURED' });
@@ -288,7 +313,7 @@ export async function sendWhatsAppText(phone, text) {
     }
     tried.add(sender.id);
 
-    const { response, data } = await callApi(sender, { body: { to: `91${phone}`, text }, timeoutMs });
+    const { response, data } = await callApi(sender, { body: { to: `91${phone}`, ...content }, timeoutMs });
 
     if (response.ok && data?.success !== false) {
       await recordSuccess(sender, phone, ranked);

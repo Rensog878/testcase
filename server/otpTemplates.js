@@ -25,8 +25,27 @@
  */
 
 import crypto from 'node:crypto';
+import { isPublicHttpsUrl, publicAssetUrl } from './publicUrl.js';
 
 const BRAND = 'Sathya Bio';
+
+// The sign-up code is sent as the caption of this banner: the brand as it
+// appears at the top of the sign-in card. Rebuild it with
+// server/scripts/build-otp-banner.mjs. OTP_BANNER_URL may point at another
+// image. Returns null, meaning text only, when there is no public HTTPS
+// address for it (local development).
+export const OTP_BANNER_PATH = '/assets/whatsapp-otp-banner.png';
+
+export function otpBannerUrl() {
+  const override = String(process.env.OTP_BANNER_URL || '').trim();
+  if (!override) return publicAssetUrl(OTP_BANNER_PATH);
+  if (isPublicHttpsUrl(override)) return override;
+  console.warn('⚠️ OTP_BANNER_URL is not a public HTTPS URL, so sign-up codes are sent as text.');
+  return null;
+}
+
+// WhatsApp cuts image captions off after this many characters.
+export const WHATSAPP_CAPTION_LIMIT = 1024;
 
 const pick = (arr) => arr[crypto.randomInt(0, arr.length)];
 const maybe = (value, chance = 0.5) => (crypto.randomInt(0, 100) < chance * 100 ? value : '');

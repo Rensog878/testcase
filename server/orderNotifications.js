@@ -13,18 +13,13 @@
 import { db } from './db.js';
 import { sendWhatsAppText, whatsAppConfigured } from './whatsapp.js';
 import { buildOrderConfirmationMessage, buildDeliveryStatusMessage } from './orderMessages.js';
+import { publicSiteUrl } from './publicUrl.js';
 
 const MAX_AUTOMATIC_ATTEMPTS = 3;
 
 export function orderWhatsAppEnabled() {
   return whatsAppConfigured()
     && String(process.env.ORDER_WHATSAPP_MESSAGES || '').toLowerCase() !== 'off';
-}
-
-function publicSiteUrl() {
-  const configured = process.env.PUBLIC_SITE_URL
-    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '');
-  return configured.replace(/\/+$/, '');
 }
 
 function whatsAppNumber(phone) {

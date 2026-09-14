@@ -11,8 +11,8 @@ import crypto from 'node:crypto';
 import Razorpay from 'razorpay';
 import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
-import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout } from './otpTemplates.js';
-import { sendWhatsAppText } from './whatsapp.js';
+import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
+import { sendWhatsAppText, sendWhatsAppImage } from './whatsapp.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
@@ -157,10 +157,15 @@ function hashOtp(otp) {
 // ============================================================
 
 // OTP message text lives in ./otpTemplates.js — it assembles each message
-// from interchangeable parts so no two sends look alike.
+// from interchangeable parts so no two sends look alike. The sign-up code is
+// the caption of the Sathya Bio banner, or plain text where there is no public
+// address for the banner.
 
 async function sendWhatsAppOtp(phone, otp, userName = 'Farmer') {
-  return sendWhatsAppText(phone, buildOtpMessage(otp, userName, phone, OTP_EXPIRY_MS));
+  return sendWhatsAppImage(phone, {
+    imageUrl: otpBannerUrl(),
+    caption: buildOtpMessage(otp, userName, phone, OTP_EXPIRY_MS),
+  });
 }
 
 // ============================================================

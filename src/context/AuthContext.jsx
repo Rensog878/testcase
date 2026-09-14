@@ -153,7 +153,7 @@ if (showToast) toast.success('Logged out successfully')
 }
 
 return (
-<AuthContext.Provider value={{ user, token, login, register, sendRegistrationOtp, verifyRegistrationOtp, logout, loading, isAuth: !!user }}>
+<AuthContext.Provider value={{ user, token, login, register, sendRegistrationOtp, verifyRegistrationOtp, logout, setSession: saveSession, loading, isAuth: !!user }}>
 {children}
 </AuthContext.Provider>
 )

@@ -8,7 +8,7 @@ import {
 
 const DEFAULT_CATEGORIES = ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant']
 
-// Tells open storefront tabs (public/js/app.js listens on the same channel) to reload products.
+// Tells open storefront tabs (src/storefront/Storefront.jsx listens on the same channel) to reload products.
 const notifyStorefront = () => {
   if (!('BroadcastChannel' in window)) return
   const channel = new BroadcastChannel('sathya_catalog')

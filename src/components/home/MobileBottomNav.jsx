@@ -3,9 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import TransitionLink from './TransitionLink'
 
-// Phones: the bottom bar and its Menu sheet, built from the storefront's own
-// markup (public/storefront.html "MOBILE MENU SHEET") so both look and behave
-// the same. Styles: index.css, "MOBILE MENU SHEET".
+// Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
+// it once, outside the routes, so it stays mounted - the same element, icons
+// and position - while the shopper moves between pages; nothing reloads or
+// redraws. On the home page the Menu goes to the storefront's own sections,
+// basket and sign-in (Storefront.jsx reads #basket, #account, ?category=...).
+// Styles: index.css, "MOBILE MENU SHEET" and the floating bottom bar.
 
 const CATEGORY_CHIPS = [
   ['Fungicide', 'Fungicides'],
@@ -15,13 +18,16 @@ const CATEGORY_CHIPS = [
   ['Nematicide', 'Nematicides'],
 ]
 
+// [storefront crop, All Products crop, label]
 const CROP_CHIPS = [
-  ['Paddy', '🌾 Paddy / Rice'],
-  ['Cotton', '☁️ Cotton'],
-  ['Tomato', '🍅 Tomato'],
-  ['Sugarcane', '🎋 Sugarcane'],
-  ['Grapes', '🍇 Fruits'],
+  ['Paddy/Rice', 'Paddy', '🌾 Paddy / Rice'],
+  ['Cotton', 'Cotton', '☁️ Cotton'],
+  ['Tomato', 'Tomato', '🍅 Tomato'],
+  ['Sugarcane', 'Sugarcane', '🎋 Sugarcane'],
+  ['Grapes', 'Grapes', '🍇 Fruits'],
 ]
+
+const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 
 const readUser = () => {
   try {
@@ -31,10 +37,11 @@ const readUser = () => {
   }
 }
 
-const readCartCount = () => {
+const countItems = items => (Array.isArray(items) ? items.reduce((acc, i) => acc + (Number(i.qty) || 1), 0) : 0)
+
+const readGuestCount = () => {
   try {
-    const guestCart = JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]')
-    return Array.isArray(guestCart) ? guestCart.reduce((acc, i) => acc + (Number(i.qty) || 1), 0) : 0
+    return countItems(JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]'))
   } catch {
     return 0
   }
@@ -45,44 +52,65 @@ export default function MobileBottomNav() {
   const navigate = useNavigate()
   const { lang, setLang, languages } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [cartCount, setCartCount] = useState(readCartCount)
+  const [cartCount, setCartCount] = useState(readGuestCount)
   const [user, setUser] = useState(readUser)
   const sheetRef = useRef(null)
 
   const path = location.pathname
-  const isHome = path === '/'
+  const onHome = path === '/'
   const isShop = path === '/products' || path === '/categories' || path.startsWith('/product/')
   const isBlog = path === '/blog' || path.startsWith('/blog/')
 
   const closeMenu = () => setIsMenuOpen(false)
 
+  // Any page change - another page, a section link or a filter - closes the menu.
   useEffect(() => {
-    setCartCount(readCartCount())
     setIsMenuOpen(false)
+  }, [location.key])
+
+  // Basket count: the page that owns the basket announces changes (storefront,
+  // checkout); otherwise the server basket, or this browser's guest basket.
+  useEffect(() => {
+    const onCount = event => setCartCount(Number(event.detail) || 0)
+    window.addEventListener('sathya:cart-count', onCount)
+    return () => window.removeEventListener('sathya:cart-count', onCount)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const token = localStorage.getItem('sathya_token')
+    if (!token) {
+      setCartCount(readGuestCount())
+      return undefined
+    }
+    fetch('/api/cart', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(json => {
+        if (!cancelled && json?.success) setCartCount(countItems(json.data) + readGuestCount())
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [path])
 
-  // Account text and basket count are read fresh each time the sheet opens.
+  // The account text is read fresh each time the sheet opens.
   useEffect(() => {
-    if (isMenuOpen) {
-      setUser(readUser())
-      setCartCount(readCartCount())
-    }
+    if (isMenuOpen) setUser(readUser())
   }, [isMenuOpen])
 
   // Closed, the sheet sits painted just below the screen: keep it out of focus
   // order, and back at the top for next time once the slide-out has finished.
   useEffect(() => {
     const sheet = sheetRef.current
-    if (!sheet) return
+    if (!sheet) return undefined
     sheet.toggleAttribute('inert', !isMenuOpen)
-    if (isMenuOpen) return
+    if (isMenuOpen) return undefined
     const timer = setTimeout(() => { sheet.scrollTop = 0 }, 450)
     return () => clearTimeout(timer)
   }, [isMenuOpen])
 
   // Escape closes it; so does rotating or resizing to the desktop layout.
   useEffect(() => {
-    if (!isMenuOpen) return
+    if (!isMenuOpen) return undefined
     const onKey = e => { if (e.key === 'Escape') setIsMenuOpen(false) }
     const desktop = window.matchMedia('(min-width: 769px)')
     const onResize = ev => { if (ev.matches) setIsMenuOpen(false) }
@@ -94,11 +122,10 @@ export default function MobileBottomNav() {
     }
   }, [isMenuOpen])
 
-  // A downward swipe that starts with the sheet scrolled to the top closes it,
-  // as on the storefront (app.js enableSwipeToDismiss).
+  // A downward swipe that starts with the sheet scrolled to the top closes it.
   useEffect(() => {
     const sheet = sheetRef.current
-    if (!sheet) return
+    if (!sheet) return undefined
     let startX = 0
     let startY = 0
     let dy = 0
@@ -151,22 +178,33 @@ export default function MobileBottomNav() {
     }
   }, [])
 
-  const handleAIDoctorClick = () => {
+  // Home while already on the home page returns to the top.
+  const handleHomeClick = event => {
     closeMenu()
-    // The AI Leaf Doctor lives on the storefront.
-    window.location.href = '/storefront.html#catalog'
+    if (!onHome) return
+    event.preventDefault()
+    if (location.hash || location.search) navigate('/')
+    window.scrollTo(0, 0)
+  }
+
+  // The AI Leaf Doctor is the storefront's photo scanner.
+  const openScanner = () => {
+    closeMenu()
+    navigate('/#scan')
   }
 
   const handleAccountClick = () => {
     closeMenu()
-    const staffHome = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
-    if (user) {
-      navigate(staffHome[user.role] || '/orders')
-    } else {
-      // Farmers sign in on the storefront; /login is the staff sign-in.
-      window.location.href = '/storefront.html#login'
+    if (onHome) {
+      navigate('/#account')
+      return
     }
+    // Farmers sign in on the storefront; /login is the staff sign-in.
+    navigate(user ? STAFF_HOME[user.role] || '/orders' : '/#login')
   }
+
+  // On the home page a Menu tile goes to that section of the page.
+  const homeOr = (section, elsewhere) => (onHome ? `/#${section}` : elsewhere)
 
   const accountSub = user
     ? [user.crop, user.village || user.district].filter(Boolean).join(' · ') || 'Signed in'
@@ -192,22 +230,22 @@ export default function MobileBottomNav() {
 
         <h3 className="mms-title">Quick actions</h3>
         <div className="mms-grid">
-          <TransitionLink to="/products" className="mms-tile" onClick={closeMenu}>
+          <TransitionLink to={homeOr('catalog', '/products')} className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#059669' }}><i className="fa-solid fa-store"></i></span>All Products
           </TransitionLink>
-          <TransitionLink to="/categories" className="mms-tile" onClick={closeMenu}>
+          <TransitionLink to={homeOr('categoriesSection', '/categories')} className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#0891b2' }}><i className="fa-solid fa-layer-group"></i></span>Categories
           </TransitionLink>
-          <TransitionLink to="/crops" className="mms-tile" onClick={closeMenu}>
+          <TransitionLink to={homeOr('cropSection', '/crops')} className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#65a30d' }}><i className="fa-solid fa-wheat-awn"></i></span>Shop by Crop
           </TransitionLink>
-          <button type="button" className="mms-tile" onClick={handleAIDoctorClick}>
+          <button type="button" className="mms-tile" onClick={openScanner}>
             <span className="mms-tile-icon" style={{ '--tile': '#d97706' }}><i className="fa-solid fa-camera-retro"></i></span>AI Leaf Doctor
           </button>
           <TransitionLink to="/blog" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#7c3aed' }}><i className="fa-solid fa-book-open"></i></span>Blog
           </TransitionLink>
-          <TransitionLink to="/checkout" className="mms-tile" onClick={closeMenu}>
+          <TransitionLink to={homeOr('basket', '/checkout')} className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#dc2626' }}><i className="fa-solid fa-bag-shopping"></i></span>My Cart
           </TransitionLink>
           <TransitionLink to="/orders" className="mms-tile" onClick={closeMenu}>
@@ -221,14 +259,28 @@ export default function MobileBottomNav() {
         <h3 className="mms-title">Shop by category</h3>
         <div className="mms-chips">
           {CATEGORY_CHIPS.map(([value, label]) => (
-            <TransitionLink key={value} to={`/products?category=${encodeURIComponent(value)}`} className="mms-chip" onClick={closeMenu}>{label}</TransitionLink>
+            <TransitionLink
+              key={value}
+              to={onHome ? `/?category=${encodeURIComponent(value)}#catalog` : `/products?category=${encodeURIComponent(value)}`}
+              className="mms-chip"
+              onClick={closeMenu}
+            >
+              {label}
+            </TransitionLink>
           ))}
         </div>
 
         <h3 className="mms-title">Shop by crop</h3>
         <div className="mms-chips">
-          {CROP_CHIPS.map(([value, label]) => (
-            <TransitionLink key={value} to={`/products?crop=${encodeURIComponent(value)}`} className="mms-chip" onClick={closeMenu}>{label}</TransitionLink>
+          {CROP_CHIPS.map(([storeValue, productsValue, label]) => (
+            <TransitionLink
+              key={storeValue}
+              to={onHome ? `/?crop=${encodeURIComponent(storeValue)}#catalog` : `/products?crop=${encodeURIComponent(productsValue)}`}
+              className="mms-chip"
+              onClick={closeMenu}
+            >
+              {label}
+            </TransitionLink>
           ))}
         </div>
 
@@ -246,16 +298,12 @@ export default function MobileBottomNav() {
       </aside>
 
       {/* MOBILE BOTTOM NAVIGATION BAR: Home | Shop | AI Doctor | Blogs | Menu.
-          Same icons, order, floating pill and position as the storefront's
-          bottom bar (index.css .bighaat-mobile-bottom-nav / .mobile-nav-link).
           While the menu is open only the Menu tab (an X) is highlighted. */}
-      <nav className="sathya-mobile-bottom-nav bighaat-mobile-bottom-nav" aria-label="Mobile Navigation">
-        {/* A real link to the storefront page (not the "/" route, which only
-            redirects there), so the prerendered page is used (index.html). */}
-        <a href="/storefront.html" onClick={closeMenu} className={`mobile-nav-link ${isHome && !isMenuOpen ? 'active' : ''}`} aria-current={isHome ? 'page' : undefined}>
+      <nav className="sathya-mobile-bottom-nav bighaat-mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile Navigation">
+        <TransitionLink to="/" onClick={handleHomeClick} className={`mobile-nav-link ${onHome && !isMenuOpen ? 'active' : ''}`} aria-current={onHome ? 'page' : undefined}>
           <i className="fa-solid fa-house" aria-hidden="true"></i>
           <span>Home</span>
-        </a>
+        </TransitionLink>
 
         {/* Shop opens the Brands section of Categories */}
         <TransitionLink to="/categories?ct=Brands" onClick={closeMenu} className={`mobile-nav-link ${isShop && !isMenuOpen ? 'active' : ''}`} aria-current={isShop ? 'page' : undefined}>
@@ -263,7 +311,7 @@ export default function MobileBottomNav() {
           <span>Shop</span>
         </TransitionLink>
 
-        <button type="button" onClick={handleAIDoctorClick} className="mobile-nav-link mobile-nav-link-fab" aria-label="AI Leaf Doctor">
+        <button type="button" onClick={openScanner} className="mobile-nav-link mobile-nav-link-fab" aria-label="AI Leaf Doctor">
           <i className="fa-solid fa-camera-retro" aria-hidden="true"></i>
           <span>AI Doctor</span>
         </button>

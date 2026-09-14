@@ -71,7 +71,7 @@ export default function StoreHeader() {
   }, [menuOpen])
 
   const current = LANGS.find(item => item.code === lang) || LANGS[0]
-  const accountHref = !user ? '/storefront.html#login' : (STAFF_HOME[user.role] || '/orders')
+  const accountHref = !user ? '/#login' : (STAFF_HOME[user.role] || '/orders')
 
   const toggleMenu = () => {
     if (!menuOpen && langButton.current) setMenuTop(Math.round(langButton.current.getBoundingClientRect().bottom + 8))
@@ -86,13 +86,13 @@ export default function StoreHeader() {
   return (
     <header className="sb-store-head">
       <div className="sb-store-head-row">
-        <a href="/storefront.html" className="sb-store-logo">
+        <TransitionLink to="/" className="sb-store-logo">
           <span className="sb-store-logo-icon"><i className="fa-solid fa-leaf" aria-hidden="true"></i></span>
           <span className="sb-store-logo-words">
             <span className="sb-store-logo-text">SATHYA <span>BIO</span></span>
             <span className="sb-store-logo-sub">Agro Pesticide Store</span>
           </span>
-        </a>
+        </TransitionLink>
 
         <div className="sb-store-head-actions">
           <button
@@ -108,9 +108,9 @@ export default function StoreHeader() {
             <span>{current.pill}</span>
           </button>
 
-          <a href={accountHref} className="sb-store-action" aria-label={user ? 'My account' : 'Sign in'}>
+          <TransitionLink to={accountHref} className="sb-store-action" aria-label={user ? 'My account' : 'Sign in'}>
             <i className={user ? 'fa-solid fa-circle-check sb-store-signed-in' : 'fa-regular fa-circle-user'} aria-hidden="true"></i>
-          </a>
+          </TransitionLink>
 
           <TransitionLink to="/checkout" className="sb-store-action" aria-label={count ? `Basket, ${count} items` : 'Basket'}>
             <i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>

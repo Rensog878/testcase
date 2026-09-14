@@ -1,0 +1,7 @@
+/* The app stylesheet, in the "app" cascade layer. The storefront home page
+   (src/storefront/storefront.css) first resets its own elements in a later
+   layer, so these rules never mix into that page. Third-party styles outside
+   any layer (Font Awesome, Sonner) beat layered rules, so tweaks to them live
+   in unlayered files (toast.css) or use their variables (--fa-display). */
+@import './index.css' layer(app);
+@import './toast.css';

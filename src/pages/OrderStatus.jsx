@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuth } from '../context/AuthContext'
@@ -96,7 +97,7 @@ export default function OrderStatus() {
     intro = state === 'expired'
       ? 'Your session has expired. Please sign in again.'
       : 'Sign in to see the orders linked to your account.'
-    body = <p className="muted"><a href="/storefront.html">Go to the store</a> and sign in from the account menu.</p>
+    body = <p className="muted"><Link to="/">Go to the store</Link> and sign in from the account menu.</p>
   } else if (state === 'error') {
     intro = 'Order service is unavailable.'
     body = (

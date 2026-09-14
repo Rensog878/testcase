@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { useLayoutEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
 
@@ -11,6 +11,8 @@ import ProductDetail from './pages/ProductDetail'
 import IngredientDetail from './pages/IngredientDetail'
 import Navigation from './components/home/Navigation'
 import Footer from './components/home/Footer'
+import MobileBottomNav from './components/home/MobileBottomNav'
+import Storefront from './storefront/Storefront'
 import StoreSection from './pages/StoreSection'
 import Categories from './pages/Categories'
 import AllProducts from './pages/AllProducts'
@@ -56,93 +58,91 @@ function PublicPageShell({ children }) {
   return <><Navigation /><main className="public-page-shell">{children}</main><Footer /></>
 }
 
-// The public home is the standalone storefront page. It is loaded as the page
-// itself, not in an iframe: an iframe sized 100vh is taller than a phone screen
-// while the browser toolbar shows, which hid the storefront's fixed bottom
-// navigation. index.html redirects before the bundle loads; this covers
-// in-app navigation to "/" (Back to store, after registering, unknown routes).
-function StorefrontRedirect() {
-  useEffect(() => {
-    window.location.replace(`/storefront.html${window.location.search}${window.location.hash}`)
-  }, [])
-  return null
+// Staff are taken to their portal; everyone else gets the storefront.
+function HomePage() {
+  const { user } = useAuth()
+  const roleMap = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
+  const redirectPath = user && roleMap[user.role]
+  return redirectPath ? <Navigate to={redirectPath} replace /> : <Storefront />
+}
+
+// Store pages with the phone bottom bar.
+const BOTTOM_BAR_PAGES = /^\/(?:$|products|shop|categories|crops|brands|blog|product\/|wishlist|orders|checkout|cart)/
+
+// The bottom bar is drawn once here, outside the routes, so it stays mounted -
+// same element, icons and place - while the shopper moves between store pages.
+function StoreChrome() {
+  const { pathname } = useLocation()
+  // A new page starts at the top; a link to a section scrolls there instead.
+  useLayoutEffect(() => {
+    if (!window.location.hash) window.scrollTo(0, 0)
+  }, [pathname])
+  return BOTTOM_BAR_PAGES.test(pathname) ? <MobileBottomNav /> : null
 }
 
 export default function App() {
-  const { user } = useAuth()
-
-  const HomePage = () => {
-    // If user is logged in as admin/staff, redirect them to their portal
-    if (user) {
-      const roleMap = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
-      const redirectPath = roleMap[user.role]
-      if (redirectPath) {
-        return <Navigate to={redirectPath} replace />
-      }
-    }
-    // Public visitors and farmers get the storefront
-    return <StorefrontRedirect />
-  }
-
   return (
-    <Routes>
-      {/* Public Home - Vanilla HTML Page */}
-      <Route path="/"        element={<HomePage />} />
-      <Route path="/checkout" element={<PublicPageShell><Checkout /></PublicPageShell>} />
-      <Route path="/cart"    element={<Navigate to="/checkout" replace />} />
-      <Route path="/login"   element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/product/:id" element={<PublicPageShell><ProductDetail /></PublicPageShell>} />
-      <Route path="/product/:id/ingredients" element={<PublicPageShell><IngredientDetail /></PublicPageShell>} />
-      <Route path="/wishlist" element={<PublicPageShell><Wishlist /></PublicPageShell>} />
-      <Route path="/orders" element={<PublicPageShell><OrderStatus /></PublicPageShell>} />
-      <Route path="/order-status" element={<Navigate to="/orders" replace />} />
-      <Route path="/products" element={<AllProducts />} />
-      <Route path="/shop" element={<Navigate to="/products" replace />} />
-      <Route path="/categories" element={<Categories />} />
-      <Route path="/crops" element={<PublicPageShell><StoreSection type="crops" /></PublicPageShell>} />
-      <Route path="/brands" element={<PublicPageShell><StoreSection type="brands" /></PublicPageShell>} />
-      <Route path="/blog" element={<PublicPageShell><Blog /></PublicPageShell>} />
-      <Route path="/blog/:id" element={<PublicPageShell><BlogDetail /></PublicPageShell>} />
+    <>
+      <Routes>
+        {/* Public Home - the storefront */}
+        <Route path="/"        element={<HomePage />} />
+        <Route path="/checkout" element={<PublicPageShell><Checkout /></PublicPageShell>} />
+        <Route path="/cart"    element={<Navigate to="/checkout" replace />} />
+        <Route path="/login"   element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/product/:id" element={<PublicPageShell><ProductDetail /></PublicPageShell>} />
+        <Route path="/product/:id/ingredients" element={<PublicPageShell><IngredientDetail /></PublicPageShell>} />
+        <Route path="/wishlist" element={<PublicPageShell><Wishlist /></PublicPageShell>} />
+        <Route path="/orders" element={<PublicPageShell><OrderStatus /></PublicPageShell>} />
+        <Route path="/order-status" element={<Navigate to="/orders" replace />} />
+        <Route path="/products" element={<AllProducts />} />
+        <Route path="/shop" element={<Navigate to="/products" replace />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/crops" element={<PublicPageShell><StoreSection type="crops" /></PublicPageShell>} />
+        <Route path="/brands" element={<PublicPageShell><StoreSection type="brands" /></PublicPageShell>} />
+        <Route path="/blog" element={<PublicPageShell><Blog /></PublicPageShell>} />
+        <Route path="/blog/:id" element={<PublicPageShell><BlogDetail /></PublicPageShell>} />
 
-      {/* Admin Routes — signed-out visitors get the admin sign-in here */}
-      <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>
-        <Route index             element={<AdminDashboard />} />
-        <Route path="cms"        element={<AdminCMS />} />
-        <Route path="users"      element={<AdminUsers />} />
-        <Route path="profile-fields" element={<AdminProfileFields />} />
-        <Route path="products"   element={<AdminProducts />} />
-        <Route path="orders"     element={<AdminOrders />} />
-        <Route path="subscribers" element={<AdminSubscribers />} />
-        <Route path="analytics"  element={<AdminAnalytics />} />
-        <Route path="employees"  element={<Employees />} />
-        <Route path="support-tickets" element={<SupportTickets />} />
-        <Route path="tickets"    element={<Tickets />} />
-        <Route path="chat"       element={<ChatRecords />} />
-        <Route path="blogs"      element={<AdminBlogs />} />
-        <Route path="videos"     element={<AdminVideos />} />
-      </Route>
+        {/* Admin Routes — signed-out visitors get the admin sign-in here */}
+        <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>
+          <Route index             element={<AdminDashboard />} />
+          <Route path="cms"        element={<AdminCMS />} />
+          <Route path="users"      element={<AdminUsers />} />
+          <Route path="profile-fields" element={<AdminProfileFields />} />
+          <Route path="products"   element={<AdminProducts />} />
+          <Route path="orders"     element={<AdminOrders />} />
+          <Route path="subscribers" element={<AdminSubscribers />} />
+          <Route path="analytics"  element={<AdminAnalytics />} />
+          <Route path="employees"  element={<Employees />} />
+          <Route path="support-tickets" element={<SupportTickets />} />
+          <Route path="tickets"    element={<Tickets />} />
+          <Route path="chat"       element={<ChatRecords />} />
+          <Route path="blogs"      element={<AdminBlogs />} />
+          <Route path="videos"     element={<AdminVideos />} />
+        </Route>
 
-      {/* Employee Routes */}
-      <Route path="/employee" element={<PrivateRoute allowedRoles={['employee']}><EmployeeLayout /></PrivateRoute>}>
-        <Route index element={<EmployeeDashboard />} />
-        <Route path="tickets" element={<Tickets />} />
-      </Route>
+        {/* Employee Routes */}
+        <Route path="/employee" element={<PrivateRoute allowedRoles={['employee']}><EmployeeLayout /></PrivateRoute>}>
+          <Route index element={<EmployeeDashboard />} />
+          <Route path="tickets" element={<Tickets />} />
+        </Route>
 
-      {/* Delivery Routes */}
-      <Route path="/delivery" element={<PrivateRoute allowedRoles={['delivery']}><DeliveryLayout /></PrivateRoute>}>
-        <Route index element={<DeliveryDashboard />} />
-      </Route>
+        {/* Delivery Routes */}
+        <Route path="/delivery" element={<PrivateRoute allowedRoles={['delivery']}><DeliveryLayout /></PrivateRoute>}>
+          <Route index element={<DeliveryDashboard />} />
+        </Route>
 
-      {/* Billing Routes */}
-      <Route path="/billing" element={<PrivateRoute allowedRoles={['billing']}><BillingLayout /></PrivateRoute>}>
-        <Route index element={<BillingDashboard />} />
-        <Route path="history" element={<InvoiceHistory />} />
-      </Route>
+        {/* Billing Routes */}
+        <Route path="/billing" element={<PrivateRoute allowedRoles={['billing']}><BillingLayout /></PrivateRoute>}>
+          <Route index element={<BillingDashboard />} />
+          <Route path="history" element={<InvoiceHistory />} />
+        </Route>
 
-      {/* Catch all */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Catch all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <StoreChrome />
+    </>
   )
 }

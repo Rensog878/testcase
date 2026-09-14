@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
-// Same order as the storefront's language menu (public/js/app.js LANGUAGES).
+// Same order as the storefront's language menu (src/storefront/i18n.js LANGUAGES).
 export const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English', flag: '🇬🇧' },
   { code: 'ta', label: 'Tamil',   native: 'தமிழ்',   flag: '🇮🇳' },
@@ -239,7 +239,7 @@ export const TRANSLATIONS = {
 
 const LanguageContext = createContext(null)
 
-// The storefront (public/js/app.js) saves the visitor's choice under
+// The storefront (src/storefront) saves the visitor's choice under
 // sathya_bio_lang. Reading it first means a farmer who picked Tamil on the
 // storefront gets Tamil here too; sathya_lang is this app's older key.
 const SHARED_LANG_KEY = 'sathya_bio_lang'

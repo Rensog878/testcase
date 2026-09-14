@@ -8,7 +8,6 @@ import {
 import { CATEGORIES_DATA, DEFAULT_CATEGORY_HANDLE } from '../data/categoriesData'
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
-import MobileBottomNav from '../components/home/MobileBottomNav'
 import StoreHeader from '../components/home/StoreHeader'
 
 export default function Categories() {
@@ -301,7 +300,6 @@ export default function Categories() {
       </div>
 
       {/* Phones: the header nav above is hidden, so the bottom bar is rendered here. */}
-      <MobileBottomNav />
     </div>
   )
 }

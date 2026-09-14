@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuth } from '../context/AuthContext'
@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext'
 // redirects here. Styles: index.css, "CHECKOUT".
 //
 // Signed-out visitors keep their basket in this browser under sathya_cart_guest
-// (the key public/js/app.js writes); signed-in customers have theirs on the
+// (the key the storefront writes); signed-in customers have theirs on the
 // server against their user id. Both are read here, and a guest basket is
 // merged into the account, so the basket never appears to vanish at checkout.
 
@@ -88,7 +88,7 @@ export default function Checkout() {
     if (redirecting.current) return
     redirecting.current = true
     try { sessionStorage.setItem('sathya_auth_redirect_msg', message) } catch {}
-    window.location.replace('/storefront.html#login')
+    navigate('/#login', { replace: true })
   }
 
   useEffect(() => {
@@ -289,12 +289,12 @@ export default function Checkout() {
 
   return (
     <div className="sb-checkout-page">
-      <a href="/storefront.html" className="sb-checkout-back">← Back to store</a>
+      <Link to="/" className="sb-checkout-back">← Back to store</Link>
       <h1>Your basket</h1>
 
       {!cart.length ? (
         <div className="checkout-items">
-          <div className="empty">Your basket is empty.<br /><br /><a href="/storefront.html">Browse products</a></div>
+          <div className="empty">Your basket is empty.<br /><br /><Link to="/">Browse products</Link></div>
         </div>
       ) : (
         <>

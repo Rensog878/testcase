@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
-import MobileBottomNav from '../components/home/MobileBottomNav'
 import StoreHeader from '../components/home/StoreHeader'
 import axios from 'axios'
 import { 
@@ -1365,7 +1364,6 @@ export default function AllProducts() {
       </div>
 
       {/* Phones: the header nav above is hidden, so the bottom bar is rendered here. */}
-      <MobileBottomNav />
     </div>
   )
 }

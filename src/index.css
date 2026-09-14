@@ -3,7 +3,7 @@
    MERN Stack Agricultural Platform
    ========================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap');
+/* Fonts (Inter, Poppins, Plus Jakarta Sans, Outfit) are loaded in index.html. */
 
 /* Tailwind disabled for vanilla HTML home page */
 /* @tailwind base; */
@@ -2581,36 +2581,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .qty-btn:hover { background: var(--brand-700); }
 .qty-value { font-size: 0.9rem; font-weight: 700; min-width: 24px; text-align: center; }
 
-/* =========================================
-   TOASTS (Sonner)
-   Close button inside the card on the right, as in the storefront's
-   js/toast.js. Sonner's default hangs it off the top-left corner, which a
-   12px mobile offset cut in half at the screen edge. Sonner's own rules use
-   :where(), so these plain selectors win without !important.
-   ========================================= */
-
-[data-sonner-toaster] [data-sonner-toast] {
-  padding-right: 42px;
-}
-
-[data-sonner-toaster] [data-sonner-toast] [data-close-button] {
-  left: auto;
-  right: 10px;
-  top: 50%;
-  width: 24px;
-  height: 24px;
-  transform: translateY(-50%);
-  border: 0;
-  background: transparent;
-  color: currentColor;
-  opacity: 0.55;
-}
-
-[data-sonner-toaster] [data-sonner-toast] [data-close-button]:hover,
-[data-sonner-toaster] [data-sonner-toast] [data-close-button]:focus-visible {
-  opacity: 1;
-  background: rgba(15, 23, 42, 0.08);
-}
+/* Toast (Sonner) tweaks are in src/toast.css, outside the app layer. */
 
 /* =========================================
    ANIMATIONS
@@ -4069,6 +4040,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 
 /* Font Awesome icons, sized as in the storefront's bottom bar. */
 .mobile-nav-link > i {
+  /* Font Awesome's own display rule sits outside the app layer and wins, but
+     it reads this variable. */
+  --fa-display: flex;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6460,6 +6434,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
    Menu/X stays tappable. */
 .sathya-mobile-bottom-nav.bighaat-mobile-bottom-nav {
   z-index: 9999;
+  /* The bar is shared by every store page, including the storefront, whose
+     page font this is - so it looks the same everywhere. */
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 /* AI Doctor and Menu are buttons; buttons don't inherit font or line-height. */
@@ -6500,14 +6477,11 @@ button.mobile-nav-link {
   font-weight: 800;
 }
 
-/* PAGE-TO-PAGE: HEADER AND BOTTOM BAR STAY PUT (phones). The storefront and
-   checkout are separate documents; with a cross-document view transition the
-   ticker, header row and bottom bar stay in place and only the content
-   cross-fades. Same names as public/css/responsive.css section 7k. */
+/* PAGE-TO-PAGE: HEADER AND BOTTOM BAR STAY PUT (phones). Page changes from
+   the bottom bar and Menu run as view transitions (TransitionLink): the
+   ticker and header row keep their place and only the content cross-fades.
+   The storefront's own header uses the same names (storefront.css). */
 @media (max-width: 768px) {
-  @view-transition {
-    navigation: auto;
-  }
   .public-ticker {
     view-transition-name: sb-ticker;
   }

@@ -3,45 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>
-    // Visitors get the storefront page itself, never inside an iframe. An
-    // iframe sized 100vh is taller than a phone screen while the browser
-    // toolbar is showing, which hid the storefront's fixed bottom navigation
-    // below the screen and stopped the address bar from auto-hiding. This runs
-    // before the app bundle and Razorpay load, so the redirect is instant.
-    // Staff sessions continue into their React portals.
-    (function () {
-      var path = location.pathname;
-      if (path !== '/' && path !== '/index.html') return;
-      var role;
-      try { role = (JSON.parse(localStorage.getItem('sathya_user') || 'null') || {}).role; } catch (e) {}
-      if (['admin', 'employee', 'delivery', 'billing'].indexOf(role) === -1) {
-        location.replace('/storefront.html' + location.search + location.hash);
-      }
-    })();
-  </script>
+  <meta name="theme-color" content="#065f46" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E" />
   <meta name="description" content="Sathya Bio - India's Leading Agricultural E-Commerce, Crop Protection & ERP Platform for Farmers" />
   <meta name="keywords" content="pesticides, agro chemicals, crop protection, bio pesticides, fertilizers, farmer portal, agricultural ERP" />
   <title>Sathya Bio - India's Agro Pesticides, Crop Protection & Agricultural ERP Platform</title>
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Inter and Poppins (app), Plus Jakarta Sans and Outfit (storefront) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Font Awesome: the same icon set (and version) as the storefront, so the
-       bottom bar looks identical on every page -->
+  <!-- Font Awesome: the icon set used by the storefront and the bottom bar -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- Home is the standalone storefront page. Chrome loads it ahead in the
-       background (links to it start prerendering on touch), so tapping Home
-       opens it at once instead of loading the whole page and bar again. -->
-  <script type="speculationrules">
-  {
-    "prefetch": [{ "urls": ["/storefront.html"], "eagerness": "eager" }],
-    "prerender": [{ "where": { "href_matches": "/storefront.html*" }, "eagerness": "moderate" }]
-  }
-  </script>
 
   <!-- Razorpay Checkout SDK -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

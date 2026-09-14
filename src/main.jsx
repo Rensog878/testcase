@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { LanguageProvider } from './context/LanguageContext.jsx'
 import { Toaster } from 'sonner'
-import './index.css'
+import './app.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

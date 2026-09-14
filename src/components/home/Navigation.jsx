@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingCart, Menu, X, Truck, Sprout, Search, Languages, Heart, BookOpen } from 'lucide-react'
-import MobileBottomNav from './MobileBottomNav'
 import StoreHeader from './StoreHeader'
 
 export default function Navigation({ cartCount = 0 }) {
@@ -20,6 +19,5 @@ export default function Navigation({ cartCount = 0 }) {
       <div className="public-header-actions"><button className="public-icon-action"><Languages size={21} /><small>Language<br /><strong>English</strong></small></button><Link to="/orders" className="public-icon-action"><Truck size={23} /><small>Track<br /><strong>Order Status</strong></small></Link><Link to="/wishlist" className="public-icon-action"><Heart size={23} /><b>0</b><small>Saved<br /><strong>Wishlist</strong></small></Link><Link to={user ? '/' : '/#login'} className="public-icon-action public-account-action"><Sprout size={23} /><small>{accountCrop}<br /><strong>{accountName}</strong></small></Link><Link to={user ? "/checkout" : "/#login"} className="public-cart-button"><ShoppingCart size={23} /><b>{cartCount}</b><small>Basket<br /><strong>₹0</strong></small></Link><button className="public-menu-button" onClick={() => setIsMenuOpen(open => !open)}>{isMenuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
     </header>
     <nav className={`public-site-nav ${isMenuOpen ? 'open' : ''}`}><Link to="/products">▣ All Products</Link><Link to="/categories">▱ Categories</Link><Link to="/crops">Shop by Crop</Link><Link to="/brands">⚙ Brands</Link><Link to="/blog"><BookOpen size={16} /> Blogs</Link><Link to="/products" className="public-ai-button">▣ AI Leaf Doctor</Link></nav>
-    <MobileBottomNav />
   </>
 }

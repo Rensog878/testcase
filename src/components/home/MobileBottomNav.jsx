@@ -74,6 +74,31 @@ export default function MobileBottomNav() {
 
   const closeMenu = () => setIsMenuOpen(false)
 
+  // The account text is read fresh each time the sheet opens, in the same
+  // render that opens it. Set from an effect, it rendered the bar and sheet a
+  // second time on the frame the slide starts.
+  const toggleMenu = () => {
+    if (!isMenuOpen) setUser(readUser())
+    setIsMenuOpen(!isMenuOpen)
+  }
+
+  // Touch-down on Menu takes `inert` off the closed sheet. Inert is inherited,
+  // so clearing it restyles everything inside the sheet (traced: 74 elements,
+  // ~20ms on a 4x slower CPU) - done while the finger is down, that no longer
+  // lands on the frame the slide starts. Not tapped after all (a scroll), the
+  // sheet is made inert again; it stays aria-hidden throughout.
+  const warmTimer = useRef(0)
+  const warmMenu = event => {
+    const sheet = sheetRef.current
+    if (isMenuOpen || !sheet || event.pointerType === 'mouse') return
+    sheet.removeAttribute('inert')
+    clearTimeout(warmTimer.current)
+    warmTimer.current = setTimeout(() => {
+      if (!menuOpenRef.current) sheet.setAttribute('inert', '')
+    }, 800)
+  }
+  useEffect(() => () => clearTimeout(warmTimer.current), [])
+
   // Any page change - another page, a section link or a filter - closes the menu.
   useEffect(() => {
     setIsMenuOpen(false)
@@ -202,11 +227,6 @@ export default function MobileBottomNav() {
     return () => { cancelled = true }
   }, [path])
 
-  // The account text is read fresh each time the sheet opens.
-  useEffect(() => {
-    if (isMenuOpen) setUser(readUser())
-  }, [isMenuOpen])
-
   // Closed, the sheet sits painted just below the screen: keep it out of focus
   // order, and back at the top for next time once the slide-out has finished.
   useEffect(() => {
@@ -327,9 +347,9 @@ export default function MobileBottomNav() {
 
   return (
     <>
-      <div className={`mobile-menu-backdrop ${isMenuOpen ? 'active' : ''}`} onClick={closeMenu} />
+      <div className={`mobile-menu-backdrop ${isMenuOpen ? 'is-shown' : ''}`} onClick={closeMenu} />
 
-      <aside ref={sheetRef} className={`mobile-menu-sheet ${isMenuOpen ? 'active' : ''}`} aria-label="Menu" aria-hidden={!isMenuOpen}>
+      <aside ref={sheetRef} className={`mobile-menu-sheet ${isMenuOpen ? 'is-shown' : ''}`} aria-label="Menu" aria-hidden={!isMenuOpen}>
         <div className="mms-handle" aria-hidden="true"></div>
 
         <div className="mms-account">
@@ -442,7 +462,7 @@ export default function MobileBottomNav() {
           <span>Blogs</span>
         </TransitionLink>
 
-        <button type="button" id="mobileNavMenu" onClick={() => setIsMenuOpen(open => !open)} className={`mobile-nav-link ${isMenuOpen ? 'active' : ''}`} aria-label="Menu" aria-expanded={isMenuOpen}>
+        <button type="button" id="mobileNavMenu" onPointerDown={warmMenu} onClick={toggleMenu} className={`mobile-nav-link ${isMenuOpen ? 'active' : ''}`} aria-label="Menu" aria-expanded={isMenuOpen}>
           <i className={isMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'} aria-hidden="true"></i>
           {cartCount > 0 && <span className="mobile-nav-badge">{cartCount}</span>}
           <span>Menu</span>

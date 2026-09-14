@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { afterPageTransition } from '../components/home/pageTransition'
 import { StoreContext } from './StoreContext'
 import { PESTICIDES } from './data'
 import { TEXT_PACKS, isLanguageReady, loadLanguagePack, translationFor } from './i18n'
@@ -216,7 +217,10 @@ export default function Storefront() {
 
     // The overlay is painted (still transparent) at least one frame before the
     // card slides, so the first frame of the animation is not spent creating
-    // the layer - the stutter on phones. A popup warmed on touch-down slides at once.
+    // the layer - the stutter on phones. A popup warmed on touch-down slides on
+    // the next frame: the tap's own task already renders the link it followed
+    // (/#account), and starting the slide in it too made one long task (traced:
+    // ~270ms on a 4x slower CPU) instead of two short ones.
     const openModal = id => {
       const current = modalsRef.current[id]
       const warm = prewarmRef.current[id]
@@ -226,8 +230,9 @@ export default function Storefront() {
       const start = () => {
         if (modalsRef.current[id] === 'opening') setModal(id, 'open')
       }
-      setModal(id, 'opening')
-      if (warm && performance.now() - warm.at > 20) start()
+      // Warmed, it is already 'opening'; setting it again only re-renders the page.
+      if (current !== 'opening') setModal(id, 'opening')
+      if (warm && performance.now() - warm.at > 20) requestAnimationFrame(start)
       else requestAnimationFrame(() => requestAnimationFrame(start))
     }
 
@@ -442,11 +447,13 @@ export default function Storefront() {
     document.addEventListener('keydown', onKey)
 
     // Anything marked data-modal-target opens that popup; touch-down warms it.
+    // So does touch-down on account: the header button here, or on phones the
+    // header row's account link (StoreHeader, /#account on this page).
     const onPointerDown = event => {
       if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return
       const trigger = event.target.closest('.sb-home [data-modal-target]')
       if (trigger) actions.prewarmModal(trigger.getAttribute('data-modal-target'))
-      else if (event.target.closest('#headerAccountBtn')) actions.prewarmModal('authModal')
+      else if (event.target.closest('#headerAccountBtn, .sb-store-head a[href="/#account"]')) actions.prewarmModal('authModal')
     }
     document.addEventListener('pointerdown', onPointerDown, { passive: true, capture: true })
     const onClick = event => {
@@ -495,15 +502,19 @@ export default function Storefront() {
     const hash = decodeURIComponent(location.hash.slice(1))
     let redirectMsg = null
     try { redirectMsg = sessionStorage.getItem('sathya_auth_redirect_msg') } catch {}
+    // Arriving from another page, a popup opens once that page change has
+    // finished cross-fading (see pageTransition.js); on this page, at once.
+    const whenArrived = open => { afterPageTransition().then(open) }
     if ((hash === 'login' || hash === 'auth' || redirectMsg) && !live.current.user) {
-      actions.openSignIn(redirectMsg || 'Login or Sign Up is mandatory to access your basket and checkout. Please sign in.')
+      const notice = redirectMsg || 'Login or Sign Up is mandatory to access your basket and checkout. Please sign in.'
       try { sessionStorage.removeItem('sathya_auth_redirect_msg') } catch {}
+      whenArrived(() => actions.openSignIn(notice))
     } else if (hash === 'account') {
-      actions.handleAccountClick()
+      whenArrived(() => actions.handleAccountClick())
     } else if (hash === 'basket') {
-      actions.handleBasketClick()
+      whenArrived(() => actions.handleBasketClick())
     } else if (hash === 'scan') {
-      actions.openModal('photoScannerModal')
+      whenArrived(() => actions.openModal('photoScannerModal'))
     } else if (hash && hash !== 'login' && hash !== 'auth') {
       requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView())
     }

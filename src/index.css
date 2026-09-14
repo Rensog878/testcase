@@ -6699,6 +6699,18 @@ button.mobile-nav-link {
       height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
       box-shadow 0.3s ease;
   }
+  /* Tabs change colour at once, like native tab bars. Colour fades run on
+     the main thread and the bar has no layer of its own, so opening the Menu
+     (four tabs change colour) repainted the page on every frame of the
+     sheet's slide. The press scale stays - transforms are composited. */
+  .sathya-mobile-bottom-nav .mobile-nav-link {
+    transition: none;
+  }
+  .sathya-mobile-bottom-nav .mobile-nav-link > i,
+  .sathya-mobile-bottom-nav .mobile-nav-link > svg,
+  .sathya-mobile-bottom-nav .mobile-nav-link > .active-dot-wrap {
+    transition: transform 0.12s ease;
+  }
   .sathya-mobile-bottom-nav .mobile-nav-link > span:last-child {
     max-height: 16px;
     overflow: hidden;
@@ -6800,8 +6812,15 @@ button.mobile-nav-link {
     pointer-events: none;
     transition: opacity 0.3s ease;
     touch-action: none;
+    /* Its own layer while closed, so the fade doesn't have to create and
+       paint one on the first frame of the Menu's slide. */
+    will-change: opacity;
   }
-  .mobile-menu-backdrop.active {
+  /* Open is .is-shown, not .active: changing an .active class restyles every
+     <i> inside the element (.mobile-nav-link.active > i puts icons in that
+     class's style invalidation set) - all the sheet's icons, on the frame
+     it starts to slide. */
+  .mobile-menu-backdrop.is-shown {
     opacity: 1;
     pointer-events: auto;
   }
@@ -6834,7 +6853,7 @@ button.mobile-nav-link {
     contain: layout paint;
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
   }
-  .mobile-menu-sheet.active {
+  .mobile-menu-sheet.is-shown {
     transform: translateY(0);
   }
   .mms-handle {
@@ -7006,6 +7025,14 @@ button.mobile-nav-link {
     font-size: 16px;
     font-weight: 600;
     outline: none;
+  }
+}
+
+/* Reduced motion: the Menu sheet appears in place instead of sliding up; the
+   backdrop still fades. */
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .mobile-menu-sheet {
+    transition: none;
   }
 }
 

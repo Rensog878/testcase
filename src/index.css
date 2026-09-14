@@ -3537,6 +3537,10 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   min-width: 0;
   height: 100%;
   overflow-y: auto;
+  /* overflow-y: auto alone makes overflow-x auto too, so anything a pixel too
+     wide let a sideways swipe drag the whole pane. It only ever scrolls down. */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   background-color: #ffffff;
   padding: 14px 12px 76px 14px;
 }
@@ -3650,6 +3654,11 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   letter-spacing: 0.4px;
   margin: 0;
   white-space: nowrap;
+  /* Long group names ("BIO STIMULANTS/ACTIVATORS") end in an ellipsis
+     instead of pushing the item count past the pane. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (min-width: 768px) {
@@ -3670,23 +3679,26 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   font-weight: 600;
 }
 
-/* Subcategories Circular Grid (3-columns on Mobile) */
+/* Subcategories Circular Grid (3-columns on Mobile).
+   minmax(0, 1fr): a plain 1fr column never shrinks below its content (the
+   74px circle, a long brand name), so on phones the three columns were wider
+   than the pane. */
 .subcat-circles-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px 8px;
 }
 
 @media (min-width: 640px) {
   .subcat-circles-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px 12px;
   }
 }
 
 @media (min-width: 1024px) {
   .subcat-circles-grid {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 20px 14px;
   }
 }
@@ -3695,6 +3707,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
   text-decoration: none;
   cursor: pointer;
   transition: transform 0.2s ease;
@@ -3709,9 +3722,14 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   transform: translateY(-3px);
 }
 
+/* Full size where it fits; on the narrowest phones the circle shrinks with
+   its column instead of overflowing it. */
 .subcat-circle-img-wrap {
-  width: 74px;
-  height: 74px;
+  box-sizing: border-box;
+  width: min(74px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  flex-shrink: 0;
   border-radius: 50%;
   background-color: #f4f6f8;
   display: flex;
@@ -3726,8 +3744,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 
 @media (min-width: 768px) {
   .subcat-circle-img-wrap {
-    width: 86px;
-    height: 86px;
+    width: min(86px, 100%);
     padding: 10px;
   }
 }
@@ -3764,6 +3781,8 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   text-transform: capitalize;
   width: 100%;
   padding: 0 2px;
+  /* One long word ("AGRIGATORS") may break rather than widen its column. */
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 768px) {
@@ -5850,12 +5869,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
     display: none !important;
   }
 
-  /* On the home page the header row joins the storefront's search bar below
-     it, so the two read as one header. */
-  body.sb-home-active .sb-store-head {
-    border-bottom-color: transparent;
-    box-shadow: none;
-  }
 
   /* Categories fills the screen below the shared header. */
   .bighaat-categories-page {
@@ -6703,26 +6716,31 @@ button.mobile-nav-link {
     opacity: 1;
     pointer-events: auto;
   }
-  /* Under the bottom bar (z 9999), so the Menu tab - now an X - closes it. */
+  /* A floating card, like the bar it opens from: inset from the screen edges,
+     rounded on every corner, resting 12px above the floating bar (62px bar
+     + 12px gap under it). Under the bar (z 9999), so the Menu tab - now an X -
+     closes it. Closed, it waits just below the screen. */
   .mobile-menu-sheet {
     display: block;
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 12px;
+    right: 12px;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
     z-index: 9985;
     box-sizing: border-box;
-    max-height: calc(100vh - 72px);
-    max-height: calc(100dvh - 72px);
+    /* Clear of the ticker and header row above, with the same 12px gap. */
+    max-height: calc(100vh - 86px - 12px - var(--sb-chrome-h, 0px));
+    max-height: calc(100dvh - 86px - 12px - var(--sb-chrome-h, 0px) - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     background: #ffffff;
-    border-radius: 22px 22px 0 0;
-    box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.12);
-    padding: 6px 16px calc(96px + env(safe-area-inset-bottom, 0px));
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 24px;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
+    padding: 6px 16px 16px;
     font-family: 'Plus Jakarta Sans', sans-serif;
-    transform: translateY(calc(100% + 16px));
+    transform: translateY(calc(100% + 100px + env(safe-area-inset-bottom, 0px)));
     will-change: transform;
     contain: layout paint;
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);

@@ -4,23 +4,25 @@ import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Leaf, LogIn } from 'lucide-react'
+import { Check, Eye, EyeOff, LogIn } from 'lucide-react'
 
+// Staff sign-in (/login, and /admin when signed out). Farmers sign in on the
+// storefront, so there is no Farmer role here.
 const ROLES = [
-  { key: 'farmer',   label: 'Farmer',   emoji: '👨‍🌾' },
   { key: 'admin',    label: 'Admin',    emoji: '🛡️' },
   { key: 'employee', label: 'Employee', emoji: '🏭' },
   { key: 'delivery', label: 'Delivery', emoji: '🚚' },
   { key: 'billing',  label: 'Billing',  emoji: '🧾' },
 ]
 
+const withArticle = label => `${/^[AEIOU]/i.test(label) ? 'an' : 'a'} ${label}`
+
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuth()
+  const { login, logout } = useAuth()
   const { t } = useLanguage()
-  const [selectedRole, setSelectedRole] = useState('farmer')
-  // Carried over when Register redirects an already-registered number here.
+  const [selectedRole, setSelectedRole] = useState('admin')
   const [mobile, setMobile]             = useState(() => location.state?.identifier || '')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -34,18 +36,22 @@ export default function Login() {
 
   const roleInfo = ROLES.find(r => r.key === selectedRole)
 
-  const handleRoleSelect = (role) => {
-    setSelectedRole(role)
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!mobile || !password) { toast.error('Please fill in all fields'); return }
     setLoading(true)
     try {
       const user = await login(mobile.trim(), password)
+      // A farmer account belongs on the storefront, where it is now signed in.
+      if (user.role === 'farmer') {
+        toast.success(`Welcome back, ${user.name}! Farmers shop and sign in on the store. 🌿`)
+        navigate('/', { replace: true })
+        return
+      }
+      // Right password, wrong role: do not leave that account signed in.
       if (user.role !== selectedRole) {
-        toast.error(`This account is not a ${roleInfo?.label || selectedRole} account.`)
+        logout(false)
+        toast.error(`This is not ${withArticle(roleInfo?.label || selectedRole)} account.`)
         return
       }
       toast.success(`Welcome back, ${user.name}! 🌿`)
@@ -74,33 +80,40 @@ export default function Login() {
             <LanguageSwitcher />
           </div>
 
-
           <h2 className="login-title">Welcome back</h2>
-          <p className="login-subtitle">Select your role, then sign in</p>
+          <p className="login-subtitle" id="loginRoleLabel">Select your role, then sign in</p>
 
           {/* Role Selector */}
-          <div className="role-selector">
-            {ROLES.map(r => (
-              <button
-                key={r.key}
-                className={`role-chip ${selectedRole === r.key ? 'active' : ''}`}
-                onClick={() => handleRoleSelect(r.key)}
-                type="button"
-              >
-                <span className="role-emoji">{r.emoji}</span>
-                {r.label}
-              </button>
-            ))}
+          <div className="role-selector" role="radiogroup" aria-labelledby="loginRoleLabel">
+            {ROLES.map(r => {
+              const active = selectedRole === r.key
+              return (
+                <button
+                  key={r.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  className={`role-chip ${active ? 'active' : ''}`}
+                  onClick={() => setSelectedRole(r.key)}
+                >
+                  <span className="role-emoji" aria-hidden="true">{r.emoji}</span>
+                  <span className="role-label">{r.label}</span>
+                  {active && <span className="role-check" aria-hidden="true"><Check size={12} strokeWidth={3} /></span>}
+                </button>
+              )
+            })}
           </div>
-
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Mobile Number</label>
+              <label className="form-label" htmlFor="loginMobile">Mobile Number</label>
               <div className="input-group">
                 <span className="input-icon">📱</span>
                 <input
+                  id="loginMobile"
                   type="tel"
+                  inputMode="numeric"
+                  autoComplete="username"
                   className="form-input"
                   placeholder="Enter your mobile number"
                   value={mobile}
@@ -112,10 +125,11 @@ export default function Login() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label" htmlFor="loginPassword">Password</label>
               <div className="input-group">
                 <span className="input-icon">🔒</span>
                 <input
+                  id="loginPassword"
                   type={showPass ? 'text' : 'password'}
                   className="form-input"
                   placeholder="Enter your password"
@@ -139,13 +153,9 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="divider"><span>New farmer?</span></div>
-
-          <Link to="/register">
-            <button className="btn btn-secondary btn-full">
-              🌱 Register as Farmer
-            </button>
-          </Link>
+          <p className="login-store-note">
+            Farmer? <Link to="/#login">Sign in on the store</Link>
+          </p>
         </div>
       </div>
 

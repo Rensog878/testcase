@@ -2052,14 +2052,16 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .forgot-rules li.ok { color: #16a34a; font-weight: 600; }
 .forgot-change { display: flex; margin: 10px auto 0; color: var(--text-muted); font-weight: 600; }
 
+/* Four staff roles: one row of four on wider screens, 2 x 2 on phones. */
 .role-selector {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-bottom: 24px;
 }
 
 .role-chip {
+  position: relative;
   padding: 10px 8px;
   border-radius: var(--radius-md);
   border: 1.5px solid var(--surface-border-subtle);
@@ -2079,6 +2081,34 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .role-chip:hover { border-color: var(--brand-600); color: var(--brand-400); background: var(--dark-700); }
 .role-chip.active { border-color: var(--brand-500); background: var(--brand-900); color: var(--brand-400); }
 .role-chip .role-emoji { font-size: 1.3rem; }
+
+/* A tick on the chosen role. */
+.role-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Farmers are pointed to the storefront sign-in. */
+.login-store-note {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.login-store-note a {
+  color: var(--brand-400, #059669);
+  font-weight: 700;
+}
 
 .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--surface-border-subtle); }
@@ -2829,15 +2859,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   .login-logo-icon { width: 42px; height: 42px; font-size: 21px; }
   .login-logo-text .brand { font-size: 1.15rem; white-space: nowrap; }
   .login-logo-text .tagline { display: none; }
-  .role-selector {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .role-chip {
-    flex: 1 1 calc(50% - 8px);
-    min-height: 42px;
-  }
 
   .filter-bar { flex-direction: column; align-items: stretch; }
   .search-box { min-width: 100%; }
@@ -3957,16 +3978,68 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
     font-size: 0.85rem;
   }
 
+  /* Roles: a 2 x 2 grid of white cards, icon beside the label; the chosen
+     one is tinted green with a ring and a tick. */
   .role-selector {
-    gap: 6px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
   }
 
   .role-chip {
-    min-height: 40px;
-    padding: 8px 6px;
-    border-radius: 12px;
-    font-size: 0.72rem;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .role-chip .role-emoji {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    font-size: 1.15rem;
+  }
+
+  .role-chip:hover {
+    border-color: #a7f3d0;
+    background: #ffffff;
+    color: #064e3b;
+  }
+
+  .role-chip:active {
+    transform: scale(0.98);
+  }
+
+  .role-chip.active {
+    border-color: #10b981;
+    background: #ecfdf5;
+    color: #064e3b;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  }
+
+  .role-chip.active .role-emoji {
+    background: #ffffff;
+  }
+
+  .role-check {
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
   }
 
   .login-card .form-group {

@@ -15,7 +15,11 @@ const TransitionLink = forwardRef(function TransitionLink({ to, onClick, ...prop
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     if (!document.startViewTransition || !window.matchMedia('(max-width: 768px)').matches) return
     event.preventDefault()
-    document.startViewTransition(() => flushSync(() => navigate(to)))
+    const transition = document.startViewTransition(() => flushSync(() => navigate(to)))
+    // A transition the browser skips still changes the page; only the
+    // animation is lost, so that is not an error.
+    transition.ready.catch(() => {})
+    transition.finished.catch(() => {})
   }
 
   return <Link ref={ref} to={to} onClick={handleClick} {...props} />

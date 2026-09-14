@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { StoreContext } from './StoreContext'
 import { PESTICIDES } from './data'
-import { TEXT_PACKS, isLanguageReady, loadLanguagePack, localizeTree, setPageLanguage, translationFor, watchPageText } from './i18n'
+import { TEXT_PACKS, isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { showToast } from './toast'
 import { startNavDebugPanel } from './navDebug'
 import { Header, NavBar, TickerBar, Topbar } from './sections/Header'
@@ -537,16 +537,7 @@ export default function Storefront() {
     return () => { cancelled = true }
   }, [lang])
 
-  useEffect(() => {
-    setPageLanguage(appliedLang)
-    localizeTree(document.body)
-    watchPageText(Boolean(TEXT_PACKS[appliedLang]))
-  }, [appliedLang])
-
-  useEffect(() => () => {
-    watchPageText(false)
-    setPageLanguage('en')
-  }, [])
+  // The rest of the page text is translated app-wide by PageTranslator (App.jsx).
 
   const t = useCallback(key => translationFor(appliedLang, key) || key, [appliedLang])
 

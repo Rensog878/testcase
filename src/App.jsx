@@ -12,6 +12,8 @@ import IngredientDetail from './pages/IngredientDetail'
 import Navigation from './components/home/Navigation'
 import Footer from './components/home/Footer'
 import MobileBottomNav from './components/home/MobileBottomNav'
+import StoreTopChrome from './components/home/StoreTopChrome'
+import PageTranslator from './components/PageTranslator'
 import Storefront from './storefront/Storefront'
 import StoreSection from './pages/StoreSection'
 import Categories from './pages/Categories'
@@ -66,23 +68,36 @@ function HomePage() {
   return redirectPath ? <Navigate to={redirectPath} replace /> : <Storefront />
 }
 
-// Store pages with the phone bottom bar.
-const BOTTOM_BAR_PAGES = /^\/(?:$|products|shop|categories|crops|brands|blog|product\/|wishlist|orders|checkout|cart)/
+// The store pages: storefront, shop, blog, product, basket and orders.
+const STORE_PAGES = /^\/(?:$|products|shop|categories|crops|brands|blog|product\/|wishlist|orders|checkout|cart)/
 
-// The bottom bar is drawn once here, outside the routes, so it stays mounted -
-// same element, icons and place - while the shopper moves between store pages.
-function StoreChrome() {
+const useStorePage = () => STORE_PAGES.test(useLocation().pathname)
+
+// On store pages the top header (ticker + header row) and the phone bottom bar
+// are drawn once here, outside the routes, so they stay mounted - same
+// elements, same place - while the pages change between them.
+function StoreTop() {
+  return useStorePage() ? <StoreTopChrome /> : null
+}
+
+function StoreBottom() {
   const { pathname } = useLocation()
   // A new page starts at the top; a link to a section scrolls there instead.
   useLayoutEffect(() => {
     if (!window.location.hash) window.scrollTo(0, 0)
   }, [pathname])
-  return BOTTOM_BAR_PAGES.test(pathname) ? <MobileBottomNav /> : null
+  return STORE_PAGES.test(pathname) ? <MobileBottomNav /> : null
+}
+
+// Store pages in the chosen language; staff portals in English.
+function StoreTranslation() {
+  return <PageTranslator enabled={useStorePage()} />
 }
 
 export default function App() {
   return (
     <>
+      <StoreTop />
       <Routes>
         {/* Public Home - the storefront */}
         <Route path="/"        element={<HomePage />} />
@@ -142,7 +157,8 @@ export default function App() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <StoreChrome />
+      <StoreBottom />
+      <StoreTranslation />
     </>
   )
 }

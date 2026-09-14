@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
-import StoreHeader from '../components/home/StoreHeader'
 import axios from 'axios'
 import { 
   SHOP_CATEGORIES, 
@@ -375,9 +374,6 @@ export default function AllProducts() {
       <div className="desktop-only-header-wrap">
         <Navigation cartCount={cartCount} />
       </div>
-
-      {/* Phones: the storefront's header row, the same on every page. */}
-      <StoreHeader />
 
       {/* MOBILE TOP HEADER (BigHaat / Sathya Bio app style matching screenshot 1) */}
       <header className="mobile-shop-header mobile-only-header">

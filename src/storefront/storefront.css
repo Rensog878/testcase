@@ -4163,6 +4163,22 @@ body.sb-home-active .sb-home .mobile-menu-backdrop {
     transform: translateY(-2px);
   }
 
+  /* Phones: the ticker, logo and header icons are the shared top header drawn
+     above every store page (StoreTopChrome in App.jsx). This page keeps its
+     search bar, pinned just under that header row. */
+  @media (max-width: 767px) {
+    body.sb-home-active .sb-home .ticker-wrap,
+    body.sb-home-active .sb-home .header-main .logo-box,
+    body.sb-home-active .sb-home .header-main .header-actions {
+      display: none !important;
+    }
+    body.sb-home-active .sb-home .header-main {
+      top: var(--sb-head-h, 0px);
+      z-index: 999;
+      padding-top: 4px;
+    }
+  }
+
   /* Jumps from the menus land below the sticky header, not under it. */
   body.sb-home-active .sb-home #catalog,
   body.sb-home-active .sb-home #categoriesSection,
@@ -6358,15 +6374,10 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) body.sb-home-active 
    The React side has the same names (src/index.css, "PAGE-TO-PAGE").
    ------------------------------------------------------------ */
 @media (max-width: 768px) {
-  body.sb-home-active .sb-home .ticker-wrap {
-    view-transition-name: sb-ticker;
-  }
-  body.sb-home-active .sb-home .header-main {
-    view-transition-name: sb-header;
-  }
-  body.sb-home-active .sb-home .mobile-bottom-nav {
-    view-transition-name: sb-bottom-nav;
-  }
+  /* The ticker, header row and bottom bar are shared by every store page on
+     phones; their view-transition names are set there (src/index.css).
+     Naming this page's header too would give two elements one name, and the
+     browser would abandon the transition. */
 }
 
 @media print {

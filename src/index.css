@@ -5797,6 +5797,89 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   font-weight: 800;
 }
 
+/* ==========================================================================
+   SHARED TOP HEADER (phones): the ticker and the header row above, drawn once
+   for every store page (StoreTopChrome in App.jsx). The ticker is the
+   storefront's. Pages below read --sb-chrome-h (ticker + header row) and
+   --sb-head-h (header row) to sit under it.
+   ========================================================================== */
+.sb-chrome-ticker {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sb-chrome-ticker {
+    display: block;
+    overflow: hidden;
+    padding: 7px 0;
+    background: #0f172a;
+    color: #f0fdf4;
+    border-bottom: 2px solid #059669;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+
+  .sb-chrome-ticker-track {
+    display: inline-flex;
+    white-space: nowrap;
+    will-change: transform;
+    animation: sbChromeTicker 38s linear infinite;
+  }
+
+  .sb-chrome-ticker-item {
+    display: inline-block;
+    padding: 0 48px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    letter-spacing: 0.02em;
+  }
+
+  .sb-chrome-ticker-item i {
+    margin-right: 6px;
+  }
+
+  /* Paused behind a popup or sheet, as on the storefront. */
+  body.overlay-open .sb-chrome-ticker-track {
+    animation-play-state: paused;
+  }
+
+  /* The pages' own tickers are replaced by this one. */
+  .public-ticker {
+    display: none !important;
+  }
+
+  /* On the home page the header row joins the storefront's search bar below
+     it, so the two read as one header. */
+  body.sb-home-active .sb-store-head {
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+
+  /* Categories fills the screen below the shared header. */
+  .bighaat-categories-page {
+    top: var(--sb-chrome-h, 0px);
+    height: calc(100vh - var(--sb-chrome-h, 0px));
+    height: calc(100dvh - var(--sb-chrome-h, 0px));
+  }
+
+  .bighaat-categories-wrapper {
+    height: auto;
+  }
+}
+
+@keyframes sbChromeTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-chrome-ticker-track {
+    animation: none;
+  }
+}
+
 /* Language menu, as on the storefront. */
 .sb-lang-backdrop {
   position: fixed;
@@ -6563,11 +6646,12 @@ button.mobile-nav-link {
 }
 
 /* PAGE-TO-PAGE: HEADER AND BOTTOM BAR STAY PUT (phones). Page changes from
-   the bottom bar and Menu run as view transitions (TransitionLink): the
-   ticker and header row keep their place and only the content cross-fades.
-   The storefront's own header uses the same names (storefront.css). */
+   the bottom bar and Menu run as view transitions (TransitionLink): the shared
+   ticker, header row and bottom bar keep their place and only the content
+   cross-fades. Each name may be on one visible element only, or the browser
+   abandons the transition. */
 @media (max-width: 768px) {
-  .public-ticker {
+  .sb-chrome-ticker {
     view-transition-name: sb-ticker;
   }
   .sb-store-head {

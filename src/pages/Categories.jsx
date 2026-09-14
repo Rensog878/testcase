@@ -8,7 +8,6 @@ import {
 import { CATEGORIES_DATA, DEFAULT_CATEGORY_HANDLE } from '../data/categoriesData'
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
-import StoreHeader from '../components/home/StoreHeader'
 
 // Every category is one section of the right-hand pane, one after another.
 // The left rail follows the scroll (the category being read is highlighted and
@@ -180,9 +179,6 @@ export default function Categories() {
       <div className="desktop-only-nav">
         <Navigation />
       </div>
-
-      {/* Phones: the storefront's header row, the same on every page. */}
-      <StoreHeader />
 
       {/* Mobile Top Header (BigHaat App Style - Visible only on Mobile) */}
       <header className="bighaat-mobile-header mobile-only-header">

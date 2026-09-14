@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
+import { useAuth } from '../../context/AuthContext'
 import TransitionLink from './TransitionLink'
 
 // Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
@@ -40,14 +41,6 @@ const BAR_SHOW_AFTER = 8
 // Scrolling inside these never moves the bar.
 const BAR_IGNORE = '.mobile-menu-sheet, [role="dialog"], [aria-modal="true"]'
 
-const readUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem('sathya_user') || 'null')
-  } catch {
-    return null
-  }
-}
-
 const countItems = items => (Array.isArray(items) ? items.reduce((acc, i) => acc + (Number(i.qty) || 1), 0) : 0)
 
 const readGuestCount = () => {
@@ -64,7 +57,10 @@ export default function MobileBottomNav() {
   const { lang, setLang, languages } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [cartCount, setCartCount] = useState(readGuestCount)
-  const [user, setUser] = useState(readUser)
+  // The account row follows sign-in and sign-out as they happen, while the
+  // sheet is closed. Read from storage as the sheet opened, the new name
+  // re-laid out and repainted the whole sheet on the frame its slide started.
+  const { user } = useAuth()
   const sheetRef = useRef(null)
 
   const path = location.pathname
@@ -74,13 +70,7 @@ export default function MobileBottomNav() {
 
   const closeMenu = () => setIsMenuOpen(false)
 
-  // The account text is read fresh each time the sheet opens, in the same
-  // render that opens it. Set from an effect, it rendered the bar and sheet a
-  // second time on the frame the slide starts.
-  const toggleMenu = () => {
-    if (!isMenuOpen) setUser(readUser())
-    setIsMenuOpen(!isMenuOpen)
-  }
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
   // Touch-down on Menu takes `inert` off the closed sheet. Inert is inherited,
   // so clearing it restyles everything inside the sheet (traced: 74 elements,
@@ -118,12 +108,26 @@ export default function MobileBottomNav() {
     setBarMode(mode)
   }, [])
 
-  // A new page, or opening or closing the menu, brings the full bar back and
-  // forgets what was last touched.
+  // While the menu is open the page's looping decorations behind it (ticker,
+  // pulses) pause, as they do behind the storefront's popups. index.css,
+  // "MOBILE MENU SHEET".
+  useEffect(() => {
+    document.body.classList.toggle('menu-open', isMenuOpen)
+    return () => document.body.classList.remove('menu-open')
+  }, [isMenuOpen])
+
+  // Opening or closing the menu forgets what was last touched, but leaves the
+  // bar's size alone: growing back from the slim dock animates its width and
+  // height, which re-laid out the bar on every frame of the sheet's slide.
+  useEffect(() => {
+    lastInputRef.current = null
+  }, [isMenuOpen])
+
+  // A new page brings the full bar back and forgets what was last touched.
   useEffect(() => {
     lastInputRef.current = null
     showBar('full')
-  }, [path, isMenuOpen, showBar])
+  }, [path, showBar])
 
   // So does a popup opening over the page (the storefront marks the body).
   useEffect(() => {

@@ -3814,9 +3814,13 @@ body.sb-home-active .sb-home .experts-grid {
     pointer-events: none;
   }
   /* While a popup or sheet is open, pause the looping decorations behind it
-     so the phone spends every frame on the sheet's slide. */
+     so the phone spends every frame on the sheet's slide. menu-open is the
+     phone Menu (MobileBottomNav.jsx); it lives here, not in index.css, whose
+     rules sit in a cascade layer and lose to these whatever their specificity. */
   body.sb-home-active.overlay-open .sb-home .ticker-track,
-  body.sb-home-active.overlay-open .sb-home .chatbot-trigger-btn::after {
+  body.sb-home-active.overlay-open .sb-home .chatbot-trigger-btn::after,
+  body.sb-home-active.menu-open .sb-home .ticker-track,
+  body.sb-home-active.menu-open .sb-home .chatbot-trigger-btn::after {
     animation-play-state: paused;
   }
 
@@ -6045,7 +6049,8 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) body.sb-home-active 
   body.sb-home-active .sb-home .deal-fire {
     will-change: transform;
   }
-  body.sb-home-active.overlay-open .sb-home .deal-fire {
+  body.sb-home-active.overlay-open .sb-home .deal-fire,
+  body.sb-home-active.menu-open .sb-home .deal-fire {
     animation-play-state: paused;
   }
 

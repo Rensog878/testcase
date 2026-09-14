@@ -6825,6 +6825,14 @@ button.mobile-nav-link {
   .mobile-menu-sheet.is-shown {
     transform: translateY(0);
   }
+  /* Open, the header ticker behind it pauses (body.menu-open, set by
+     MobileBottomNav.jsx), as it does behind the storefront's popups: it kept
+     running through the slide on every store page, signed in or not. The
+     home page's own pulses pause in storefront.css - rules here sit in a
+     cascade layer and cannot override that file. */
+  body.menu-open .sb-chrome-ticker-track {
+    animation-play-state: paused;
+  }
   .mms-handle {
     width: 40px;
     height: 4px;

@@ -315,7 +315,8 @@ export default function Categories() {
                       {cat.name}
                     </h2>
                     <p className="subcat-banner-desc">
-                      Explore {total} verified agricultural {cat.name.toLowerCase()} & field formulations.
+                      {/* One text node, so the page translator sees the whole sentence. */}
+                      {`Explore ${total} verified agricultural ${cat.name.toLowerCase()} & field formulations.`}
                     </p>
                   </div>
                   <div className="subcat-banner-image">

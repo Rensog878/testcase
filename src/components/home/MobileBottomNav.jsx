@@ -206,9 +206,14 @@ export default function MobileBottomNav() {
   // On the home page a Menu tile goes to that section of the page.
   const homeOr = (section, elsewhere) => (onHome ? `/#${section}` : elsewhere)
 
-  const accountSub = user
-    ? [user.crop, user.village || user.district].filter(Boolean).join(' · ') || 'Signed in'
-    : 'Sign in to track orders & get crop advice'
+  // Crop and place are separate text nodes so the page translator can
+  // translate the crop name on its own.
+  const place = user && (user.village || user.district)
+  const accountSub = !user
+    ? 'Sign in to track orders & get crop advice'
+    : user.crop || place
+      ? <>{user.crop}{user.crop && place ? ' · ' : null}{place}</>
+      : 'Signed in'
 
   return (
     <>

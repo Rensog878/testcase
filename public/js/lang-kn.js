@@ -864,6 +864,8 @@ window.SB_LANG_KN = {
     'India\'s leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers': 'ಉನ್ನತ ಪರಿಣಾಮದ ಜೈವಿಕ ಕೀಟನಾಶಕಗಳು, ಬೆಳೆ ಸಂರಕ್ಷಣಾ ರಾಸಾಯನಿಕಗಳು ಮತ್ತು ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಗೊಬ್ಬರಗಳಿಗೆ ಭಾರತದ ಪ್ರಮುಖ ಡಿಜಿಟಲ್ ವೇದಿಕೆ',
     'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India': 'ಭಾರತದಾದ್ಯಂತ 15,000+ ರೈತರಿಗೆ 100% ಜೈವಿಕ ಪ್ರಮಾಣಿತ ಉತ್ಪನ್ನಗಳನ್ನು ತ್ವರಿತವಾಗಿ ತಲುಪಿಸುತ್ತೇವೆ',
     '100% Secure Payment (UPI, COD, NetBanking) | ✓ Express Delivery | ✓ 24/7 Support': '100% ಸುರಕ್ಷಿತ ಪಾವತಿ (UPI, COD, ನೆಟ್‌ಬ್ಯಾಂಕಿಂಗ್) | ✓ ತ್ವರಿತ ಡೆಲಿವರಿ | ✓ 24/7 ಸಹಾಯ',
+    'Express Delivery': 'ತ್ವರಿತ ಡೆಲಿವರಿ',
+    '24/7 Support': '24/7 ಸಹಾಯ',
     'All Diseases & Pests': 'ಎಲ್ಲಾ ರೋಗಗಳು ಮತ್ತು ಕೀಟಗಳು',
     'Aphids & Jassids': 'ಹೇನು ಮತ್ತು ಜಿಗಿಹುಳು',
     'Broadleaf & Grass Weeds': 'ಅಗಲ ಎಲೆ ಮತ್ತು ಹುಲ್ಲು ಕಳೆಗಳು',

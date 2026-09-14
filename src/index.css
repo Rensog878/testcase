@@ -657,13 +657,23 @@ body {
   .public-footer-bottom > div:nth-child(2) a {
     padding: 8px 0;
   }
-  /* The payment line: no band of its own, wrapped into even lines. */
+  /* The payment line: no band of its own; it wraps between the three
+     promises, which drop their "|" and sit centred. */
   .public-payment-strip {
     margin: 0;
     padding: 6px 16px 18px;
     background: none;
     line-height: var(--script-leading, 1.5);
     text-wrap: balance;
+  }
+  .public-payment-strip p {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 14px;
+  }
+  .public-payment-sep {
+    display: none;
   }
 }
 

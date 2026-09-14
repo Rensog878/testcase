@@ -877,6 +877,8 @@ window.SB_LANG_TA = {
     'India\'s leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers': 'உயர் திறன் உயிர் பூச்சிக்கொல்லிகள், பயிர் பாதுகாப்பு ரசாயனங்கள் மற்றும் மண் வள உரங்களுக்கான இந்தியாவின் முன்னணி டிஜிட்டல் தளம்',
     'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India': 'இந்தியா முழுவதும் 15,000+ விவசாயிகளுக்கு 100% உயிர்ச் சான்றளிக்கப்பட்ட பொருட்களை விரைவாக அனுப்புகிறோம்',
     '100% Secure Payment (UPI, COD, NetBanking) | ✓ Express Delivery | ✓ 24/7 Support': '100% பாதுகாப்பான பணம் செலுத்துதல் (UPI, COD, நெட்பேங்கிங்) | ✓ விரைவு டெலிவரி | ✓ 24/7 உதவி',
+    'Express Delivery': 'விரைவு டெலிவரி',
+    '24/7 Support': '24/7 உதவி',
     'All Diseases & Pests': 'அனைத்து நோய்கள் & பூச்சிகள்',
     'Aphids & Jassids': 'அசுவினி & தத்துப்பூச்சி',
     'Broadleaf & Grass Weeds': 'அகன்ற இலை & புல் களைகள்',

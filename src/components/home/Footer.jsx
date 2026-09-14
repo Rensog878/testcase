@@ -104,9 +104,17 @@ export default function Footer() {
         <SocialLinks className="public-footer-bottom-social" />
       </div>
 
-      {/* Payment Methods */}
+      {/* Payment Methods. One span per promise, so phones wrap between them
+          rather than start a line with "|". The ticks and bars are drawn, not
+          read out, and each promise is its own key in the language packs. */}
       <div className="public-payment-strip">
-        <p>✓ 100% Secure Payment (UPI, COD, NetBanking) | ✓ Express Delivery | ✓ 24/7 Support</p>
+        <p>
+          <span><span aria-hidden="true">{'✓ '}</span>100% Secure Payment (UPI, COD, NetBanking)</span>
+          <span className="public-payment-sep" aria-hidden="true">{' | '}</span>
+          <span><span aria-hidden="true">{'✓ '}</span>Express Delivery</span>
+          <span className="public-payment-sep" aria-hidden="true">{' | '}</span>
+          <span><span aria-hidden="true">{'✓ '}</span>24/7 Support</span>
+        </p>
       </div>
     </footer>
   )

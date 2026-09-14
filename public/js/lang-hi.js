@@ -864,6 +864,8 @@ window.SB_LANG_HI = {
     'India\'s leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers': 'उच्च असर वाले जैव कीटनाशक, फसल सुरक्षा रसायन और मिट्टी सेहत उर्वरकों का भारत का प्रमुख डिजिटल प्लेटफ़ॉर्म',
     'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India': 'पूरे भारत में 15,000+ किसानों को 100% जैव-प्रमाणित उत्पाद तेज़ी से पहुँचाते हैं',
     '100% Secure Payment (UPI, COD, NetBanking) | ✓ Express Delivery | ✓ 24/7 Support': '100% सुरक्षित भुगतान (UPI, COD, नेटबैंकिंग) | ✓ तेज़ डिलीवरी | ✓ 24/7 सहायता',
+    'Express Delivery': 'तेज़ डिलीवरी',
+    '24/7 Support': '24/7 सहायता',
     'All Diseases & Pests': 'सभी रोग और कीट',
     'Aphids & Jassids': 'माहू और जैसिड',
     'Broadleaf & Grass Weeds': 'चौड़ी पत्ती और घास वाले खरपतवार',

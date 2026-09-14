@@ -4286,6 +4286,13 @@ body.sb-home-active .sb-home .experts-grid {
     gap: 10px;
     text-align: center;
   }
+  /* The body's room for the bottom bar (88px, "sb-home-active" padding
+     below) showed the light page colour under the dark footer. A shadow the
+     same height paints it in the footer's colour; it adds no scroll height,
+     and the footer's inline padding stays as it is. */
+  body.sb-home-active .sb-home footer {
+    box-shadow: 0 calc(88px + env(safe-area-inset-bottom, 0px)) 0 var(--primary-dark);
+  }
 
   /* ---- Bottom-anchored layers ----
      Plain position: fixed; bottom: 0 - the form mobile browsers pin to the

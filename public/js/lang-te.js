@@ -864,6 +864,8 @@ window.SB_LANG_TE = {
     'India\'s leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers': 'అధిక సామర్థ్య జీవ పురుగుమందులు, పంట రక్షణ రసాయనాలు & నేల ఆరోగ్య ఎరువులకు భారతదేశపు ప్రముఖ డిజిటల్ వేదిక',
     'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India': 'భారతదేశమంతటా 15,000+ రైతులకు 100% జీవ ధృవీకృత ఉత్పత్తులను వేగంగా అందిస్తున్నాం',
     '100% Secure Payment (UPI, COD, NetBanking) | ✓ Express Delivery | ✓ 24/7 Support': '100% సురక్షిత చెల్లింపు (UPI, COD, నెట్‌బ్యాంకింగ్) | ✓ వేగవంతమైన డెలివరీ | ✓ 24/7 సహాయం',
+    'Express Delivery': 'వేగవంతమైన డెలివరీ',
+    '24/7 Support': '24/7 సహాయం',
     'All Diseases & Pests': 'అన్ని తెగుళ్లు & పురుగులు',
     'Aphids & Jassids': 'పేనుబంక & పచ్చదోమ',
     'Broadleaf & Grass Weeds': 'వెడల్పాటి ఆకు & గడ్డి కలుపు',

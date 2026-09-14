@@ -3,7 +3,9 @@
    MERN Stack Agricultural Platform
    ========================================= */
 
-/* Fonts (Inter, Poppins, Plus Jakarta Sans, Outfit) are loaded in index.html. */
+/* Fonts (Inter, Poppins, Plus Jakarta Sans, Outfit, and Noto Sans for the
+   Indian languages) are loaded in index.html. The Noto fonts are only used
+   through --script-font ("INDIAN-LANGUAGE TEXT", at the end of this file). */
 
 /* Tailwind disabled for vanilla HTML home page */
 /* @tailwind base; */
@@ -103,7 +105,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', var(--script-font, -apple-system), -apple-system, BlinkMacSystemFont, sans-serif;
   background: radial-gradient(circle at top, #f5fff9 0%, #edf8f2 42%, #e9f5ed 100%);
   color: var(--text-primary);
   line-height: 1.6;
@@ -213,7 +215,7 @@ body {
   flex-shrink: 0;
 }
 .public-brand strong {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', var(--script-font, sans-serif), sans-serif;
   font-size: 1.25rem;
   font-weight: 800;
   line-height: 1.1;
@@ -388,10 +390,10 @@ body {
    Sans text, Outfit column titles, at its sizes - the app's Inter and Poppins
    (with Poppins' 20px h4) made this footer read differently on Blog and the
    other store pages. */
-.public-site-footer { background: #064e3b; font-family: 'Plus Jakarta Sans', sans-serif; }
-.public-footer-grid h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.6rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px; }
+.public-site-footer { background: #064e3b; font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif; }
+.public-footer-grid h3 { font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif; font-size: 1.6rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px; }
 .public-footer-grid h3 span { color: #fbbf24; }
-.public-footer-grid h4 { font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700; line-height: 1.4; color: #fbbf24; }
+.public-footer-grid h4 { font-family: 'Outfit', var(--script-font, sans-serif), sans-serif; font-size: 0.95rem; font-weight: 700; line-height: 1.4; color: #fbbf24; }
 .public-footer-grid p, .public-footer-grid li { color: #d1fae5; font-size: 0.85rem; }
 .public-footer-bottom, .public-footer-bottom p, .public-footer-bottom a { color: #a7f3d0; font-size: 0.8rem; }
 .public-payment-strip { font-size: 0.78rem; }
@@ -504,7 +506,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 input, select, textarea { font-family: inherit; }
 
 /* === TYPOGRAPHY === */
-h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; font-weight: 700; line-height: 1.3; }
+h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', var(--script-font, sans-serif), sans-serif; font-weight: 700; line-height: 1.3; }
 h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
 h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
 h3 { font-size: clamp(1.2rem, 2.5vw, 1.75rem); }
@@ -571,7 +573,7 @@ h6 { font-size: 1rem; }
 }
 
 .sidebar-logo-text .brand-name {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', var(--script-font, sans-serif), sans-serif;
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--brand-900);
@@ -1499,7 +1501,7 @@ h6 { font-size: 1rem; }
 .stat-icon.purple { background: rgba(167, 139, 250, 0.18); color: #6454d9; }
 .stat-icon.teal   { background: rgba(82, 198, 193, 0.18); color: #279d97; }
 
-.stat-value { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); font-family: 'Poppins', sans-serif; }
+.stat-value { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); font-family: 'Poppins', var(--script-font, sans-serif), sans-serif; }
 .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
 .stat-change { font-size: 0.75rem; margin-top: 8px; font-weight: 600; }
 .stat-change.positive { color: var(--brand-400); }
@@ -1670,7 +1672,7 @@ h6 { font-size: 1rem; }
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--brand-400);
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', var(--script-font, sans-serif), sans-serif;
 }
 
 .product-mrp {
@@ -2011,7 +2013,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   box-shadow: var(--shadow-brand);
 }
 
-.login-logo-text .brand { font-size: 1.5rem; font-family: 'Poppins', sans-serif; font-weight: 800; color: var(--brand-400); }
+.login-logo-text .brand { font-size: 1.5rem; font-family: 'Poppins', var(--script-font, sans-serif), sans-serif; font-weight: 800; color: var(--brand-400); }
 .login-logo-text .tagline { font-size: 0.78rem; color: var(--text-muted); }
 
 .login-title { font-size: 1.6rem; margin-bottom: 6px; }
@@ -4183,7 +4185,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   min-height: 100vh;
   background-color: #ffffff;
   color: #1e293b;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', var(--script-font, system-ui), system-ui, -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -5636,7 +5638,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
     background: #ffffff;
     border-bottom: 1px solid rgba(16, 185, 129, 0.15);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   }
 
   /* This row replaces the pages' own phone headers. */
@@ -5824,7 +5826,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
     background: #0f172a;
     color: #f0fdf4;
     border-bottom: 2px solid #059669;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
     font-size: 0.8rem;
     font-weight: 500;
     line-height: 1.6;
@@ -6031,7 +6033,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(20, 83, 45, 0.12);
   color: #173b2a;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
 }
 
 .sb-checkout-page h1 {
@@ -6464,7 +6466,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   margin: 0 auto;
   padding: 52px 5vw;
   color: #173b2a;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
 }
 
 .sb-orders-page h1 {
@@ -6612,7 +6614,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   z-index: 9999;
   /* The bar is shared by every store page, including the storefront, whose
      page font this is - so it looks the same everywhere. */
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
 }
 
 /* AI Doctor and Menu are buttons; buttons don't inherit font or line-height. */
@@ -6814,7 +6816,7 @@ button.mobile-nav-link {
     border-radius: 24px;
     box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
     padding: 6px 16px 16px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
     transform: translateY(calc(100% + 100px + env(safe-area-inset-bottom, 0px)));
     will-change: transform;
     contain: layout paint;
@@ -7021,12 +7023,12 @@ button.mobile-nav-link {
    ========================================= */
 .sb-blog,
 .sb-article-page {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   color: #0f172a;
 }
 .sb-blog :is(h1, h2, h3, h4),
 .sb-article-page :is(h1, h2, h3, h4) {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', var(--script-font, sans-serif), sans-serif;
   letter-spacing: -0.01em;
 }
 .sb-blog {
@@ -7097,7 +7099,7 @@ button.mobile-nav-link {
   background: #ffffff;
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05);
   color: #0f172a;
-  font: 400 16px/1.25 'Plus Jakarta Sans', sans-serif;
+  font: 400 16px/1.25 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -7128,7 +7130,7 @@ button.mobile-nav-link {
   border-radius: 999px;
   background: #ffffff;
   color: #475569;
-  font: 600 0.8rem/1.3 'Plus Jakarta Sans', sans-serif;
+  font: 600 0.8rem/1.3 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -7178,7 +7180,7 @@ button.mobile-nav-link {
   border-radius: 12px;
   background: #059669;
   color: #ffffff;
-  font: 700 0.84rem/1.2 'Plus Jakarta Sans', sans-serif;
+  font: 700 0.84rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   text-decoration: none;
   cursor: pointer;
 }
@@ -7326,7 +7328,7 @@ button.mobile-nav-link {
   border: 0;
   background: transparent;
   color: #047857;
-  font: 700 0.84rem/1.2 'Plus Jakarta Sans', sans-serif;
+  font: 700 0.84rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   cursor: pointer;
 }
 .sb-article h1 {
@@ -7367,7 +7369,7 @@ button.mobile-nav-link {
   border-radius: 999px;
   background: #f0fdf4;
   color: #047857;
-  font: 700 0.75rem/1.2 'Plus Jakarta Sans', sans-serif;
+  font: 700 0.75rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   cursor: pointer;
 }
 .sb-article-cover {
@@ -8248,6 +8250,71 @@ button.mobile-nav-link {
     text-align: center;
     padding: 7px 8px;
     font-size: 0.78rem;
+  }
+}
+
+/* =========================================
+   INDIAN-LANGUAGE TEXT (Tamil, Kannada, Telugu, Hindi)
+   The Latin web fonts have no Tamil, Kannada, Telugu or Devanagari letters,
+   so each phone drew them in its own system font, each with different
+   heights, and boxes sized for English line-heights cut off the vowel signs
+   below the line (bottom bar labels, the header's subtitle, Categories
+   labels). Two properties, set by the page's language, fix it:
+   - --script-font: the language's Noto font (index.html), which every font
+     stack lists right after its Latin font as `var(--script-font, <next
+     font>)`. The letters then look and measure the same on every phone.
+     English leaves it unset, so its stacks are exactly as before and it
+     downloads no Noto font. One font per language on purpose: the language
+     pickers' <select> options name all four languages and a select measures
+     every option, so listing all four fonts loaded all four on every page.
+   - --script-leading: the line-height the script needs so its vowel signs
+     and conjuncts stay inside their own line - the smallest value that cut
+     no pixel of the deepest and tallest words in its language pack at the
+     sizes of the clipped text below (10px bar labels need the most). Text
+     that is clipped - one-line labels, two-line limits - uses it.
+   The home page's own text is in storefront.css and uses the same two.
+   ========================================= */
+html[lang="ta"] {
+  --script-font: 'Noto Sans Tamil';
+  --script-leading: 1.6;
+}
+html[lang="kn"] {
+  --script-font: 'Noto Sans Kannada';
+  --script-leading: 1.95;
+}
+html[lang="te"] {
+  --script-font: 'Noto Sans Telugu';
+  --script-leading: 1.85;
+}
+html[lang="hi"] {
+  --script-font: 'Noto Sans Devanagari';
+  --script-leading: 1.65;
+}
+
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .sb-store-logo-sub,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mobile-nav-link > span:last-child,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-account-text strong,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-account-text span,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .subcat-group-title,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .subcat-circle-title,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .rail-tab-label,
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .category-circle-label {
+  line-height: var(--script-leading);
+}
+
+/* Menu sheet headings: capitals and letter-spacing suit English, but spacing
+   out Indian-language letters pulls their joined forms apart. */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* The bottom bar's labels are capped at 16px so they can fold away in the
+   compact bar ("THE BAR WHILE SCROLLING"); the script's taller line needs the
+   cap to match it. The compact bar still folds them to 0. */
+@media (max-width: 768px) {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .sathya-mobile-bottom-nav:not(.is-compact) .mobile-nav-link > span:last-child {
+    max-height: calc(1em * var(--script-leading));
   }
 }
 

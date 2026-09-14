@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { ArrowLeft, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { ROLE_HOME } from '../context/AuthContext'
 import { passwordChecks, isPasswordValid } from '../utils/passwordRules'
+import { ResendAnnouncer, resendLabel, useResendCountdown } from '../shared/useResendCountdown'
 
 // Two steps: request a WhatsApp code for the registered number, then enter the
 // code with a new password. The server signs the user in (and signs every
@@ -18,13 +19,7 @@ export default function ForgotPassword() {
   const [confirm, setConfirm] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [resendIn, setResendIn] = useState(0)
-
-  useEffect(() => {
-    if (resendIn <= 0) return undefined
-    const timer = setTimeout(() => setResendIn(seconds => seconds - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [resendIn])
+  const resend = useResendCountdown()
 
   const sendCode = async () => {
     if (!/^[6-9]\d{9}$/.test(phone)) {
@@ -36,13 +31,13 @@ export default function ForgotPassword() {
       const { data } = await axios.post('/api/auth/forgot-password/send-otp', { phone })
       toast.success(data.message, { duration: 6000 })
       setStep('reset')
-      setResendIn(data.resendAfter || 30)
+      resend.start(data.resendAfter)
     } catch (err) {
       const data = err.response?.data || {}
       // A code was sent moments ago: go straight to entering it.
-      if (err.response?.status === 429 && data.retryAfter) {
+      if (err.response?.status === 429) {
         setStep('reset')
-        setResendIn(data.retryAfter)
+        resend.start(data.retryAfter, { sent: false })
       }
       toast.error(data.message || 'Could not send the reset code. Please try again.')
     } finally {
@@ -75,7 +70,7 @@ export default function ForgotPassword() {
     setOtp('')
     setPassword('')
     setConfirm('')
-    setResendIn(0)
+    resend.clear()
   }
 
   const checks = passwordChecks(password, { phone })
@@ -93,6 +88,8 @@ export default function ForgotPassword() {
               ? "Enter your registered mobile number. We'll send a 6-digit code to its WhatsApp."
               : `Enter the code sent to WhatsApp on +91 ${phone}, then choose a new password.`}
           </p>
+
+          <ResendAnnouncer announcement={resend.announcement} />
 
           {step === 'phone' ? (
             <form onSubmit={e => { e.preventDefault(); sendCode() }} noValidate>
@@ -132,8 +129,8 @@ export default function ForgotPassword() {
                 />
                 <div className="forgot-resend-row">
                   <span>Didn't get it?</span>
-                  <button type="button" className="forgot-text-btn" disabled={resendIn > 0 || loading} onClick={sendCode}>
-                    {resendIn > 0 ? `Resend in ${resendIn}s` : 'Resend code'}
+                  <button type="button" className="forgot-text-btn" disabled={resend.waiting || loading} onClick={sendCode}>
+                    {resendLabel(resend.secondsLeft)}
                   </button>
                 </div>
               </div>

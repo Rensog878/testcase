@@ -343,6 +343,7 @@ window.SB_LANG_TA = {
     'Code sent on WhatsApp': 'வாட்ஸ்அப்பில் குறியீடு அனுப்பப்பட்டது',
     "Didn't get it": 'கிடைக்கவில்லையா',
     'Resend code': 'மீண்டும் அனுப்பு',
+    'You can resend the code now': 'இப்போது குறியீட்டை மீண்டும் அனுப்பலாம்',
     'New password': 'புதிய கடவுச்சொல்',
     'Confirm new password': 'புதிய கடவுச்சொல்லை உறுதிசெய்',
     'Type it again': 'மீண்டும் தட்டச்சு செய்யுங்கள்',
@@ -931,6 +932,7 @@ window.SB_LANG_TA = {
     [/^Tailored for (.+)$/, '$1 பயிருக்கு ஏற்றது'],
     [/^([\d.]+ ★) \((\d+)\+ Calls$/, '$1 ($2+ அழைப்புகள்'],
     [/^Resend in (\d+)s$/, '$1 வினாடியில் மீண்டும் அனுப்பலாம்'],
+    [/^Try again in (\d+) min$/, '$1 நிமிடத்தில் மீண்டும் முயலவும்'],
     [/^Please wait (\d+) seconds before requesting another code$/, 'மற்றொரு குறியீடு கேட்க $1 வினாடிகள் காத்திருக்கவும்'],
     // Hints read "Enter all 10 digits (3/10)."; the closing ")." is kept as written.
     [/^Enter all 10 digits \((\d+)\/10$/, '10 இலக்கங்களையும் உள்ளிடுங்கள் ($1/10'],

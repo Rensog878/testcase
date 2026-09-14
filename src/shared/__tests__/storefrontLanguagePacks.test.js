@@ -61,7 +61,17 @@ test('patterns fill in the numbers in every language', () => {
     const find = source => pack.patterns.find(([pattern]) => pattern.source === source);
     const [resend, resendText] = find('^Resend in (\\d+)s$');
     assert.match('Resend in 28s'.replace(resend, resendText), /28/, code);
+    const [minutes, minutesText] = find('^Try again in (\\d+) min$');
+    assert.match('Try again in 12 min'.replace(minutes, minutesText), /12/, code);
     const [digits, digitsText] = find('^Enter all 10 digits \\((\\d+)\\/10$');
     assert.match('Enter all 10 digits (3/10'.replace(digits, digitsText), /\(3\/10$/, code);
+  }
+});
+
+// Read out to screen readers by the OTP forms (src/shared/useResendCountdown.js).
+test('the OTP resend announcements are translated in every language', () => {
+  for (const [code, pack] of Object.entries(packs)) {
+    assert.ok(pack.text['Code sent on WhatsApp'], code);
+    assert.ok(pack.text['You can resend the code now'], code);
   }
 });

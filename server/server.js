@@ -71,10 +71,21 @@ const OTP_EXPIRY_MS = 5 * 60 * 1000;
 // interval is a mechanical, bot-like pattern; varying it per user also spreads
 // out retry traffic instead of bunching it on the same beat.
 const OTP_RESEND_MIN_MS = 30 * 1000;
-const OTP_RESEND_MAX_MS = 90 * 1000;
+const OTP_RESEND_MAX_MS = 60 * 1000;
 
-function nextResendCooldownMs() {
-  return crypto.randomInt(OTP_RESEND_MIN_MS, OTP_RESEND_MAX_MS + 1);
+// Whole seconds, so the client's countdown (which shows whole seconds) ends
+// exactly when the server allows the resend.
+export function nextResendCooldownMs() {
+  return crypto.randomInt(OTP_RESEND_MIN_MS / 1000, OTP_RESEND_MAX_MS / 1000 + 1) * 1000;
+}
+
+// Seconds before this OTP record allows another send (0 = now). Only the wait
+// the server stored counts; nothing in the request can shorten it. Capped, so
+// a record saved under the old 90s limit holds no one longer than 60s.
+function resendWaitSeconds(record, now) {
+  if (!record?.lastSentAt) return 0;
+  const cooldownMs = Math.min(record.resendAfterMs ?? OTP_RESEND_MIN_MS, OTP_RESEND_MAX_MS);
+  return Math.max(0, Math.ceil((record.lastSentAt + cooldownMs - now) / 1000));
 }
 
 // ============================================================
@@ -299,10 +310,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
     // Resend protection. The wait was decided when the previous code was sent,
     // so each user is held for a different length of time.
-    const activeCooldownMs = existing?.resendAfterMs ?? OTP_RESEND_MIN_MS;
-
-    if (existing && existing.lastSentAt && now - existing.lastSentAt < activeCooldownMs) {
-      const waitSeconds = Math.ceil((activeCooldownMs - (now - existing.lastSentAt)) / 1000);
+    const waitSeconds = resendWaitSeconds(existing, now);
+    if (waitSeconds) {
       return res.status(429).json({
         success: false,
         message: `Please wait ${waitSeconds} seconds before requesting another OTP.`,
@@ -322,7 +331,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
     await db.kvSet(otpKey(phone), {
       otpHash: hashOtp(otp),
       expiresAt: now + OTP_EXPIRY_MS,
-      lastSentAt: now,
+      // Timed from when the message went out, not when the request came in:
+      // the client starts its countdown when this answer arrives.
+      lastSentAt: Date.now(),
       resendAfterMs,
       attempts: 0,
     }, OTP_RECORD_TTL_MS);
@@ -455,9 +466,8 @@ app.post('/api/auth/forgot-password/send-otp', async (req, res) => {
 
     const now = Date.now();
     const existing = await db.kvGet(resetOtpKey(phone));
-    const activeCooldownMs = existing?.resendAfterMs ?? OTP_RESEND_MIN_MS;
-    if (existing && existing.lastSentAt && now - existing.lastSentAt < activeCooldownMs) {
-      const waitSeconds = Math.ceil((activeCooldownMs - (now - existing.lastSentAt)) / 1000);
+    const waitSeconds = resendWaitSeconds(existing, now);
+    if (waitSeconds) {
       return res.status(429).json({
         success: false,
         message: `Please wait ${waitSeconds} seconds before requesting another code.`,
@@ -488,7 +498,8 @@ app.post('/api/auth/forgot-password/send-otp', async (req, res) => {
     await db.kvSet(resetOtpKey(phone), {
       otpHash,
       expiresAt: now + OTP_EXPIRY_MS,
-      lastSentAt: now,
+      // After the send, as for sign-up codes.
+      lastSentAt: Date.now(),
       resendAfterMs,
       attempts: 0,
     }, OTP_RECORD_TTL_MS);

@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { passwordChecks } from '../../utils/passwordRules'
+import { ResendAnnouncer, resendLabel, useResendCountdown } from '../../shared/useResendCountdown'
 import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
 import Modal from './Modal'
@@ -47,27 +48,6 @@ async function postJson(url, body) {
   const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   const data = await res.json().catch(() => ({}))
   return { res, data }
-}
-
-// A resend countdown: null before any code is sent, then the seconds left
-// (0 = the code can be sent again).
-function useCountdown() {
-  const [left, setLeft] = useState(null)
-  const timer = useRef(null)
-  const stop = () => clearInterval(timer.current)
-  const start = seconds => {
-    stop()
-    let remaining = Math.max(0, Math.ceil(Number(seconds) || 0))
-    setLeft(remaining)
-    if (!remaining) return
-    timer.current = setInterval(() => {
-      remaining -= 1
-      setLeft(remaining)
-      if (remaining <= 0) stop()
-    }, 1000)
-  }
-  useEffect(() => stop, [])
-  return [left, start, stop]
 }
 
 const Spinner = ({ label }) => <><i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {label}</>
@@ -117,7 +97,7 @@ function OtpCells({ value, focused }) {
 
 function ResendRow({ textId, buttonId, left, sending, sendingLabel, onResend }) {
   const waiting = left === null || left > 0
-  let label = left > 0 ? `Resend in ${left}s` : 'Resend code'
+  let label = resendLabel(left)
   if (sending && sendingLabel) label = sendingLabel
   return (
     <p className="auth-resend">
@@ -143,8 +123,8 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const [otpPhone, setOtpPhone] = useState('')
   const [forgotStep, setForgotStep] = useState('phone')
   const [forgotPhone, setForgotPhoneState] = useState('') // the number the reset code went to
-  const [signupLeft, startSignupCountdown, stopSignupCountdown] = useCountdown()
-  const [forgotLeft, startForgotCountdown, stopForgotCountdown] = useCountdown()
+  const signupResend = useResendCountdown()
+  const forgotResend = useResendCountdown()
 
   const fieldsRef = useRef(fields)
   const rulesRef = useRef(rules)
@@ -406,22 +386,15 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     return firstBad
   }
 
-  const startSignupTimer = seconds => {
-    // The wait is decided by the server; 30s only if it didn't say.
-    const said = seconds !== undefined && seconds !== null && Number.isFinite(Number(seconds))
-    startSignupCountdown(said ? Number(seconds) : 30)
-  }
-
   const clearOtp = id => {
     setField(id, '')
     clearField(id)
   }
 
-  const showOtpForm = (phone, resendAfter) => {
+  const showOtpForm = phone => {
     setOtpPhone(formatMobile(phone))
     clearOtp('storefrontOtpInput')
     showView('otp', { focus: 'storefrontOtpInput' })
-    startSignupTimer(resendAfter)
   }
 
   // Empties the sign-up form once the account exists, so the next person on
@@ -470,6 +443,15 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     setBusy('register')
     try {
       const { res, data } = await postJson('/api/auth/send-otp', { name, phone })
+      // A code went out moments ago, or the hourly limit is reached: on to the
+      // code screen, counting down the wait the server gives.
+      if (res.status === 429) {
+        pending.current = details
+        showOtpForm(phone)
+        signupResend.start(data.retryAfter, { sent: false })
+        showToast(data.message || 'Please wait before requesting another code.', 'warning')
+        return
+      }
       if (!res.ok || !data.success) {
         // The number already has an account: straight to Sign In with the
         // number filled in, rather than leaving them stuck on an error.
@@ -484,7 +466,8 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         return
       }
       pending.current = details
-      showOtpForm(phone, data.resendAfter)
+      showOtpForm(phone)
+      signupResend.start(data.resendAfter)
     } catch (err) {
       console.error('Send OTP error:', err)
       showToast('Could not reach the OTP server. Please try again.', 'error')
@@ -535,7 +518,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         return
       }
 
-      stopSignupCountdown()
+      signupResend.clear()
       pending.current = null
       resetRegisterForm()
       // The farmer signs in with the new password; there is no automatic sign-in.
@@ -557,31 +540,30 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
       return
     }
     const { name, phone } = pending.current
-    stopSignupCountdown()
     setBusy('resend')
     try {
       const { res, data } = await postJson('/api/auth/send-otp', { name, phone })
       if (!res.ok || !data.success) {
         showToast(data.message || 'Failed to resend OTP.', 'error')
-        // Asked too soon: wait out what the server says; otherwise allow a retry now.
-        startSignupTimer(data.retryAfter || 0)
+        // Asked too soon: wait out what the server says. Any other failure sent
+        // nothing, so the button stays ready for a retry.
+        if (res.status === 429) signupResend.start(data.retryAfter, { sent: false })
         return
       }
       showToast('A new code has been sent to your WhatsApp.', 'success')
       clearOtp('storefrontOtpInput')
       focusNext.current = { id: 'storefrontOtpInput' }
-      startSignupTimer(data.resendAfter)
+      signupResend.start(data.resendAfter)
     } catch (err) {
       console.error('Resend OTP error:', err)
       showToast('Could not reach the OTP server.', 'error')
-      startSignupTimer(0)
     } finally {
       setBusy('')
     }
   }
 
   const changeNumber = () => {
-    stopSignupCountdown()
+    signupResend.clear()
     pending.current = null
     clearOtp('storefrontOtpInput')
     showView('register', { step: 1, focus: 'regPhone', select: true })
@@ -590,7 +572,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   // ---- forgot password: WhatsApp code to the registered number ----
   const resetForgotForm = () => {
     setForgotPhone('')
-    stopForgotCountdown()
+    forgotResend.clear()
     setFieldsTo(FORGOT_DEFAULTS)
     clearFields(Object.keys(FORGOT_DEFAULTS))
     setRules(current => without(current, ['forgotNewPassword']))
@@ -627,10 +609,10 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     try {
       const { res, data } = await postJson('/api/auth/forgot-password/send-otp', { phone })
       // A code was sent moments ago: go straight to entering it.
-      if (res.status === 429 && data.retryAfter) {
+      if (res.status === 429) {
         setForgotPhone(phone)
         setForgotStep('reset')
-        startForgotCountdown(data.retryAfter)
+        forgotResend.start(data.retryAfter, { sent: false })
         showToast(data.message, 'warning')
         return
       }
@@ -640,7 +622,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
       }
       setForgotPhone(phone)
       setForgotStep('reset')
-      startForgotCountdown(data.resendAfter || 30)
+      forgotResend.start(data.resendAfter)
       showToast(data.message || 'Reset code sent on WhatsApp.', 'success', 6000)
       focusNext.current = { id: 'forgotOtp' }
     } catch {
@@ -722,6 +704,9 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   return (
     <Modal id="authModal" state={state} cardClassName="modal-card auth-card" cardProps={{ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId }}>
       <div id="authLoggedOutView" className="auth-shell" data-view={view} data-step={registerStep} style={{ display: user ? 'none' : 'block' }}>
+        {/* Outside the forms, so they are in the page before anything is said. */}
+        <ResendAnnouncer announcement={signupResend.announcement} />
+        <ResendAnnouncer announcement={forgotResend.announcement} />
         {/* The store brand, as in the header. Not a link, so it takes no Tab stop. */}
         <div className="auth-brand">
           <span className="auth-brand-icon" aria-hidden="true"><i className="fa-solid fa-leaf"></i></span>
@@ -922,7 +907,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
             <FieldHint id="storefrontOtpInput" hint={hints.storefrontOtpInput} />
           </div>
 
-          <ResendRow textId="storefrontOtpTimer" buttonId="storefrontOtpResendBtn" left={signupLeft} sending={busy === 'resend'} sendingLabel="Sending..." onResend={resendOtp} />
+          <ResendRow textId="storefrontOtpTimer" buttonId="storefrontOtpResendBtn" left={signupResend.secondsLeft} sending={busy === 'resend'} sendingLabel="Sending..." onResend={resendOtp} />
 
           <div className="auth-actions">
             <button type="submit" className="auth-cta" id="storefrontOtpVerifyBtn" disabled={busy === 'verify'}>
@@ -971,7 +956,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
               </div>
               <FieldHint id="forgotOtp" hint={hints.forgotOtp} />
             </div>
-            <ResendRow textId="forgotResendText" buttonId="forgotResendBtn" left={forgotLeft} sending={busy === 'forgotResend'} onResend={() => sendForgotCode(true)} />
+            <ResendRow textId="forgotResendText" buttonId="forgotResendBtn" left={forgotResend.secondsLeft} sending={busy === 'forgotResend'} onResend={() => sendForgotCode(true)} />
 
             <div className="auth-field">
               <label className="auth-label" htmlFor="forgotNewPassword">New password</label>

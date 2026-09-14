@@ -3287,6 +3287,8 @@ window.switchAuthTab = switchAuthTab;
 
 let forgotPhone = '';
 let forgotResendTimer = null;
+let forgotResendDeadline = 0;
+let forgotResendShown = null;
 
 function forgotEls() {
   return {
@@ -3319,7 +3321,7 @@ function showForgotStep(step) {
 function resetForgotForm() {
   const els = forgotEls();
   forgotPhone = '';
-  clearInterval(forgotResendTimer);
+  stopForgotResendCountdown();
   ['phone', 'otp', 'password', 'confirm'].forEach(key => {
     if (els[key]) { els[key].value = ''; clearField(els[key]); }
   });
@@ -3353,26 +3355,37 @@ window.forgotChangeNumber = function() {
   forgotEls().phone?.focus();
 };
 
-function startForgotResendCountdown(seconds) {
-  const els = forgotEls();
+// Counts to a deadline, not by ticks: timers slow down or stop in a background
+// tab or on a locked phone, and a tick count would then show too much time
+// left. Same rules as src/shared/useResendCountdown.js.
+function stopForgotResendCountdown() {
   clearInterval(forgotResendTimer);
-  let left = Math.max(0, Math.round(Number(seconds) || 0));
-  const tick = () => {
-    if (!els.resendBtn) return;
-    if (left <= 0) {
-      clearInterval(forgotResendTimer);
-      els.resendBtn.disabled = false;
-      els.resendBtn.textContent = 'Resend code';
-      els.resendText.textContent = "Didn't get it?";
-      return;
-    }
-    els.resendBtn.disabled = true;
-    els.resendBtn.textContent = `Resend in ${left}s`;
-    els.resendText.textContent = 'Code sent on WhatsApp.';
-    left -= 1;
-  };
-  tick();
-  forgotResendTimer = setInterval(tick, 1000);
+  document.removeEventListener('visibilitychange', renderForgotResendCountdown);
+}
+
+function renderForgotResendCountdown() {
+  const left = Math.max(0, Math.ceil((forgotResendDeadline - Date.now()) / 1000));
+  if (left === 0) stopForgotResendCountdown();
+  const els = forgotEls();
+  if (!els.resendBtn || left === forgotResendShown) return;
+  forgotResendShown = left;
+  els.resendBtn.disabled = left > 0;
+  // An hourly limit is shown in minutes.
+  els.resendBtn.textContent = left > 60 ? `Try again in ${Math.ceil(left / 60)} min`
+    : left > 0 ? `Resend in ${left}s` : 'Resend code';
+  els.resendText.textContent = left > 0 ? 'Code sent on WhatsApp.' : "Didn't get it?";
+}
+
+function startForgotResendCountdown(seconds) {
+  stopForgotResendCountdown();
+  // No number from the server: its longest wait (60s), never a shorter one.
+  const wait = Number.isFinite(seconds) ? Math.min(3600, Math.max(1, Math.ceil(seconds))) : 60;
+  forgotResendDeadline = Date.now() + wait * 1000;
+  forgotResendShown = null;
+  forgotResendTimer = setInterval(renderForgotResendCountdown, 250);
+  // Back in the tab: the right number straight away.
+  document.addEventListener('visibilitychange', renderForgotResendCountdown);
+  renderForgotResendCountdown();
 }
 
 window.sendForgotPasswordCode = async function(isResend = false) {
@@ -3403,7 +3416,7 @@ window.sendForgotPasswordCode = async function(isResend = false) {
     const data = await res.json().catch(() => ({}));
 
     // A code was sent moments ago: go straight to entering it.
-    if (res.status === 429 && data.retryAfter) {
+    if (res.status === 429) {
       forgotPhone = phone;
       showForgotStep('reset');
       startForgotResendCountdown(data.retryAfter);
@@ -3418,7 +3431,7 @@ window.sendForgotPasswordCode = async function(isResend = false) {
 
     forgotPhone = phone;
     showForgotStep('reset');
-    startForgotResendCountdown(data.resendAfter || 30);
+    startForgotResendCountdown(data.resendAfter);
     showToast(data.message || 'Reset code sent on WhatsApp.', 'success', 6000);
     els.otp?.focus();
   } catch (err) {

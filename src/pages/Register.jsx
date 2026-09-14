@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { toast } from 'sonner'
 import PasswordChecklist from '../components/PasswordChecklist'
 import { isPasswordValid, passwordPlaceholder } from '../utils/passwordRules'
+import { ResendAnnouncer, resendLabel, useResendCountdown } from '../shared/useResendCountdown'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -11,8 +12,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [stage, setStage] = useState('form') // 'form' | 'otp'
   const [otp, setOtp] = useState('')
-  const [resendSeconds, setResendSeconds] = useState(30)
-  const timerRef = useRef(null)
+  const resend = useResendCountdown()
   const [form, setForm] = useState({
     name: '', email: '', phone: '', password: '', confirmPassword: '',
     crop: 'Paddy / Rice', acreage: 3, village: '', district: '', state: 'Tamil Nadu'
@@ -47,25 +47,6 @@ export default function Register() {
     ? <small style={{ display: 'block', marginTop: 4, color: '#dc2626', fontSize: '0.76rem', fontWeight: 600 }}>{message}</small>
     : null
 
-  useEffect(() => {
-    return () => clearInterval(timerRef.current)
-  }, [])
-
-  // The wait comes from the server and varies per request.
-  const startResendTimer = (seconds) => {
-    clearInterval(timerRef.current)
-    setResendSeconds(Number(seconds) > 0 ? Math.ceil(Number(seconds)) : 30)
-    timerRef.current = setInterval(() => {
-      setResendSeconds(s => {
-        if (s <= 1) {
-          clearInterval(timerRef.current)
-          return 0
-        }
-        return s - 1
-      })
-    }, 1000)
-  }
-
   const handleSendOtp = async (e) => {
     e.preventDefault()
     if (!isPasswordValid(form.password, { phone: form.phone.trim() })) { toast.error('Your password does not meet all the rules listed under it'); return }
@@ -77,13 +58,19 @@ export default function Register() {
       const data = await sendRegistrationOtp(form.name, form.phone.trim())
       toast.success('OTP sent to your WhatsApp number')
       setStage('otp')
-      startResendTimer(data?.resendAfter)
+      resend.start(data?.resendAfter)
     } catch (err) {
       // Already has an account — send them to sign in with the number carried over.
       if (err?.response?.data?.alreadyRegistered) {
         toast.info('This number is already registered. Please sign in.')
         navigate('/#login')
         return
+      }
+      // A code went out moments ago, or the hourly limit is reached: on to the
+      // code, counting down the wait the server gives.
+      if (err?.response?.status === 429) {
+        setStage('otp')
+        resend.start(err.response.data?.retryAfter, { sent: false })
       }
       toast.error(err?.response?.data?.message || 'Failed to send OTP')
     } finally {
@@ -92,13 +79,15 @@ export default function Register() {
   }
 
   const handleResendOtp = async () => {
-    if (resendSeconds > 0) return
+    if (resend.waiting) return
     setLoading(true)
     try {
       const data = await sendRegistrationOtp(form.name, form.phone.trim())
       toast.success('New OTP sent')
-      startResendTimer(data?.resendAfter)
+      resend.start(data?.resendAfter)
     } catch (err) {
+      // Asked too soon: count down what the server says is left.
+      if (err?.response?.status === 429) resend.start(err.response.data?.retryAfter, { sent: false })
       toast.error(err?.response?.data?.message || 'Failed to resend OTP')
     } finally {
       setLoading(false)
@@ -123,7 +112,7 @@ export default function Register() {
   }
 
   const changeNumber = () => {
-    clearInterval(timerRef.current)
+    resend.clear()
     setOtp('')
     setStage('form')
   }
@@ -138,6 +127,8 @@ export default function Register() {
             <div className="tagline">Farmer Self-Registration</div>
           </div>
         </div>
+
+        <ResendAnnouncer announcement={resend.announcement} />
 
         {stage === 'form' ? (
           <>
@@ -249,11 +240,11 @@ export default function Register() {
               <button
                 type="button"
                 className="btn btn-secondary btn-full"
-                disabled={resendSeconds > 0 || loading}
+                disabled={resend.waiting || loading}
                 onClick={handleResendOtp}
                 style={{ marginTop: '10px' }}
               >
-                {resendSeconds > 0 ? `Resend OTP in ${String(Math.floor(resendSeconds / 60)).padStart(2, '0')}:${String(resendSeconds % 60).padStart(2, '0')}` : '🔄 Resend OTP'}
+                {resendLabel(resend.secondsLeft)}
               </button>
 
               <button

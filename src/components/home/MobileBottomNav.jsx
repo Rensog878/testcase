@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import TransitionLink from './TransitionLink'
@@ -28,6 +28,17 @@ const CROP_CHIPS = [
 ]
 
 const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
+
+// The bar while scrolling: it steps aside as the shopper reads down and comes
+// back as soon as they scroll up. At the end of a list - the page, or either
+// Categories column - it returns as a slim icon-only dock, so the last items
+// sit clear of it. Distances in px.
+const BAR_END_ZONE = 6
+const BAR_TOP_ZONE = 24
+const BAR_HIDE_AFTER = 12
+const BAR_SHOW_AFTER = 8
+// Scrolling inside these never moves the bar.
+const BAR_IGNORE = '.mobile-menu-sheet, [role="dialog"], [aria-modal="true"]'
 
 const readUser = () => {
   try {
@@ -67,6 +78,105 @@ export default function MobileBottomNav() {
   useEffect(() => {
     setIsMenuOpen(false)
   }, [location.key])
+
+  // 'full' | 'hidden' | 'compact' - see BAR_END_ZONE above.
+  const [barMode, setBarMode] = useState('full')
+  const barModeRef = useRef('full')
+  const menuOpenRef = useRef(isMenuOpen)
+  menuOpenRef.current = isMenuOpen
+  // The last thing the shopper touched, wheeled over or typed in.
+  const lastInputRef = useRef(null)
+
+  const showBar = useCallback(mode => {
+    if (barModeRef.current === mode) return
+    barModeRef.current = mode
+    setBarMode(mode)
+  }, [])
+
+  // A new page, or opening or closing the menu, brings the full bar back and
+  // forgets what was last touched.
+  useEffect(() => {
+    lastInputRef.current = null
+    showBar('full')
+  }, [path, isMenuOpen, showBar])
+
+  // So does a popup opening over the page (the storefront marks the body).
+  useEffect(() => {
+    const body = document.body
+    const observer = new MutationObserver(() => {
+      if (body.classList.contains('overlay-open')) showBar('full')
+    })
+    observer.observe(body, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [showBar])
+
+  // Scroll events don't bubble, so one capturing listener hears the page and
+  // every scrolling panel in it (the Categories rail and pane scroll on their
+  // own). Each scroller's last position is kept, so the two columns are judged
+  // separately, and only the one the shopper is moving decides: a scroll
+  // counts only from the page or panel holding the last thing touched. The
+  // Categories rail re-centres itself as the pane scrolls, and pages jump to a
+  // section on arrival - neither of those moves the bar.
+  useEffect(() => {
+    const lastTop = new WeakMap()
+    let travel = 0
+    let source = null
+    let frame = 0
+
+    const measure = () => {
+      frame = 0
+      const target = source
+      source = null
+      if (!target || menuOpenRef.current || document.body.classList.contains('overlay-open')) return
+      const isPage = target === document || target === document.documentElement || target === document.body
+      const el = isPage ? document.scrollingElement || document.documentElement : target
+      // Small panels (a carousel, a chat window) and popups don't count.
+      if (!isPage && (el.closest(BAR_IGNORE) || el.clientHeight < window.innerHeight * 0.4)) return
+      const end = el.scrollHeight - (isPage ? window.innerHeight : el.clientHeight)
+      if (end <= BAR_END_ZONE) return
+      // Clamped, so iOS rubber-banding past either end reads as no movement.
+      const top = Math.min(Math.max(el.scrollTop, 0), end)
+      const delta = top - (lastTop.get(el) ?? top)
+      lastTop.set(el, top)
+      const input = lastInputRef.current
+      if (!input || !el.contains(input)) return
+      if (end - top <= BAR_END_ZONE) {
+        travel = 0
+        showBar('compact')
+        return
+      }
+      if (top <= BAR_TOP_ZONE) {
+        travel = 0
+        showBar('full')
+        return
+      }
+      if (!delta) return
+      // Only steady travel in one direction counts, not a jittery finger.
+      if ((delta > 0) !== (travel > 0)) travel = 0
+      travel += delta
+      if (travel > BAR_HIDE_AFTER) showBar('hidden')
+      else if (travel < -BAR_SHOW_AFTER) showBar('full')
+    }
+
+    const onScroll = event => {
+      source = event.target
+      if (!frame) frame = requestAnimationFrame(measure)
+    }
+    const onPointer = event => { lastInputRef.current = event.target }
+    const onKey = () => { lastInputRef.current = document.activeElement || document.body }
+    const listen = { capture: true, passive: true }
+    document.addEventListener('scroll', onScroll, listen)
+    document.addEventListener('touchstart', onPointer, listen)
+    document.addEventListener('wheel', onPointer, listen)
+    document.addEventListener('keydown', onKey, listen)
+    return () => {
+      document.removeEventListener('scroll', onScroll, listen)
+      document.removeEventListener('touchstart', onPointer, listen)
+      document.removeEventListener('wheel', onPointer, listen)
+      document.removeEventListener('keydown', onKey, listen)
+      cancelAnimationFrame(frame)
+    }
+  }, [showBar])
 
   // Basket count: the page that owns the basket announces changes (storefront,
   // checkout); otherwise the server basket, or this browser's guest basket.
@@ -303,8 +413,14 @@ export default function MobileBottomNav() {
       </aside>
 
       {/* MOBILE BOTTOM NAVIGATION BAR: Home | Shop | AI Doctor | Blogs | Menu.
-          While the menu is open only the Menu tab (an X) is highlighted. */}
-      <nav className="sathya-mobile-bottom-nav bighaat-mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile Navigation">
+          While the menu is open only the Menu tab (an X) is highlighted.
+          Keyboard focus landing on a tucked-away bar brings it back. */}
+      <nav
+        className={`sathya-mobile-bottom-nav bighaat-mobile-bottom-nav${barMode === 'full' ? '' : ` is-${barMode}`}`}
+        id="mobileBottomNav"
+        aria-label="Mobile Navigation"
+        onFocus={() => showBar('full')}
+      >
         <TransitionLink to="/" onClick={handleHomeClick} className={`mobile-nav-link ${onHome && !isMenuOpen ? 'active' : ''}`} aria-current={onHome ? 'page' : undefined}>
           <i className="fa-solid fa-house" aria-hidden="true"></i>
           <span>Home</span>

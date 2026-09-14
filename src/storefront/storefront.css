@@ -1023,12 +1023,17 @@ body.sb-home-active .sb-home .card-btn-row {
   margin-top: auto;
 }
 
-/* SLIDE-OUT CART DRAWER & BACKDROP OVERLAY */
+/* BASKET: A FLOATING CARD OVER A DIMMED BACKDROP
+   Centred, rounded on every corner, as tall as its items need up to the
+   screen's height (then the item list scrolls). Fades and lifts in. */
 body.sb-home-active .sb-home .cart-drawer-overlay {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -1044,30 +1049,30 @@ body.sb-home-active .sb-home .cart-drawer-overlay.active {
   pointer-events: auto;
 }
 body.sb-home-active .sb-home .cart-drawer-overlay.active .cart-drawer {
-  transform: translateX(0);
+  transform: none;
+  opacity: 1;
   visibility: visible;
 }
 body.sb-home-active .sb-home .cart-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 400px;
-  max-width: 90vw;
-  height: 100vh;
+  position: relative;
+  box-sizing: border-box;
+  width: 440px;
+  max-width: 100%;
+  max-height: min(720px, 100%);
   background: #ffffff;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
   z-index: 2500;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
+  transform: translateY(16px) scale(0.97);
+  opacity: 0;
   visibility: hidden;
-  transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.28s ease;
-  will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.28s ease, visibility 0.28s ease;
+  will-change: transform, opacity;
   pointer-events: auto;
-}
-body.sb-home-active .sb-home .cart-drawer.active {
-  transform: translateX(0);
-  visibility: visible;
 }
 body.sb-home-active .sb-home .cart-close-btn {
   background: transparent;
@@ -3894,10 +3899,6 @@ body.sb-home-active .sb-home .experts-grid {
     align-items: flex-start;
     gap: 8px;
   }
-  body.sb-home-active .sb-home .cart-drawer {
-    width: 100%;
-    max-width: 100%;
-  }
 }
 
 /* ------------------------------------------------------------
@@ -4187,14 +4188,15 @@ body.sb-home-active .sb-home .experts-grid {
     scroll-margin-top: 124px;
   }
 
-  /* Cart drawer opens above the bottom bar and fits the visible viewport,
+  /* The basket card opens above the bottom bar and fits the visible viewport,
      so its checkout button is never hidden behind the bar or toolbar. */
   body.sb-home-active .sb-home .cart-drawer-overlay {
     z-index: 10010;
+    padding-left: 12px;
+    padding-right: 12px;
   }
   body.sb-home-active .sb-home .cart-drawer {
-    height: 100vh;
-    height: 100dvh;
+    max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
 
   /* ---- Bottom bar ---- */
@@ -4285,6 +4287,17 @@ body.sb-home-active .sb-home .experts-grid {
     flex-direction: column;
     gap: 10px;
     text-align: center;
+    /* At the end of the page the last line sits above the chat button
+       (46px, 90px up - "Floating Buttons" below), not under it. */
+    padding-bottom: 40px;
+  }
+  /* The groups' last divider runs straight into the bottom row's. */
+  body.sb-home-active .sb-home .footer-grid {
+    margin-bottom: 0;
+  }
+  /* One sentence of description on phones, as on the store pages. */
+  body.sb-home-active .sb-home .footer-brand-more {
+    display: none;
   }
   /* The body's room for the bottom bar (88px, "sb-home-active" padding
      below) showed the light page colour under the dark footer. A shadow the
@@ -4514,7 +4527,7 @@ body.sb-home-active .sb-home .cart-item-remove:active {
 
 body.sb-home-active .sb-home .cart-drawer .cart-footer {
   flex: 0 0 auto;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px 14px;
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
   box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
@@ -4664,17 +4677,11 @@ body.sb-home-active .sb-home .upload-dropzone small {
 }
 
 @media (max-width: 768px) {
-  /* Full-width drawer: the blurred backdrop behind it is never visible but is
-     expensive to paint on phones. */
+  /* Behind the basket card: dimmed only - a blur is expensive to paint on
+     phones. */
   body.sb-home-active .sb-home .cart-drawer-overlay {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-  }
-  body.sb-home-active .sb-home .cart-drawer {
-    box-shadow: none;
-  }
-  body.sb-home-active .sb-home .cart-header {
-    padding-top: calc(14px + env(safe-area-inset-top, 0px));
   }
 
   /* Only pages with the bottom bar need space for it (checkout and order

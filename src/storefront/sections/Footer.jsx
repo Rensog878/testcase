@@ -11,11 +11,15 @@ export default memo(function Footer({ t }) {
   return (
     <footer style={{ background: 'var(--primary-dark)', color: '#ffffff', padding: '50px 0 20px' }}>
       <div className="container">
-        <div className="footer-grid" style={{ gap: '30px', marginBottom: '40px' }}>
+        {/* The grid's margin below is in storefront.css, so phones can drop it. */}
+        <div className="footer-grid" style={{ gap: '30px' }}>
           <div>
             <div className="logo-text" style={{ color: '#ffffff', fontSize: '1.6rem', marginBottom: '10px' }}>SATHYA <span style={{ color: 'var(--accent-gold)' }}>BIO</span></div>
+            {/* Two sentences, each its own key in the language packs; phones
+                show only the first. */}
             <p style={{ fontSize: '0.85rem', color: '#d1fae5', lineHeight: 1.6, marginBottom: '16px' }}>
-              Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers. Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.
+              <span>Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.</span>{' '}
+              <span className="footer-brand-more">Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.</span>
             </p>
             <div style={{ display: 'flex', gap: '12px', fontSize: '1.2rem' }}>
               <a href="#" style={{ color: 'white' }} aria-label="WhatsApp"><i className="fa-brands fa-whatsapp"></i></a>

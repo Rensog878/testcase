@@ -233,6 +233,7 @@ window.SB_LANG_TE = {
 
     // Footer
     "Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers. Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India": 'సత్య బయో అధిక సామర్థ్యం గల జీవ పురుగుమందులు, పంట రక్షణ మందులు, నేల ఆరోగ్య ఎరువుల కోసం భారతదేశపు ప్రముఖ డిజిటల్ వేదిక. భారతదేశమంతటా 15,000+ రైతులకు 100% జీవ ధృవీకరణ పొందిన ఉత్పత్తులను వేగంగా పంపుతాం',
+    "Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers": 'సత్య బయో అధిక సామర్థ్యం గల జీవ పురుగుమందులు, పంట రక్షణ మందులు, నేల ఆరోగ్య ఎరువుల కోసం భారతదేశపు ప్రముఖ డిజిటల్ వేదిక',
     'Paddy / Rice Care': 'వరి సంరక్షణ',
     'Cotton Protection': 'పత్తి రక్షణ',
     'Tomato & Vegetables': 'టమాటా, కూరగాయలు',

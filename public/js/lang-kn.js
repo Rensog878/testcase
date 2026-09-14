@@ -233,6 +233,7 @@ window.SB_LANG_KN = {
 
     // Footer
     "Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers. Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India": 'ಸತ್ಯ ಬಯೋ ಪರಿಣಾಮಕಾರಿ ಜೈವಿಕ ಕೀಟನಾಶಕಗಳು, ಬೆಳೆ ರಕ್ಷಣಾ ಔಷಧಗಳು ಮತ್ತು ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಗೊಬ್ಬರಗಳ ಭಾರತದ ಪ್ರಮುಖ ಡಿಜಿಟಲ್ ವೇದಿಕೆ. ಭಾರತದಾದ್ಯಂತ 15,000+ ರೈತರಿಗೆ 100% ಜೈವಿಕ ಪ್ರಮಾಣಿತ ಉತ್ಪನ್ನಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಕಳುಹಿಸುತ್ತೇವೆ',
+    "Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers": 'ಸತ್ಯ ಬಯೋ ಪರಿಣಾಮಕಾರಿ ಜೈವಿಕ ಕೀಟನಾಶಕಗಳು, ಬೆಳೆ ರಕ್ಷಣಾ ಔಷಧಗಳು ಮತ್ತು ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಗೊಬ್ಬರಗಳ ಭಾರತದ ಪ್ರಮುಖ ಡಿಜಿಟಲ್ ವೇದಿಕೆ',
     'Paddy / Rice Care': 'ಭತ್ತದ ಆರೈಕೆ',
     'Cotton Protection': 'ಹತ್ತಿ ರಕ್ಷಣೆ',
     'Tomato & Vegetables': 'ಟೊಮೆಟೊ ಮತ್ತು ತರಕಾರಿಗಳು',

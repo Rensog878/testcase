@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { useStore } from '../StoreContext'
 import { productImage, rupees, useFallbackImage } from '../data'
 
-// The basket drawer. Checkout itself is the /checkout page.
+// The basket, a floating card over the page. Checkout itself is the /checkout page.
 export default memo(function CartDrawer({ open, cart, count, subtotal, gst, total }) {
   const { setCartOpen, updateQty, removeFromCart, goToCheckout, scrollToCatalog } = useStore()
 

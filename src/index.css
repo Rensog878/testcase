@@ -5234,26 +5234,33 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .card-size-selector-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 10px;
   max-width: 100%;
   font-size: 11px;
+  font-weight: 700;
   color: #475569;
 }
 
 /* min-width: 0 - a <select> won't shrink below its longest option by
    default, which can push the card (and its grid column) wider than the
-   page, same bug already fixed once on .catalog-sort-select. */
+   page, same bug already fixed once on .catalog-sort-select.
+   Padding/radius sized for the 44px min-height and 16px font every
+   <select> gets on touch devices (index.css, "Touch targets and iOS zoom
+   safety") - the old 4px/6px/11px values were for the pointer:fine size
+   only, so on phones this stretched into an oversized box next to the
+   small "Size" label. */
 .card-size-dropdown {
   flex: 1;
   min-width: 0;
   max-width: 100%;
   text-overflow: ellipsis;
-  padding: 4px 6px;
+  padding: 6px 10px;
   font-size: 11px;
   font-weight: 500;
+  line-height: 1.2;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #f8fafc;
   color: #1e293b;
   cursor: pointer;

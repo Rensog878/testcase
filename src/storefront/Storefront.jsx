@@ -293,11 +293,13 @@ export default function Storefront() {
 
   // Links into the page: #scan, a section id, and ?category= / ?crop= from
   // the shared Menu sheet. #login, #account and the checkout steps belong to
-  // the shared popups (hooks/useCheckout.js).
-  const handledLocation = useRef(null)
+  // the shared popups (hooks/useCheckout.js). Each history entry is handled
+  // once: closing a popup goes Back onto the entry before it (the sign-in
+  // card, the basket), and a /#scan there must not open the scanner again.
+  const handledLocations = useRef(new Set())
   useEffect(() => {
-    if (handledLocation.current === location.key) return
-    handledLocation.current = location.key
+    if (handledLocations.current.has(location.key)) return
+    handledLocations.current.add(location.key)
 
     const params = new URLSearchParams(location.search)
     const category = params.get('category')

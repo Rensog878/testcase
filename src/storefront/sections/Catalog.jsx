@@ -107,6 +107,7 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
   const activeFilterCount = [filters.crop !== 'all', filters.disease !== 'all', filters.category !== 'All', searchQuery !== ''].filter(Boolean).length
   const cropOptions = catalogOptions?.crops || CROPS
   const categoryOptions = catalogOptions?.categories || CATEGORIES
+  const diseaseOptions = catalogOptions?.diseases || DISEASES
 
   return (
     <section className="section" id="catalog">
@@ -151,7 +152,7 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
             <div className="filter-group">
               <label className="filter-label" htmlFor="diseaseFilter"><i className="fa-solid fa-virus"></i> <span data-i18n="filter_disease">{t('filter_disease')}</span></label>
               <select className="filter-select" id="diseaseFilter" value={filters.disease} onChange={e => setFilter('disease', e.target.value)}>
-                {DISEASES.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {diseaseOptions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </div>
 

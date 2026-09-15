@@ -1,6 +1,8 @@
 // Storefront catalogue data.
 // Products are loaded dynamically from MongoDB via /api/products.
 
+import { PESTS_AND_DISEASES } from '../data/allProductsData'
+
 export const CROPS = [
   { id: 'all', name: 'All Crops', icon: 'fa-wheat-awn' },
   { id: 'Paddy/Rice', name: 'Paddy / Rice', icon: 'fa-seedling' },
@@ -14,17 +16,12 @@ export const CROPS = [
   { id: 'Potato', name: 'Potato', icon: 'fa-circle-dot' },
 ]
 
+// Sourced from the single canonical taxonomy in src/data/allProductsData.js
+// so the homepage catalog dropdown and the /products page "Shop by Pest &
+// Disease" tiles can never drift apart again.
 export const DISEASES = [
   { id: 'all', name: 'All Diseases & Pests' },
-  { id: 'Blast', name: 'Rice Blast & Sheath Blight' },
-  { id: 'Blight', name: 'Early / Late Blight' },
-  { id: 'Rust', name: 'Leaf Rust & Stripe Rust' },
-  { id: 'Aphids', name: 'Aphids & Jassids' },
-  { id: 'Whitefly', name: 'Whitefly & Thrips' },
-  { id: 'Downy Mildew', name: 'Downy & Powdery Mildew' },
-  { id: 'Caterpillars', name: 'Fruit Borer & Caterpillars' },
-  { id: 'Stem Borer', name: 'Stem & Pink Borer' },
-  { id: 'Weeds', name: 'Broadleaf & Grass Weeds' },
+  ...PESTS_AND_DISEASES.map(pest => ({ id: pest.matchValue, name: pest.name }))
 ]
 
 export const CATEGORIES = ['All', 'Fungicide', 'Insecticide', 'Bio-Stimulant', 'Herbicide', 'Nematicide']
@@ -51,6 +48,9 @@ export function useFallbackImage(event) {
 // Empty array fallback — single source of truth from MongoDB.
 export const PESTICIDES = []
 
+// `keyword` is matched against a live product's `diseases` tags
+// (PhotoScannerModal.jsx -> findRemedyProduct) to recommend a real, in-stock
+// product — it is not itself a product id.
 export const SAMPLE_DISEASE_DIAGNOSES = [
   {
     keyword: 'blast',
@@ -59,7 +59,6 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     confidence: '98.2%',
     symptoms: 'Spindle-shaped lesions with greyish center and dark brown margin on leaves.',
     recommendedProduct: 'Sathya Bio BlastShield 75 WP (120g/acre)',
-    productId: 'sb-01',
   },
   {
     keyword: 'whitefly',
@@ -68,7 +67,6 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     confidence: '94.7%',
     symptoms: 'Yellowing of leaves, sticky honeydew secretion with black sooty mold.',
     recommendedProduct: 'Sathya Bio FlyKill Ultra (250g/acre)',
-    productId: 'sb-02',
   },
   {
     keyword: 'blight',
@@ -77,7 +75,6 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     confidence: '96.4%',
     symptoms: 'Dark brown concentric rings on lower leaves.',
     recommendedProduct: 'Sathya Bio BlightStop Pro (500g/acre)',
-    productId: 'sb-03',
   },
 ]
 

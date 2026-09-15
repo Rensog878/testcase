@@ -6,7 +6,7 @@ import {
   ArrowUpDown, RefreshCw, Sparkles, Tag, ShieldAlert, BarChart3
 } from 'lucide-react'
 
-const DEFAULT_CATEGORIES = ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant']
+const DEFAULT_CATEGORIES = ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant', 'Seeds', 'Equipments', 'Animal Husbandry']
 
 // Tells open storefront tabs (src/storefront/Storefront.jsx listens on the same channel) to reload products.
 const notifyStorefront = () => {
@@ -25,9 +25,10 @@ export default function AdminProducts() {
   const [userFilter, setUserFilter] = useState('all')
   const [sortBy, setSortBy] = useState('user') // 'user', 'price_asc', 'price_desc', 'stock', 'default'
   const [showDemandSummary, setShowDemandSummary] = useState(false)
-  const [catalogOptions, setCatalogOptions] = useState({ categories: DEFAULT_CATEGORIES, crops: [], storageBatches: [] })
+  const [catalogOptions, setCatalogOptions] = useState({ categories: DEFAULT_CATEGORIES, crops: [], storageBatches: [], diseases: [] })
   const [newCategory, setNewCategory] = useState('')
   const [newCrop, setNewCrop] = useState('')
+  const [newDisease, setNewDisease] = useState('')
   const [newStorageBatch, setNewStorageBatch] = useState('')
 
   const [isEditing, setIsEditing] = useState(null)
@@ -40,6 +41,7 @@ export default function AdminProducts() {
     stock: '',
     badge: '',
     crops: '',
+    diseases: '',
     description: '',
     online: true,
     targetUserId: 'all',
@@ -73,7 +75,7 @@ export default function AdminProducts() {
   const addFormOption = (field, value, setValue) => {
     const cleanValue = value.trim()
     if (!cleanValue) return
-    setForm(current => ({ ...current, [field]: field === 'crops' || field === 'packSizes' ? `${current[field] ? `${current[field]}, ` : ''}${cleanValue}` : cleanValue }))
+    setForm(current => ({ ...current, [field]: field === 'crops' || field === 'diseases' || field === 'packSizes' ? `${current[field] ? `${current[field]}, ` : ''}${cleanValue}` : cleanValue }))
     setValue('')
   }
 
@@ -142,6 +144,7 @@ export default function AdminProducts() {
       stock: 100,
       badge: 'Best Seller',
       crops: 'Paddy / Rice, Wheat',
+      diseases: '',
       description: '',
       online: true,
       targetUserId: userFilter !== 'all' && userFilter !== 'general' ? userFilter : 'all',
@@ -169,6 +172,7 @@ export default function AdminProducts() {
       stock: p.stock !== undefined ? p.stock : '',
       badge: p.badge || '',
       crops: Array.isArray(p.crops) ? p.crops.join(', ') : (p.crops || ''),
+      diseases: Array.isArray(p.diseases) ? p.diseases.join(', ') : (p.diseases || ''),
       description: p.description || '',
       online: p.online !== false,
       targetUserId: p.targetUserId || 'all',
@@ -205,6 +209,7 @@ export default function AdminProducts() {
       originalPrice: Number(form.mrp || form.price * 1.2),
       stock: Number(form.stock),
       crops: form.crops.split(',').map(s => s.trim()).filter(Boolean),
+      diseases: form.diseases.split(',').map(s => s.trim()).filter(Boolean),
       packSizes: form.packSizes.split(',').map(s => s.trim()).filter(Boolean),
       images,
       image: images[0],
@@ -696,6 +701,25 @@ export default function AdminProducts() {
                 <div className="product-option-adder">
                   <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add a custom crop" />
                   <button type="button" onClick={() => addFormOption('crops', newCrop, setNewCrop)}>Add crop</button>
+                </div>
+              </div>
+
+              <div className="product-form-full">
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Target Pests / Diseases (comma separated)</label>
+                <input
+                  placeholder="e.g. Blast, Whitefly, Leaf Miner"
+                  value={form.diseases}
+                  onChange={e => setForm({ ...form, diseases: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: 'var(--text-primary)' }}
+                />
+                <small>Powers the storefront's "Shop by Pest & Disease" filters — a product only shows up there once it's tagged with the disease it treats.</small>
+                <div className="product-option-adder">
+                  <select value="" onChange={e => addFormOption('diseases', e.target.value, setNewDisease)}>
+                    <option value="">Choose a known pest / disease</option>
+                    {catalogOptions.diseases.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <input value={newDisease} onChange={e => setNewDisease(e.target.value)} placeholder="Add a new pest / disease" />
+                  <button type="button" onClick={() => addFormOption('diseases', newDisease, setNewDisease)}>Add disease</button>
                 </div>
               </div>
 

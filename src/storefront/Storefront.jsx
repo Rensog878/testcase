@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { matchesDisease } from '../utils/catalogUtils'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
@@ -104,6 +105,7 @@ export default function Storefront() {
     return {
       categories: ['All', ...(rawCatalogOptions.categories || [])],
       crops: [{ id: 'all', name: 'All Crops' }, ...(rawCatalogOptions.crops || []).map(crop => ({ id: crop, name: crop }))],
+      diseases: [{ id: 'all', name: 'All Diseases & Pests' }, ...(rawCatalogOptions.diseases || []).map(disease => ({ id: disease, name: disease }))],
     }
   }, [rawCatalogOptions])
 
@@ -162,6 +164,12 @@ export default function Storefront() {
       checkout.openBasket(event)
     }
 
+    // Looks up a real, currently-live product that treats the given disease
+    // (e.g. from the photo scanner's diagnosis) instead of the caller
+    // guessing/hardcoding a product id that may no longer exist.
+    const findRemedyProduct = diseaseKeyword =>
+      productsRef.current.find(product => matchesDisease(product.diseases, diseaseKeyword)) || null
+
     // ---- language ----
     const changeLanguage = async code => {
       if (code === live.current.appliedLang || !isLanguageReady(code)) return
@@ -186,7 +194,7 @@ export default function Storefront() {
       fetchLiveProducts, fetchLiveCatalogOptions,
       openModal, prewarmModal, closeModal, openSignIn, handleAccountClick,
       scrollToCatalog, setFilter, resetFilters, filterByCategory, filterByCrop, toggleFilterDrawer,
-      addToCart, handleBasketClick, changeLanguage, openProductPage, goTo,
+      addToCart, handleBasketClick, changeLanguage, openProductPage, goTo, findRemedyProduct,
     }
   }, [modal, checkout])
 

@@ -8,6 +8,7 @@
 import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { hashPassword, isPasswordHash, passwordProblems, weakPasswordMessage } from './security.js';
+import { matchesCrop, matchesCategory, matchesDisease } from '../src/utils/catalogUtils.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
 
@@ -180,8 +181,6 @@ function normalizeProduct(product) {
           howToUse: product.howToUse || '',
           whenToUse: product.whenToUse || '',
           relatedBlogs: Array.isArray(product.relatedBlogs) ? product.relatedBlogs : [],
-          taggedBlogs: Array.isArray(product.taggedBlogs) ? product.taggedBlogs : [],
-          taggedVideos: Array.isArray(product.taggedVideos) ? product.taggedVideos : [],
           relatedProductIds: Array.isArray(product.relatedProductIds) ? product.relatedProductIds : [],
           reviewsEnabled: product.reviewsEnabled === true,
           reviews,
@@ -195,7 +194,7 @@ function normalizeProduct(product) {
 // ================= DEFAULT / SEED DATA =================
 
 const DEFAULT_CATALOG_OPTIONS = {
-    categories: ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant'],
+    categories: ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant', 'Seeds', 'Equipments', 'Animal Husbandry'],
     crops: [
           'Paddy / Rice',
           'Wheat',
@@ -207,7 +206,8 @@ const DEFAULT_CATALOG_OPTIONS = {
           'Grapes / Fruits',
           'Potato'
         ],
-    storageBatches: ['250g', '500g', '1kg', '250ml', '500ml', '1 Litre', '5 Litres']
+    storageBatches: ['250g', '500g', '1kg', '250ml', '500ml', '1 Litre', '5 Litres'],
+    diseases: ['Blast', 'Blight', 'Rust', 'Aphids', 'Whitefly', 'Downy Mildew', 'Leaf Miner', 'Pinworm', 'Leaf hopper', 'Thrips', 'Mites', 'Stem Borer', 'Weeds']
 };
 
 const DEFAULT_PROFILE_FIELDS = [
@@ -996,15 +996,15 @@ class DatabaseManager {
       }
 
       if (category && category !== 'All') {
-              list = list.filter(p => p.category.toLowerCase() === category.toLowerCase());
+              list = list.filter(p => matchesCategory(p.category, category));
       }
 
       if (crop && crop !== 'all' && crop !== 'All Crops') {
-              list = list.filter(p => p.crops && p.crops.some(c => c.toLowerCase().includes(crop.toLowerCase())));
+              list = list.filter(p => matchesCrop(p.crops, crop));
       }
 
       if (disease && disease !== 'all') {
-              list = list.filter(p => p.diseases && p.diseases.some(d => d.toLowerCase().includes(disease.toLowerCase())));
+              list = list.filter(p => matchesDisease(p.diseases, disease));
       }
 
       if (search) {
@@ -1077,7 +1077,7 @@ class DatabaseManager {
         return (settings && settings.catalogOptions) || DEFAULT_CATALOG_OPTIONS;
   }
 
-  async registerCatalogOptions({ categories = [], crops = [], storageBatches = [] } = {}) {
+  async registerCatalogOptions({ categories = [], crops = [], storageBatches = [], diseases = [] } = {}) {
         await connectDB();
         const current = await this.getCatalogOptions();
         const merge = (base, additions) => [
@@ -1086,7 +1086,8 @@ class DatabaseManager {
         const updated = {
                 categories: merge(current.categories, categories),
                 crops: merge(current.crops, crops),
-                storageBatches: merge(current.storageBatches, storageBatches)
+                storageBatches: merge(current.storageBatches, storageBatches),
+                diseases: merge(current.diseases || [], diseases)
         };
         await Settings.findByIdAndUpdate('global', { $set: { catalogOptions: updated } }, { upsert: true });
         return updated;
@@ -1125,11 +1126,12 @@ class DatabaseManager {
           : typeof prodData.crops === 'string'
           ? prodData.crops.split(',').map(s => s.trim())
           : ['All Crops'],
-        diseases: Array.isArray(prodData.diseases)
+        diseases: (Array.isArray(prodData.diseases)
           ? prodData.diseases
           : typeof prodData.diseases === 'string'
           ? prodData.diseases.split(',').map(s => s.trim())
-          : [],
+          : []
+        ).filter(Boolean),
         activeIngredient: prodData.activeIngredient || '100% Bio-Active Botanical Extract',
         dosage: prodData.dosage || '250g - 500g per Acre',
         packSizes:
@@ -1148,8 +1150,6 @@ class DatabaseManager {
         howToUse: prodData.howToUse || '',
         whenToUse: prodData.whenToUse || '',
         relatedBlogs: Array.isArray(prodData.relatedBlogs) ? prodData.relatedBlogs : [],
-        taggedBlogs: Array.isArray(prodData.taggedBlogs) ? prodData.taggedBlogs : [],
-        taggedVideos: Array.isArray(prodData.taggedVideos) ? prodData.taggedVideos : [],
         relatedProductIds: Array.isArray(prodData.relatedProductIds) ? prodData.relatedProductIds : [],
         reviewsEnabled: prodData.reviewsEnabled === true,
         reviews: Array.isArray(prodData.reviews) ? prodData.reviews : [],
@@ -1172,7 +1172,8 @@ class DatabaseManager {
       await this.registerCatalogOptions({
         categories: [newProd.category],
         crops: newProd.crops,
-        storageBatches: newProd.packSizes
+        storageBatches: newProd.packSizes,
+        diseases: newProd.diseases
       });
 
       const created = await Product.create(newProd);
@@ -1219,6 +1220,12 @@ class DatabaseManager {
                           ? updates.crops
                           : updates.crops.split(',').map(s => s.trim())
                         : existing.crops,
+              diseases: updates.diseases !== undefined
+                ? (Array.isArray(updates.diseases)
+                          ? updates.diseases
+                          : updates.diseases.split(',').map(s => s.trim())
+                        ).filter(Boolean)
+                        : existing.diseases,
               images: updates.images
                 ? Array.isArray(updates.images)
                           ? updates.images
@@ -1228,8 +1235,6 @@ class DatabaseManager {
               howToUse: updates.howToUse !== undefined ? updates.howToUse : existing.howToUse,
               whenToUse: updates.whenToUse !== undefined ? updates.whenToUse : existing.whenToUse,
               relatedBlogs: updates.relatedBlogs !== undefined ? updates.relatedBlogs : existing.relatedBlogs,
-              taggedBlogs: updates.taggedBlogs !== undefined ? (Array.isArray(updates.taggedBlogs) ? updates.taggedBlogs : []) : (existing.taggedBlogs || []),
-              taggedVideos: updates.taggedVideos !== undefined ? (Array.isArray(updates.taggedVideos) ? updates.taggedVideos : []) : (existing.taggedVideos || []),
               relatedProductIds:
                         updates.relatedProductIds !== undefined ? updates.relatedProductIds : existing.relatedProductIds,
               reviewsEnabled:
@@ -1244,7 +1249,8 @@ class DatabaseManager {
       await this.registerCatalogOptions({
               categories: [merged.category],
               crops: merged.crops,
-              storageBatches: merged.packSizes
+              storageBatches: merged.packSizes,
+              diseases: merged.diseases
       });
 
       return merged;

@@ -240,6 +240,22 @@ export default function AllProducts() {
     return [...CROPS_LIST, ...customAdminItems]
   }, [catalogOptions?.crops])
 
+  // Dynamic pest/disease tiles merging admin-added diseases with the default list
+  const dynamicDiseaseList = useMemo(() => {
+    const adminDiseases = catalogOptions?.diseases || []
+    const existing = new Set(PESTS_AND_DISEASES.map(p => p.matchValue.toLowerCase()))
+    const customAdminItems = adminDiseases
+      .filter(disease => disease && !existing.has(String(disease).toLowerCase()))
+      .map(disease => ({
+        id: `admin-disease-${String(disease).toLowerCase().replace(/\s+/g, '-')}`,
+        name: disease,
+        matchValue: disease,
+        image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=240&auto=format&fit=crop&q=80',
+        cureCategory: ''
+      }))
+    return [...PESTS_AND_DISEASES, ...customAdminItems]
+  }, [catalogOptions?.diseases])
+
   // Filter and sort catalog
   const filteredProducts = useMemo(() => {
     let list = [...dbProducts]
@@ -264,7 +280,15 @@ export default function AllProducts() {
     }
 
     if (activeNutrient) {
-      list = list.filter(p => matchesCategory(p.category, 'Crop Nutrition') || p.name.toLowerCase().includes('nutrient') || p.name.toLowerCase().includes('humic'))
+      const nutrientDef = NUTRIENTS_LIST.find(n => n.name === activeNutrient)
+      const keywords = nutrientDef?.matchKeywords || []
+      list = list.filter(p => {
+        if (keywords.length) {
+          const haystack = `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase()
+          return keywords.some(k => haystack.includes(k))
+        }
+        return matchesCategory(p.category, 'Crop Nutrition') || p.name.toLowerCase().includes('nutrient') || p.name.toLowerCase().includes('humic')
+      })
     }
 
     if (searchQuery.trim()) {
@@ -775,14 +799,14 @@ export default function AllProducts() {
           </div>
 
           <div className="pests-scroll-container" ref={pestsScrollRef}>
-            {PESTS_AND_DISEASES.map(pest => {
-              const isSelected = activeDisease.toLowerCase() === pest.issueCode.toLowerCase()
+            {dynamicDiseaseList.map(pest => {
+              const isSelected = activeDisease.toLowerCase() === pest.matchValue.toLowerCase()
               return (
                 <button
                   key={pest.id}
                   type="button"
                   className={`pest-circle-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => selectDisease(pest.issueCode)}
+                  onClick={() => selectDisease(pest.matchValue)}
                 >
                   <div className="pest-circle-avatar">
                     <img 

@@ -38,23 +38,37 @@ export const CROPS_LIST = [
   { id: 'potato', name: 'Potato', cropCode: 'Potato', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=240&auto=format&fit=crop&q=80', popularIssues: 'Late Blight, Black Scurf, Tuber Moth' }
 ];
 
+// Canonical pest/disease taxonomy shared by every storefront surface (the
+// "Shop by Pest & Disease" tiles here and the Catalog sidebar dropdown in
+// src/storefront/data.js, which re-exports this list). `matchValue` is the
+// exact string compared against a product's `diseases` array via
+// matchesDisease() in src/utils/catalogUtils.js and is also what admins type
+// into the "Target Pests / Diseases" field on the product form — keep the two
+// in sync (server/db.js DEFAULT_CATALOG_OPTIONS.diseases mirrors these values).
 export const PESTS_AND_DISEASES = [
-  { id: 'leaf-miner', name: 'Leaf Miner', issueCode: 'Leaf Miner', image: 'https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'pin-worm', name: 'American Pin worm', subtitle: '(Tomato Leaf Miner)', issueCode: 'Pinworm', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'leaf-hoppers', name: 'Leaf hoppers', subtitle: '(Plant hoppers)', issueCode: 'Leaf hopper', image: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'thrips', name: 'Thrips', issueCode: 'Thrips', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'bangamia-mites', name: 'Bangamia mites', subtitle: 'White mites, Broad mites', issueCode: 'Mites', image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'aphids', name: 'Aphids', issueCode: 'Aphids', image: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'two-spotted-mites', name: 'Two spotted mites', issueCode: 'Mites', image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
-  { id: 'blast-rust', name: 'Blast & Rust', issueCode: 'Blast', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' }
+  { id: 'blast-rust', name: 'Blast & Rust', subtitle: 'Rice Blast, Sheath & Leaf/Stripe Rust', matchValue: 'Blast', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' },
+  { id: 'blight', name: 'Early / Late Blight', matchValue: 'Blight', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Fungicide' },
+  { id: 'downy-powdery-mildew', name: 'Downy & Powdery Mildew', matchValue: 'Downy Mildew', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' },
+  { id: 'leaf-miner', name: 'Leaf Miner', matchValue: 'Leaf Miner', image: 'https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'pin-worm', name: 'American Pin worm', subtitle: '(Tomato Leaf Miner)', matchValue: 'Pinworm', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'leaf-hoppers', name: 'Leaf hoppers', subtitle: '(Plant hoppers)', matchValue: 'Leaf hopper', image: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'thrips', name: 'Thrips', matchValue: 'Thrips', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'mites', name: 'Mites', subtitle: 'Bangamia, White, Broad & Two-spotted mites', matchValue: 'Mites', image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'aphids', name: 'Aphids', subtitle: 'Aphids & Jassids', matchValue: 'Aphids', image: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'whitefly', name: 'Whitefly', subtitle: 'Whitefly & Thrips', matchValue: 'Whitefly', image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'stem-borer', name: 'Stem & Pink Borer', matchValue: 'Stem Borer', image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },
+  { id: 'weeds', name: 'Broadleaf & Grass Weeds', matchValue: 'Weeds', image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=240&auto=format&fit=crop&q=80', cureCategory: 'Herbicide' }
 ];
 
+// `matchKeywords` lets each tile filter for its own nutrient type (checked
+// against a product's name/description/category in AllProducts.jsx) instead
+// of every tile falling back to the same generic "Crop Nutrition" query.
 export const NUTRIENTS_LIST = [
-  { id: 'npk-complex', name: 'NPK Water Soluble', formula: '19:19:19 / 0:52:34 / 12:61:0', image: 'https://media.bighaat.com/categories/npk_fertilisers_ct.png', benefit: 'Fast vegetative & flowering growth' },
-  { id: 'micronutrients', name: 'Micro Nutrients Mix', formula: 'Zn, Fe, Mn, Cu, B, Mo Grade-II', image: 'https://media.bighaat.com/categories/micro_nutrients_ct.webp', benefit: 'Overcomes mineral deficiencies' },
-  { id: 'humic-acid', name: 'Humic & Fulvic Acid', formula: '100% Organic Potassium Humate', image: 'https://media.bighaat.com/categories/humic_acid_ct.webp', benefit: 'Strong root aeration & CEC' },
-  { id: 'bio-fertilizers', name: 'Bio / Organic Fertilizers', formula: 'Azotobacter, PSB, KMB & VAM', image: 'https://media.bighaat.com/categories/bio_organic_fertilisers_ct.webp', benefit: 'Fixes atmospheric nitrogen & phosphorus' },
-  { id: 'seaweed-extract', name: 'Seaweed Liquid Extract', formula: 'Ascophyllum Nodosum Organic', image: 'https://media.bighaat.com/categories/seaweed_extract_ct.png', benefit: 'Heat & moisture stress resistance' },
-  { id: 'ph-balancers', name: 'pH Balancers & Conditioners', formula: 'Acidic Spray Water Conditioner', image: 'https://media.bighaat.com/categories/ph_balancers_ct.webp', benefit: 'Enhances pesticide absorption by 40%' },
-  { id: 'calcium-boron', name: 'Calcium & Boron Liquid', formula: 'Chelated Ca 11% + B 2%', image: 'https://media.bighaat.com/categories/chemical_fertilisers_ct.webp', benefit: 'Prevents fruit cracking & flower drop' }
+  { id: 'npk-complex', name: 'NPK Water Soluble', formula: '19:19:19 / 0:52:34 / 12:61:0', image: 'https://media.bighaat.com/categories/npk_fertilisers_ct.png', benefit: 'Fast vegetative & flowering growth', matchKeywords: ['npk', 'water soluble', '19:19:19', '52:34', '12:61'] },
+  { id: 'micronutrients', name: 'Micro Nutrients Mix', formula: 'Zn, Fe, Mn, Cu, B, Mo Grade-II', image: 'https://media.bighaat.com/categories/micro_nutrients_ct.webp', benefit: 'Overcomes mineral deficiencies', matchKeywords: ['micronutrient', 'micro nutrient', 'zinc', 'manganese', 'trace element'] },
+  { id: 'humic-acid', name: 'Humic & Fulvic Acid', formula: '100% Organic Potassium Humate', image: 'https://media.bighaat.com/categories/humic_acid_ct.webp', benefit: 'Strong root aeration & CEC', matchKeywords: ['humic', 'fulvic', 'humate'] },
+  { id: 'bio-fertilizers', name: 'Bio / Organic Fertilizers', formula: 'Azotobacter, PSB, KMB & VAM', image: 'https://media.bighaat.com/categories/bio_organic_fertilisers_ct.webp', benefit: 'Fixes atmospheric nitrogen & phosphorus', matchKeywords: ['bio fertilizer', 'bio-fertilizer', 'organic fertilizer', 'azotobacter', 'psb', 'vam'] },
+  { id: 'seaweed-extract', name: 'Seaweed Liquid Extract', formula: 'Ascophyllum Nodosum Organic', image: 'https://media.bighaat.com/categories/seaweed_extract_ct.png', benefit: 'Heat & moisture stress resistance', matchKeywords: ['seaweed', 'ascophyllum'] },
+  { id: 'ph-balancers', name: 'pH Balancers & Conditioners', formula: 'Acidic Spray Water Conditioner', image: 'https://media.bighaat.com/categories/ph_balancers_ct.webp', benefit: 'Enhances pesticide absorption by 40%', matchKeywords: ['ph balancer', 'ph conditioner', 'water conditioner', 'acidifier'] },
+  { id: 'calcium-boron', name: 'Calcium & Boron Liquid', formula: 'Chelated Ca 11% + B 2%', image: 'https://media.bighaat.com/categories/chemical_fertilisers_ct.webp', benefit: 'Prevents fruit cracking & flower drop', matchKeywords: ['calcium', 'boron', 'chelated ca', 'chelated b'] }
 ];

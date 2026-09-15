@@ -7,7 +7,7 @@ import Modal from './Modal'
 const NO_FILE = 'JPG or PNG · a clear, close-up photo'
 
 export default memo(function PhotoScannerModal({ state, t }) {
-  const { addToCart, closeModal } = useStore()
+  const { addToCart, closeModal, findRemedyProduct } = useStore()
   const inputRef = useRef(null)
   const timer = useRef(null)
   const [fileName, setFileName] = useState('')
@@ -26,6 +26,20 @@ export default memo(function PhotoScannerModal({ state, t }) {
   }
 
   const diag = SAMPLE_DISEASE_DIAGNOSES[0]
+
+  // This diagnosis is a fixed demo result (no real image analysis runs on the
+  // uploaded photo) — but the remedy it offers must be a product that is
+  // actually live in the catalog right now, not a hardcoded id from the old
+  // static product list.
+  const handleAddRemedy = () => {
+    const product = findRemedyProduct(diag.keyword)
+    if (!product) {
+      showToast('No matching product is currently in stock for this diagnosis. Please call our agronomist helpline.', 'warning')
+      return
+    }
+    addToCart(product.id)
+    closeModal('photoScannerModal')
+  }
   return (
     <Modal id="photoScannerModal" state={state}>
       <h3 style={{ color: 'var(--primary-dark)', marginBottom: '14px' }}><i className="fa-solid fa-camera"></i> <span data-i18n="scan_title">{t('scan_title')}</span></h3>
@@ -52,7 +66,7 @@ export default memo(function PhotoScannerModal({ state, t }) {
             <div style={{ background: '#f0fdf4', padding: '8px', borderRadius: '6px', fontSize: '0.82rem', marginBottom: '10px' }}>
               <strong>Remedy:</strong> {diag.recommendedProduct}
             </div>
-            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => { addToCart(diag.productId); closeModal('photoScannerModal') }}>
+            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={handleAddRemedy}>
               <i className="fa-solid fa-cart-plus"></i> Add Remedy to Cart
             </button>
           </div>

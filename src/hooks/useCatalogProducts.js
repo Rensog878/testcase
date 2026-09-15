@@ -4,7 +4,8 @@ import axios from 'axios'
 const DEFAULT_OPTIONS = {
   categories: ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant'],
   crops: [],
-  storageBatches: []
+  storageBatches: [],
+  diseases: []
 }
 
 /**

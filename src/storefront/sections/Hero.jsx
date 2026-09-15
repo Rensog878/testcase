@@ -30,7 +30,7 @@ export const Hero = memo(function Hero({ t }) {
           </div>
 
           {/* WhatsApp assistant */}
-          <div className="bento-card bento-span-2" style={{ background: 'linear-gradient(135deg, #064e3b, #047857)', cursor: 'pointer' }} onClick={() => window.open(WHATSAPP_EXPERT_URL, '_blank', 'noopener')}>
+          <div className="bento-card bento-span-2" style={{ background: 'linear-gradient(135deg, #063F2A, #096540)', cursor: 'pointer' }} onClick={() => window.open(WHATSAPP_EXPERT_URL, '_blank', 'noopener')}>
             <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800&q=80" className="bento-bg-img" style={{ opacity: 0.35 }} alt="Farmer Consultation" loading="lazy" decoding="async" />
             <div className="bento-overlay">
               <span className="bento-tag" style={{ background: '#25d366', color: 'white' }}>24/7 WhatsApp AI</span>

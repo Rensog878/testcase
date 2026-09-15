@@ -16,12 +16,12 @@ const DEFAULT_PACKS = ['250g', '500g', '1kg']
 export const ProductSkeleton = memo(function ProductSkeleton() {
   return (
     <div className="product-card" style={{ opacity: 0.6, pointerEvents: 'none', animation: 'pulse 1.5s infinite ease-in-out' }}>
-      <div className="product-img-box" style={{ background: 'var(--border-light, #e2e8f0)', minHeight: '180px' }} />
+      <div className="product-img-box" style={{ background: 'var(--border-light, #E7E5DF)', minHeight: '180px' }} />
       <div className="card-content" style={{ padding: '16px' }}>
-        <div style={{ height: '14px', width: '35%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px' }} />
-        <div style={{ height: '18px', width: '75%', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
-        <div style={{ height: '12px', width: '55%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '14px' }} />
-        <div style={{ height: '20px', width: '30%', background: '#cbd5e1', borderRadius: '4px' }} />
+        <div style={{ height: '14px', width: '35%', background: '#E7E5DF', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ height: '18px', width: '75%', background: '#D6D9D3', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ height: '12px', width: '55%', background: '#E7E5DF', borderRadius: '4px', marginBottom: '14px' }} />
+        <div style={{ height: '20px', width: '30%', background: '#D6D9D3', borderRadius: '4px' }} />
       </div>
     </div>
   )
@@ -41,7 +41,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
       )
     } else if (user.crop && matchesCrop(p.crops, user.crop)) {
       personalBadge = (
-        <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#16A46A', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           <i className="fa-solid fa-seedling"></i> Tailored for {user.crop}
         </div>
       )

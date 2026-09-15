@@ -36,11 +36,11 @@ export default memo(function WelcomePoster({ state }) {
         </p>
         <div className="welcome-poster-features">
           <div className="wp-feat">
-            <div className="wp-feat-icon" style={{ background: 'rgba(52,211,153,0.15)', color: '#34d399' }}><i className="fa-solid fa-user-doctor"></i></div>
+            <div className="wp-feat-icon" style={{ background: 'rgba(52,211,153,0.15)', color: '#3FBE86' }}><i className="fa-solid fa-user-doctor"></i></div>
             Direct 1-on-1 Agronomist Consultations
           </div>
           <div className="wp-feat">
-            <div className="wp-feat-icon" style={{ background: 'rgba(251,191,36,0.15)', color: '#fbbf24' }}><i className="fa-solid fa-bell"></i></div>
+            <div className="wp-feat-icon" style={{ background: 'rgba(251,191,36,0.15)', color: '#C77D18' }}><i className="fa-solid fa-bell"></i></div>
             Daily Crop Protection &amp; Disease Updates
           </div>
           <div className="wp-feat">

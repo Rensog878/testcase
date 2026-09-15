@@ -957,51 +957,298 @@ h6 { font-size: 1rem; }
   padding: 16px !important;
 }
 
-.product-modal-content {
-  width: min(1180px, calc(100vw - 32px)) !important;
-}
-
-.product-modal-form {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 24px !important;
-}
-
-.product-modal-form > .product-form-full {
-  grid-column: 1 / -1;
-}
-
 .product-modal option {
   background: var(--surface-card);
   color: var(--text-primary);
 }
 
-.product-option-adder {
+/* =========================================
+   ADD / EDIT PRODUCT FORM — MODERN LAYOUT
+   Sticky header + sticky footer around a scrollable stack of titled,
+   card-style sections (was one long undifferentiated column of fields).
+   ========================================= */
+.pform-shell {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-secondary);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+#product-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.pform-header {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 26px;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.pform-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.pform-header-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  flex: none;
+}
+
+.pform-header p {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.pform-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  flex: none;
+}
+.pform-close:hover { background: var(--dark-800); color: var(--text-primary); }
+
+.pform-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pform-section {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+
+.pform-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pform-section-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  flex: none;
+}
+
+.pform-section-head h3 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.pform-section-head span {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.pform-field { display: flex; flex-direction: column; gap: 6px; }
+.pform-field + .pform-field { margin-top: 14px; }
+
+/* Declared after .pform-field so display:grid wins on elements that combine
+   both classes (a field-styled wrapper laid out as a 2/3-up row). */
+.pform-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pform-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.pform-grid-5-2 { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 14px; }
+
+.pform-field label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.pform-field label em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.pform-field input,
+.pform-field select,
+.pform-field textarea {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pform-field input:focus,
+.pform-field select:focus,
+.pform-field textarea:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
+.pform-field input::placeholder,
+.pform-field textarea::placeholder { color: var(--text-disabled); }
+
+.pform-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.pform-adder {
   display: flex;
   gap: 8px;
   margin-top: 8px;
 }
 
-.product-option-adder input,
-.product-option-adder select {
+.pform-adder input,
+.pform-adder select {
   min-width: 0;
   flex: 1;
-  padding: 7px 10px;
+  padding: 8px 11px;
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-sm);
-  background: var(--surface-card) !important;
-  color: var(--text-primary) !important;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: 0.82rem;
 }
 
-.product-option-adder button {
-  padding: 7px 11px;
+.pform-adder button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 13px;
   border: 1px solid var(--brand-200);
   border-radius: var(--radius-sm);
   background: var(--brand-50);
   color: var(--brand-700);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.pform-adder button:hover { background: var(--brand-100); }
+
+.pform-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pform-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: var(--radius-full);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-200);
+  color: var(--brand-700);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.pform-advanced {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+}
+
+.pform-advanced summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  list-style: none;
+}
+.pform-advanced summary::-webkit-details-marker { display: none; }
+.pform-advanced summary::after {
+  content: '';
+  margin-left: auto;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition: transform var(--transition-fast);
+}
+.pform-advanced[open] summary::after { transform: rotate(-135deg); }
+.pform-advanced summary span {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.pform-advanced-body {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pform-footer {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  padding: 16px 26px;
+  background: var(--surface-card);
+  border-top: 1px solid var(--surface-border);
+  box-shadow: 0 -6px 18px rgba(17, 24, 39, 0.05);
+}
+.pform-footer .btn { flex: 1; }
+
+@media (max-width: 760px) {
+  .pform-grid-2, .pform-grid-3, .pform-grid-5-2 { grid-template-columns: 1fr; }
+  .pform-body { padding: 16px; }
+  .pform-header, .pform-footer { padding: 16px; }
 }
 
 .product-detail-fields {
@@ -1581,9 +1828,6 @@ h6 { font-size: 1rem; }
   .product-detail-image-zoom { height: 300px; }
   .product-detail-facts, .product-detail-grid { grid-template-columns: 1fr; }
   .product-section-heading { flex-direction: column; }
-  .product-modal-content { padding: 20px !important; }
-  .product-modal-form { grid-template-columns: 1fr; }
-  .product-modal-form > .product-form-full { grid-column: auto; }
 }
 
 /* Operational workspaces use a bright, data-first canvas. */
@@ -2335,6 +2579,85 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   background: radial-gradient(circle, rgba(34,197,94,0.15), transparent 70%);
   border-radius: 50%;
   animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* =========================================
+   LOGIN — SOLO CARD LAYOUT (no side panel)
+   Scoped to .login-solo so Register/ForgotPassword, which still use the
+   two-column .login-page/.login-right layout, are untouched.
+   ========================================= */
+.login-solo {
+  justify-content: center;
+  background: radial-gradient(120% 90% at 50% 0%, #eafff5 0%, #f5fbf8 45%, #f7faf9 100%);
+}
+
+.login-solo .login-left {
+  flex: none;
+  width: 100%;
+  max-width: 560px;
+  padding: 40px 20px;
+}
+
+.login-solo .login-card {
+  max-width: 460px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-solo .login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brand-400), var(--brand-600), var(--brand-400));
+}
+
+.login-solo-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  z-index: 0;
+  animation: pulse-glow 7s ease-in-out infinite;
+}
+.login-solo-orb-a {
+  width: 460px;
+  height: 460px;
+  top: -180px;
+  left: -140px;
+  background: radial-gradient(circle, rgba(16,185,129,0.22), transparent 70%);
+}
+.login-solo-orb-b {
+  width: 420px;
+  height: 420px;
+  bottom: -180px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(217,166,33,0.16), transparent 70%);
+  animation-delay: 2.5s;
+}
+
+.login-eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 769px) {
+  .login-solo .login-card {
+    padding: 44px;
+    box-shadow: var(--shadow-xl), 0 2px 8px rgba(15, 23, 42, 0.04);
+  }
+}
+
+@media (max-width: 767px) {
+  .login-solo-orb { display: none; }
 }
 
 .login-card {
@@ -3119,23 +3442,20 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 
 .product-visibility-panel {
   display: grid;
-  grid-template-columns: minmax(180px, 0.8fr) 1.2fr;
+  grid-template-columns: minmax(160px, 0.8fr) 1.2fr;
   gap: 16px;
   align-items: center;
-  padding: 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  background: #f8fafc;
 }
-.product-visibility-title { display: block; color: #111827; font-size: 0.86rem; font-weight: 800; }
-.product-visibility-panel p { margin: 4px 0 0; color: #475569; font-size: 0.75rem; }
+.product-visibility-title { display: block; color: var(--text-primary); font-size: 0.82rem; font-weight: 700; }
+.product-visibility-panel p { margin: 3px 0 0; color: var(--text-muted); font-size: 0.74rem; }
 .product-visibility-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.product-visibility-option { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 9px; background: #fff; cursor: pointer; }
-.product-visibility-option.active { border: 2px solid #111827; padding: 10px; background: #f0fdf4; }
-.product-visibility-option.offline.active { background: #fff7ed; }
-.product-visibility-option input { grid-row: span 2; accent-color: #111827; }
-.product-visibility-option strong { color: #111827; font-size: 0.82rem; }
-.product-visibility-option span { color: #64748b; font-size: 0.7rem; }
+.product-visibility-option { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; padding: 11px 12px; border: 1px solid var(--surface-border); border-radius: var(--radius-sm); background: var(--surface-card); cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast); }
+.product-visibility-option:hover { border-color: var(--brand-300); }
+.product-visibility-option.active { border: 1.5px solid var(--brand-500); background: var(--brand-50); }
+.product-visibility-option.offline.active { border-color: var(--orange); background: #fff7ed; }
+.product-visibility-option input { grid-row: span 2; accent-color: var(--brand-600); }
+.product-visibility-option strong { color: var(--text-primary); font-size: 0.8rem; }
+.product-visibility-option span { color: var(--text-muted); font-size: 0.7rem; }
 
 .billing-workspace .card { min-width: 0; }
 .billing-workspace .form-select,

@@ -3,7 +3,8 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import {
   Plus, Edit2, Trash2, Check, X, Search, User, Filter,
-  ArrowUpDown, RefreshCw, Sparkles, Tag, ShieldAlert, BarChart3
+  ArrowUpDown, RefreshCw, Sparkles, Tag, ShieldAlert, BarChart3,
+  IndianRupee, Sprout, Package, Image as ImageIcon, Info
 } from 'lucide-react'
 
 const DEFAULT_CATEGORIES = ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant', 'Seeds', 'Equipments', 'Animal Husbandry']
@@ -546,274 +547,288 @@ export default function AdminProducts() {
       {/* ADD / EDIT PRODUCT MODAL */}
       {modalOpen && (
         <div className="modal-backdrop product-modal" style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(2px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px'
         }}>
-          <div className="modal-content product-modal-content" style={{
-            background: 'var(--dark-800)', border: '1px solid var(--dark-700)',
-            borderRadius: '16px', width: '100%', maxWidth: '1180px', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', padding: '28px 32px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {isEditing ? <Edit2 size={18} color="var(--brand-400)" /> : <Plus size={18} color="var(--brand-400)" />}
-                {isEditing ? 'Edit Product in Catalog' : 'Add New Product to Store Catalog'}
-              </h2>
-              <button onClick={() => setModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+          <div className="pform-shell">
+            <div className="pform-header">
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <span className="pform-header-icon">{isEditing ? <Edit2 size={17} /> : <Plus size={18} />}</span>
+                <div>
+                  <h2>{isEditing ? 'Edit Product' : 'Add New Product'}</h2>
+                  <p>{isEditing ? 'Update catalog details — changes go live immediately.' : 'Fields marked * are required. Everything else can be filled in later.'}</p>
+                </div>
+              </div>
+              <button type="button" className="pform-close" onClick={() => setModalOpen(false)} aria-label="Close">
+                <X size={18} />
+              </button>
             </div>
 
-            <form className="product-modal-form" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="product-form-full">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Product Title *</label>
-                <input
-                  required
-                  placeholder="e.g. Sathya Bio BlastShield 75 WP"
-                  value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                />
-              </div>
+            <form onSubmit={handleSave} id="product-form">
+              <div className="pform-body">
 
-              {/* TARGET USER / SORTING BY USER */}
-              <div className="product-form-full product-target-user" style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '2px solid #111827' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#000', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                  <User size={15} /> Target / Assign To User (Sorting by User)
-                </label>
-                <p style={{ fontSize: '0.74rem', color: '#111827', marginBottom: '8px' }}>
-                  Assign this product to a specific user to personalize their catalog & prioritize it at the top of their store page:
-                </p>
-                <select
-                  value={form.targetUserId}
-                  onChange={e => setForm({ ...form, targetUserId: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: '#fff', border: '1px solid #111827', color: '#000', fontWeight: 700 }}
-                >
-                  <option value="all">🌐 All Users (General Public E-Commerce)</option>
-                  <optgroup label="Assign to Registered Farmer">
-                    {users.filter(u => u.role === 'farmer').map(u => (
-                      <option key={u.id} value={u.id}>
-                        👤 {u.name} — {u.phone} ({u.crop || 'Farmer'}, {u.village || 'Tamil Nadu'})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Assign to Staff / Operations">
-                    {users.filter(u => u.role !== 'farmer').map(u => (
-                      <option key={u.id} value={u.id}>
-                        🛡️ {u.name} ({u.role})
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
-
-              <div className="product-form-full product-visibility-panel">
-                <div>
-                  <label className="product-visibility-title">Product visibility</label>
-                  <p>Choose where this product can be used.</p>
-                </div>
-                <div className="product-visibility-options">
-                  <label className={`product-visibility-option ${form.online ? 'active' : ''}`}>
-                    <input type="radio" name="product-visibility" checked={form.online} onChange={() => setForm({ ...form, online: true })} />
-                    <strong>Online</strong>
-                    <span>Visible on the customer website</span>
-                  </label>
-                  <label className={`product-visibility-option ${!form.online ? 'active offline' : ''}`}>
-                    <input type="radio" name="product-visibility" checked={!form.online} onChange={() => setForm({ ...form, online: false })} />
-                    <strong>Offline</strong>
-                    <span>Billing portal only, hidden from website</span>
-                  </label>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Category</label>
-                  <select
-                    value={form.category}
-                    onChange={e => setForm({ ...form, category: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                  >
-                    {catalogOptions.categories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <div className="product-option-adder">
-                    <input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category" />
-                    <button type="button" onClick={() => addFormOption('category', newCategory, setNewCategory)}>Add</button>
+                {/* BASIC DETAILS */}
+                <section className="pform-section">
+                  <div className="pform-section-head">
+                    <span className="pform-section-icon"><Tag size={15} /></span>
+                    <div><h3>Basic Details</h3></div>
                   </div>
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Store Badge</label>
-                  <select
-                    value={form.badge}
-                    onChange={e => setForm({ ...form, badge: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: 'var(--text-primary)' }}
-                  >
-                    <option value="">None</option>
-                    <option value="Best Seller">Best Seller</option>
-                    <option value="100% Organic">100% Organic</option>
-                    <option value="Top Rated">Top Rated</option>
-                    <option value="Expert Choice">Expert Choice</option>
-                    <option value="New Launch">New Launch</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Selling Price (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="680"
-                    value={form.price}
-                    onChange={e => setForm({ ...form, price: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>MRP (₹)</label>
-                  <input
-                    type="number"
-                    placeholder="850"
-                    value={form.mrp}
-                    onChange={e => setForm({ ...form, mrp: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Stock Qty *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="100"
-                    value={form.stock}
-                    onChange={e => setForm({ ...form, stock: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                  />
-                </div>
-              </div>
-
-              <div className="product-form-full">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Suitable Crops (comma separated)</label>
-                <input
-                  placeholder="e.g. Paddy/Rice, Wheat, Cotton, Tomato"
-                  value={form.crops}
-                  onChange={e => setForm({ ...form, crops: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: 'var(--text-primary)' }}
-                />
-                <div className="product-option-adder">
-                  <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add a custom crop" />
-                  <button type="button" onClick={() => addFormOption('crops', newCrop, setNewCrop)}>Add crop</button>
-                </div>
-              </div>
-
-              <div className="product-form-full">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Target Pests / Diseases (comma separated)</label>
-                <input
-                  placeholder="e.g. Blast, Whitefly, Leaf Miner"
-                  value={form.diseases}
-                  onChange={e => setForm({ ...form, diseases: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: 'var(--text-primary)' }}
-                />
-                <small>Powers the storefront's "Shop by Pest & Disease" filters — a product only shows up there once it's tagged with the disease it treats.</small>
-                <div className="product-option-adder">
-                  <select value="" onChange={e => addFormOption('diseases', e.target.value, setNewDisease)}>
-                    <option value="">Choose a known pest / disease</option>
-                    {catalogOptions.diseases.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                  <input value={newDisease} onChange={e => setNewDisease(e.target.value)} placeholder="Add a new pest / disease" />
-                  <button type="button" onClick={() => addFormOption('diseases', newDisease, setNewDisease)}>Add disease</button>
-                </div>
-              </div>
-
-              <div className="product-form-full">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Storage Batches / Pack Sizes</label>
-                <input
-                  placeholder="e.g. 250g, 500g, 1kg"
-                  value={form.packSizes}
-                  onChange={e => setForm({ ...form, packSizes: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: 'var(--text-primary)' }}
-                />
-                <div className="product-option-adder">
-                  <select value="" onChange={e => addFormOption('packSizes', e.target.value, setNewStorageBatch)}>
-                    <option value="">Choose saved batch size</option>
-                    {catalogOptions.storageBatches.map(batch => <option key={batch} value={batch}>{batch}</option>)}
-                  </select>
-                  <input value={newStorageBatch} onChange={e => setNewStorageBatch(e.target.value)} placeholder="New batch size" />
-                  <button type="button" onClick={() => addFormOption('packSizes', newStorageBatch, setNewStorageBatch)}>Add batch</button>
-                </div>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Active Ingredient & Dosage</label>
-                <div className="product-form-full" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
-                  <input
-                    placeholder="Active Chemical/Bio ingredient"
-                    value={form.activeIngredient}
-                    onChange={e => setForm({ ...form, activeIngredient: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                  />
-                  <input
-                    placeholder="Dosage e.g. 250g per Acre"
-                    value={form.dosage}
-                    onChange={e => setForm({ ...form, dosage: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
-                  />
-                </div>
-              </div>
-
-              <div className="product-form-full">
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Product Description</label>
-                <textarea
-                  rows="3"
-                  placeholder="Key farmer benefits, disease target, application instructions..."
-                  value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff', resize: 'vertical' }}
-                />
-              </div>
-
-              <div className="product-detail-fields product-form-full">
-                <label>Product Photos * <span>(one URL or asset path per line)</span></label>
-                <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} />
-                <textarea rows="3" required value={form.images} onChange={e => setForm({ ...form, images: e.target.value })} placeholder="/assets/product-front.jpg&#10;/assets/product-label.jpg" />
-                <small>Use at least one photo. Select multiple files or add URLs/asset paths for the detail-page gallery and hover zoom.</small>
-
-                <div className="product-detail-grid">
-                  <div>
-                    <label>How to use</label>
-                    <textarea rows="4" value={form.howToUse} onChange={e => setForm({ ...form, howToUse: e.target.value })} placeholder="Application method, dosage, dilution and safety steps" />
+                  <div className="pform-field">
+                    <label>Product Title *</label>
+                    <input
+                      required
+                      placeholder="e.g. Sathya Bio BlastShield 75 WP"
+                      value={form.name}
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                    />
                   </div>
-                  <div>
-                    <label>When to use</label>
-                    <textarea rows="4" value={form.whenToUse} onChange={e => setForm({ ...form, whenToUse: e.target.value })} placeholder="Crop stage, symptoms, weather or timing guidance" />
+                  <div className="pform-field pform-grid-2">
+                    <div>
+                      <label>Category</label>
+                      <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                        {catalogOptions.categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <div className="pform-adder">
+                        <input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category" />
+                        <button type="button" onClick={() => addFormOption('category', newCategory, setNewCategory)}>Add</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label>Store Badge</label>
+                      <select value={form.badge} onChange={e => setForm({ ...form, badge: e.target.value })}>
+                        <option value="">None</option>
+                        <option value="Best Seller">Best Seller</option>
+                        <option value="100% Organic">100% Organic</option>
+                        <option value="Top Rated">Top Rated</option>
+                        <option value="Expert Choice">Expert Choice</option>
+                        <option value="New Launch">New Launch</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
+                </section>
 
-                <label>Related blogs <span>(one per line: Blog title | https://example.com/blog)</span></label>
-                <textarea rows="3" value={form.relatedBlogs} onChange={e => setForm({ ...form, relatedBlogs: e.target.value })} placeholder="Paddy blast prevention | /blogs/paddy-blast-prevention" />
+                {/* PRICING & STOCK */}
+                <section className="pform-section">
+                  <div className="pform-section-head">
+                    <span className="pform-section-icon"><IndianRupee size={15} /></span>
+                    <div><h3>Pricing &amp; Stock</h3></div>
+                  </div>
+                  <div className="pform-grid-3">
+                    <div className="pform-field">
+                      <label>Selling Price (₹) *</label>
+                      <input type="number" required placeholder="680" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+                    </div>
+                    <div className="pform-field">
+                      <label>MRP (₹)</label>
+                      <input type="number" placeholder="850" value={form.mrp} onChange={e => setForm({ ...form, mrp: e.target.value })} />
+                    </div>
+                    <div className="pform-field">
+                      <label>Stock Qty *</label>
+                      <input type="number" required placeholder="100" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} />
+                    </div>
+                  </div>
+                </section>
 
-                <label>Related product IDs <span>(comma separated)</span></label>
-                <input value={form.relatedProductIds} onChange={e => setForm({ ...form, relatedProductIds: e.target.value })} placeholder="sb-1234, sb-5678" />
+                {/* CROP, PEST & PACK TARGETING */}
+                <section className="pform-section">
+                  <div className="pform-section-head">
+                    <span className="pform-section-icon"><Sprout size={15} /></span>
+                    <div><h3>Crop, Pest &amp; Pack Targeting</h3></div>
+                  </div>
 
-                <label className="review-toggle">
-                  <input type="checkbox" checked={form.reviewsEnabled} onChange={e => setForm({ ...form, reviewsEnabled: e.target.checked })} />
-                  Enable verified customer reviews for this product
-                </label>
-                <small>Ratings stay hidden until genuine review records are submitted. No seeded or random reviews are shown.</small>
+                  <div className="pform-field">
+                    <label>Suitable Crops <em>(comma separated)</em></label>
+                    <input
+                      placeholder="e.g. Paddy/Rice, Wheat, Cotton, Tomato"
+                      value={form.crops}
+                      onChange={e => setForm({ ...form, crops: e.target.value })}
+                    />
+                    {form.crops.trim() && (
+                      <div className="pform-chips">
+                        {form.crops.split(',').map(s => s.trim()).filter(Boolean).map(c => <span key={c} className="pform-chip">{c}</span>)}
+                      </div>
+                    )}
+                    <div className="pform-adder">
+                      <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add a custom crop" />
+                      <button type="button" onClick={() => addFormOption('crops', newCrop, setNewCrop)}>Add crop</button>
+                    </div>
+                  </div>
+
+                  <div className="pform-field">
+                    <label>Target Pests / Diseases <em>(comma separated)</em></label>
+                    <input
+                      placeholder="e.g. Blast, Whitefly, Leaf Miner"
+                      value={form.diseases}
+                      onChange={e => setForm({ ...form, diseases: e.target.value })}
+                    />
+                    {form.diseases.trim() && (
+                      <div className="pform-chips">
+                        {form.diseases.split(',').map(s => s.trim()).filter(Boolean).map(d => <span key={d} className="pform-chip">{d}</span>)}
+                      </div>
+                    )}
+                    <p className="pform-hint">Powers the storefront's "Shop by Pest &amp; Disease" filters — a product only shows up there once it's tagged with the disease it treats.</p>
+                    <div className="pform-adder">
+                      <select value="" onChange={e => addFormOption('diseases', e.target.value, setNewDisease)}>
+                        <option value="">Choose a known pest / disease</option>
+                        {catalogOptions.diseases.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                      <input value={newDisease} onChange={e => setNewDisease(e.target.value)} placeholder="Add a new pest / disease" />
+                      <button type="button" onClick={() => addFormOption('diseases', newDisease, setNewDisease)}>Add disease</button>
+                    </div>
+                  </div>
+
+                  <div className="pform-field">
+                    <label>Pack Sizes</label>
+                    <input
+                      placeholder="e.g. 250g, 500g, 1kg"
+                      value={form.packSizes}
+                      onChange={e => setForm({ ...form, packSizes: e.target.value })}
+                    />
+                    {form.packSizes.trim() && (
+                      <div className="pform-chips">
+                        {form.packSizes.split(',').map(s => s.trim()).filter(Boolean).map(p => <span key={p} className="pform-chip">{p}</span>)}
+                      </div>
+                    )}
+                    <div className="pform-adder">
+                      <select value="" onChange={e => addFormOption('packSizes', e.target.value, setNewStorageBatch)}>
+                        <option value="">Choose saved pack size</option>
+                        {catalogOptions.storageBatches.map(batch => <option key={batch} value={batch}>{batch}</option>)}
+                      </select>
+                      <input value={newStorageBatch} onChange={e => setNewStorageBatch(e.target.value)} placeholder="New pack size" />
+                      <button type="button" onClick={() => addFormOption('packSizes', newStorageBatch, setNewStorageBatch)}>Add pack size</button>
+                    </div>
+                  </div>
+                </section>
+
+                {/* PHOTOS & DESCRIPTION */}
+                <section className="pform-section">
+                  <div className="pform-section-head">
+                    <span className="pform-section-icon"><ImageIcon size={15} /></span>
+                    <div><h3>Photos &amp; Description</h3></div>
+                  </div>
+                  <div className="pform-field">
+                    <label>Product Photos * <em>(one URL or asset path per line)</em></label>
+                    <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} />
+                    <textarea rows="2" required value={form.images} onChange={e => setForm({ ...form, images: e.target.value })} placeholder="/assets/product-front.jpg&#10;/assets/product-label.jpg" />
+                    <p className="pform-hint">Use at least one photo. Select multiple files or add URLs/asset paths for the detail-page gallery and hover zoom.</p>
+                  </div>
+                  <div className="pform-field">
+                    <label>Product Description</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Key farmer benefits, disease target, application instructions..."
+                      value={form.description}
+                      onChange={e => setForm({ ...form, description: e.target.value })}
+                    />
+                  </div>
+                </section>
+
+                {/* TARGETING & VISIBILITY */}
+                <section className="pform-section">
+                  <div className="pform-section-head">
+                    <span className="pform-section-icon"><User size={15} /></span>
+                    <div><h3>Targeting &amp; Visibility</h3></div>
+                  </div>
+                  <div className="pform-field">
+                    <label>Assign to user <em>(personalizes their catalog &amp; prioritizes it on their store page)</em></label>
+                    <select
+                      value={form.targetUserId}
+                      onChange={e => setForm({ ...form, targetUserId: e.target.value })}
+                    >
+                      <option value="all">🌐 All Users (General Public E-Commerce)</option>
+                      <optgroup label="Assign to Registered Farmer">
+                        {users.filter(u => u.role === 'farmer').map(u => (
+                          <option key={u.id} value={u.id}>
+                            👤 {u.name} — {u.phone} ({u.crop || 'Farmer'}, {u.village || 'Tamil Nadu'})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Assign to Staff / Operations">
+                        {users.filter(u => u.role !== 'farmer').map(u => (
+                          <option key={u.id} value={u.id}>
+                            🛡️ {u.name} ({u.role})
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div className="product-visibility-panel" style={{ marginTop: '14px' }}>
+                    <div>
+                      <label className="product-visibility-title">Product visibility</label>
+                      <p>Choose where this product can be used.</p>
+                    </div>
+                    <div className="product-visibility-options">
+                      <label className={`product-visibility-option ${form.online ? 'active' : ''}`}>
+                        <input type="radio" name="product-visibility" checked={form.online} onChange={() => setForm({ ...form, online: true })} />
+                        <strong>Online</strong>
+                        <span>Visible on the customer website</span>
+                      </label>
+                      <label className={`product-visibility-option ${!form.online ? 'active offline' : ''}`}>
+                        <input type="radio" name="product-visibility" checked={!form.online} onChange={() => setForm({ ...form, online: false })} />
+                        <strong>Offline</strong>
+                        <span>Billing portal only, hidden from website</span>
+                      </label>
+                    </div>
+                  </div>
+                </section>
+
+                {/* ADVANCED / OPTIONAL DETAILS */}
+                <details className="pform-advanced">
+                  <summary>
+                    <Info size={15} /> Advanced details
+                    <span>Ingredient, dosage, usage guidance, related content, reviews</span>
+                  </summary>
+                  <div className="pform-advanced-body">
+                    <div className="pform-field pform-grid-2">
+                      <div>
+                        <label>Active Ingredient</label>
+                        <input
+                          placeholder="Active Chemical/Bio ingredient"
+                          value={form.activeIngredient}
+                          onChange={e => setForm({ ...form, activeIngredient: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label>Dosage</label>
+                        <input
+                          placeholder="Dosage e.g. 250g per Acre"
+                          value={form.dosage}
+                          onChange={e => setForm({ ...form, dosage: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="product-detail-fields">
+                      <div className="product-detail-grid">
+                        <div>
+                          <label>How to use</label>
+                          <textarea rows="4" value={form.howToUse} onChange={e => setForm({ ...form, howToUse: e.target.value })} placeholder="Application method, dosage, dilution and safety steps" />
+                        </div>
+                        <div>
+                          <label>When to use</label>
+                          <textarea rows="4" value={form.whenToUse} onChange={e => setForm({ ...form, whenToUse: e.target.value })} placeholder="Crop stage, symptoms, weather or timing guidance" />
+                        </div>
+                      </div>
+
+                      <label>Related blogs <span>(one per line: Blog title | https://example.com/blog)</span></label>
+                      <textarea rows="3" value={form.relatedBlogs} onChange={e => setForm({ ...form, relatedBlogs: e.target.value })} placeholder="Paddy blast prevention | /blogs/paddy-blast-prevention" />
+
+                      <label>Related product IDs <span>(comma separated)</span></label>
+                      <input value={form.relatedProductIds} onChange={e => setForm({ ...form, relatedProductIds: e.target.value })} placeholder="sb-1234, sb-5678" />
+
+                      <label className="review-toggle">
+                        <input type="checkbox" checked={form.reviewsEnabled} onChange={e => setForm({ ...form, reviewsEnabled: e.target.checked })} />
+                        Enable verified customer reviews for this product
+                      </label>
+                      <small>Ratings stay hidden until genuine review records are submitted. No seeded or random reviews are shown.</small>
+                    </div>
+                  </div>
+                </details>
               </div>
 
-              <div className="product-form-full" style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => setModalOpen(false)}
-                  style={{ flex: 1 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  style={{ flex: 1 }}
-                >
+              <div className="pform-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">
                   {isEditing ? 'Save Product Changes' : 'Save & Publish to Store'}
                 </button>
               </div>

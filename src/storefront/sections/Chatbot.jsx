@@ -82,7 +82,7 @@ export default memo(function Chatbot({ t }) {
             <i className="fa-solid fa-robot"></i>
             <div>
               <span style={{ fontWeight: 700, display: 'block' }} data-i18n="chatbot_title">{t('chatbot_title')}</span>
-              <span style={{ fontSize: '0.7rem', color: '#d1fae5' }}>● Online 24/7 (Instant Response)</span>
+              <span style={{ fontSize: '0.7rem', color: '#DCEFE4' }}>● Online 24/7 (Instant Response)</span>
             </div>
           </div>
           <button id="chatbotCloseBtn" onClick={() => setOpen(false)} style={{ background: 'transparent', color: 'white', fontSize: '1.2rem', cursor: 'pointer' }} aria-label="Close chat">&times;</button>

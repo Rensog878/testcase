@@ -31,7 +31,7 @@ export const Testimonials = memo(function Testimonials() {
         </div>
         <div className="testimonials-grid">
           {TESTIMONIALS.map(item => (
-            <div key={item.name} style={{ background: '#f8fafc', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '20px', boxShadow: 'var(--shadow-sm)' }}>
+            <div key={item.name} style={{ background: '#FAF9F6', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '20px', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ color: 'var(--accent-amber)', marginBottom: '8px' }}>★★★★★</div>
               <p style={{ fontSize: '0.88rem', fontStyle: 'italic', color: 'var(--text-main)', lineHeight: 1.5 }}>{item.quote}</p>
               <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -70,7 +70,7 @@ export const Newsletter = memo(function Newsletter() {
               }}
             >
               {subscribed ? (
-                <div style={{ padding: '12px', color: '#16a34a', fontWeight: 600 }}>Thank you! Your advisory subscription is confirmed.</div>
+                <div style={{ padding: '12px', color: '#0B7A4B', fontWeight: 600 }}>Thank you! Your advisory subscription is confirmed.</div>
               ) : (
                 <>
                   <input type="tel" placeholder="Enter your WhatsApp Number" className="newsletter-input" required />

@@ -3,8 +3,8 @@ import { useStore } from '../StoreContext'
 import FooterColumn from '../../components/FooterColumn'
 
 const COLUMN_TITLE_STYLE = { color: 'var(--accent-gold)', marginBottom: '14px', fontSize: '0.95rem' }
-const LIST_STYLE = { listStyle: 'none', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px', color: '#d1fae5' }
-const HELP_STYLE = { fontSize: '0.85rem', color: '#d1fae5', marginBottom: '8px' }
+const LIST_STYLE = { listStyle: 'none', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px', color: '#DCEFE4' }
+const HELP_STYLE = { fontSize: '0.85rem', color: '#DCEFE4', marginBottom: '8px' }
 
 export default memo(function Footer({ t }) {
   const { filterByCategory, filterByCrop } = useStore()
@@ -17,7 +17,7 @@ export default memo(function Footer({ t }) {
             <div className="logo-text" style={{ color: '#ffffff', fontSize: '1.6rem', marginBottom: '10px' }}>SATHYA <span style={{ color: 'var(--accent-gold)' }}>BIO</span></div>
             {/* Two sentences, each its own key in the language packs; phones
                 show only the first. */}
-            <p style={{ fontSize: '0.85rem', color: '#d1fae5', lineHeight: 1.6, marginBottom: '16px' }}>
+            <p style={{ fontSize: '0.85rem', color: '#DCEFE4', lineHeight: 1.6, marginBottom: '16px' }}>
               <span>Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.</span>{' '}
               <span className="footer-brand-more">Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.</span>
             </p>
@@ -61,7 +61,7 @@ export default memo(function Footer({ t }) {
           </FooterColumn>
         </div>
 
-        <div className="footer-bottom-row" style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#a7f3d0' }}>
+        <div className="footer-bottom-row" style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#C2E8D4' }}>
           <span data-i18n="footer_copyright">{t('footer_copyright')}</span>
           <div style={{ display: 'flex', gap: '15px' }}>
             <span>Privacy Policy</span>

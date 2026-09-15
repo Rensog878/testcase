@@ -63,7 +63,7 @@ export default memo(function PhotoScannerModal({ state, t }) {
             <span style={{ background: '#fef2f2', color: '#ef4444', padding: '3px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.75rem' }}>Match: {diag.confidence}</span>
             <h3 style={{ margin: '8px 0 4px 0', fontSize: '1.05rem', color: 'var(--primary-dark)' }}>{diag.diseaseName}</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '8px' }}>{diag.symptoms}</p>
-            <div style={{ background: '#f0fdf4', padding: '8px', borderRadius: '6px', fontSize: '0.82rem', marginBottom: '10px' }}>
+            <div style={{ background: '#F1F7F3', padding: '8px', borderRadius: '6px', fontSize: '0.82rem', marginBottom: '10px' }}>
               <strong>Remedy:</strong> {diag.recommendedProduct}
             </div>
             <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={handleAddRemedy}>

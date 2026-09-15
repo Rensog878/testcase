@@ -1,18 +1,18 @@
-import { memo } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useStore } from '../StoreContext'
-import { rupees } from '../data'
+import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
 import LanguageSelect from './LanguageSelect'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
 
 const TICKER_ITEMS = (
   <>
-    <span className="ticker-item"><i className="fa-solid fa-fire" style={{ color: '#fbbf24' }}></i> FLAT 15% OFF on first order — Use code <strong>FARM15</strong></span>
-    <span className="ticker-item"><i className="fa-solid fa-truck-fast" style={{ color: '#34d399' }}></i> Free express delivery on orders above ₹999 across all 28 states</span>
-    <span className="ticker-item"><i className="fa-solid fa-leaf" style={{ color: '#6ee7b7' }}></i> BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season</span>
+    <span className="ticker-item"><i className="fa-solid fa-fire" style={{ color: '#C77D18' }}></i> FLAT 15% OFF on first order — Use code <strong>FARM15</strong></span>
+    <span className="ticker-item"><i className="fa-solid fa-truck-fast" style={{ color: '#3FBE86' }}></i> Free express delivery on orders above ₹999 across all 28 states</span>
+    <span className="ticker-item"><i className="fa-solid fa-leaf" style={{ color: '#8FD9B6' }}></i> BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season</span>
     <span className="ticker-item"><i className="fa-brands fa-whatsapp" style={{ color: '#25d366' }}></i> WhatsApp us at 9000-425-999 for instant crop advisory in your language</span>
-    <span className="ticker-item"><i className="fa-solid fa-award" style={{ color: '#fbbf24' }}></i> Sathya Bio — Winner of ICAR Best AgriTech 2025 Award</span>
-    <span className="ticker-item"><i className="fa-solid fa-phone-volume" style={{ color: '#34d399' }}></i> Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</span>
+    <span className="ticker-item"><i className="fa-solid fa-award" style={{ color: '#C77D18' }}></i> Sathya Bio — Winner of ICAR Best AgriTech 2025 Award</span>
+    <span className="ticker-item"><i className="fa-solid fa-phone-volume" style={{ color: '#3FBE86' }}></i> Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</span>
   </>
 )
 
@@ -36,7 +36,7 @@ export const Topbar = memo(function Topbar({ t, user, appliedLang }) {
           <span
             className="topbar-badge"
             id="topbarUserGreeting"
-            style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#34d399', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
+            style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
           >
             {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
           </span>
@@ -143,7 +143,7 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
             <i
               className={user ? 'fa-solid fa-circle-check action-icon' : 'fa-regular fa-circle-user action-icon'}
               id="headerAccountIcon"
-              style={user ? { color: '#10b981' } : undefined}
+              style={user ? { color: '#16A46A' } : undefined}
             ></i>
             <div>
               {user
@@ -171,18 +171,112 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
 })
 
 export const NavBar = memo(function NavBar({ t }) {
+  const { filterByCategory, filterByCrop, setFilter, scrollToCatalog } = useStore()
+  // Desktop mega-menu. Opens on hover and on keyboard focus, closes on
+  // Escape, on blur out of the panel and on choosing an entry. Hidden below
+  // 1025px by CSS, where the phone Menu sheet (MobileBottomNav) already
+  // covers the same ground - no phone markup or behaviour changes here.
+  const [openMenu, setOpenMenu] = useState(null)
+  const navRef = useRef(null)
+
+  useEffect(() => {
+    if (!openMenu) return
+    const onKey = event => {
+      if (event.key === 'Escape') {
+        setOpenMenu(null)
+        navRef.current?.querySelector(`[data-mega="${openMenu}"]`)?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [openMenu])
+
+  const close = () => setOpenMenu(null)
+  // Focus leaving the whole nav closes the panel; moving between the trigger
+  // and the links inside it does not.
+  const onBlur = event => {
+    if (!navRef.current?.contains(event.relatedTarget)) close()
+  }
+
+  const megaItem = (id, icon, label, panel) => (
+    <li
+      className={`nav-mega${openMenu === id ? ' is-open' : ''}`}
+      onMouseEnter={() => setOpenMenu(id)}
+      onMouseLeave={close}
+    >
+      <button
+        type="button"
+        className="nav-mega-trigger"
+        data-mega={id}
+        aria-expanded={openMenu === id}
+        aria-haspopup="true"
+        onFocus={() => setOpenMenu(id)}
+        onClick={() => setOpenMenu(current => (current === id ? null : id))}
+      >
+        <i className={`fa-solid ${icon}`}></i> <span>{label}</span>
+        <i className="fa-solid fa-chevron-down nav-mega-caret" aria-hidden="true"></i>
+      </button>
+      <div className="nav-mega-panel" role="group" aria-label={label} hidden={openMenu !== id}>
+        {panel}
+      </div>
+    </li>
+  )
+
   return (
-    <nav className="navbar" id="navbar">
+    <nav className="navbar" id="navbar" ref={navRef} onBlur={onBlur}>
       <div className="container nav-content">
         <ul className="nav-links" id="navLinks">
           <li><a href="#catalog" className="active"><i className="fa-solid fa-store"></i> <span data-i18n="nav_all_products">{t('nav_all_products')}</span></a></li>
-          <li><a href="#categoriesSection"><i className="fa-solid fa-layer-group"></i> Categories</a></li>
-          <li><a href="#cropSection"><i className="fa-solid fa-wheat-awn"></i> Shop by Crop</a></li>
+
+          {megaItem('cat', 'fa-layer-group', 'Categories', (
+            <div className="nav-mega-cols">
+              <div className="nav-mega-col">
+                <p className="nav-mega-head">Shop by category</p>
+                <ul>
+                  {CATEGORIES.filter(value => value !== 'All').map(value => (
+                    <li key={value}>
+                      <button type="button" onClick={() => { filterByCategory(value); close() }}>{value}s</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="nav-mega-col nav-mega-col--wide">
+                <p className="nav-mega-head">Shop by pest &amp; disease</p>
+                <ul className="nav-mega-two-up">
+                  {DISEASES.filter(item => item.id !== 'all').slice(0, 10).map(item => (
+                    <li key={item.id}>
+                      <button type="button" onClick={() => { setFilter('disease', item.id); scrollToCatalog(); close() }}>{item.name}</button>
+                    </li>
+                  ))}
+                </ul>
+                <a className="nav-mega-all" href="#catalog" onClick={close}>See the full catalogue <i className="fa-solid fa-arrow-right"></i></a>
+              </div>
+            </div>
+          ))}
+
+          {megaItem('crop', 'fa-wheat-awn', 'Shop by Crop', (
+            <div className="nav-mega-cols">
+              <div className="nav-mega-col nav-mega-col--wide">
+                <p className="nav-mega-head">Pick your crop</p>
+                <ul className="nav-mega-two-up">
+                  {CROPS.filter(crop => crop.id !== 'all').map(crop => (
+                    <li key={crop.id}>
+                      <button type="button" onClick={() => { filterByCrop(crop.id); close() }}>
+                        <i className={`fa-solid ${crop.icon}`} aria-hidden="true"></i> {crop.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <a className="nav-mega-all" href="#cropSection" onClick={close}>All crops <i className="fa-solid fa-arrow-right"></i></a>
+              </div>
+            </div>
+          ))}
+
           <li><a href="#brandsSection"><i className="fa-solid fa-award"></i> Brands</a></li>
         </ul>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn btn-gold" data-modal-target="photoScannerModal" style={{ padding: '6px 16px', fontSize: '0.82rem', borderRadius: '50px' }}>
+        <div className="nav-actions">
+          <button className="btn btn-gold nav-scan-btn" data-modal-target="photoScannerModal">
             <i className="fa-solid fa-camera-retro"></i> <span data-i18n="nav_ai_scanner">{t('nav_ai_scanner')}</span>
           </button>
         </div>

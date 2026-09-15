@@ -246,8 +246,6 @@ export default function Storefront() {
 
     const stopNavDebug = startNavDebugPanel()
     return () => {
-      channel?.close()
-      document.removeEventListener('visibilitychange', onVisible)
       document.removeEventListener('keydown', onKey)
       document.removeEventListener('pointerdown', onPointerDown, { capture: true })
       document.removeEventListener('click', onClick)

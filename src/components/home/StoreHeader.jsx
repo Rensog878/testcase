@@ -3,14 +3,13 @@ import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useBasket, useCheckoutActions } from '../../hooks/useCheckout'
-import { STAFF_HOME } from '../../hooks/checkoutRules'
 import TransitionLink from './TransitionLink'
 
 // Phones: the header row - logo, language, account, basket - drawn once above
 // every store page (StoreTopChrome in App.jsx), so it stays in place between
-// pages. The basket opens the floating checkout over the page
-// (hooks/useCheckout.js); on the home page account opens the sign-in card
-// (#account).
+// pages. The basket opens the floating checkout over the page and the profile
+// icon the account card (sign-in when signed out), on whichever page is open
+// (hooks/useCheckout.js). Order Status is not here: it has its own button.
 // Styles: index.css, "STORE HEADER ROW".
 const LANGS = [
   { code: 'en', pill: 'EN', native: 'English', english: 'English', ready: true },
@@ -26,8 +25,7 @@ export default function StoreHeader() {
   const { user } = useAuth()
   const { pathname } = useLocation()
   const { count } = useBasket()
-  const { openBasket } = useCheckoutActions()
-  const onHome = pathname === '/'
+  const { openBasket, showAccount } = useCheckoutActions()
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuTop, setMenuTop] = useState(0)
   const langButton = useRef(null)
@@ -49,8 +47,6 @@ export default function StoreHeader() {
   }, [pathname])
 
   const current = LANGS.find(item => item.code === lang) || LANGS[0]
-  let accountHref = !user ? '/#login' : (STAFF_HOME[user.role] || '/orders')
-  if (onHome) accountHref = '/#account'
 
   const toggleMenu = () => {
     if (!menuOpen && langButton.current) setMenuTop(Math.round(langButton.current.getBoundingClientRect().bottom + 8))
@@ -87,9 +83,9 @@ export default function StoreHeader() {
             <span>{current.pill}</span>
           </button>
 
-          <TransitionLink to={accountHref} className="sb-store-action" aria-label={user ? 'My account' : 'Sign in'}>
+          <a href="#account" className="sb-store-action" data-account-open onClick={showAccount} aria-label={user ? 'My account' : 'Sign in'}>
             <i className={user ? 'fa-solid fa-circle-check sb-store-signed-in' : 'fa-regular fa-circle-user'} aria-hidden="true"></i>
-          </TransitionLink>
+          </a>
 
           <a href="#basket" className="sb-store-action" data-checkout-open onClick={openBasket} aria-label={count ? `Basket, ${count} items` : 'Basket'}>
             <i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>

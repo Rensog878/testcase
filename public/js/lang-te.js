@@ -359,6 +359,15 @@ window.SB_LANG_TE = {
     'Active': 'చురుకుగా ఉంది',
     'Open Admin Panel': 'అడ్మిన్ ప్యానెల్ తెరవండి',
     'Sign Out': 'లాగ్ అవుట్',
+    'Open my portal': 'నా పోర్టల్ తెరవండి',
+    'Edit profile': 'ప్రొఫైల్ మార్చండి',
+    'Not added': 'ఇవ్వలేదు',
+    'Your mobile number cannot be changed': 'మొబైల్ నంబర్ మార్చలేరు',
+    'Save changes': 'మార్పులు సేవ్ చేయండి',
+    'Saving': 'సేవ్ అవుతోంది',
+    'Farm size must be 1 to 9999 acres': 'పొలం పరిమాణం 1 నుండి 9999 ఎకరాలు ఉండాలి',
+    'Profile saved': 'ప్రొఫైల్ సేవ్ అయింది',
+    'Could not save your profile. Please try again': 'ప్రొఫైల్ సేవ్ కాలేదు. మళ్లీ ప్రయత్నించండి',
 
     // Menu sheet
     'Sign in to track orders & get crop advice': 'ఆర్డర్‌లు ట్రాక్ చేయడానికి, పంట సలహా పొందడానికి లాగిన్ అవ్వండి',

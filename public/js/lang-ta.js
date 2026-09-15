@@ -369,6 +369,15 @@ window.SB_LANG_TA = {
     'Active': 'செயலில்',
     'Open Admin Panel': 'நிர்வாகப் பலகையைத் திற',
     'Sign Out': 'வெளியேறு',
+    'Open my portal': 'என் போர்ட்டலைத் திற',
+    'Edit profile': 'சுயவிவரத்தைத் திருத்து',
+    'Not added': 'சேர்க்கப்படவில்லை',
+    'Your mobile number cannot be changed': 'மொபைல் எண்ணை மாற்ற முடியாது',
+    'Save changes': 'மாற்றங்களைச் சேமி',
+    'Saving': 'சேமிக்கப்படுகிறது',
+    'Farm size must be 1 to 9999 acres': 'பண்ணை அளவு 1 முதல் 9999 ஏக்கர் வரை இருக்க வேண்டும்',
+    'Profile saved': 'சுயவிவரம் சேமிக்கப்பட்டது',
+    'Could not save your profile. Please try again': 'சுயவிவரத்தைச் சேமிக்க முடியவில்லை. மீண்டும் முயலவும்',
 
     // Menu sheet
     'Sign in to track orders & get crop advice': 'ஆர்டர்களைக் கண்காணிக்கவும் பயிர் ஆலோசனை பெறவும் உள்நுழையுங்கள்',

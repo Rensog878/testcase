@@ -139,7 +139,7 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
           {/* Phones and tablets, where the Language badge above is hidden. */}
           <LanguageQuickSwitch appliedLang={appliedLang} t={t} />
 
-          <div className="action-item" id="headerAccountBtn" onClick={handleAccountClick} style={{ cursor: 'pointer' }}>
+          <div className="action-item" id="headerAccountBtn" data-account-open onClick={handleAccountClick} style={{ cursor: 'pointer' }}>
             <i
               className={user ? 'fa-solid fa-circle-check action-icon' : 'fa-regular fa-circle-user action-icon'}
               id="headerAccountIcon"

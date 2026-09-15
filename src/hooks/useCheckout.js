@@ -6,7 +6,7 @@ import { afterPageTransition } from '../components/home/pageTransition'
 import { showToast } from '../storefront/toast'
 import useModalStates from '../storefront/useModalStates'
 import {
-  CHECKOUT_STEPS, CONTACT_FIELDS, GUEST_CART_KEY, STAFF_HOME, STEP_HASH,
+  AUTH_HASHES, CHECKOUT_STEPS, CONTACT_FIELDS, GUEST_CART_KEY, STAFF_HOME, STEP_HASH,
   blankAddress, cartTotals, customerDetails, detailProblems, fieldsFromAddress, initialFields,
   itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withItemAdded,
 } from './checkoutRules'
@@ -298,7 +298,9 @@ export function CheckoutProvider({ enabled, children }) {
       else showStep(CHECKOUT_STEPS[CHECKOUT_STEPS.indexOf(current) - 1], { replace: true })
     }
 
-    // ---- sign-in ----
+    // ---- sign-in and the account card ----
+    const onAuthHash = () => AUTH_HASHES.has(decodeURIComponent(live.current.location.hash.slice(1)))
+
     const openSignIn = notice => {
       setAuthNotice(notice || '')
       setLoginRequest(count => count + 1)
@@ -308,12 +310,38 @@ export function CheckoutProvider({ enabled, children }) {
       setAuthNotice('')
       modal.openModal('authModal')
     }
+    // The profile icons and Menu → My Account, on every store page: the card
+    // opens over the page under its own history entry (#account), so the
+    // phone's Back button closes it and a reload opens it again. Over the
+    // checkout, or already on #account, it just opens.
+    const showAccount = event => {
+      event?.preventDefault?.()
+      if (live.current.step || onAuthHash()) {
+        openAccount()
+        return
+      }
+      live.current.navigate(hereWithHash('#account'), { state: { accountCard: true } })
+    }
     const prewarmSignIn = () => modal.prewarmModal('authModal')
     const prewarmCheckout = () => modal.prewarmModal('checkout')
-    const closeSignIn = () => {
+    // Closing the card also takes away the hash that opened it: back past the
+    // entry showAccount added, or out of the address a #login link opened.
+    // Left in place, closing the basket later went Back onto it and opened the
+    // card again.
+    const closeSignIn = ({ keepHash = false } = {}) => {
       resumeRef.current = false
       modal.closeModal('authModal')
       setAuthNotice('')
+      if (keepHash || live.current.step || !onAuthHash()) return
+      if (live.current.location.state?.accountCard) live.current.navigate(-1)
+      else live.current.navigate(hereWithHash(''), { replace: true, state: null })
+    }
+    // Leaving the card for another page (a staff portal): that page takes the
+    // card's place in history, so Back does not open the card again.
+    const leaveSignInFor = path => {
+      const replace = onAuthHash() && !live.current.step
+      closeSignIn({ keepHash: true })
+      live.current.navigate(path, { replace })
     }
     const requireSignIn = () => {
       openSignIn(CHECKOUT_LOGIN_MSG)
@@ -336,13 +364,13 @@ export function CheckoutProvider({ enabled, children }) {
 
     const afterSignIn = async signedInUser => {
       const resume = resumeRef.current
-      closeSignIn()
-      // Anything added as a guest joins this customer's basket.
-      const items = await loadCart(signedInUser)
       // Staff roles each have their own portal; customers stay where they are.
       const home = STAFF_HOME[signedInUser?.role]
+      closeSignIn({ keepHash: Boolean(home) })
+      // Anything added as a guest joins this customer's basket.
+      const items = await loadCart(signedInUser)
       if (home) {
-        live.current.navigate(home)
+        leaveSignInFor(home)
         return
       }
       if (resume && items.length) showStep('address')
@@ -606,7 +634,7 @@ export function CheckoutProvider({ enabled, children }) {
     return {
       loadCart, showGuestCart, addItem, updateQty, removeLine,
       showStep, openBasket, startCheckout, back, closeCheckout, dropStepHash, trackOrder, browseProducts, restoreFocus,
-      openSignIn, openAccount, closeSignIn, requireSignIn, afterSignIn, signOut, prewarmSignIn, prewarmCheckout,
+      openSignIn, openAccount, showAccount, closeSignIn, leaveSignInFor, requireSignIn, afterSignIn, signOut, prewarmSignIn, prewarmCheckout,
       loadAddresses, resetForUser, chooseAddress, addNewAddress, editAddress, setField, setSaveAddress, setPayment,
       continueToPayment, placeOrder,
     }
@@ -657,6 +685,16 @@ export function CheckoutProvider({ enabled, children }) {
       afterPageTransition().then(() => actions.openAccount())
     }
   }, [enabled, location.key, location.hash, actions])
+
+  // The phone's Back button (or any other change of address) away from
+  // #account / #login closes the card that hash opened.
+  const lastHash = useRef(location.hash)
+  useEffect(() => {
+    const was = decodeURIComponent(lastHash.current.slice(1))
+    lastHash.current = location.hash
+    if (!AUTH_HASHES.has(was) || AUTH_HASHES.has(decodeURIComponent(location.hash.slice(1)))) return
+    if (modal.modalsRef.current.authModal) actions.closeSignIn({ keepHash: true })
+  }, [location.key, location.hash, actions, modal])
 
   // The pop-up follows the step in the address: opened by a link, the Back
   // button or a reload as much as by a tap.

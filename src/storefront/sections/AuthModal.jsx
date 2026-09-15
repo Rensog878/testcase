@@ -1,5 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
+import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
+import { STAFF_HOME } from '../../hooks/checkoutRules'
 import { passwordChecks } from '../../utils/passwordRules'
 import { ResendAnnouncer, resendLabel, useResendCountdown } from '../../shared/useResendCountdown'
 import { useStore } from '../StoreContext'
@@ -8,8 +10,9 @@ import Modal from './Modal'
 
 // One sheet with four views: login, register (step 1 details, step 2 farm),
 // otp (step 3, the WhatsApp code) and forgot (password reset). Signed-in
-// visitors see their account instead. Fields are checked as they are typed and
-// each problem shows under its field.
+// visitors see their profile card instead (AccountCard), where they can edit
+// it. Fields are checked as they are typed and each problem shows under its
+// field. Styles: storefront.css, 7f (sign-in) and 7f-2 (the profile card).
 
 const ACRE_LIMITS = { min: 1, max: 9999 }
 const CROP_OPTIONS = [
@@ -107,8 +110,311 @@ function ResendRow({ textId, buttonId, left, sending, sendingLabel, onResend }) 
   )
 }
 
+// The store brand, as in the header. Not a link, so it takes no Tab stop.
+function AuthBrand({ t }) {
+  return (
+    <div className="auth-brand">
+      <span className="auth-brand-icon" aria-hidden="true"><i className="fa-solid fa-leaf"></i></span>
+      <span className="auth-brand-words">
+        <span className="auth-brand-text">SATHYA <span>BIO</span></span>
+        <span className="auth-brand-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
+      </span>
+    </div>
+  )
+}
+
+// ---- signed in: the profile card ----
+// What customers can change about themselves (PUT /api/profile). The server
+// keeps only the fields the admin has left editable (Admin → Profile fields),
+// never the mobile number or role; staff have no crop or farm size.
+const PROFILE_KEYS = ['name', 'crop', 'acreage', 'village', 'district']
+const FARM_KEYS = ['crop', 'acreage']
+const PROFILE_INPUT = { name: 'acctName', crop: 'acctCrop', acreage: 'acctAcreage', village: 'acctVillage', district: 'acctDistrict' }
+
+const cropOf = user => user.crop || user.primaryCrop || ''
+const profileOf = user => ({
+  name: user.name || '',
+  crop: cropOf(user) || CROP_OPTIONS[0][0],
+  acreage: String(user.acreage || user.landAcres || ''),
+  village: user.village || '',
+  district: user.district || '',
+})
+const tidy = value => value.trim().replace(/\s+/g, ' ').slice(0, 80)
+
+// The first letter as it is read: "மு" or "सु", not the bare consonant
+// charAt(0) cuts from a Tamil or Hindi name.
+function initialOf(name) {
+  const text = String(name || '').trim()
+  if (!text) return ''
+  const first = typeof Intl !== 'undefined' && Intl.Segmenter
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text)[Symbol.iterator]().next().value?.segment
+    : Array.from(text)[0]
+  return (first || '').toUpperCase()
+}
+
+// A detail as a label over its value, so a long translated label never
+// squeezes the value beside it on a narrow phone.
+function ProfileRow({ icon, label, id, value, keepAsTyped = false }) {
+  const className = ['acct-value', !value && 'is-empty', value && keepAsTyped && 'notranslate'].filter(Boolean).join(' ')
+  return (
+    <li className="acct-row">
+      <span className="acct-icon" aria-hidden="true"><i className={`fa-solid ${icon}`}></i></span>
+      <span className="acct-label">{label}</span>
+      <span id={id} className={className}>{value || 'Not added'}</span>
+    </li>
+  )
+}
+
+// The profile (initial, name, mobile, crop and acreage, village and district,
+// the staff portal, Sign Out) and its edit form. Order Status is not here: it
+// has its own button (Menu → Track Order, the header's Track link).
+function AccountCard({ t, user, view, onView }) {
+  const { signOut, leaveSignInFor } = useStore()
+  const { setSession } = useAuth()
+  const [form, setForm] = useState(() => profileOf(user))
+  const [errors, setErrors] = useState({})
+  const [editable, setEditable] = useState(null) // the server's editable field ids, once asked
+  const [saving, setSaving] = useState(false)
+  const focusNext = useRef(null)
+
+  const portal = STAFF_HOME[user.role]
+  const crop = cropOf(user) || 'All Crops'
+  const acres = user.acreage || user.landAcres
+  const place = [user.village, user.district].filter(Boolean).join(', ')
+  const phone = user.phone || user.mobile
+  const initial = initialOf(user.name)
+  const canChange = key => !(portal && FARM_KEYS.includes(key)) && (!editable || editable.has(key))
+
+  useEffect(() => {
+    const id = focusNext.current
+    if (!id) return
+    focusNext.current = null
+    document.getElementById(id)?.focus({ preventScroll: true })
+  })
+
+  useEffect(() => {
+    document.querySelector('#authModal .modal-card')?.scrollTo({ top: 0 })
+  }, [view])
+
+  const startEdit = () => {
+    setForm(profileOf(user))
+    setErrors({})
+    focusNext.current = 'authEditTitle'
+    onView('edit')
+    if (editable) return
+    axios.get('/api/profile-fields')
+      .then(({ data }) => {
+        if (Array.isArray(data?.data)) setEditable(new Set(data.data.filter(field => field.editable).map(field => field.id)))
+      })
+      .catch(() => {})
+  }
+
+  const backToProfile = () => {
+    focusNext.current = 'authAccountTitle'
+    onView('profile')
+  }
+
+  // A plain click stays in the app; Ctrl/⌘-click still opens a new tab.
+  const openPortal = event => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    leaveSignInFor(portal)
+  }
+
+  const setField = (key, value) => {
+    setForm(current => ({ ...current, [key]: key === 'acreage' ? value.replace(/\D/g, '').slice(0, 4) : value }))
+    setErrors(current => without(current, [key]))
+  }
+
+  const saveProfile = async event => {
+    event.preventDefault()
+    if (saving) return
+    const changes = {}
+    const problems = {}
+    if (canChange('name')) {
+      const name = tidy(form.name)
+      if (!name) problems.name = 'Please enter your name.'
+      // Letters in any script: names are typed in Tamil, Hindi and the rest too.
+      else if ((name.match(/\p{L}/gu) || []).length < 2) problems.name = 'Please enter your name, not a number.'
+      else changes.name = name
+    }
+    if (canChange('crop')) changes.crop = form.crop
+    if (canChange('acreage')) {
+      const size = Number(form.acreage)
+      if (!Number.isInteger(size) || size < ACRE_LIMITS.min || size > ACRE_LIMITS.max) problems.acreage = 'Farm size must be 1 to 9999 acres.'
+      else changes.acreage = size
+    }
+    ;['village', 'district'].forEach(key => {
+      if (canChange(key)) changes[key] = tidy(form[key])
+    })
+    setErrors(problems)
+    const bad = PROFILE_KEYS.find(key => problems[key])
+    if (bad) {
+      document.getElementById(PROFILE_INPUT[bad])?.focus()
+      return
+    }
+
+    setSaving(true)
+    try {
+      const { data } = await axios.put('/api/profile', changes)
+      if (!data?.success || !data.data) throw new Error(data?.message)
+      const token = localStorage.getItem('sathya_token')
+      if (token) setSession(token, { ...user, ...data.data })
+      showToast('Profile saved.', 'success')
+      backToProfile()
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Could not save your profile. Please try again.', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inputProps = (key, describedBy) => {
+    const id = PROFILE_INPUT[key]
+    return {
+      id,
+      className: ['auth-input', errors[key] && 'sb-input-invalid'].filter(Boolean).join(' '),
+      value: form[key],
+      onChange: event => setField(key, event.target.value),
+      'aria-invalid': errors[key] ? 'true' : undefined,
+      'aria-describedby': [describedBy, errors[key] && `${id}Hint`].filter(Boolean).join(' ') || undefined,
+    }
+  }
+  const hint = key => <FieldHint id={PROFILE_INPUT[key]} hint={errors[key] && { kind: 'error', message: errors[key] }} />
+  // A crop saved before the list changed stays choosable.
+  const cropChoices = CROP_OPTIONS.some(([value]) => value === form.crop) ? CROP_OPTIONS : [[form.crop, form.crop], ...CROP_OPTIONS]
+
+  if (view === 'edit') {
+    return (
+      <div id="authLoggedInView" className="auth-account" data-view="edit">
+        <AuthBrand t={t} />
+        <div className="auth-topbar">
+          <button type="button" id="accountBackBtn" className="auth-back" onClick={backToProfile}>
+            <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span>Back</span>
+          </button>
+        </div>
+
+        <form id="accountEditForm" className="auth-form" onSubmit={saveProfile} noValidate>
+          <header className="auth-head">
+            <h2 id="authEditTitle" className="auth-title" tabIndex={-1}>Edit profile</h2>
+            <p className="auth-sub">Your mobile number cannot be changed.</p>
+          </header>
+
+          {canChange('name') && (
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="acctName">Full name</label>
+              <div className="auth-control">
+                <input type="text" autoComplete="name" autoCapitalize="words" enterKeyHint="next" maxLength={80} {...inputProps('name')} />
+                <i className="fa-solid fa-user auth-control-icon" aria-hidden="true"></i>
+              </div>
+              {hint('name')}
+            </div>
+          )}
+
+          {canChange('crop') && (
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="acctCrop">Main crop</label>
+              <div className="auth-control auth-control--select">
+                <select {...inputProps('crop')}>
+                  {cropChoices.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+                <i className="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
+                <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>
+              </div>
+            </div>
+          )}
+
+          {canChange('acreage') && (
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="acctAcreage">Farm size</label>
+              <div className="auth-control auth-control--suffix">
+                <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" enterKeyHint="next" {...inputProps('acreage', 'acctAcreageUnit')} />
+                <span className="auth-suffix" id="acctAcreageUnit">acres</span>
+              </div>
+              {hint('acreage')}
+            </div>
+          )}
+
+          {canChange('village') && (
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="acctVillage">Village or town</label>
+              <div className="auth-control">
+                <input type="text" autoComplete="address-level2" enterKeyHint="next" maxLength={80} {...inputProps('village')} />
+                <i className="fa-solid fa-location-dot auth-control-icon" aria-hidden="true"></i>
+              </div>
+            </div>
+          )}
+
+          {canChange('district') && (
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="acctDistrict">District</label>
+              <div className="auth-control">
+                <input type="text" autoComplete="off" enterKeyHint="done" maxLength={80} {...inputProps('district')} />
+                <i className="fa-solid fa-map-location-dot auth-control-icon" aria-hidden="true"></i>
+              </div>
+            </div>
+          )}
+
+          <div className="auth-actions">
+            <button type="submit" className="auth-cta" id="accountSaveBtn" disabled={saving}>
+              {saving ? <Spinner label="Saving..." /> : <><i className="fa-solid fa-check" aria-hidden="true"></i> Save changes</>}
+            </button>
+          </div>
+        </form>
+      </div>
+    )
+  }
+
+  return (
+    <div id="authLoggedInView" className="auth-account" data-view="profile">
+      <AuthBrand t={t} />
+      <section className="acct-view" aria-labelledby="authAccountTitle">
+        <header className="acct-head">
+          <span id="loggedInUserInitial" className="acct-avatar notranslate" aria-hidden="true">
+            {initial || <i className="fa-solid fa-user"></i>}
+          </span>
+          <div className="acct-id">
+            <h2 id="authAccountTitle" className="auth-title acct-name" tabIndex={-1}>
+              <span id="loggedInUserName" className={user.name ? 'notranslate' : undefined}>{user.name || 'Farmer'}</span>
+            </h2>
+            <span id="loggedInUserRoleBadge" className="acct-role">
+              <i className={`fa-solid ${portal ? 'fa-shield-halved' : 'fa-wheat-awn'}`} aria-hidden="true"></i>
+              <span>{portal ? `${user.role.toUpperCase()} Staff` : `${crop} Farmer`}</span>
+            </span>
+          </div>
+        </header>
+
+        <ul className="acct-details">
+          {phone || !user.email
+            ? <ProfileRow icon="fa-mobile-screen-button" label="Mobile" id="loggedInUserPhone" value={phone && formatMobile(phone)} keepAsTyped />
+            : <ProfileRow icon="fa-envelope" label="Email" id="loggedInUserEmail" value={user.email} keepAsTyped />}
+          {!portal && <ProfileRow icon="fa-seedling" label="Crop & Acreage" id="loggedInUserCrop" value={acres ? `${crop} (${acres} Acres)` : crop} />}
+          <ProfileRow icon="fa-location-dot" label="Location" id="loggedInUserLocation" value={place} />
+        </ul>
+
+        <div className="acct-actions">
+          {portal && (
+            <a id={user.role === 'admin' ? 'adminPortalLink' : 'staffPortalLink'} href={portal} className="auth-cta" onClick={openPortal}>
+              <i className={`fa-solid ${user.role === 'admin' ? 'fa-gauge-high' : 'fa-briefcase'}`} aria-hidden="true"></i> {user.role === 'admin' ? 'Open Admin Panel' : 'Open my portal'}
+            </a>
+          )}
+          {PROFILE_KEYS.some(canChange) && (
+            <button type="button" id="accountEditBtn" className="acct-btn" onClick={startEdit}>
+              <i className="fa-solid fa-pen" aria-hidden="true"></i> Edit profile
+            </button>
+          )}
+          <button type="button" id="accountSignOutBtn" className="acct-btn acct-btn--signout" onClick={signOut}>
+            <i className="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sign Out
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 export default memo(function AuthModal({ t, state, user, notice, loginRequest }) {
-  const { afterSignIn, signOut } = useStore()
+  const { afterSignIn } = useStore()
   const { login, setSession } = useAuth()
 
   const [view, setView] = useState('login')
@@ -123,6 +429,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const [otpPhone, setOtpPhone] = useState('')
   const [forgotStep, setForgotStep] = useState('phone')
   const [forgotPhone, setForgotPhoneState] = useState('') // the number the reset code went to
+  const [accountView, setAccountView] = useState('profile') // signed in: 'profile' | 'edit'
   const signupResend = useResendCountdown()
   const forgotResend = useResendCountdown()
 
@@ -195,6 +502,12 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   useEffect(() => {
     if (loginRequest) setView('login')
   }, [loginRequest])
+
+  // The profile card opens on the profile, not on an edit left half-done.
+  const cardOpen = Boolean(state)
+  useEffect(() => {
+    if (cardOpen) setAccountView('profile')
+  }, [cardOpen])
 
   useEffect(() => {
     const key = `${view}:${registerStep}`
@@ -698,23 +1011,16 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     next?.focus()
   }
 
-  const role = user?.role || 'farmer'
-  const crop = user ? user.crop || user.primaryCrop || 'All Crops' : ''
+  let labelledBy = titleId
+  if (user) labelledBy = accountView === 'edit' ? 'authEditTitle' : 'authAccountTitle'
 
   return (
-    <Modal id="authModal" state={state} cardClassName="modal-card auth-card" cardProps={{ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId }}>
+    <Modal id="authModal" state={state} cardClassName="modal-card auth-card" cardProps={{ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': labelledBy }}>
       <div id="authLoggedOutView" className="auth-shell" data-view={view} data-step={registerStep} style={{ display: user ? 'none' : 'block' }}>
         {/* Outside the forms, so they are in the page before anything is said. */}
         <ResendAnnouncer announcement={signupResend.announcement} />
         <ResendAnnouncer announcement={forgotResend.announcement} />
-        {/* The store brand, as in the header. Not a link, so it takes no Tab stop. */}
-        <div className="auth-brand">
-          <span className="auth-brand-icon" aria-hidden="true"><i className="fa-solid fa-leaf"></i></span>
-          <span className="auth-brand-words">
-            <span className="auth-brand-text">SATHYA <span>BIO</span></span>
-            <span className="auth-brand-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
-          </span>
-        </div>
+        <AuthBrand t={t} />
 
         <div className="auth-topbar">
           <div id="authTabsBar" className="auth-tabs" role="tablist" data-active={view === 'login' ? 'login' : 'register'} hidden={!tabbed}>
@@ -987,36 +1293,8 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         </form>
       </div>
 
-      {/* SIGNED IN: the account */}
-      {user && (
-        <div id="authLoggedInView" className="auth-account" style={{ display: 'block', textAlign: 'center' }}>
-          <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#ecfdf5', color: 'var(--primary)', fontSize: '1.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', border: '2px solid #34d399' }}>
-            <span id="loggedInUserInitial">{(user.name || 'U').charAt(0).toUpperCase()}</span>
-          </div>
-          <h3 id="loggedInUserName" style={{ color: 'var(--primary-dark)', marginBottom: '2px' }}>{user.name}</h3>
-          <span id="loggedInUserRoleBadge" style={{ display: 'inline-block', background: '#ecfdf5', color: 'var(--primary)', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700, border: '1px solid #34d399', marginBottom: '14px' }}>
-            {role === 'farmer' ? `🌾 ${crop} Farmer` : `🛡️ ${role.toUpperCase()} Staff`}
-          </span>
-
-          <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px', textAlign: 'left', fontSize: '0.82rem', marginBottom: '16px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div><strong>Mobile:</strong> <span id="loggedInUserPhone">{user.phone || user.mobile || 'Verified Customer'}</span></div>
-            <div><strong>Crop &amp; Acreage:</strong> <span id="loggedInUserCrop">{`${crop} (${user.acreage || user.landAcres || 1} Acres)`}</span></div>
-            <div><strong>Location:</strong> <span id="loggedInUserLocation">{`${user.village || 'Farm'}, ${user.district || 'Tamil Nadu'}`}</span></div>
-            <div><strong>Catalog Personalization:</strong> <span style={{ color: 'var(--primary)', fontWeight: 700 }}>Active 🎯</span></div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {role === 'admin' && (
-              <a id="adminPortalLink" href="/admin" className="btn btn-primary" style={{ display: 'inline-flex', justifyContent: 'center', padding: '10px', textDecoration: 'none' }}>
-                <i className="fa-solid fa-gauge-high"></i> Open Admin Panel
-              </a>
-            )}
-            <button className="btn btn-outline" onClick={signOut} style={{ justifyContent: 'center', padding: '10px', color: '#ef4444', borderColor: '#fca5a5' }}>
-              <i className="fa-solid fa-right-from-bracket"></i> Sign Out
-            </button>
-          </div>
-        </div>
-      )}
+      {/* SIGNED IN: the profile card */}
+      {user && <AccountCard t={t} user={user} view={accountView} onView={setAccountView} />}
     </Modal>
   )
 })

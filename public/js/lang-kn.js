@@ -359,6 +359,15 @@ window.SB_LANG_KN = {
     'Active': 'ಸಕ್ರಿಯ',
     'Open Admin Panel': 'ಆಡಳಿತ ಫಲಕ ತೆರೆಯಿರಿ',
     'Sign Out': 'ಲಾಗ್ ಔಟ್',
+    'Open my portal': 'ನನ್ನ ಪೋರ್ಟಲ್ ತೆರೆಯಿರಿ',
+    'Edit profile': 'ಪ್ರೊಫೈಲ್ ತಿದ್ದಿ',
+    'Not added': 'ಸೇರಿಸಿಲ್ಲ',
+    'Your mobile number cannot be changed': 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಬದಲಾಯಿಸಲು ಆಗುವುದಿಲ್ಲ',
+    'Save changes': 'ಬದಲಾವಣೆ ಉಳಿಸಿ',
+    'Saving': 'ಉಳಿಸಲಾಗುತ್ತಿದೆ',
+    'Farm size must be 1 to 9999 acres': 'ಜಮೀನಿನ ಗಾತ್ರ 1 ರಿಂದ 9999 ಎಕರೆ ಇರಬೇಕು',
+    'Profile saved': 'ಪ್ರೊಫೈಲ್ ಉಳಿಸಲಾಗಿದೆ',
+    'Could not save your profile. Please try again': 'ಪ್ರೊಫೈಲ್ ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
 
     // Menu sheet
     'Sign in to track orders & get crop advice': 'ಆರ್ಡರ್ ಟ್ರ್ಯಾಕ್ ಮಾಡಲು ಮತ್ತು ಬೆಳೆ ಸಲಹೆ ಪಡೆಯಲು ಲಾಗಿನ್ ಮಾಡಿ',

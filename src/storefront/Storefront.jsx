@@ -138,7 +138,7 @@ export default function Storefront() {
     // card and the checkout are the shared ones.
     const { openModal, prewarmModal, closeModal } = modal
     const openSignIn = notice => checkout.openSignIn(notice)
-    const handleAccountClick = () => checkout.openAccount()
+    const handleAccountClick = event => checkout.showAccount(event)
 
     // ---- catalogue ----
     const scrollToCatalog = () => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })

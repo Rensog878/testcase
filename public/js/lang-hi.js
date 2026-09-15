@@ -359,6 +359,15 @@ window.SB_LANG_HI = {
     'Active': 'चालू',
     'Open Admin Panel': 'एडमिन पैनल खोलें',
     'Sign Out': 'लॉग आउट',
+    'Open my portal': 'मेरा पोर्टल खोलें',
+    'Edit profile': 'प्रोफ़ाइल बदलें',
+    'Not added': 'नहीं जोड़ा',
+    'Your mobile number cannot be changed': 'मोबाइल नंबर बदला नहीं जा सकता',
+    'Save changes': 'बदलाव सहेजें',
+    'Saving': 'सहेजा जा रहा है',
+    'Farm size must be 1 to 9999 acres': 'खेत का आकार 1 से 9999 एकड़ होना चाहिए',
+    'Profile saved': 'प्रोफ़ाइल सहेजी गई',
+    'Could not save your profile. Please try again': 'प्रोफ़ाइल सहेजी नहीं जा सकी। फिर से कोशिश करें',
 
     // Menu sheet
     'Sign in to track orders & get crop advice': 'ऑर्डर ट्रैक करने और फसल सलाह पाने के लिए लॉग इन करें',

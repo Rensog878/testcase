@@ -3,15 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
 import { useCheckoutActions } from '../../hooks/useCheckout'
-import { STAFF_HOME } from '../../hooks/checkoutRules'
 import TransitionLink from './TransitionLink'
 
 // Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
 // it once, outside the routes, so it stays mounted - the same element, icons
 // and position - while the shopper moves between pages; nothing reloads or
-// redraws. On the home page the Menu goes to the storefront's own sections and
-// sign-in (#account, ?category=...); My Cart opens the floating checkout over
-// any page (hooks/useCheckout.js).
+// redraws. On the home page the Menu goes to the storefront's own sections
+// (?category=...). On any page My Account / Sign In opens the account card
+// and My Cart the floating checkout over the page (hooks/useCheckout.js);
+// Track Order is the one way to Order Status.
 // Styles: index.css, "MOBILE MENU SHEET" and the floating bottom bar.
 
 const CATEGORY_CHIPS = [
@@ -51,7 +51,7 @@ export default function MobileBottomNav() {
   // sheet is closed. Read from storage as the sheet opened, the new name
   // re-laid out and repainted the whole sheet on the frame its slide started.
   const { user } = useAuth()
-  const { openBasket } = useCheckoutActions()
+  const { openBasket, showAccount } = useCheckoutActions()
   const sheetRef = useRef(null)
 
   const path = location.pathname
@@ -305,14 +305,10 @@ export default function MobileBottomNav() {
     navigate('/#scan')
   }
 
-  const handleAccountClick = () => {
+  // The same as the header's profile icon: the account card over this page.
+  const handleAccountClick = event => {
     closeMenu()
-    if (onHome) {
-      navigate('/#account')
-      return
-    }
-    // Farmers sign in on the storefront; /login is the staff sign-in.
-    navigate(user ? STAFF_HOME[user.role] || '/orders' : '/#login')
+    showAccount(event)
   }
 
   // On the home page a Menu tile goes to that section of the page.
@@ -340,7 +336,7 @@ export default function MobileBottomNav() {
             <strong>{user ? `Hi, ${user.name || 'Farmer'}` : 'Welcome to Sathya Bio'}</strong>
             <span>{accountSub}</span>
           </div>
-          <button type="button" className="mms-account-btn" onClick={handleAccountClick}>
+          <button type="button" className="mms-account-btn" data-account-open onClick={handleAccountClick}>
             {user ? 'My Account' : 'Sign In'}
           </button>
         </div>

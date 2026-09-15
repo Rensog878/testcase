@@ -42,6 +42,7 @@ export default function StorePopups() {
   const store = useMemo(() => ({
     afterSignIn: actions.afterSignIn,
     signOut: actions.signOut,
+    leaveSignInFor: actions.leaveSignInFor,
     closeModal: id => (id === 'authModal' ? actions.closeSignIn() : actions.closeCheckout()),
   }), [actions])
 
@@ -105,12 +106,13 @@ export default function StorePopups() {
     }
     window.addEventListener('keydown', onKey, true)
 
-    // Touch-down on a basket or (on the home page) the account button warms
-    // its popup, so the slide starts without a stutter (useModalStates.js).
+    // Touch-down on a basket or an account control (the profile icons, Menu →
+    // My Account) warms its popup, so the slide starts without a stutter
+    // (useModalStates.js).
     const onPointerDown = event => {
       if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return
       if (event.target.closest('[data-checkout-open]')) actions.prewarmCheckout()
-      else if (event.target.closest('#headerAccountBtn, .sb-store-head a[href="/#account"]')) actions.prewarmSignIn()
+      else if (event.target.closest('[data-account-open]')) actions.prewarmSignIn()
     }
     document.addEventListener('pointerdown', onPointerDown, { passive: true, capture: true })
 

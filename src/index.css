@@ -5413,15 +5413,27 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   color: #1e293b;
 }
 
+/* The select may shrink below its longest option: in Tamil "Sort by" and
+   "Best Selling" are long enough to push a 360px phone page out to ~490px,
+   which also pushed every popup off-centre. */
 .catalog-sort-select {
   display: flex;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
+  min-width: 0;
   font-size: 12px;
   color: #475569;
 }
 
+.catalog-sort-select label {
+  flex: none;
+}
+
 .catalog-sort-select select {
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
   padding: 8px 12px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;

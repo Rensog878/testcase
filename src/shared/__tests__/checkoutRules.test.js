@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
+  AUTH_HASHES, SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
   blankAddress, initialFields, itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withItemAdded,
 } from '../../hooks/checkoutRules.js';
 
@@ -80,4 +80,9 @@ test('each step has a hash, and only those hashes are steps', () => {
   assert.equal(stepForHash(''), null);
   for (const hash of Object.values(STEP_HASH)) assert.ok(SHARED_POPUP_HASHES.has(hash));
   assert.ok(SHARED_POPUP_HASHES.has('login'));
+  // The account card's hashes are shared popups, and never a checkout step.
+  for (const hash of AUTH_HASHES) {
+    assert.ok(SHARED_POPUP_HASHES.has(hash));
+    assert.equal(stepForHash(hash), null);
+  }
 });

@@ -5440,9 +5440,193 @@ body.sb-home-active {
   white-space: nowrap;
 }
 
-/* Signed-in view in the same sheet */
+/* ------------------------------------------------------------
+   7f-2. MY ACCOUNT - the signed-in view of the same card
+   (#authLoggedInView, AccountCard in AuthModal.jsx). The brand row,
+   a green profile header (initial, name, crop or staff role), the
+   details as label-over-value rows so a long Tamil, Kannada, Telugu
+   or Hindi label never squeezes its value, then the buttons. Edit
+   profile reuses the sign-in form's fields and sticky button.
+   ------------------------------------------------------------ */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-account {
-  padding: 8px 0 var(--auth-pad-bottom);
+  padding: 0 0 var(--auth-pad-bottom);
+}
+/* The edit form's sticky button area carries the bottom padding. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-account[data-view="edit"] {
+  padding-bottom: 0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: authViewIn 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(4, 120, 87, 0.18);
+  border-radius: 18px;
+  background: linear-gradient(150deg, #ecfdf5, #d1fae5);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-avatar {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a, #047857);
+  box-shadow: 0 8px 18px -8px rgba(4, 120, 87, 0.75);
+  color: #ffffff;
+  font: 800 1.6rem/1 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-id {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-name {
+  margin: 0;
+  color: var(--auth-green-deep);
+  overflow-wrap: anywhere;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 1px solid rgba(4, 120, 87, 0.22);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--auth-green-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-role i {
+  flex: none;
+  color: var(--auth-green);
+  font-size: 0.72rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-details {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--auth-line-soft);
+  border-radius: var(--auth-radius);
+  overflow: hidden;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 1px;
+  align-items: center;
+  padding: 11px 14px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-row + .acct-row {
+  border-top: 1px solid var(--auth-line-soft);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-icon {
+  grid-row: span 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--auth-tint);
+  color: var(--auth-green);
+  font-size: 0.9rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-label {
+  color: var(--auth-quiet);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-value {
+  color: var(--auth-ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-value.is-empty {
+  color: var(--auth-quiet);
+  font-weight: 600;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-actions a.auth-cta,
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-actions a.auth-cta:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1.5px solid var(--auth-line-soft);
+  border-radius: var(--auth-radius);
+  background: #ffffff;
+  color: var(--auth-green-deep);
+  font: 700 0.95rem/1.25 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  text-align: center;
+  text-wrap: balance;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-btn i {
+  color: var(--auth-green);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-btn:hover {
+  border-color: #b6c8bf;
+  background: var(--auth-tint);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-btn--signout {
+  border-color: #fecaca;
+  color: var(--auth-error);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-btn--signout i {
+  color: var(--auth-error);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-btn--signout:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-card .acct-btn:focus-visible,
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-card .acct-actions a.auth-cta:focus-visible {
+  outline: var(--auth-focus);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .acct-view {
+    gap: 14px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .acct-head {
+    gap: 12px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .acct-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 1.4rem;
+  }
 }
 
 /* Phones: the same design a size smaller, so a step fits the screen with the

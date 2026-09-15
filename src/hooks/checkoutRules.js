@@ -20,8 +20,10 @@ export const stepForHash = hash => {
   const name = String(hash || '').replace(/^#/, '')
   return CHECKOUT_STEPS.find(step => STEP_HASH[step] === name) || null
 }
+// Hashes that open the sign-in / account card.
+export const AUTH_HASHES = new Set(['login', 'auth', 'account'])
 // Hashes the shared popups answer on every store page (not page sections).
-export const SHARED_POPUP_HASHES = new Set(['login', 'auth', 'account', ...Object.values(STEP_HASH)])
+export const SHARED_POPUP_HASHES = new Set([...AUTH_HASHES, ...Object.values(STEP_HASH)])
 
 export const keyOf = item => item.id || item._id
 const samePack = (a, b) => (a.selectedPack || '') === (b.selectedPack || '')

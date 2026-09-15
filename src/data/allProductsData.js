@@ -46,7 +46,8 @@ export const CROPS_LIST = [
 // into the "Target Pests / Diseases" field on the product form — keep the two
 // in sync (server/db.js DEFAULT_CATALOG_OPTIONS.diseases mirrors these values).
 export const PESTS_AND_DISEASES = [
-  { id: 'blast-rust', name: 'Blast & Rust', subtitle: 'Rice Blast, Sheath & Leaf/Stripe Rust', matchValue: 'Blast', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' },
+  { id: 'blast', name: 'Rice Blast', subtitle: 'Sheath & Neck Blast', matchValue: 'Blast', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' },
+  { id: 'rust', name: 'Leaf & Stripe Rust', matchValue: 'Rust', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' },
   { id: 'blight', name: 'Early / Late Blight', matchValue: 'Blight', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Fungicide' },
   { id: 'downy-powdery-mildew', name: 'Downy & Powdery Mildew', matchValue: 'Downy Mildew', image: 'https://media.bighaat.com/categories/fungicides_ct.webp', cureCategory: 'Fungicide' },
   { id: 'leaf-miner', name: 'Leaf Miner', matchValue: 'Leaf Miner', image: 'https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=240&auto=format&fit=crop&q=80', cureCategory: 'Insecticide' },

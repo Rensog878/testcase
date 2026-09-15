@@ -49,6 +49,35 @@
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --glass-bg: rgba(255, 255, 255, 0.75);
   --glass-border: rgba(255, 255, 255, 0.4);
+
+  /* Spacing scale (desktop redesign primitives — see the ≥769px block near
+     "DESKTOP REFINEMENT LAYER" below; the ≤768px mobile layout never reads
+     these). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Type scale */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: 2.25rem;
+  --fs-4xl: 3rem;
+
+  --radius-xl: 32px;
+  --shadow-lg: 0 24px 56px rgba(5, 150, 105, 0.16);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body.sb-home-active, :is(body.sb-home-active .sb-home, .sb-portal), :is(body.sb-home-active .sb-home, .sb-portal) * {
@@ -692,6 +721,43 @@ body.sb-home-active {
   border-bottom: 3px solid var(--primary-light);
 }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — HEADER & NAV (>=1025px)
+   The header already collapses to a compact icon-only layout at 1024px and
+   below ("HEADER LAYOUT - tablets and below" further down this file), so
+   this only refines the full two-line-label desktop header above that
+   cutoff and can never interact with the tablet/phone collapse logic. Every
+   change here is paint-only (box-shadow/transform), so nothing reflows.
+   ========================================= */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-main {
+    box-shadow: var(--shadow-md);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-icon {
+    transition: transform 0.25s var(--ease-out);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-box:hover .logo-icon {
+    transform: scale(1.06) rotate(-4deg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-search {
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.25s var(--ease-out);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-search:focus-within {
+    box-shadow: var(--shadow-md);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .action-item {
+    transition: box-shadow 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .action-item:hover {
+    box-shadow: 0 0 0 8px rgba(5, 150, 105, 0.08);
+    border-radius: var(--radius-md);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .navbar {
+    box-shadow: var(--shadow-md);
+  }
+}
+
 /* BUTTONS */
 :is(body.sb-home-active .sb-home, .sb-portal) .btn {
   padding: 10px 20px;
@@ -890,6 +956,45 @@ body.sb-home-active {
   border-color: var(--primary);
 }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — PRIMITIVES (≥769px)
+   Additive only: layers modern spacing/radius/elevation/motion onto the
+   .btn/.sidebar-panel/.select-input/.text-input primitives above, using the
+   spacing and type scale defined in the token block near the top of this
+   file. Nothing here edits a base rule or a max-width block, so the
+   ≤768px mobile layout (which only ever reads the base rules above and its
+   own dedicated max-width blocks further down) is unaffected.
+   ========================================= */
+@media (min-width: 769px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn {
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+    gap: var(--space-2);
+    transition: transform 0.2s var(--ease-out), box-shadow 0.25s var(--ease-out), background 0.25s ease, border-color 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn:active { transform: translateY(0) scale(0.98); }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-primary:hover { box-shadow: 0 14px 32px rgba(22, 163, 74, 0.32); }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-outline:hover { box-shadow: var(--shadow-sm); }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-md);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .select-input,
+  :is(body.sb-home-active .sb-home, .sb-portal) .text-input {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .select-input:focus,
+  :is(body.sb-home-active .sb-home, .sb-portal) .text-input:focus {
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+  }
+}
+
 /* PRODUCT E-COMMERCE CARDS */
 :is(body.sb-home-active .sb-home, .sb-portal) .products-grid {
   display: grid;
@@ -1021,6 +1126,40 @@ body.sb-home-active {
   display: flex;
   gap: 8px;
   margin-top: auto;
+}
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — PRODUCT CARDS (>=769px)
+   No max-width block in this file touches .product-card above 768px, so
+   this can layer on the base rules directly without risking the mobile
+   layout further down.
+   ========================================= */
+@media (min-width: 769px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .product-card {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.25s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-hover);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .card-content {
+    padding: var(--space-6);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .product-name {
+    font-size: var(--fs-lg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .current-price {
+    font-size: var(--fs-2xl);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .pack-chip {
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .card-btn-row {
+    gap: var(--space-3);
+  }
 }
 
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-close-btn {
@@ -1268,6 +1407,42 @@ body.sb-home-active {
   border-top: 1px solid rgba(255,255,255,0.1);
   padding-top: 20px;
   font-size: 0.85rem;
+}
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — FOOTER (>=1025px)
+   .footer-grid already gets a 3-column step at max-width:1024px, so this
+   sits above that instead of fighting it. Footer.jsx's link/icon anchors
+   carry only inline styles and no class, so the hover states below target
+   them structurally (footer-col-body a, footer a[aria-label]) rather than
+   editing the component.
+   ========================================= */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .footer-grid {
+    gap: var(--space-16);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .footer-col-body a {
+    transition: color 0.2s ease, padding-left 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .footer-col-body a:hover {
+    color: #ffffff;
+    padding-left: 4px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) footer a[aria-label] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) footer a[aria-label]:hover {
+    background: var(--accent-gold);
+    color: var(--primary-dark) !important;
+    transform: translateY(-3px);
+  }
 }
 
 /* ==========================================================================
@@ -1824,6 +1999,43 @@ body.sb-home-active {
   font-weight: 700;
 }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — HERO BENTO GRID (>=1025px)
+   The bento grid already collapses to a 2-column, then compact, layout at
+   1024px and below (see the max-width:1024px and max-width:768px blocks
+   further down, which both use !important to override the JSX inline
+   font-size on .bento-title). This block mirrors that same !important
+   pattern, scoped to >=1025px only, to give the main hero card a bigger
+   desktop headline without touching either of those existing overrides.
+   ========================================= */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-card {
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: var(--shadow-lg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-tag {
+    padding: var(--space-1) var(--space-4);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.8px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-title {
+    font-size: var(--fs-4xl) !important;
+    letter-spacing: -0.5px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-desc {
+    font-size: var(--fs-lg);
+    max-width: 480px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-btn {
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--fs-base);
+  }
+}
+
 /* ====================================
    PRELOADER SPLASH SCREEN — PREMIUM
    ==================================== */
@@ -2252,6 +2464,19 @@ body.sb-home-active {
   color: #ffffff;
   border-color: #ffffff;
   transform: scale(1.12);
+}
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — MODAL CARD (>=769px)
+   Generic .modal-overlay/.modal-card (Modal.jsx), used by AuthModal and
+   other popups. The max-width:768px block further down already converts
+   this into a full-width bottom sheet, so >=769px sits above it.
+   ========================================= */
+@media (min-width: 769px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 /* ==========================================================================
@@ -2813,6 +3038,63 @@ body.sb-home-active {
   display: none;
 }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — CATALOG FILTER SIDEBAR (>=1025px)
+   .catalog-layout / .catalog-sidebar / .filter-group / .filter-select /
+   .filter-reset-inline (Catalog.jsx) have no rule anywhere in this file, at
+   any width — they render as plain unstyled HTML today on every device.
+   This gives the sidebar a real two-column desktop layout for the first
+   time, scoped to >=1025px only, so the current (plain) mobile and tablet
+   rendering is left exactly as it already is.
+   ========================================= */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .catalog-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: var(--space-8);
+    align-items: start;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+    position: sticky;
+    top: 96px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-group {
+    margin-bottom: var(--space-5);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: var(--space-2);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-select {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+    background: #ffffff;
+    color: var(--text-main);
+    cursor: pointer;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-reset-inline {
+    margin-top: var(--space-2);
+  }
+}
+
 :is(body.sb-home-active .sb-home, .sb-portal) .soil-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2836,6 +3118,28 @@ body.sb-home-active {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
+}
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — TESTIMONIALS & NEWSLETTER (>=1025px)
+   Testimonials.jsx's cards carry only inline styles and no class, so the
+   hover lift below targets them structurally (.testimonials-grid > div)
+   rather than editing the component.
+   ========================================= */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .testimonials-grid > div {
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .testimonials-grid > div:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-farm-img {
+    box-shadow: var(--shadow-lg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-title {
+    font-size: var(--fs-3xl);
+  }
 }
 
 /* ------------------------------------------------------------
@@ -2972,7 +3276,11 @@ body.sb-home-active {
     visibility: visible;
     pointer-events: all;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
+  /* Catalog.jsx's filter aside is .catalog-sidebar (with .drawer-open toggled
+     by filterDrawerOpen state) - not .sidebar-panel, which nothing in the DOM
+     ever has. This rule targeted the wrong class and never applied; fixed to
+     match the actual element so the drawer really becomes a bottom sheet. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
@@ -2990,11 +3298,8 @@ body.sb-home-active {
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     margin-bottom: 0 !important;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel.active {
+  :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar.drawer-open {
     transform: translateY(0) !important;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel > .filter-title {
-    display: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .mobile-filter-drawer-header {
     display: flex !important;
@@ -4241,7 +4546,7 @@ body.sb-home-active {
   :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
     max-height: calc(100dvh - 90px) !important;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
+  :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar {
     max-height: 84dvh !important;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
@@ -6539,6 +6844,19 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 }
 .sb-portal #checkoutSheet.active .co-panel {
   transform: none;
+}
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — CHECKOUT PANEL (>=769px)
+   The max-width:768px block further down already turns this into a
+   full-width bottom sheet, so >=769px sits above it and only refines the
+   floating side-panel's radius/shadow, never its position or transform.
+   ========================================= */
+@media (min-width: 769px) {
+  .sb-portal #checkoutSheet .co-panel {
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 /* Header: back, the step's title (focused on each step), close. */

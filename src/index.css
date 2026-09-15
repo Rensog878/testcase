@@ -92,6 +92,34 @@
 
   --sidebar-width: 240px;
   --navbar-height: 78px;
+
+  /* Spacing scale (desktop redesign primitives — see the ≥769px block
+     below "BADGES & STATUS"; the ≤768px mobile layout never reads these). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 2.75rem;
+
+  --shadow-xl: 0 24px 56px rgba(17, 24, 39, 0.14);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* === RESET & BASE === */
@@ -1069,6 +1097,25 @@ h6 { font-size: 1rem; }
 .profile-fields-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .profile-field-list { display: grid; gap: 10px; }
 .profile-field-row { display: grid; grid-template-columns: auto minmax(180px, 1fr) 130px auto auto auto; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); }
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — PROFILE FORM BUILDER (>=1025px)
+   This page has zero responsive rules anywhere (mobile or desktop) - the
+   plainest-looking admin page in the app. Adds a card feel and hover state
+   to its field rows, matching every other list/card in the dashboard.
+   ========================================= */
+@media (min-width: 1025px) {
+  .profile-field-row {
+    background: var(--surface-card);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .profile-field-row:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--brand-300);
+    transform: translateY(-1px);
+  }
+}
 .profile-drag-icon { color: var(--text-muted); }
 .profile-checkbox { display: flex; gap: 5px; align-items: center; color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap; }
 .profile-checkbox input { accent-color: var(--brand-600); }
@@ -1329,6 +1376,13 @@ h6 { font-size: 1rem; }
   font-size: 0.72rem;
 }
 
+@media (min-width: 1025px) {
+  .blog-editor-input {
+    min-height: 480px;
+    padding: 30px 34px;
+  }
+}
+
 .blog-field {
   min-width: 0;
   display: flex;
@@ -1488,6 +1542,38 @@ h6 { font-size: 1rem; }
 .related-product-grid img { width: 100%; height: 120px; object-fit: contain; }
 .related-product-grid span { color: var(--brand-700); font-weight: 800; }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — PRODUCT DETAIL (>=769px)
+   This page's own mobile collapse happens at max-width:760px just below,
+   and again at max-width:768px further down, so >=769px sits cleanly
+   above both.
+   ========================================= */
+@media (min-width: 769px) {
+  .product-detail-hero {
+    box-shadow: var(--shadow-lg);
+    gap: var(--space-10);
+  }
+  .product-detail-image-zoom {
+    border-radius: var(--radius-xl);
+  }
+  .product-detail-image-zoom img {
+    transition: transform 0.4s var(--ease-out);
+  }
+  .product-detail-price {
+    font-size: var(--text-3xl);
+  }
+  .product-pack-selector button {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+  .product-pack-selector button:hover {
+    border-color: var(--brand-500);
+    transform: translateY(-1px);
+  }
+  .product-detail-section {
+    box-shadow: var(--shadow-sm);
+  }
+}
+
 @media (max-width: 760px) {
   .product-detail-page { width: min(100% - 24px, 600px); margin-top: 16px; }
   .product-detail-hero, .product-detail-content-grid { grid-template-columns: 1fr; }
@@ -1554,6 +1640,40 @@ h6 { font-size: 1rem; }
 .page-content { flex: 1; padding: 28px; overflow-x: hidden; }
 
 /* =========================================
+   DESKTOP REFINEMENT LAYER — DASHBOARD SHELL (>=1025px)
+   .app-layout's floating rounded-card treatment (shadow, 24px radius, 1440px
+   cap) is already desktop-only — max-width:1024px flattens it to a plain
+   full-width layout for tablets/phones. This block only adds hover/motion
+   polish above that same cutoff, shared by all four dashboards (Admin,
+   Billing, Delivery, Employee) since they all render Sidebar.jsx and this
+   topbar/page-content shell. Employee overrides .page-content padding
+   itself via a more specific selector, so it is unaffected here.
+   ========================================= */
+@media (min-width: 1025px) {
+  .topbar {
+    box-shadow: 0 1px 0 rgba(113, 128, 142, 0.08);
+  }
+  .page-content {
+    padding: var(--space-8);
+  }
+  .sidebar-link {
+    transition: transform 0.2s ease, background var(--transition-fast), color var(--transition-fast);
+  }
+  .sidebar-link:hover {
+    transform: translateX(3px);
+  }
+  .sidebar-logo-icon {
+    transition: transform 0.25s var(--ease-out);
+  }
+  .sidebar-logo:hover .sidebar-logo-icon {
+    transform: scale(1.08) rotate(-4deg);
+  }
+  .sidebar-role-badge {
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* =========================================
    BUTTONS
    ========================================= */
 
@@ -1584,6 +1704,17 @@ h6 { font-size: 1rem; }
   border: 1px solid var(--surface-border);
 }
 .btn-secondary:hover { background: var(--gray-100); color: var(--text-primary); }
+
+/* .btn-outline had no rule anywhere in this file - every "btn btn-outline"
+   button across the admin pages (Products, Users, Analytics, Orders) had no
+   background, border or color beyond plain .btn, rendering with no visible
+   button chrome at all. */
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-border);
+}
+.btn-outline:hover { background: var(--surface-secondary); color: var(--text-primary); border-color: var(--brand-500); }
 
 .btn-danger {
   background: rgba(239,68,68,0.15);
@@ -2014,6 +2145,51 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .badge-gray    { background: rgba(100,116,139,0.12); color: var(--gray-400); border: 1px solid rgba(100,116,139,0.2); }
 
 /* =========================================
+   DESKTOP REFINEMENT LAYER — PRIMITIVES (≥769px)
+   Additive only: layers modern spacing/radius/elevation/motion onto the
+   .btn / .card / .form-input / .badge primitives above, using the root spacing and
+   type scale tokens. Nothing here edits a base rule or a max-width block,
+   so the mobile layout at 768px and below (which only ever reads the base
+   rules above and its own dedicated max-width blocks) is unaffected.
+   ========================================= */
+@media (min-width: 769px) {
+  .btn {
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-base);
+    gap: var(--space-2);
+    transition: transform 0.2s var(--ease-out), box-shadow 0.25s var(--ease-out), background 0.25s ease, border-color 0.2s ease;
+  }
+  .btn:active { transform: translateY(0) scale(0.98); }
+  .btn-primary:hover { box-shadow: 0 16px 36px rgba(94, 99, 255, 0.3); }
+  .btn-secondary:hover { box-shadow: var(--shadow-sm); }
+  .btn-sm { padding: var(--space-2) var(--space-4); }
+  .btn-lg { padding: var(--space-4) var(--space-8); border-radius: var(--radius-lg); }
+  .btn-xl { padding: var(--space-5) var(--space-10); border-radius: var(--radius-xl); }
+
+  .card {
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-md);
+  }
+  .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+
+  .form-input, .form-select, .form-textarea {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-md);
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    box-shadow: 0 0 0 4px rgba(94, 99, 255, 0.1);
+  }
+
+  .badge {
+    padding: var(--space-1) var(--space-3);
+    letter-spacing: 0.6px;
+  }
+}
+
+/* =========================================
    SEARCH & FILTER BAR
    ========================================= */
 
@@ -2238,6 +2414,30 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .role-chip:hover { border-color: var(--brand-600); color: var(--brand-400); background: var(--dark-700); }
 .role-chip.active { border-color: var(--brand-500); background: var(--brand-900); color: var(--brand-400); }
 .role-chip .role-emoji { font-size: 1.3rem; }
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — LOGIN / FORGOT PASSWORD (>=769px)
+   Both mobile overrides for this page (max-width:768px and max-width:767px
+   further down) already redesign .login-card/.role-chip for phones, so
+   >=769px sits cleanly above both.
+   ========================================= */
+@media (min-width: 769px) {
+  .login-card {
+    box-shadow: var(--shadow-xl);
+  }
+  .role-chip {
+    transition: transform 0.2s ease, border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+  }
+  .role-chip:hover {
+    transform: translateY(-2px);
+  }
+  .role-chip.active {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  }
+  .forgot-hero {
+    box-shadow: var(--shadow-lg);
+  }
+}
 
 /* A tick on the chosen role. */
 .role-check {
@@ -2605,6 +2805,37 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 
 .city-trend.positive { color: #2d9a66; }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — ADMIN DASHBOARD & ANALYTICS (>=1025px)
+   This whole section (.admin-hero/.analytics-grid/.dashboard-ops-grid/
+   .city-grid/.map-cell) already has a fully designed desktop layout as its
+   base rules, with only max-width collapse rules for mobile - no min-width
+   tier has ever been layered on. This only adds hover/motion polish and a
+   little breathing room, not a redesign of what's already good.
+   ========================================= */
+@media (min-width: 1025px) {
+  .admin-hero {
+    padding: var(--space-8) var(--space-10);
+  }
+  .analytics-grid,
+  .dashboard-ops-grid {
+    gap: var(--space-8);
+  }
+  .city-card {
+    transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  }
+  .city-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .map-cell {
+    transition: transform 0.2s ease;
+  }
+  .map-cell:hover {
+    transform: translateY(-2px);
+  }
+}
+
 .alert-list {
   display: flex;
   flex-direction: column;
@@ -2910,6 +3141,31 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .billing-workspace .form-select,
 .billing-workspace .form-input { min-height: 44px; }
 .billing-workspace .card-header { gap: 10px; }
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — BILLING / DELIVERY / EMPLOYEE (>=1025px)
+   Like the admin dashboard above, these page-specific classes only ever had
+   max-width mobile-stacking rules; this adds the same restrained hover/
+   spacing polish, not a layout rebuild.
+   ========================================= */
+@media (min-width: 1025px) {
+  .pos-billing-layout {
+    gap: var(--space-8);
+  }
+  .delivery-card-actions {
+    gap: var(--space-4);
+  }
+  .employee-stat {
+    transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  }
+  .employee-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(39, 55, 65, 0.08);
+  }
+  .employee-overview-grid {
+    gap: var(--space-8);
+  }
+}
 
 /* Table Wrap Scroll */
 .table-wrap {
@@ -5297,6 +5553,37 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   transform: scale(0.97);
 }
 
+/* =========================================
+   DESKTOP REFINEMENT LAYER — AGRO PRODUCT CARD (>=769px)
+   Reused across Top 10 Picks, Today's Offers, Best Selling, Growth
+   Promoters and the All Products catalog grid (AllProducts.jsx), so this
+   one block reaches every product card on that page. No max-width block
+   in this file touches these selectors, so it layers on cleanly.
+   ========================================= */
+@media (min-width: 769px) {
+  .agro-product-card {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.25s ease;
+  }
+  .agro-product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+  .card-product-title {
+    font-size: 13.5px;
+  }
+  .card-current-price {
+    font-size: 18px;
+  }
+  .card-add-to-cart-btn {
+    border-radius: var(--radius-md);
+  }
+  .card-size-dropdown {
+    border-radius: var(--radius-sm);
+  }
+}
+
 /* 7. Shop by Nutrients */
 .nutrients-scroll-container {
   display: flex;
@@ -5584,6 +5871,30 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   background: #f8fafc;
   border: 1px dashed #cbd5e1;
   border-radius: 16px;
+}
+
+/* =========================================
+   DESKTOP REFINEMENT LAYER — CATALOG EXPLORER (>=1025px)
+   .catalog-products-grid already gets its own column-count breakpoints at
+   640px/1024px above; this only refines spacing/radius on top of whichever
+   column count is active, scoped above that last breakpoint so it can't
+   interact with it.
+   ========================================= */
+@media (min-width: 1025px) {
+  .catalog-header-box {
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+  }
+  .catalog-products-grid {
+    gap: var(--space-6);
+  }
+  .cat-pill-btn {
+    padding: var(--space-2) var(--space-5);
+  }
+  .catalog-search-field {
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+  }
 }
 
 .empty-sprout-icon {

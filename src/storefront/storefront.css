@@ -24,7 +24,7 @@
   }
 }
 
-/* Sathya Bio - Natural E-Commerce Design System */
+/* Sathyam Bio - Natural E-Commerce Design System */
 
 :is(:root:has(> body.sb-home-active), .sb-portal) {
   /* ---- IDENTITY REFRESH (2026) --------------------------------------
@@ -2935,7 +2935,7 @@ body.sb-home-active {
 
 
 /* ============================================================
-   Sathya Bio — Responsive rules
+   Sathyam Bio — Responsive rules
    Targets: Android & iOS phones, tablets, Windows/Mac desktops.
    Breakpoints: 1200 / 1024 / 900 / 768 / 600 / 480 / 360
    ============================================================ */

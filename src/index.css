@@ -4523,7 +4523,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   border: none;
   background: transparent;
   width: 100%;
-  font-size: 12.5px;
+  /* 16px: below this, iOS zooms the page on focus (same fix as the
+     Categories search bar, index.css "16px and full height" comment). */
+  font-size: 16px;
   outline: none;
   color: #1e293b;
 }
@@ -5234,12 +5236,19 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   align-items: center;
   gap: 6px;
   margin-top: 8px;
+  max-width: 100%;
   font-size: 11px;
   color: #475569;
 }
 
+/* min-width: 0 - a <select> won't shrink below its longest option by
+   default, which can push the card (and its grid column) wider than the
+   page, same bug already fixed once on .catalog-sort-select. */
 .card-size-dropdown {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
   padding: 4px 6px;
   font-size: 11px;
   font-weight: 500;
@@ -5409,7 +5418,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   outline: none;
   background: transparent;
   width: 100%;
-  font-size: 13px;
+  /* 16px: below this, iOS zooms the page on focus (same fix as the
+     Categories search bar, index.css "16px and full height" comment). */
+  font-size: 16px;
   color: #1e293b;
 }
 
@@ -5537,22 +5548,25 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   color: #64748b;
 }
 
+/* minmax(0, 1fr): a plain 1fr column never shrinks below its content (the
+   card's pack-size dropdown), so on narrow phones the two columns were
+   wider than the page - same overflow the Categories circle grid hit. */
 .catalog-products-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 @media (min-width: 640px) {
   .catalog-products-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
 }
 
 @media (min-width: 1024px) {
   .catalog-products-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
   }
 }

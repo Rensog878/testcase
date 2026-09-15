@@ -480,14 +480,17 @@ export default function AdminProducts() {
                     {/* Targeted User / Sorting */}
                     <td style={{ padding: '14px 16px' }}>
                       {p.targetUserId && p.targetUserId !== 'all' ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className="badge badge-purple" style={{ fontSize: '0.75rem' }}>
                             🎯 {p.targetUserName || p.targetUserId}
                           </span>
+                          {p.targetUserPhone && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>📞 {p.targetUserPhone}</span>
+                          )}
                         </div>
                       ) : (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          🌐 General (All Users)
+                        <span className="badge" style={{ fontSize: '0.75rem', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.3)' }}>
+                          🌐 General Public
                         </span>
                       )}
                     </td>

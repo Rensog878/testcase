@@ -1097,115 +1097,122 @@ class DatabaseManager {
         const id = newId('sb');
 
       let targetUserName = 'All Users (General Catalog)';
-        if (prodData.targetUserId && prodData.targetUserId !== 'all') {
-                const targetUser = await this.getUserById(prodData.targetUserId);
-                if (targetUser) {
-                          targetUserName = `${targetUser.name} (${targetUser.crop || targetUser.role})`;
-                }
+      let targetUserPhone = '';
+      if (prodData.targetUserId && prodData.targetUserId !== 'all') {
+        const targetUser = await this.getUserById(prodData.targetUserId);
+        if (targetUser) {
+          targetUserName = `${targetUser.name} (${targetUser.crop || targetUser.role})`;
+          targetUserPhone = targetUser.phone || '';
         }
+      }
 
       const price = Number(prodData.price) || 0;
-        const mrp = Number(prodData.originalPrice || prodData.mrp || price * 1.2);
-        const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+      const mrp = Number(prodData.originalPrice || prodData.mrp || price * 1.2);
+      const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
 
       const newProd = {
-              _id: id,
-              id,
-              name: prodData.name || 'New Bio Product',
-              tagline: prodData.tagline || `${prodData.category || 'Agro'} Solution for High Yield`,
-              category: prodData.category || 'Bio-Pesticide',
-              price,
-              originalPrice: mrp,
-              discount: prodData.discount || `${discountPct}% OFF`,
-              stock: Number(prodData.stock) || 0,
-              crops: Array.isArray(prodData.crops)
-                ? prodData.crops
-                        : typeof prodData.crops === 'string'
-                ? prodData.crops.split(',').map(s => s.trim())
-                        : ['All Crops'],
-              diseases: Array.isArray(prodData.diseases)
-                ? prodData.diseases
-                        : typeof prodData.diseases === 'string'
-                ? prodData.diseases.split(',').map(s => s.trim())
-                        : [],
-              activeIngredient: prodData.activeIngredient || '100% Bio-Active Botanical Extract',
-              dosage: prodData.dosage || '250g - 500g per Acre',
-              packSizes:
-                        Array.isArray(prodData.packSizes) && prodData.packSizes.length
-                  ? prodData.packSizes
-                          : ['250g', '500g', '1kg'],
-              selectedPack: prodData.selectedPack || '500g',
-              badge: prodData.badge || (prodData.stock > 100 ? 'Best Seller' : 'New Launch'),
-              images:
-                        Array.isArray(prodData.images) && prodData.images.length
-                  ? prodData.images
-                          : prodData.image
-                  ? [prodData.image]
-                          : [],
-              image: prodData.image || prodData.images?.[0] || './assets/p1.png',
-              howToUse: prodData.howToUse || '',
-              whenToUse: prodData.whenToUse || '',
-              relatedBlogs: Array.isArray(prodData.relatedBlogs) ? prodData.relatedBlogs : [],
-              taggedBlogs: Array.isArray(prodData.taggedBlogs) ? prodData.taggedBlogs : [],
-              taggedVideos: Array.isArray(prodData.taggedVideos) ? prodData.taggedVideos : [],
-              relatedProductIds: Array.isArray(prodData.relatedProductIds) ? prodData.relatedProductIds : [],
-              reviewsEnabled: prodData.reviewsEnabled === true,
-              reviews: Array.isArray(prodData.reviews) ? prodData.reviews : [],
-              rating: null,
-              reviewsCount: 0,
-              description: prodData.description || 'High-performance bio-crop protection product.',
-              detailedDescription:
-                        prodData.detailedDescription ||
-                        prodData.description ||
-                        'Scientifically formulated for modern organic and integrated pest management.',
-              targetUserId: prodData.targetUserId || 'all',
-              online: prodData.online !== false,
-              targetUserName,
-              sortOrder: Number(prodData.sortOrder) || 1,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+        _id: id,
+        id,
+        name: prodData.name || 'New Bio Product',
+        tagline: prodData.tagline || `${prodData.category || 'Agro'} Solution for High Yield`,
+        category: prodData.category || 'Bio-Pesticide',
+        price,
+        originalPrice: mrp,
+        discount: prodData.discount || `${discountPct}% OFF`,
+        stock: Number(prodData.stock) || 0,
+        crops: Array.isArray(prodData.crops)
+          ? prodData.crops
+          : typeof prodData.crops === 'string'
+          ? prodData.crops.split(',').map(s => s.trim())
+          : ['All Crops'],
+        diseases: Array.isArray(prodData.diseases)
+          ? prodData.diseases
+          : typeof prodData.diseases === 'string'
+          ? prodData.diseases.split(',').map(s => s.trim())
+          : [],
+        activeIngredient: prodData.activeIngredient || '100% Bio-Active Botanical Extract',
+        dosage: prodData.dosage || '250g - 500g per Acre',
+        packSizes:
+          Array.isArray(prodData.packSizes) && prodData.packSizes.length
+            ? prodData.packSizes
+            : ['250g', '500g', '1kg'],
+        selectedPack: prodData.selectedPack || '500g',
+        badge: prodData.badge || (prodData.stock > 100 ? 'Best Seller' : 'New Launch'),
+        images:
+          Array.isArray(prodData.images) && prodData.images.length
+            ? prodData.images
+            : prodData.image
+            ? [prodData.image]
+            : [],
+        image: prodData.image || prodData.images?.[0] || './assets/p1.png',
+        howToUse: prodData.howToUse || '',
+        whenToUse: prodData.whenToUse || '',
+        relatedBlogs: Array.isArray(prodData.relatedBlogs) ? prodData.relatedBlogs : [],
+        taggedBlogs: Array.isArray(prodData.taggedBlogs) ? prodData.taggedBlogs : [],
+        taggedVideos: Array.isArray(prodData.taggedVideos) ? prodData.taggedVideos : [],
+        relatedProductIds: Array.isArray(prodData.relatedProductIds) ? prodData.relatedProductIds : [],
+        reviewsEnabled: prodData.reviewsEnabled === true,
+        reviews: Array.isArray(prodData.reviews) ? prodData.reviews : [],
+        rating: null,
+        reviewsCount: 0,
+        description: prodData.description || 'High-performance bio-crop protection product.',
+        detailedDescription:
+          prodData.detailedDescription ||
+          prodData.description ||
+          'Scientifically formulated for modern organic and integrated pest management.',
+        targetUserId: prodData.targetUserId || 'all',
+        online: prodData.online !== false,
+        targetUserName,
+        targetUserPhone,
+        sortOrder: Number(prodData.sortOrder) || 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
       await this.registerCatalogOptions({
-              categories: [newProd.category],
-              crops: newProd.crops,
-              storageBatches: newProd.packSizes
+        categories: [newProd.category],
+        crops: newProd.crops,
+        storageBatches: newProd.packSizes
       });
 
       const created = await Product.create(newProd);
-        return serialize(created.toObject());
+      return serialize(created.toObject());
   }
 
   async updateProduct(id, updates) {
-        await connectDB();
-        const existingDoc = await Product.findById(id).lean();
-        if (!existingDoc) return null;
-        const existing = serialize(existingDoc);
+      await connectDB();
+      const existingDoc = await Product.findById(id).lean();
+      if (!existingDoc) return null;
+      const existing = serialize(existingDoc);
 
-      let targetUserName = existing.targetUserName;
-        if (updates.targetUserId) {
-                if (updates.targetUserId === 'all') {
-                          targetUserName = 'All Users (General Catalog)';
-                } else {
-                          const targetUser = await this.getUserById(updates.targetUserId);
-                          targetUserName = targetUser ? `${targetUser.name} (${targetUser.crop || targetUser.role})` : updates.targetUserId;
-                }
+      let targetUserName = existing.targetUserName || 'All Users (General Catalog)';
+      let targetUserPhone = existing.targetUserPhone || '';
+      if (updates.targetUserId !== undefined) {
+        if (updates.targetUserId === 'all' || !updates.targetUserId) {
+          targetUserName = 'All Users (General Catalog)';
+          targetUserPhone = '';
+        } else {
+          const targetUser = await this.getUserById(updates.targetUserId);
+          targetUserName = targetUser ? `${targetUser.name} (${targetUser.crop || targetUser.role})` : updates.targetUserId;
+          targetUserPhone = targetUser?.phone || '';
         }
+      }
 
       const price = updates.price !== undefined ? Number(updates.price) : existing.price;
-        const mrp =
-                updates.originalPrice !== undefined || updates.mrp !== undefined
-            ? Number(updates.originalPrice || updates.mrp)
-                  : existing.originalPrice;
-        const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+      const mrp =
+        updates.originalPrice !== undefined || updates.mrp !== undefined
+          ? Number(updates.originalPrice || updates.mrp)
+          : existing.originalPrice;
+      const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
 
       const merged = {
-              ...existing,
-              ...updates,
-              targetUserName,
-              price,
-              originalPrice: mrp,
-              discount: updates.discount || `${discountPct}% OFF`,
+        ...existing,
+        ...updates,
+        targetUserName,
+        targetUserPhone,
+        price,
+        originalPrice: mrp,
+        discount: updates.discount || `${discountPct}% OFF`,
               stock: updates.stock !== undefined ? Number(updates.stock) : existing.stock,
               crops: updates.crops
                 ? Array.isArray(updates.crops)

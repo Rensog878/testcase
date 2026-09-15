@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
+import { matchesCrop, matchesCategory, matchesDisease } from '../../utils/catalogUtils'
 
 const MOBILE_CHIPS = [
   ['All', 'All'],
@@ -11,6 +12,20 @@ const MOBILE_CHIPS = [
   ['Nematicide', '🪱 Nematicides'],
 ]
 const DEFAULT_PACKS = ['250g', '500g', '1kg']
+
+export const ProductSkeleton = memo(function ProductSkeleton() {
+  return (
+    <div className="product-card" style={{ opacity: 0.6, pointerEvents: 'none', animation: 'pulse 1.5s infinite ease-in-out' }}>
+      <div className="product-img-box" style={{ background: 'var(--border-light, #e2e8f0)', minHeight: '180px' }} />
+      <div className="card-content" style={{ padding: '16px' }}>
+        <div style={{ height: '14px', width: '35%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ height: '18px', width: '75%', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ height: '12px', width: '55%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '14px' }} />
+        <div style={{ height: '20px', width: '30%', background: '#cbd5e1', borderRadius: '4px' }} />
+      </div>
+    </div>
+  )
+})
 
 const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) {
   const { addToCart, openProductPage } = useStore()
@@ -24,7 +39,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
           <i className="fa-solid fa-star"></i> Recommended for You
         </div>
       )
-    } else if (user.crop && Array.isArray(p.crops) && p.crops.some(c => user.crop.toLowerCase().includes(String(c).toLowerCase()))) {
+    } else if (user.crop && matchesCrop(p.crops, user.crop)) {
       personalBadge = (
         <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           <i className="fa-solid fa-seedling"></i> Tailored for {user.crop}
@@ -74,14 +89,14 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   )
 })
 
-export const Catalog = memo(function Catalog({ t, filters, products, catalogOptions, user, filterDrawerOpen }) {
+export const Catalog = memo(function Catalog({ t, filters, products, catalogOptions, user, filterDrawerOpen, loading = false }) {
   const { setFilter, resetFilters, filterByCategory, toggleFilterDrawer } = useStore()
   const searchQuery = filters.search.toLowerCase().trim()
 
   const filtered = useMemo(() => products.filter(p => {
-    const matchCrop = filters.crop === 'all' || (p.crops || []).includes(filters.crop)
-    const matchDisease = filters.disease === 'all' || (p.diseases || []).includes(filters.disease)
-    const matchCategory = filters.category === 'All' || p.category === filters.category
+    const matchCrop = matchesCrop(p.crops, filters.crop)
+    const matchDisease = matchesDisease(p.diseases, filters.disease)
+    const matchCategory = matchesCategory(p.category, filters.category)
     const matchSearch = searchQuery === ''
       || String(p.name || '').toLowerCase().includes(searchQuery)
       || String(p.description || '').toLowerCase().includes(searchQuery)
@@ -119,33 +134,31 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
         </div>
         <div className={`sidebar-panel-overlay ${filterDrawerOpen ? 'active' : ''}`} id="sidebarPanelOverlay" onClick={() => toggleFilterDrawer(false)}></div>
 
-        <div className="shop-layout">
-          <aside className={`sidebar-panel ${filterDrawerOpen ? 'active' : ''}`} id="sidebarPanel">
+        <div className="catalog-layout">
+          <aside className={`catalog-sidebar ${filterDrawerOpen ? 'drawer-open' : ''}`} id="filterDrawer">
             <div className="mobile-filter-drawer-header">
-              <h4><i className="fa-solid fa-sliders"></i> Filter &amp; Sort Products</h4>
+              <span className="mobile-filter-drawer-title"><i className="fa-solid fa-sliders"></i> Filter Catalog</span>
               <button className="mobile-filter-drawer-close" onClick={() => toggleFilterDrawer(false)} aria-label="Close filters">&times;</button>
             </div>
 
-            <div className="filter-title"><i className="fa-solid fa-filter"></i> <span data-i18n="filter_title">{t('filter_title')}</span></div>
-
-            <div className="filter-section">
-              <label className="filter-label" htmlFor="cropSelect"><i className="fa-solid fa-wheat-awn"></i> <span data-i18n="filter_crop">{t('filter_crop')}</span></label>
-              <select className="select-input" id="cropSelect" value={filters.crop} onChange={event => setFilter('crop', event.target.value)}>
-                {cropOptions.map(crop => <option key={crop.id} value={crop.id}>{crop.name}</option>)}
+            <div className="filter-group">
+              <label className="filter-label" htmlFor="cropFilter"><i className="fa-solid fa-wheat-awn"></i> <span data-i18n="filter_crop">{t('filter_crop')}</span></label>
+              <select className="filter-select" id="cropFilter" value={filters.crop} onChange={e => setFilter('crop', e.target.value)}>
+                {cropOptions.map(crop => <option key={crop.id || crop} value={crop.id || crop}>{crop.name || crop}</option>)}
               </select>
             </div>
 
-            <div className="filter-section">
-              <label className="filter-label" htmlFor="diseaseSelect"><i className="fa-solid fa-bug"></i> <span data-i18n="filter_disease">{t('filter_disease')}</span></label>
-              <select className="select-input" id="diseaseSelect" value={filters.disease} onChange={event => setFilter('disease', event.target.value)}>
-                {DISEASES.map(disease => <option key={disease.id} value={disease.id}>{disease.name}</option>)}
+            <div className="filter-group">
+              <label className="filter-label" htmlFor="diseaseFilter"><i className="fa-solid fa-virus"></i> <span data-i18n="filter_disease">{t('filter_disease')}</span></label>
+              <select className="filter-select" id="diseaseFilter" value={filters.disease} onChange={e => setFilter('disease', e.target.value)}>
+                {DISEASES.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </div>
 
-            <div className="filter-section">
-              <label className="filter-label" htmlFor="categorySelect"><i className="fa-solid fa-layer-group"></i> <span data-i18n="filter_category">{t('filter_category')}</span></label>
-              <select className="select-input" id="categorySelect" value={filters.category} onChange={event => setFilter('category', event.target.value)}>
-                {categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}
+            <div className="filter-group">
+              <label className="filter-label" htmlFor="categoryFilter"><i className="fa-solid fa-layer-group"></i> <span data-i18n="filter_category">{t('filter_category')}</span></label>
+              <select className="filter-select" id="categoryFilter" value={filters.category} onChange={e => setFilter('category', e.target.value)}>
+                {categoryOptions.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'All Formulations' : cat}</option>)}
               </select>
             </div>
 
@@ -162,11 +175,20 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span id="productsCount" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                {`${t('showing_products')} ${filtered.length} ${t('of_products')} ${products.length} ${t('products_label')}`}
+                {loading && products.length === 0
+                  ? 'Loading verified farm products...'
+                  : `${t('showing_products')} ${filtered.length} ${t('of_products')} ${products.length} ${t('products_label')}`}
               </span>
             </div>
             <div className="products-grid" id="productsGrid">
-              {filtered.length === 0 ? (
+              {loading && products.length === 0 ? (
+                <>
+                  <ProductSkeleton />
+                  <ProductSkeleton />
+                  <ProductSkeleton />
+                  <ProductSkeleton />
+                </>
+              ) : filtered.length === 0 ? (
                 <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '50px 20px', background: '#ffffff', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
                   <i className="fa-solid fa-leaf" style={{ fontSize: '3rem', color: 'var(--text-dim)', marginBottom: '12px' }}></i>
                   <h3 style={{ color: 'var(--primary-dark)' }}>No products found</h3>
@@ -184,7 +206,7 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
   )
 })
 
-export const Trending = memo(function Trending({ t, products }) {
+export const Trending = memo(function Trending({ t, products, loading = false }) {
   const trending = useMemo(
     () => products.filter(p => p.badge === 'Best Seller' || p.badge === '100% Organic' || p.rating >= 4.8).slice(0, 4),
     [products],
@@ -199,7 +221,16 @@ export const Trending = memo(function Trending({ t, products }) {
           </div>
         </div>
         <div className="products-grid" id="trendingProductsGrid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-          {trending.map(product => <ProductCard key={product.id} product={product} t={t} variant="trending" />)}
+          {loading && products.length === 0 ? (
+            <>
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+            </>
+          ) : (
+            trending.map(product => <ProductCard key={product.id} product={product} t={t} variant="trending" />)
+          )}
         </div>
       </div>
     </section>

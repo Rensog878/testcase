@@ -8,6 +8,9 @@ import {
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
+import { useAuth } from '../context/AuthContext'
+import useCatalogProducts from '../hooks/useCatalogProducts'
+import { matchesCrop, matchesCategory, matchesDisease, normalizeCrop } from '../utils/catalogUtils'
 import axios from 'axios'
 import { 
   SHOP_CATEGORIES, 
@@ -22,6 +25,7 @@ import {
 } from '../data/allProductsData'
 
 export default function AllProducts() {
+  const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -37,23 +41,16 @@ export default function AllProducts() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [sortBy, setSortBy] = useState('popular')
-  const [dbProducts, setDbProducts] = useState([])
-  const [loadingProducts, setLoadingProducts] = useState(true)
 
-  useEffect(() => {
-    let cancelled = false
-    axios.get('/api/products?onlineOnly=true')
-      .then(({ data }) => {
-        if (!cancelled && data.success) {
-          setDbProducts(data.data || [])
-        }
-      })
-      .catch(err => console.error('Error loading products from DB:', err))
-      .finally(() => {
-        if (!cancelled) setLoadingProducts(false)
-      })
-    return () => { cancelled = true }
-  }, [])
+  // Real-time SSOT catalog loaded from MongoDB and synchronized across open tabs
+  const {
+    products: dbProducts,
+    catalogOptions,
+    loading: loadingProducts
+  } = useCatalogProducts({
+    userId: user?.id,
+    onlineOnly: true
+  })
 
   // Selected pack sizes for products: { [productId]: sizeString }
   const [selectedSizes, setSelectedSizes] = useState({})
@@ -207,34 +204,67 @@ export default function AllProducts() {
   }, [dbProducts])
 
 
+  // Dynamic categories merging admin categories with default shop categories
+  const dynamicCategories = useMemo(() => {
+    const adminCats = catalogOptions?.categories || []
+    const existing = new Set(SHOP_CATEGORIES.map(c => c.filterCategory.toLowerCase()))
+    
+    const customAdminItems = adminCats
+      .filter(cat => cat && cat !== 'All' && !existing.has(cat.toLowerCase()))
+      .map(cat => ({
+        id: `admin-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`,
+        name: cat,
+        filterCategory: cat,
+        bg: '#ecfdf5',
+        border: '#a7f3d0',
+        textColor: '#047857',
+        image: 'https://media.bighaat.com/categories/fungicides_ct.webp'
+      }))
+
+    return [...SHOP_CATEGORIES, ...customAdminItems]
+  }, [catalogOptions?.categories])
+
+  // Dynamic crops merging admin-added crops with default list
+  const dynamicCropsList = useMemo(() => {
+    const adminCrops = catalogOptions?.crops || []
+    const existing = new Set(CROPS_LIST.map(c => normalizeCrop(c.cropCode)))
+    const customAdminItems = adminCrops
+      .filter(crop => crop && crop !== 'all' && crop !== 'All Crops' && !existing.has(normalizeCrop(crop)))
+      .map(crop => ({
+        id: `admin-crop-${normalizeCrop(crop).replace(/\//g, '-')}`,
+        name: crop,
+        cropCode: crop,
+        image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&q=80',
+        popularIssues: 'Crop Protection & Health'
+      }))
+    return [...CROPS_LIST, ...customAdminItems]
+  }, [catalogOptions?.crops])
+
   // Filter and sort catalog
   const filteredProducts = useMemo(() => {
     let list = [...dbProducts]
 
-
     if (activeCategory) {
       list = list.filter(p => 
-        p.category?.toLowerCase() === activeCategory.toLowerCase() ||
+        matchesCategory(p.category, activeCategory) ||
         (activeCategory === 'Offers' && p.discount >= 20) ||
-        (activeCategory === 'Urban Gardening' && (p.category === 'Seeds' || p.category === 'Crop Nutrition'))
+        (activeCategory === 'Urban Gardening' && (matchesCategory(p.category, 'Seeds') || matchesCategory(p.category, 'Crop Nutrition')))
       )
     }
 
     if (activeCrop) {
-      list = list.filter(p => 
-        p.crops?.some(c => c.toLowerCase().includes(activeCrop.toLowerCase()) || c === 'All Crops')
-      )
+      list = list.filter(p => matchesCrop(p.crops, activeCrop))
     }
 
     if (activeDisease) {
       list = list.filter(p => 
-        p.diseases?.some(d => d.toLowerCase().includes(activeDisease.toLowerCase())) ||
+        matchesDisease(p.diseases, activeDisease) ||
         p.name.toLowerCase().includes(activeDisease.toLowerCase())
       )
     }
 
     if (activeNutrient) {
-      list = list.filter(p => p.category === 'Crop Nutrition' || p.name.toLowerCase().includes('nutrient') || p.name.toLowerCase().includes('humic'))
+      list = list.filter(p => matchesCategory(p.category, 'Crop Nutrition') || p.name.toLowerCase().includes('nutrient') || p.name.toLowerCase().includes('humic'))
     }
 
     if (searchQuery.trim()) {
@@ -259,7 +289,7 @@ export default function AllProducts() {
     }
 
     return list
-  }, [activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
+  }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
 
   // Quick filter handlers that scroll down to catalog if filtered
   const selectCategory = (cat) => {
@@ -276,7 +306,7 @@ export default function AllProducts() {
   }
 
   const selectCrop = (cropName) => {
-    if (activeCrop === cropName) {
+    if (activeCrop && normalizeCrop(activeCrop) === normalizeCrop(cropName)) {
       setActiveCrop('')
     } else {
       setActiveCrop(cropName)
@@ -427,8 +457,8 @@ export default function AllProducts() {
           </div>
 
           <div className="categories-circular-grid">
-            {SHOP_CATEGORIES.map(cat => {
-              const isSelected = activeCategory.toLowerCase() === cat.filterCategory.toLowerCase()
+            {dynamicCategories.map(cat => {
+              const isSelected = activeCategory && cat.filterCategory && activeCategory.toLowerCase() === cat.filterCategory.toLowerCase()
               return (
                 <button
                   key={cat.id}
@@ -568,8 +598,8 @@ export default function AllProducts() {
           </div>
 
           <div className="crops-scroll-container" ref={cropsScrollRef}>
-            {CROPS_LIST.map(crop => {
-              const isSelected = activeCrop.toLowerCase() === crop.cropCode.toLowerCase()
+            {dynamicCropsList.map(crop => {
+              const isSelected = activeCrop && normalizeCrop(activeCrop) === normalizeCrop(crop.cropCode)
               return (
                 <button
                   key={crop.id}
@@ -822,7 +852,15 @@ export default function AllProducts() {
                     <span>{prod.reviews}</span>
                   </div>
 
-                  {prod.tagBadge ? (
+                  {user && prod.targetUserId === user.id ? (
+                    <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Star size={11} fill="#fff" /> Recommended for You
+                    </div>
+                  ) : user && user.crop && matchesCrop(prod.crops, user.crop) ? (
+                    <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Sprout size={11} /> Tailored for {user.crop}
+                    </div>
+                  ) : prod.tagBadge ? (
                     <div className="card-high-demand-banner">{prod.tagBadge}</div>
                   ) : (
                     <div className="card-high-demand-placeholder" />
@@ -1171,7 +1209,15 @@ export default function AllProducts() {
                       <span>{prod.reviews}</span>
                     </div>
 
-                    {prod.tagBadge ? (
+                    {user && prod.targetUserId === user.id ? (
+                      <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Star size={11} fill="#fff" /> Recommended for You
+                      </div>
+                    ) : user && user.crop && matchesCrop(prod.crops, user.crop) ? (
+                      <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Sprout size={11} /> Tailored for {user.crop}
+                      </div>
+                    ) : prod.tagBadge ? (
                       <div className="card-high-demand-banner">{prod.tagBadge}</div>
                     ) : (
                       <div className="card-high-demand-placeholder" />

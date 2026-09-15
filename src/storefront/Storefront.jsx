@@ -6,7 +6,7 @@ import { afterPageTransition } from '../components/home/pageTransition'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
 import { StoreContext } from './StoreContext'
-import { PESTICIDES } from './data'
+import useCatalogProducts from '../hooks/useCatalogProducts'
 import { TEXT_PACKS, isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { showToast } from './toast'
 import { setBodyFlag } from './bodyFlags'
@@ -88,14 +88,32 @@ export default function Storefront() {
   const checkout = useCheckoutActions()
   const [modals, modal] = useModalStates()
 
-  const [products, setProducts] = useState(PESTICIDES)
-  const [catalogOptions, setCatalogOptions] = useState(null)
+  const {
+    products,
+    catalogOptions: rawCatalogOptions,
+    loading: catalogLoading,
+    refetch: fetchLiveProducts,
+    refetchOptions: fetchLiveCatalogOptions
+  } = useCatalogProducts({
+    userId: user?.id,
+    onlineOnly: true
+  })
+
+  const catalogOptions = useMemo(() => {
+    if (!rawCatalogOptions) return null
+    return {
+      categories: ['All', ...(rawCatalogOptions.categories || [])],
+      crops: [{ id: 'all', name: 'All Crops' }, ...(rawCatalogOptions.crops || []).map(crop => ({ id: crop, name: crop }))],
+    }
+  }, [rawCatalogOptions])
+
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [appliedLang, setAppliedLang] = useState('en')
   const [certifications, setCertifications] = useState({})
 
   const productsRef = useRef(products)
+  productsRef.current = products
   const languageRequest = useRef(0)
   const dismissLanguageToast = useRef(null)
   // The latest values for the actions below, which never change identity.
@@ -103,36 +121,6 @@ export default function Storefront() {
   live.current = { user, navigate, setLang, appliedLang }
 
   const actions = useMemo(() => {
-    const fetchLiveProducts = async (forUser = live.current.user) => {
-      const userId = (forUser && forUser.id) || ''
-      try {
-        const res = await fetch(`/api/products?userId=${encodeURIComponent(userId)}&onlineOnly=true`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const json = await res.json()
-        if (json.success && Array.isArray(json.data)) {
-          productsRef.current = json.data
-          setProducts(json.data)
-        }
-      } catch (err) {
-        console.warn('Backend database loading fallback:', err)
-      }
-    }
-
-    const fetchLiveCatalogOptions = async () => {
-      try {
-        const res = await fetch('/api/catalog-options')
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const json = await res.json()
-        if (!json.success) return
-        setCatalogOptions({
-          categories: ['All', ...(json.data.categories || [])],
-          crops: [{ id: 'all', name: 'All Crops' }, ...(json.data.crops || []).map(crop => ({ id: crop, name: crop }))],
-        })
-      } catch (err) {
-        console.warn('Catalog options unavailable:', err)
-      }
-    }
-
     // ---- popups ----
     // This page's own (photo scanner, welcome poster) open here; the sign-in
     // card and the checkout are the shared ones.
@@ -221,27 +209,10 @@ export default function Storefront() {
     if (loaded.current) return
     loaded.current = true
     cmsSettingsRequest = null
-    actions.fetchLiveCatalogOptions()
     loadCmsSettings().then(settings => setCertifications({ ...readLocalCms(), ...settings }))
-  }, [actions])
-
-  // The catalogue is personalised for the signed-in farmer; signing in or out loads it again.
-  useEffect(() => {
-    actions.fetchLiveProducts(user)
-  }, [actions, user?.id])
+  }, [])
 
   useEffect(() => {
-    // The admin Products page announces changes on this channel.
-    const channel = 'BroadcastChannel' in window ? new BroadcastChannel('sathya_catalog') : null
-    const onCatalog = event => {
-      if (event.data !== 'products-changed') return
-      actions.fetchLiveProducts()
-      actions.fetchLiveCatalogOptions()
-    }
-    channel?.addEventListener('message', onCatalog)
-    // Admin may be working in another browser; catch up on return to this tab.
-    const onVisible = () => { if (document.visibilityState === 'visible') actions.fetchLiveProducts() }
-    document.addEventListener('visibilitychange', onVisible)
 
     // Escape closes this page's top-most open popup. The shared popups
     // (sign-in, checkout) take it first when they are open.
@@ -360,8 +331,8 @@ export default function Storefront() {
         <CategoryGrid t={t} />
         <CropGrid />
         <Certifications settings={certifications} />
-        <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} />
-        <Trending t={t} products={products} />
+        <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} loading={catalogLoading} />
+        <Trending t={t} products={products} loading={catalogLoading} />
         <Testimonials />
         <Newsletter />
         <Footer t={t} />

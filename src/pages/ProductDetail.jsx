@@ -1,26 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ArrowLeft, ExternalLink, Heart, ShoppingCart, Star } from 'lucide-react'
 import axios from 'axios'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCheckoutActions } from '../hooks/useCheckout'
-
-const FALLBACK_PRODUCT = {
-  id: 'sb-6928',
-  name: 'momo',
-  tagline: 'Herbicide Solution for High Yield',
-  category: 'Herbicide',
-  price: 789,
-  originalPrice: 789,
-  stock: 100,
-  packSizes: ['250g', '500g', '1kg'],
-  selectedPack: '500g',
-  image: './assets/p1.png',
-  description: 'High-performance bio-crop protection product.',
-  detailedDescription: 'High-performance bio-crop protection product.',
-  crops: ['Paddy / Rice', 'Wheat'],
-  activeIngredient: '100% Bio-Active Formulation',
-  dosage: '250g per Acre'
-}
 
 // Signed-in customers are identified by their token on the server. Guests get
 // a random, unguessable visitor id so nobody can read another person's list.
@@ -46,43 +28,73 @@ export default function ProductDetail() {
   const [cartAdded, setCartAdded] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let cancelled = false
-    const load = async () => {
-      try {
-        const { data } = await axios.get(`/api/products/${encodeURIComponent(id)}`)
-        if (cancelled) return
-        const loadedProduct = data.data || FALLBACK_PRODUCT
+  const loadProduct = useCallback(async () => {
+    try {
+      setLoading(true)
+      const { data } = await axios.get(`/api/products/${encodeURIComponent(id)}`)
+      if (data.success && data.data) {
+        const loadedProduct = data.data
         setProduct(loadedProduct)
         setSelectedPack(loadedProduct.selectedPack || loadedProduct.packSizes?.[0] || '')
+
         try {
           const wishlistParams = new URLSearchParams(getWishlistIdentity())
           const wishlist = await axios.get(`/api/wishlist?${wishlistParams}`)
-          if (!cancelled) setWishlisted((wishlist.data.data || []).some(item => item.productId === loadedProduct.id))
+          setWishlisted((wishlist.data.data || []).some(item => item.productId === loadedProduct.id))
         } catch (wishlistError) {
           console.warn('Could not load wishlist state:', wishlistError)
         }
+
         try {
           const { data: related } = await axios.get('/api/products?onlineOnly=true')
-          if (!cancelled) {
-            const ids = loadedProduct.relatedProductIds || []
-            setRelatedProducts((related.data || []).filter(item => ids.includes(item.id)))
-          }
+          const ids = loadedProduct.relatedProductIds || []
+          setRelatedProducts((related.data || []).filter(item => ids.includes(item.id)))
         } catch (relatedError) {
           console.warn('Could not load related products:', relatedError)
         }
-      } catch {
-        if (!cancelled) setProduct(id === FALLBACK_PRODUCT.id ? FALLBACK_PRODUCT : null)
-      } finally {
-        if (!cancelled) setLoading(false)
+      } else {
+        setProduct(null)
       }
+    } catch {
+      setProduct(null)
+    } finally {
+      setLoading(false)
     }
-    load()
-    return () => { cancelled = true }
   }, [id])
 
+  useEffect(() => {
+    loadProduct()
+  }, [loadProduct])
+
+  // Real-time update when admin modifies this product
+  useEffect(() => {
+    const channel = 'BroadcastChannel' in window ? new BroadcastChannel('sathya_catalog') : null
+    const onMessage = (event) => {
+      if (event.data === 'products-changed') {
+        loadProduct()
+      }
+    }
+    if (channel) {
+      channel.addEventListener('message', onMessage)
+    }
+    return () => {
+      if (channel) {
+        channel.removeEventListener('message', onMessage)
+        channel.close()
+      }
+    }
+  }, [loadProduct])
+
   if (loading) return <div className="product-detail-page"><div className="empty-state"><p>Loading product details...</p></div></div>
-  if (!product) return <div className="product-detail-page"><div className="empty-state"><h3>Product not found</h3><button className="btn btn-primary" onClick={() => navigate('/')}>Back to store</button></div></div>
+  if (!product) return (
+    <div className="product-detail-page">
+      <div className="empty-state">
+        <h3>Product not found</h3>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>This formulation might be unavailable or removed from the store catalog.</p>
+        <button className="btn btn-primary" onClick={() => navigate('/products')}>Browse Store Products</button>
+      </div>
+    </div>
+  )
 
   const images = product.images?.length ? product.images : [product.image].filter(Boolean)
   const resolveImage = image => image?.startsWith('./') ? image.slice(1) : image

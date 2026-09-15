@@ -4,22 +4,39 @@ const SECTION_CONTENT = {
   products: {
     title: 'All Products',
     intro: 'Browse crop protection products selected for reliable field performance.',
-    links: [['/product/sb-6928', 'BlastShield 75 WP', 'Herbicide solution for high yield'], ['/categories', 'Shop by category', 'Find products by formulation'], ['/crops', 'Shop by crop', 'Choose products for your crop']]
+    links: [
+      ['/products?category=Fungicide', 'Bio-Fungicides & Crop Care', 'Field-tested bio-protection solutions'],
+      ['/categories', 'Shop by Category', 'Find products by agricultural formulation'],
+      ['/crops', 'Shop by Crop', 'Choose products customized for your crop']
+    ]
   },
   categories: {
     title: 'Categories',
     intro: 'Choose the right crop-care formulation for your farm.',
-    links: [['/products?category=Fungicide', 'Bio-Fungicides', 'Protect crops from fungal disease'], ['/products?category=Insecticide', 'Insecticides', 'Manage common field pests'], ['/products?category=Herbicide', 'Herbicides', 'Control weeds with confidence'], ['/products?category=Bio-Stimulant', 'Bio-Stimulants', 'Support healthier plant growth']]
+    links: [
+      ['/products?category=Fungicide', 'Bio-Fungicides', 'Protect crops from fungal disease'],
+      ['/products?category=Insecticide', 'Insecticides', 'Manage common field pests'],
+      ['/products?category=Herbicide', 'Herbicides', 'Control weeds with confidence'],
+      ['/products?category=Bio-Stimulant', 'Bio-Stimulants', 'Support healthier plant growth']
+    ]
   },
   crops: {
     title: 'Shop by Crop',
     intro: 'Explore crop-focused care plans and products.',
-    links: [['/products?crop=Paddy%20%2F%20Rice', 'Paddy / Rice', 'Seasonal protection for rice fields'], ['/products?crop=Cotton', 'Cotton', 'Protection through the cotton cycle'], ['/products?crop=Sugarcane', 'Sugarcane', 'Support strong, healthy cane'], ['/products?crop=Vegetables', 'Vegetables', 'Practical protection for vegetables']]
+    links: [
+      ['/products?crop=Paddy%20%2F%20Rice', 'Paddy / Rice', 'Seasonal protection for rice fields'],
+      ['/products?crop=Cotton', 'Cotton', 'Protection through the cotton cycle'],
+      ['/products?crop=Sugarcane', 'Sugarcane', 'Support strong, healthy cane'],
+      ['/products?crop=Vegetables', 'Vegetables', 'Practical protection for vegetables']
+    ]
   },
   brands: {
     title: 'Brands',
     intro: 'Discover Sathya Bio products and trusted crop-care solutions.',
-    links: [['/product/sb-6928', 'Sathya Bio', 'Bio-certified crop protection'], ['/products', 'All formulations', 'Compare available products']]
+    links: [
+      ['/products', 'Sathya Bio Formulations', 'Bio-certified crop protection'],
+      ['/products?category=Bio-Stimulant', 'Bio-Stimulants & Nutrition', 'Compare available formulations']
+    ]
   },
 }
 

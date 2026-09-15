@@ -6392,7 +6392,7 @@ button.mobile-nav-link {
    slides away; scrolling up brings it back. At the end of a list - the page,
    or either Categories column - it comes back as a slim icon-only dock with a
    small spring, so the last items sit clear of it. */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .sathya-mobile-bottom-nav.bighaat-mobile-bottom-nav {
     transition:
       transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -6447,7 +6447,7 @@ button.mobile-nav-link {
 }
 
 /* Reduced motion: no sliding or spring - the bar just fades out and in. */
-@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .sathya-mobile-bottom-nav.bighaat-mobile-bottom-nav,
   .sathya-mobile-bottom-nav .mobile-nav-link > span:last-child {
     transition: opacity 0.15s linear;
@@ -6463,7 +6463,7 @@ button.mobile-nav-link {
    ticker, header row and bottom bar keep their place and only the content
    cross-fades. Each name may be on one visible element only, or the browser
    abandons the transition. */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .sb-chrome-ticker {
     view-transition-name: sb-ticker;
   }
@@ -6500,7 +6500,7 @@ button.mobile-nav-link {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .mobile-menu-backdrop {
     display: block;
     position: fixed;
@@ -6746,13 +6746,13 @@ button.mobile-nav-link {
 
 /* Reduced motion: the Menu sheet appears in place instead of sliding up; the
    backdrop still fades. */
-@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .mobile-menu-sheet {
     transition: none;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .sathya-mobile-bottom-nav {
     display: flex !important;
   }
@@ -8063,7 +8063,7 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
 /* The bottom bar's labels are capped at 16px so they can fold away in the
    compact bar ("THE BAR WHILE SCROLLING"); the script's taller line needs the
    cap to match it. The compact bar still folds them to 0. */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .sathya-mobile-bottom-nav:not(.is-compact) .mobile-nav-link > span:last-child {
     max-height: calc(1em * var(--script-leading));
   }

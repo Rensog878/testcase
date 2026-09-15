@@ -1,11 +1,12 @@
 import { memo, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
 import LanguageSelect from './LanguageSelect'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
 
-const TICKER_ITEMS = (
+export const TICKER_ITEMS = (
   <>
     <span className="ticker-item"><i className="fa-solid fa-fire" style={{ color: '#C77D18' }}></i> FLAT 15% OFF on first order — Use code <strong>FARM15</strong></span>
     <span className="ticker-item"><i className="fa-solid fa-truck-fast" style={{ color: '#3FBE86' }}></i> Free express delivery on orders above ₹999 across all 28 states</span>
@@ -25,7 +26,7 @@ export const TickerBar = memo(function TickerBar() {
   )
 })
 
-const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
+export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
 
 export const Topbar = memo(function Topbar({ t, user, appliedLang }) {
   return (
@@ -239,6 +240,7 @@ export const NavBar = memo(function NavBar({ t }) {
                     </li>
                   ))}
                 </ul>
+                <Link className="nav-mega-all" to="/categories" onClick={close}>Browse full category directory <i className="fa-solid fa-arrow-right"></i></Link>
               </div>
               <div className="nav-mega-col nav-mega-col--wide">
                 <p className="nav-mega-head">Shop by pest &amp; disease</p>
@@ -273,6 +275,7 @@ export const NavBar = memo(function NavBar({ t }) {
           ))}
 
           <li><a href="#brandsSection"><i className="fa-solid fa-award"></i> Brands</a></li>
+          <li><Link to="/blog"><i className="fa-solid fa-book-open"></i> Blogs</Link></li>
         </ul>
 
         <div className="nav-actions">

@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { Link } from 'react-router-dom'
 import { useStore } from '../StoreContext'
 
 const CATEGORY_CARDS = [
@@ -33,6 +34,7 @@ export const CategoryGrid = memo(function CategoryGrid({ t }) {
             <h2 className="section-title" data-i18n="shop_by_category">{t('shop_by_category')}</h2>
             <p className="section-subtitle">Explore crop protection chemicals, bio-stimulants, and soil nutrients</p>
           </div>
+          <Link to="/categories" className="btn btn-outline">Shop All Categories <i className="fa-solid fa-arrow-right"></i></Link>
         </div>
 
         <div className="bento-grid-3">

@@ -11,12 +11,11 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ProductDetail from './pages/ProductDetail'
 import IngredientDetail from './pages/IngredientDetail'
-import Navigation from './components/home/Navigation'
-import Footer from './components/home/Footer'
 import MobileBottomNav from './components/home/MobileBottomNav'
 import StoreTopChrome from './components/home/StoreTopChrome'
 import PageTranslator from './components/PageTranslator'
 import Storefront from './storefront/Storefront'
+import StoreLayout from './layouts/StoreLayout'
 import StorePopups from './storefront/StorePopups'
 import StoreSection from './pages/StoreSection'
 import Categories from './pages/Categories'
@@ -58,10 +57,6 @@ import InvoiceHistory from './pages/billing/InvoiceHistory'
 // Tickets & Chat (shared between admin/employee)
 import Tickets     from './pages/shared/Tickets'
 import ChatRecords from './pages/shared/ChatRecords'
-
-function PublicPageShell({ children }) {
-  return <><Navigation /><main className="public-page-shell">{children}</main><Footer /></>
-}
 
 // Staff are taken to their portal; everyone else gets the storefront.
 function HomePage() {
@@ -112,18 +107,24 @@ export default function App() {
         <Route path="/login"   element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/product/:id" element={<PublicPageShell><ProductDetail /></PublicPageShell>} />
-        <Route path="/product/:id/ingredients" element={<PublicPageShell><IngredientDetail /></PublicPageShell>} />
-        <Route path="/wishlist" element={<PublicPageShell><Wishlist /></PublicPageShell>} />
-        <Route path="/orders" element={<PublicPageShell><OrderStatus /></PublicPageShell>} />
         <Route path="/order-status" element={<Navigate to="/orders" replace />} />
-        <Route path="/products" element={<AllProducts />} />
         <Route path="/shop" element={<Navigate to="/products" replace />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/crops" element={<PublicPageShell><StoreSection type="crops" /></PublicPageShell>} />
-        <Route path="/brands" element={<PublicPageShell><StoreSection type="brands" /></PublicPageShell>} />
-        <Route path="/blog" element={<PublicPageShell><Blog /></PublicPageShell>} />
-        <Route path="/blog/:id" element={<PublicPageShell><BlogDetail /></PublicPageShell>} />
+
+        {/* Storefront pages other than home: one shared header/footer
+            (StoreLayout), mounted once, with only the routed page inside
+            <Outlet/> changing as these are navigated between. */}
+        <Route element={<StoreLayout />}>
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/product/:id/ingredients" element={<IngredientDetail />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/orders" element={<OrderStatus />} />
+          <Route path="/products" element={<AllProducts />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/crops" element={<StoreSection type="crops" />} />
+          <Route path="/brands" element={<StoreSection type="brands" />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
+        </Route>
 
         {/* Admin Routes — signed-out visitors get the admin sign-in here */}
         <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>

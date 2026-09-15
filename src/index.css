@@ -3266,38 +3266,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .tab-btn:hover { color: var(--text-secondary); background: var(--dark-700); }
 .tab-btn.active { background: var(--surface-card); color: var(--brand-400); box-shadow: var(--shadow-sm); }
 
-/* =========================================
-   CART
-   ========================================= */
-
-.cart-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px;
-  background: var(--dark-800);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border-subtle);
-  margin-bottom: 12px;
-}
-
-.cart-item-img {
-  width: 70px;
-  height: 70px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  background: var(--dark-700);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  flex-shrink: 0;
-}
-
-.cart-item-details { flex: 1; min-width: 0; }
-.cart-item-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
-.cart-item-price { color: var(--brand-400); font-weight: 700; font-size: 1rem; }
-
 .qty-control {
   display: flex;
   align-items: center;
@@ -3828,22 +3796,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   }
 }
 
-@media (max-width: 600px) {
-  .cart-item {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .cart-item-details {
-    min-width: 0;
-    flex: 1 1 60%;
-  }
-  .cart-item-img {
-    width: 56px;
-    height: 56px;
-    flex-shrink: 0;
-  }
-}
-
 /* ============================================================
    FARMER PORTAL — small-screen fixes
    ============================================================ */
@@ -4120,13 +4072,19 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 }
 
 @media (min-width: 768px) {
+  /* flex: 0 0 auto overrides the base rule's flex: 1 (flex-basis: 0%) -
+     in a column flex container flex-basis wins the main-axis size over the
+     height property, so without this the wrapper silently ignored `height`
+     below and grew to fit all the pane's content (8000px+), dragging the
+     rail off-screen with the page scroll instead of it staying put with
+     only the pane scrolling inside it. */
   .bighaat-categories-wrapper {
-    max-width: 1280px;
+    flex: 0 0 auto;
+    max-width: 1360px;
     width: 100%;
-    margin: 24px auto 32px;
-    padding: 0 20px;
-    min-height: calc(100vh - 280px);
-    height: calc(100vh - 240px);
+    margin: 28px auto 40px;
+    padding: 0 24px;
+    height: clamp(560px, calc(100vh - 220px), 880px);
   }
 }
 
@@ -4297,6 +4255,25 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 @media (min-width: 768px) {
   .bighaat-subcat-pane {
     padding: 24px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+
+  .bighaat-subcat-pane::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .bighaat-subcat-pane::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .bighaat-subcat-pane::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 8px;
+  }
+
+  .bighaat-subcat-pane::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
   }
 }
 

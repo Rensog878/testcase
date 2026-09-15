@@ -1,0 +1,30 @@
+import { Outlet } from 'react-router-dom'
+import Navigation from '../components/home/Navigation'
+import Footer from '../components/home/Footer'
+
+// Shared shell for every storefront page except the home page (Storefront.jsx
+// has its own mega-menu header/footer, which Navigation mirrors - see its own
+// comment). Navigation and Footer mount once here instead of once per route,
+// so they stay mounted - same DOM nodes, no flicker or lost menu/scroll state
+// - while only the routed page underneath changes.
+//
+// Navigation is wrapped in .desktop-only-nav (hard display:none below
+// 768px, index.css) rather than relying on its own CSS to self-hide on
+// phones: it now reuses storefront.css's header/navbar classes, and that
+// file keeps its OWN compact header visible down to phone widths for the
+// home page's bespoke mobile layout - which would double up with this
+// app's shared phone chrome (StoreTopChrome/MobileBottomNav, mounted in
+// App.jsx outside <Routes>) if not forced off here.
+export default function StoreLayout() {
+  return (
+    <>
+      <div className="desktop-only-nav">
+        <Navigation />
+      </div>
+      <main className="public-page-shell">
+        <Outlet />
+      </main>
+      <Footer />
+    </>
+  )
+}

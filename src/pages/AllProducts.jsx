@@ -5,8 +5,6 @@ import {
   Filter, Check, ArrowRight, PhoneCall, Headphones, Sparkles, 
   Sprout, X, ShieldCheck, Truck, RefreshCw, Layers, Grid, Home, Leaf, ShoppingBag, Globe, User
 } from 'lucide-react'
-import Navigation from '../components/home/Navigation'
-import Footer from '../components/home/Footer'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
@@ -33,12 +31,13 @@ export default function AllProducts() {
   const initialCategory = searchParams.get('category') || ''
   const initialCrop = searchParams.get('crop') || ''
   const initialDisease = searchParams.get('disease') || ''
+  const initialSearch = searchParams.get('search') || ''
 
   const [activeCategory, setActiveCategory] = useState(initialCategory)
   const [activeCrop, setActiveCrop] = useState(initialCrop)
   const [activeDisease, setActiveDisease] = useState(initialDisease)
   const [activeNutrient, setActiveNutrient] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [sortBy, setSortBy] = useState('popular')
 
@@ -99,6 +98,7 @@ export default function AllProducts() {
     if (searchParams.get('category')) setActiveCategory(searchParams.get('category'))
     if (searchParams.get('crop')) setActiveCrop(searchParams.get('crop'))
     if (searchParams.get('disease')) setActiveDisease(searchParams.get('disease'))
+    if (searchParams.get('search')) setSearchQuery(searchParams.get('search'))
   }, [searchParams])
 
   const getWishlistIdentity = () => {
@@ -399,11 +399,6 @@ export default function AllProducts() {
           <span>{toastMessage}</span>
         </div>
       )}
-
-      {/* DESKTOP TOP HEADER */}
-      <div className="desktop-only-header-wrap">
-        <Navigation />
-      </div>
 
       {/* MOBILE TOP HEADER (BigHaat / Sathyam Bio app style matching screenshot 1) */}
       <header className="mobile-shop-header mobile-only-header">
@@ -1399,11 +1394,6 @@ export default function AllProducts() {
       )}
 
 
-
-      {/* DESKTOP FOOTER */}
-      <div className="desktop-only-footer">
-        <Footer />
-      </div>
 
       {/* Phones: the header nav above is hidden, so the bottom bar is rendered here. */}
     </div>

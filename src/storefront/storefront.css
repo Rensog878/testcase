@@ -1191,21 +1191,6 @@ body.sb-home-active {
   align-items: center;
   justify-content: space-between;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .cart-item {
-  display: flex;
-  gap: 12px;
-  border-bottom: 1px solid var(--border-light);
-  padding-bottom: 14px;
-  align-items: center;
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .cart-item img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  background: #FAF9F6;
-  border-radius: 6px;
-  padding: 4px;
-}
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-footer {
   padding: 20px;
   border-top: 1px solid var(--border-light);
@@ -4759,6 +4744,37 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-item-remove:active {
   background: #fef2f2;
   color: #dc2626;
+}
+
+/* Desktop gets a roomier "medium box" cart item; phones keep the compact
+   card above so a 440px checkout panel never has to squeeze it. */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-items-container .cart-item {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-item-thumb {
+    width: 92px;
+    height: 92px;
+    border-radius: 12px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-item-name {
+    font-size: 0.98rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-item-meta {
+    font-size: 0.82rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-item-total {
+    font-size: 1.08rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-stepper button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
 }
 
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-summary {

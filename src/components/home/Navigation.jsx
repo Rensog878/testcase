@@ -1,28 +1,219 @@
-import { Link } from 'react-router-dom'
-import { ShoppingCart, Truck, Sprout, Search, Languages, Heart, BookOpen } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
 import { useBasket, useCheckoutActions } from '../../hooks/useCheckout'
+import { TickerBar, cropOf } from '../../storefront/sections/Header'
+import { CATEGORIES, CROPS, DISEASES, rupees } from '../../storefront/data'
 
-// No menu button of its own: the one Menu card on the site is the phone bottom
-// bar's (MobileBottomNav). Wider screens show the link strip below the header.
-// The basket opens the floating checkout and the account the account card
-// (sign-in when signed out) over the page (hooks/useCheckout.js); Order Status
-// is its own link.
+// The header/nav used on every storefront page except the home page itself
+// (StoreLayout.jsx). Built from the SAME storefront.css classes as the home
+// page's own Header/NavBar (storefront/sections/Header.jsx) - wrapped in
+// .sb-portal, which is storefront.css's built-in escape hatch for reusing its
+// (otherwise home-page-scoped) styles elsewhere - so the two headers look and
+// behave identically. The home components themselves aren't reused directly:
+// they read basket/account/catalog-filter actions off StoreContext, which
+// only Storefront.jsx provides; here the same actions are implemented with
+// this app's normal global hooks (useAuth, useLanguage, useCheckout) and
+// react-router navigation to /products (?category=/?crop=/?disease=/?search=,
+// all read by AllProducts.jsx) instead of an in-page filter + scroll.
 export default function Navigation() {
   const { user } = useAuth()
-  const accountName = user?.name ? user.name.split(' ')[0] : 'Sign in'
-  const accountCrop = user?.crop || user?.primaryCrop || 'Account'
+  const { lang, setLang, languages } = useLanguage()
   const { count, totals } = useBasket()
   const { openBasket, showAccount } = useCheckoutActions()
+  const navigate = useNavigate()
 
-  return <>
-    <div className="public-ticker"><span>🚜 Free express delivery on orders above ₹999 across all 28 states</span><span>🌿 BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season</span><span>☘ WhatsApp us at 9000-425-999 for instant crop advisory in your language</span></div>
-    <div className="public-utility"><div><Link to="/products">Sell on Sathyam Bio</Link></div><div><strong>🌿 {user ? `Welcome, ${user.name || 'farmer'}` : 'Welcome, farmer'}</strong><span>📞 Missed Call to Order: 1800-425-9999</span><span>🚚 FREE Shipping on Agro Orders over ₹999</span><select aria-label="Language"><option>🌐 English</option></select></div></div>
-    <header className="public-site-header">
-      <Link to="/" className="public-brand"><span><Sprout size={24} /></span><strong>SATHYAM BIO</strong><small>AGRO PESTICIDE STORE</small></Link>
-      <div className="public-search"><select aria-label="Search category"><option>All Categories</option><option>Fungicides</option><option>Insecticides</option><option>Herbicides</option></select><input placeholder="Search by crop, disease or chemical" /><button aria-label="Search"><Search size={20} /></button></div>
-      <div className="public-header-actions"><button className="public-icon-action"><Languages size={21} /><small>Language<br /><strong>English</strong></small></button><Link to="/orders" className="public-icon-action"><Truck size={23} /><small>Track<br /><strong>Order Status</strong></small></Link><Link to="/wishlist" className="public-icon-action"><Heart size={23} /><b>0</b><small>Saved<br /><strong>Wishlist</strong></small></Link><a href="#account" className="public-icon-action public-account-action" data-account-open onClick={showAccount}><Sprout size={23} /><small>{accountCrop}<br /><strong>{accountName}</strong></small></a><a href="#basket" className="public-cart-button" data-checkout-open onClick={openBasket}><ShoppingCart size={23} /><b>{count}</b><small>Basket<br /><strong>₹{totals.total.toLocaleString('en-IN')}</strong></small></a></div>
-    </header>
-    <nav className="public-site-nav"><Link to="/products">▣ All Products</Link><Link to="/categories">▱ Categories</Link><Link to="/crops">Shop by Crop</Link><Link to="/brands">⚙ Brands</Link><Link to="/blog"><BookOpen size={16} /> Blogs</Link><Link to="/products" className="public-ai-button">▣ AI Leaf Doctor</Link></nav>
-  </>
+  const [searchText, setSearchText] = useState('')
+  const [searchCategory, setSearchCategory] = useState('All')
+  const [openMenu, setOpenMenu] = useState(null)
+
+  const goProducts = params => {
+    const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v))
+    const s = qs.toString()
+    navigate(s ? `/products?${s}` : '/products')
+  }
+  const runSearch = () => goProducts({ search: searchText, category: searchCategory !== 'All' ? searchCategory : '' })
+
+  const close = () => setOpenMenu(null)
+  const megaItem = (id, icon, label, panel) => (
+    <li
+      className={`nav-mega${openMenu === id ? ' is-open' : ''}`}
+      onMouseEnter={() => setOpenMenu(id)}
+      onMouseLeave={close}
+    >
+      <button
+        type="button"
+        className="nav-mega-trigger"
+        aria-expanded={openMenu === id}
+        aria-haspopup="true"
+        onFocus={() => setOpenMenu(id)}
+        onClick={() => setOpenMenu(current => (current === id ? null : id))}
+      >
+        <i className={`fa-solid ${icon}`}></i> <span>{label}</span>
+        <i className="fa-solid fa-chevron-down nav-mega-caret" aria-hidden="true"></i>
+      </button>
+      <div className="nav-mega-panel" role="group" aria-label={label} hidden={openMenu !== id}>
+        {panel}
+      </div>
+    </li>
+  )
+
+  return (
+    <div className="sb-portal">
+      <TickerBar />
+
+      <div className="topbar">
+        <div className="container topbar-content">
+          <div className="topbar-left-links">
+            <Link to="/products" className="topbar-link">Sell on Sathyam Bio</Link>
+            <span
+              className="topbar-badge"
+              style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
+            >
+              {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
+            </span>
+            <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>1800-425-9999</strong></span>
+          </div>
+          <div className="topbar-right-info">
+            <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> FREE Shipping on Agro Orders over ₹999</span>
+            <div className="lang-selector-wrapper">
+              <i className="fa-solid fa-globe"></i>
+              <select className="lang-select" value={lang} onChange={event => setLang(event.target.value)} aria-label="Language">
+                {languages.map(l => <option key={l.code} value={l.code}>{l.code === 'en' ? l.native : `${l.native} (${l.label})`}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <header className="header-main">
+        <div className="container header-grid">
+          <Link to="/" className="logo-box">
+            <div className="logo-icon"><i className="fa-solid fa-leaf"></i></div>
+            <div>
+              <div className="logo-text">SATHYAM <span>BIO</span></div>
+              <span className="logo-sub">Agro Pesticide Store</span>
+            </div>
+          </Link>
+
+          <div className="header-search">
+            <div className="search-category-dropdown">
+              <select value={searchCategory} onChange={event => setSearchCategory(event.target.value)} aria-label="Search category">
+                {CATEGORIES.map(value => <option key={value} value={value}>{value === 'All' ? 'All Categories' : `${value}s`}</option>)}
+              </select>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by crop, disease or chemical"
+              aria-label="Search products"
+              value={searchText}
+              onChange={event => setSearchText(event.target.value)}
+              onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); runSearch() } }}
+            />
+            <button type="button" aria-label="Search" onClick={runSearch}><i className="fa-solid fa-magnifying-glass"></i> <span>Search</span></button>
+          </div>
+
+          <div className="header-actions">
+            <div className="action-item lang-item">
+              <i className="fa-solid fa-language action-icon"></i>
+              <div>
+                <span className="action-sub">Language</span>
+                <select className="header-lang-dropdown" value={lang} onChange={event => setLang(event.target.value)} aria-label="Language">
+                  {languages.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <Link to="/orders" className="action-item action-track">
+              <i className="fa-solid fa-truck-ramp-box action-icon"></i>
+              <div><span className="action-sub">Track</span><span className="action-title">Order Status</span></div>
+            </Link>
+
+            <Link to="/wishlist" className="action-item action-wishlist">
+              <div className="action-icon"><i className="fa-regular fa-heart"></i></div>
+              <div><span className="action-sub">Saved</span><span className="action-title">Wishlist</span></div>
+            </Link>
+
+            <div className="action-item" onClick={showAccount} style={{ cursor: 'pointer' }}>
+              <i
+                className={user ? 'fa-solid fa-circle-check action-icon' : 'fa-regular fa-circle-user action-icon'}
+                style={user ? { color: '#16A46A' } : undefined}
+              ></i>
+              <div>
+                {user ? <span className="action-sub">{cropOf(user)}</span> : <span className="action-sub">Account</span>}
+                <span className="action-title">{user ? `${user.name ? user.name.split(' ')[0] : 'Farmer'} ▾` : 'Sign In / Register'}</span>
+              </div>
+            </div>
+
+            <div className="action-item cart-trigger-btn" onClick={openBasket} role="button" tabIndex={0} style={{ cursor: 'pointer' }}>
+              <div className="action-icon">
+                <i className="fa-solid fa-bag-shopping"></i>
+                <span className="cart-badge" style={count ? undefined : { display: 'none' }}>{count}</span>
+              </div>
+              <div><span className="action-sub">Basket</span><span className="action-title">{rupees(totals.total)}</span></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <nav className="navbar" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) close() }}>
+        <div className="container nav-content">
+          <ul className="nav-links">
+            <li><Link to="/products"><i className="fa-solid fa-store"></i> <span>All Products</span></Link></li>
+
+            {megaItem('cat', 'fa-layer-group', 'Categories', (
+              <div className="nav-mega-cols">
+                <div className="nav-mega-col">
+                  <p className="nav-mega-head">Shop by category</p>
+                  <ul>
+                    {CATEGORIES.filter(value => value !== 'All').map(value => (
+                      <li key={value}><button type="button" onClick={() => { goProducts({ category: value }); close() }}>{value}s</button></li>
+                    ))}
+                  </ul>
+                  <Link className="nav-mega-all" to="/categories" onClick={close}>Browse full category directory <i className="fa-solid fa-arrow-right"></i></Link>
+                </div>
+                <div className="nav-mega-col nav-mega-col--wide">
+                  <p className="nav-mega-head">Shop by pest &amp; disease</p>
+                  <ul className="nav-mega-two-up">
+                    {DISEASES.filter(item => item.id !== 'all').slice(0, 10).map(item => (
+                      <li key={item.id}><button type="button" onClick={() => { goProducts({ disease: item.id }); close() }}>{item.name}</button></li>
+                    ))}
+                  </ul>
+                  <Link className="nav-mega-all" to="/products" onClick={close}>See the full catalogue <i className="fa-solid fa-arrow-right"></i></Link>
+                </div>
+              </div>
+            ))}
+
+            {megaItem('crop', 'fa-wheat-awn', 'Shop by Crop', (
+              <div className="nav-mega-cols">
+                <div className="nav-mega-col nav-mega-col--wide">
+                  <p className="nav-mega-head">Pick your crop</p>
+                  <ul className="nav-mega-two-up">
+                    {CROPS.filter(crop => crop.id !== 'all').map(crop => (
+                      <li key={crop.id}>
+                        <button type="button" onClick={() => { goProducts({ crop: crop.id }); close() }}>
+                          <i className={`fa-solid ${crop.icon}`} aria-hidden="true"></i> {crop.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link className="nav-mega-all" to="/crops" onClick={close}>All crops <i className="fa-solid fa-arrow-right"></i></Link>
+                </div>
+              </div>
+            ))}
+
+            <li><Link to="/brands"><i className="fa-solid fa-award"></i> Brands</Link></li>
+            <li><Link to="/blog"><i className="fa-solid fa-book-open"></i> Blogs</Link></li>
+          </ul>
+
+          <div className="nav-actions">
+            <Link className="btn btn-gold nav-scan-btn" to="/#scan">
+              <i className="fa-solid fa-camera-retro"></i> <span>AI Leaf Doctor</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
+    </div>
+  )
 }

@@ -6,8 +6,6 @@ import {
   ShieldCheck, PhoneCall
 } from 'lucide-react'
 import { CATEGORIES_DATA, DEFAULT_CATEGORY_HANDLE } from '../data/categoriesData'
-import Navigation from '../components/home/Navigation'
-import Footer from '../components/home/Footer'
 
 // Every category is one section of the right-hand pane, one after another.
 // The left rail follows the scroll (the category being read is highlighted and
@@ -184,11 +182,6 @@ export default function Categories() {
 
   return (
     <div className="bighaat-categories-page">
-      {/* Desktop Navigation Header (Hidden on Mobile) */}
-      <div className="desktop-only-nav">
-        <Navigation />
-      </div>
-
       {/* Mobile Top Header (BigHaat App Style - Visible only on Mobile) */}
       <header className="bighaat-mobile-header mobile-only-header">
         <div className="mobile-header-row">
@@ -413,11 +406,6 @@ export default function Categories() {
           </section>
 
         </div>
-      </div>
-
-      {/* Desktop Footer (Hidden on Mobile) */}
-      <div className="desktop-only-footer">
-        <Footer />
       </div>
     </div>
   )

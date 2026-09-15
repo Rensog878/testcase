@@ -1,0 +1,132 @@
+// The basket and checkout rules, in one place for the floating checkout
+// (useCheckout.js), the storefront, the product pages and the headers. No
+// React, browser or network code here, so they run under node --test
+// (src/shared/__tests__/checkoutRules.test.js).
+
+export const GUEST_CART_KEY = 'sathya_cart_guest'
+// Must match the server's calculation in priceCart() (server/server.js).
+export const GST_RATE = 0.18
+export const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
+export const ADDRESS_LABELS = ['Home', 'Office', 'Farm']
+export const STATES = ['Tamil Nadu', 'Karnataka', 'Kerala', 'Andhra Pradesh', 'Telangana', 'Maharashtra', 'Other']
+const ADDRESS_KEYS = ['doorNo', 'street', 'area', 'taluk', 'pincode', 'district', 'state']
+export const CONTACT_FIELDS = ['customerName', 'customerPhone']
+
+// The pop-up's steps and each one's hash, so the phone's Back button goes back
+// one step, a shared link opens the right step and a reload returns to it.
+export const CHECKOUT_STEPS = ['basket', 'address', 'payment', 'done']
+export const STEP_HASH = { basket: 'basket', address: 'checkout-address', payment: 'checkout-payment', done: 'order-confirmed' }
+export const stepForHash = hash => {
+  const name = String(hash || '').replace(/^#/, '')
+  return CHECKOUT_STEPS.find(step => STEP_HASH[step] === name) || null
+}
+// Hashes the shared popups answer on every store page (not page sections).
+export const SHARED_POPUP_HASHES = new Set(['login', 'auth', 'account', ...Object.values(STEP_HASH)])
+
+export const keyOf = item => item.id || item._id
+const samePack = (a, b) => (a.selectedPack || '') === (b.selectedPack || '')
+const sameLine = (a, b) => String(keyOf(a)) === String(keyOf(b)) && samePack(a, b)
+
+// Basket lines always use `qty`. Older builds of the All Products page saved
+// `quantity`; without this those lines showed "NaN items" and ₹0.
+export const normalizeCart = items => (Array.isArray(items) ? items : [])
+  .filter(item => item && typeof item === 'object')
+  .map(({ quantity, ...item }) => ({
+    ...item,
+    qty: Math.max(1, Math.floor(Number(item.qty ?? quantity)) || 1),
+    price: Number(item.price) || 0,
+  }))
+
+export const itemCount = items => items.reduce((sum, item) => sum + item.qty, 0)
+
+// Same rule as the server: GST is 18% of the subtotal, rounded. The server
+// prices the order again from its own product records.
+export function cartTotals(items) {
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0)
+  const gst = Math.round(subtotal * GST_RATE)
+  return { subtotal, gst, total: subtotal + gst }
+}
+
+// One more of a product in its pack size.
+export function withItemAdded(items, line) {
+  const id = keyOf(line)
+  const index = items.findIndex(item => sameLine(item, line))
+  if (index > -1) return items.map((item, i) => (i === index ? { ...item, qty: item.qty + 1 } : item))
+  // _id mirrors id so every page keys a line off the same value.
+  return [...items, ...normalizeCart([{ ...line, id, _id: id, qty: 1 }])]
+}
+
+// A guest basket joins the account's basket at sign-in: the same product in
+// the same pack adds up; anything else is added.
+export function mergeCarts(accountItems, guestItems) {
+  const merged = accountItems.map(item => ({ ...item }))
+  guestItems.forEach(item => {
+    const existing = merged.find(line => sameLine(line, item))
+    if (existing) existing.qty += item.qty
+    else merged.push({ ...item })
+  })
+  return merged
+}
+
+// Only the product, pack size and quantity are sent: the server works out every price.
+export const orderLine = item => ({ id: keyOf(item), qty: Number(item.qty || 1), selectedPack: item.selectedPack || '' })
+
+export const initialFields = user => ({
+  addressLabel: 'Home',
+  customerName: user?.name || '',
+  customerPhone: user?.phone || user?.mobile || '',
+  doorNo: '',
+  street: '',
+  area: user?.village || '',
+  taluk: '',
+  pincode: '',
+  district: user?.district || '',
+  state: STATES.includes(user?.state) ? user.state : '',
+})
+
+// A saved address in the form, keeping the contact details already there.
+export function fieldsFromAddress(fields, address) {
+  const label = address.label || 'Home'
+  return {
+    ...fields,
+    ...Object.fromEntries(ADDRESS_KEYS.map(key => [key, address[key] || ''])),
+    addressLabel: ADDRESS_LABELS.includes(label) ? label : fields.addressLabel,
+  }
+}
+
+// An empty address form, keeping the contact details already typed.
+export function blankAddress(fields, user) {
+  const blank = initialFields(user)
+  CONTACT_FIELDS.forEach(key => { blank[key] = fields[key] })
+  return blank
+}
+
+// The server's checks (readCustomerDetails in server/server.js): a name, a
+// 10-digit mobile number and every address field, with a 6-digit PIN code.
+// Returns { field: 'required' | 'phone' | 'pincode' | 'state' }, empty when
+// the order can go ahead.
+export function detailProblems(fields) {
+  const problems = {}
+  const filled = key => String(fields[key] || '').trim() !== ''
+  if (!filled('customerName')) problems.customerName = 'required'
+  if (!/^\d{10}$/.test(String(fields.customerPhone || '').replace(/\D/g, '').slice(-10))) problems.customerPhone = 'phone'
+  ;['doorNo', 'street', 'area', 'taluk'].forEach(key => {
+    if (!filled(key)) problems[key] = 'required'
+  })
+  if (!/^\d{6}$/.test(String(fields.pincode || ''))) problems.pincode = 'pincode'
+  if (!filled('district')) problems.district = 'required'
+  if (!filled('state')) problems.state = 'state'
+  return problems
+}
+
+// The customer part of an order request: the fields, the address field by
+// field, and the one-line address kept for messages.
+export function customerDetails(fields) {
+  const f = fields
+  const addressDetails = {
+    label: f.addressLabel || 'Home', doorNo: f.doorNo, street: f.street, area: f.area,
+    taluk: f.taluk, pincode: f.pincode, district: f.district, state: f.state,
+  }
+  const address = [f.doorNo, f.street, f.area, f.taluk, f.district, f.state, f.pincode].filter(Boolean).join(', ')
+  return { ...f, addressDetails, address }
+}

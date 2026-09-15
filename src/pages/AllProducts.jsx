@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Navigation from '../components/home/Navigation'
 import Footer from '../components/home/Footer'
+import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import axios from 'axios'
 import { 
   SHOP_CATEGORIES, 
@@ -65,18 +66,10 @@ export default function AllProducts() {
     }
   })
 
-  // Basket lines use `qty`; `quantity` was written by older builds of this page.
-  const lineQty = item => Math.max(1, Math.floor(Number(item.qty ?? item.quantity)) || 1)
-
-  // Cart count state
-  const [cartCount, setCartCount] = useState(() => {
-    try {
-      const cart = JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]')
-      return cart.reduce((sum, item) => sum + lineQty(item), 0)
-    } catch {
-      return 0
-    }
-  })
+  // The store's one basket (hooks/useCheckout.js): shared with every page and
+  // opened as the floating checkout.
+  const { count: cartCount } = useBasket()
+  const { addItem, openBasket } = useCheckoutActions()
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState('')
@@ -158,45 +151,20 @@ export default function AllProducts() {
     }))
   }
 
-  // Add to cart function
+  // Add to cart: one more of this product in its pack size. The price shown
+  // here is for the basket only; the server prices the order again.
   const handleAddToCart = (product, explicitSize = null) => {
-    let cart = []
-    try {
-      cart = JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]')
-    } catch {
-      cart = []
-    }
-
     const currentSize = explicitSize || selectedSizes[product.id] || product.selectedSize || product.sizes?.[0]?.size || 'Standard'
     const sizeObj = product.sizes?.find(s => s.size === currentSize)
-    const effectivePrice = sizeObj?.price || product.price
-    const effectiveOriginalPrice = sizeObj?.originalPrice || product.originalPrice
-
-    const existingIndex = cart.findIndex(item => item.id === product.id && item.selectedPack === currentSize)
-
-    // The basket, the header and checkout all read `qty`.
-    if (existingIndex > -1) {
-      cart[existingIndex].qty = lineQty(cart[existingIndex]) + 1
-      delete cart[existingIndex].quantity
-    } else {
-      cart.push({
-        id: product.id,
-        _id: product.id,
-        name: product.name,
-        brand: product.brand,
-        price: Number(effectivePrice) || 0,
-        originalPrice: effectiveOriginalPrice,
-        selectedPack: currentSize,
-        image: product.image,
-        qty: 1
-      })
-    }
-
-    localStorage.setItem('sathya_cart_guest', JSON.stringify(cart))
-    const newCount = cart.reduce((sum, item) => sum + lineQty(item), 0)
-    // Keeps the header basket count in step (StoreHeader listens for this).
-    window.dispatchEvent(new CustomEvent('sathya:cart-count', { detail: newCount }))
-    setCartCount(newCount)
+    addItem({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      price: Number(sizeObj?.price || product.price) || 0,
+      originalPrice: sizeObj?.originalPrice || product.originalPrice,
+      selectedPack: currentSize,
+      image: product.image,
+    })
     showToast(`Added ${product.name.slice(0, 24)}... (${currentSize}) to Basket! 🛒`)
   }
 
@@ -380,7 +348,7 @@ export default function AllProducts() {
 
       {/* DESKTOP TOP HEADER */}
       <div className="desktop-only-header-wrap">
-        <Navigation cartCount={cartCount} />
+        <Navigation />
       </div>
 
       {/* MOBILE TOP HEADER (BigHaat / Sathya Bio app style matching screenshot 1) */}
@@ -418,10 +386,10 @@ export default function AllProducts() {
               <User size={20} />
             </Link>
 
-            <Link to="/checkout" className="mobile-header-icon-btn mobile-cart-icon-btn" aria-label="Cart">
+            <a href="#basket" className="mobile-header-icon-btn mobile-cart-icon-btn" data-checkout-open onClick={openBasket} aria-label="Cart">
               <ShoppingCart size={20} />
               {cartCount > 0 && <span className="mobile-cart-badge">{cartCount}</span>}
-            </Link>
+            </a>
           </div>
         </div>
 

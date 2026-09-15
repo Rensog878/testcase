@@ -1,0 +1,131 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
+import { useCheckout, useCheckoutActions } from '../hooks/useCheckout'
+import { StoreContext } from './StoreContext'
+import { isLanguageReady, loadLanguagePack, translationFor } from './i18n'
+import { setBodyFlag } from './bodyFlags'
+import AuthModal from './sections/AuthModal'
+import CheckoutSheet from './sections/CheckoutSheet'
+import './storefront.css'
+
+// The popups every store page shares, drawn once in App.jsx so they open over
+// whichever page the customer is on: the floating checkout and the sign-in
+// card on top of it. Their state and rules are in hooks/useCheckout.js; this
+// adds what being a popup takes - page scroll locked, Escape, focus kept
+// inside, the touch-down warm-up. They sit in .sb-portal, which the
+// storefront's styles also cover off the home page (storefront.css).
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+export default function StorePopups() {
+  const { user } = useAuth()
+  const { lang } = useLanguage()
+  const checkout = useCheckout()
+  const actions = useCheckoutActions()
+  const { modals, step, busy } = checkout
+  const authState = modals.authModal
+  const sheetState = modals.checkout
+
+  // The sign-in card's brand line comes from the language pack.
+  const [appliedLang, setAppliedLang] = useState('en')
+  useEffect(() => {
+    let cancelled = false
+    loadLanguagePack(lang).then(ok => {
+      if (!cancelled) setAppliedLang(ok && isLanguageReady(lang) ? lang : 'en')
+    })
+    return () => { cancelled = true }
+  }, [lang])
+  const t = useCallback(key => translationFor(appliedLang, key) || key, [appliedLang])
+
+  // AuthModal and its Modal read these from the storefront's context.
+  const store = useMemo(() => ({
+    afterSignIn: actions.afterSignIn,
+    signOut: actions.signOut,
+    closeModal: id => (id === 'authModal' ? actions.closeSignIn() : actions.closeCheckout()),
+  }), [actions])
+
+  useEffect(() => {
+    setBodyFlag('overlay-open', 'store-popups', Boolean(authState || sheetState))
+  }, [authState, sheetState])
+  useEffect(() => () => setBodyFlag('overlay-open', 'store-popups', false), [])
+
+  // While the checkout is open only its own content scrolls. Where the page
+  // has a classic scrollbar its gutter stays, so nothing behind shifts.
+  useEffect(() => {
+    if (!step) return undefined
+    const root = document.documentElement
+    root.classList.toggle('sb-scroll-lock-gutter', window.innerWidth > root.clientWidth)
+    root.classList.add('sb-scroll-lock')
+    return () => root.classList.remove('sb-scroll-lock', 'sb-scroll-lock-gutter')
+  }, [Boolean(step)])
+
+  // Closed, focus goes back to what opened it.
+  const lastSheetState = useRef(sheetState)
+  useEffect(() => {
+    if (lastSheetState.current && !sheetState) actions.restoreFocus()
+    lastSheetState.current = sheetState
+  }, [sheetState, actions])
+
+  const live = useRef({})
+  live.current = { authOpen: Boolean(authState), sheetOpen: Boolean(step), busy }
+
+  useEffect(() => {
+    // Escape closes the sign-in card, then the checkout (not mid-payment). The
+    // storefront's own popups are left to the storefront.
+    const onKey = event => {
+      const { authOpen, sheetOpen, busy: working } = live.current
+      if (event.key === 'Escape') {
+        if (authOpen) {
+          event.preventDefault()
+          actions.closeSignIn()
+        } else if (sheetOpen && !working) {
+          event.preventDefault()
+          actions.closeCheckout()
+        }
+        return
+      }
+      // Tab stays inside the checkout. Razorpay's window, above it, keeps its own focus.
+      if (event.key !== 'Tab' || !sheetOpen || authOpen || working === 'pay') return
+      const panel = document.querySelector('#checkoutSheet .co-panel')
+      const items = panel ? [...panel.querySelectorAll(FOCUSABLE)].filter(el => el.getClientRects().length) : []
+      if (!items.length) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (!panel.contains(document.activeElement)) {
+        event.preventDefault()
+        first.focus()
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+
+    // Touch-down on a basket or (on the home page) the account button warms
+    // its popup, so the slide starts without a stutter (useModalStates.js).
+    const onPointerDown = event => {
+      if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return
+      if (event.target.closest('[data-checkout-open]')) actions.prewarmCheckout()
+      else if (event.target.closest('#headerAccountBtn, .sb-store-head a[href="/#account"]')) actions.prewarmSignIn()
+    }
+    document.addEventListener('pointerdown', onPointerDown, { passive: true, capture: true })
+
+    return () => {
+      window.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('pointerdown', onPointerDown, { capture: true })
+    }
+  }, [actions])
+
+  return (
+    <StoreContext.Provider value={store}>
+      <div className="sb-portal">
+        <CheckoutSheet />
+        <AuthModal t={t} state={authState} user={user} notice={checkout.authNotice} loginRequest={checkout.loginRequest} />
+      </div>
+    </StoreContext.Provider>
+  )
+}

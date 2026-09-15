@@ -1,6 +1,8 @@
 import { useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import { CheckoutProvider } from './hooks/useCheckout'
+import { STAFF_HOME } from './hooks/checkoutRules'
 import PrivateRoute from './components/PrivateRoute'
 
 // Auth Pages
@@ -15,6 +17,7 @@ import MobileBottomNav from './components/home/MobileBottomNav'
 import StoreTopChrome from './components/home/StoreTopChrome'
 import PageTranslator from './components/PageTranslator'
 import Storefront from './storefront/Storefront'
+import StorePopups from './storefront/StorePopups'
 import StoreSection from './pages/StoreSection'
 import Categories from './pages/Categories'
 import AllProducts from './pages/AllProducts'
@@ -63,8 +66,7 @@ function PublicPageShell({ children }) {
 // Staff are taken to their portal; everyone else gets the storefront.
 function HomePage() {
   const { user } = useAuth()
-  const roleMap = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
-  const redirectPath = user && roleMap[user.role]
+  const redirectPath = user && STAFF_HOME[user.role]
   return redirectPath ? <Navigate to={redirectPath} replace /> : <Storefront />
 }
 
@@ -95,13 +97,17 @@ function StoreTranslation() {
 }
 
 export default function App() {
+  const storePage = useStorePage()
+  // Every store page adds to the same basket and opens the same floating
+  // checkout and sign-in card, drawn once here over whichever page is open.
   return (
-    <>
+    <CheckoutProvider enabled={storePage}>
       <StoreTop />
       <Routes>
         {/* Public Home - the storefront */}
         <Route path="/"        element={<HomePage />} />
-        <Route path="/checkout" element={<PublicPageShell><Checkout /></PublicPageShell>} />
+        {/* Old links: the floating checkout, over the store home page */}
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/cart"    element={<Navigate to="/checkout" replace />} />
         <Route path="/login"   element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -157,8 +163,9 @@ export default function App() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {storePage && <StorePopups />}
       <StoreBottom />
       <StoreTranslation />
-    </>
+    </CheckoutProvider>
   )
 }

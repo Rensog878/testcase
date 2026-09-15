@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
+import { useBasket, useCheckoutActions } from '../../hooks/useCheckout'
+import { STAFF_HOME } from '../../hooks/checkoutRules'
 import TransitionLink from './TransitionLink'
 
 // Phones: the header row - logo, language, account, basket - drawn once above
 // every store page (StoreTopChrome in App.jsx), so it stays in place between
-// pages. On the home page account and basket open the storefront's own
-// sign-in and basket (Storefront.jsx reads #account and #basket).
+// pages. The basket opens the floating checkout over the page
+// (hooks/useCheckout.js); on the home page account opens the sign-in card
+// (#account).
 // Styles: index.css, "STORE HEADER ROW".
 const LANGS = [
   { code: 'en', pill: 'EN', native: 'English', english: 'English', ready: true },
@@ -17,54 +20,17 @@ const LANGS = [
   { code: 'hi', pill: 'हि', native: 'हिन्दी', english: 'Hindi', ready: true },
   { code: 'ml', pill: 'മ', native: 'മലയാളം', english: 'Malayalam', ready: false },
 ]
-const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
-
-const itemCount = items => (Array.isArray(items) ? items.reduce((sum, item) => sum + (Number(item.qty) || 1), 0) : 0)
-const guestCount = () => {
-  try { return itemCount(JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]')) } catch { return 0 }
-}
 
 export default function StoreHeader() {
   const { lang, setLang } = useLanguage()
   const { user } = useAuth()
   const { pathname } = useLocation()
+  const { count } = useBasket()
+  const { openBasket } = useCheckoutActions()
   const onHome = pathname === '/'
-  const [count, setCount] = useState(guestCount)
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuTop, setMenuTop] = useState(0)
   const langButton = useRef(null)
-
-  // The page that owns the basket announces its count (storefront, checkout).
-  useEffect(() => {
-    const onCartCount = event => setCount(Number(event.detail) || 0)
-    const onStorage = event => {
-      if (event.key === 'sathya_cart_guest') setCount(guestCount())
-    }
-    window.addEventListener('sathya:cart-count', onCartCount)
-    window.addEventListener('storage', onStorage)
-    return () => {
-      window.removeEventListener('sathya:cart-count', onCartCount)
-      window.removeEventListener('storage', onStorage)
-    }
-  }, [])
-
-  // Otherwise, on each page: the signed-in basket on the server (plus anything
-  // added as a guest), or this browser's guest basket.
-  useEffect(() => {
-    let cancelled = false
-    const token = localStorage.getItem('sathya_token')
-    if (!token) {
-      setCount(guestCount())
-      return undefined
-    }
-    fetch('/api/cart', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => (res.ok ? res.json() : null))
-      .then(json => {
-        if (!cancelled && json?.success) setCount(itemCount(json.data) + guestCount())
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [pathname, user?.id])
 
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -85,7 +51,6 @@ export default function StoreHeader() {
   const current = LANGS.find(item => item.code === lang) || LANGS[0]
   let accountHref = !user ? '/#login' : (STAFF_HOME[user.role] || '/orders')
   if (onHome) accountHref = '/#account'
-  const basketHref = onHome ? '/#basket' : '/checkout'
 
   const toggleMenu = () => {
     if (!menuOpen && langButton.current) setMenuTop(Math.round(langButton.current.getBoundingClientRect().bottom + 8))
@@ -126,10 +91,10 @@ export default function StoreHeader() {
             <i className={user ? 'fa-solid fa-circle-check sb-store-signed-in' : 'fa-regular fa-circle-user'} aria-hidden="true"></i>
           </TransitionLink>
 
-          <TransitionLink to={basketHref} className="sb-store-action" aria-label={count ? `Basket, ${count} items` : 'Basket'}>
+          <a href="#basket" className="sb-store-action" data-checkout-open onClick={openBasket} aria-label={count ? `Basket, ${count} items` : 'Basket'}>
             <i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>
             {count > 0 && <span className="sb-store-badge">{count}</span>}
-          </TransitionLink>
+          </a>
         </div>
       </div>
 

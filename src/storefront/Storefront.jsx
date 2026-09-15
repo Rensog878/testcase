@@ -3,10 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { afterPageTransition } from '../components/home/pageTransition'
+import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
+import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
 import { StoreContext } from './StoreContext'
 import { PESTICIDES } from './data'
 import { TEXT_PACKS, isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { showToast } from './toast'
+import { setBodyFlag } from './bodyFlags'
+import useModalStates from './useModalStates'
 import { startNavDebugPanel } from './navDebug'
 import { Header, NavBar, TickerBar, Topbar } from './sections/Header'
 import { DealBanner, Hero, StatsStrip, TrustStrip } from './sections/Hero'
@@ -15,22 +19,20 @@ import { Catalog, Trending } from './sections/Catalog'
 import { Newsletter, Testimonials } from './sections/Community'
 import Footer from './sections/Footer'
 import BackToTop from './sections/BackToTop'
-import CartDrawer from './sections/CartDrawer'
 import PhotoScannerModal from './sections/PhotoScannerModal'
 import Chatbot from './sections/Chatbot'
 import WelcomePoster from './sections/WelcomePoster'
-import AuthModal from './sections/AuthModal'
 import './storefront.css'
 
-// The storefront home page (/): catalogue, basket, sign-in and the popups.
-// Styles: storefront.css, scoped to this page's wrapper. The phone bottom bar
-// and its Menu sheet are shared with every store page (MobileBottomNav, drawn
-// once in App.jsx), so they stay in place when moving between pages; its home
-// links arrive here as #login, #account, #basket, #scan, a section id, or
-// ?category= / ?crop=.
+// The storefront home page (/): the catalogue and this page's own popups
+// (photo scanner, welcome poster). The basket, the floating checkout and the
+// sign-in card are shared with every store page (hooks/useCheckout.js, drawn
+// by StorePopups.jsx), as are the phone bottom bar and its Menu sheet
+// (MobileBottomNav) - all drawn once in App.jsx, so they stay in place when
+// moving between pages. Links into this page: #scan, a section id, or
+// ?category= / ?crop= from the shared Menu sheet.
+// Styles: storefront.css, scoped to this page's wrapper.
 
-const GUEST_CART_KEY = 'sathya_cart_guest'
-const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 const PAGE_TITLE = "Sathya Bio - India's Largest Online Agro Pesticides & Crop Protection Store"
 const DEFAULT_FILTERS = { crop: 'all', disease: 'all', category: 'All', search: '' }
 const HEADER_CATEGORIES = [
@@ -41,27 +43,6 @@ const HEADER_CATEGORIES = [
   ['Bio-Stimulant', 'Bio-Stimulants'],
   ['Nematicide', 'Nematicides'],
 ]
-
-const storedToken = () => {
-  try { return localStorage.getItem('sathya_token') } catch { return null }
-}
-
-// Older builds of the All Products page saved `quantity` instead of `qty`;
-// without this those lines showed "NaN items" and ₹0 in the basket.
-const cartLine = item => ({
-  ...item,
-  qty: Math.max(1, Math.floor(Number(item.qty ?? item.quantity)) || 1),
-  price: Number(item.price) || 0,
-})
-const normalizeCart = items => (Array.isArray(items) ? items.filter(item => item && typeof item === 'object').map(cartLine) : [])
-
-function readGuestCart() {
-  try {
-    return normalizeCart(JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '[]'))
-  } catch {
-    return []
-  }
-}
 
 function readLocalCms() {
   try { return JSON.parse(localStorage.getItem('sathya_cms') || '{}') } catch { return {} }
@@ -99,91 +80,29 @@ async function shouldShowWelcomePoster() {
 }
 
 export default function Storefront() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const { lang, setLang } = useLanguage()
   const navigate = useNavigate()
   const location = useLocation()
+  const { count, totals } = useBasket()
+  const checkout = useCheckoutActions()
+  const [modals, modal] = useModalStates()
 
   const [products, setProducts] = useState(PESTICIDES)
   const [catalogOptions, setCatalogOptions] = useState(null)
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
-  const [cart, setCartState] = useState([])
-  const [cartOpen, setCartOpen] = useState(false)
-  const [modals, setModals] = useState({})
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
-  const [authNotice, setAuthNotice] = useState('')
-  const [loginRequest, setLoginRequest] = useState(0)
   const [appliedLang, setAppliedLang] = useState('en')
   const [certifications, setCertifications] = useState({})
 
-  const cartRef = useRef(cart)
   const productsRef = useRef(products)
-  const modalsRef = useRef(modals)
-  const prewarmRef = useRef({})
   const languageRequest = useRef(0)
   const dismissLanguageToast = useRef(null)
   // The latest values for the actions below, which never change identity.
   const live = useRef({})
-  live.current = { user, logout, navigate, setLang, appliedLang }
+  live.current = { user, navigate, setLang, appliedLang }
 
   const actions = useMemo(() => {
-    const setCart = next => {
-      cartRef.current = next
-      setCartState(next)
-    }
-
-    // Signed-out visitors keep a basket in this browser only. Once signed in
-    // the basket lives on the server against their user id.
-    const saveCart = (items = cartRef.current) => {
-      const token = storedToken()
-      if (!token) {
-        try { localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items)) } catch (err) { console.warn('Could not persist cart:', err) }
-        return Promise.resolve()
-      }
-      return fetch('/api/cart', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ items }),
-      }).catch(err => console.warn('Could not sync cart:', err))
-    }
-
-    // Pull the signed-in user's basket from the server, merging anything they
-    // added as a guest before signing in.
-    const syncCartFromServer = async () => {
-      const token = storedToken()
-      if (!token) {
-        setCart(readGuestCart())
-        return
-      }
-      try {
-        const res = await fetch('/api/cart', { headers: { Authorization: `Bearer ${token}` } })
-        if (res.status === 401) {
-          // Expired or revoked session: carry on as a guest.
-          live.current.logout(false)
-          setCart(readGuestCart())
-          return
-        }
-        const json = await res.json()
-        const serverCart = json.success ? normalizeCart(json.data) : []
-        const guestCart = readGuestCart()
-        if (guestCart.length) {
-          guestCart.forEach(item => {
-            const existing = serverCart.find(i => i.id === item.id && i.selectedPack === item.selectedPack)
-            if (existing) existing.qty += item.qty
-            else serverCart.push(item)
-          })
-          try { localStorage.removeItem(GUEST_CART_KEY) } catch {}
-          setCart(serverCart)
-          await saveCart(serverCart)
-        } else {
-          setCart(serverCart)
-        }
-      } catch (err) {
-        console.warn('Could not load cart:', err)
-        setCart([])
-      }
-    }
-
     const fetchLiveProducts = async (forUser = live.current.user) => {
       const userId = (forUser && forUser.id) || ''
       try {
@@ -215,68 +134,11 @@ export default function Storefront() {
     }
 
     // ---- popups ----
-    const setModal = (id, value) => {
-      const next = { ...modalsRef.current }
-      if (value) next[id] = value
-      else delete next[id]
-      modalsRef.current = next
-      setModals(next)
-    }
-
-    // The overlay is painted (still transparent) at least one frame before the
-    // card slides, so the first frame of the animation is not spent creating
-    // the layer - the stutter on phones. A popup warmed on touch-down slides on
-    // the next frame: the tap's own task already renders the link it followed
-    // (/#account), and starting the slide in it too made one long task (traced:
-    // ~270ms on a 4x slower CPU) instead of two short ones.
-    const openModal = id => {
-      const current = modalsRef.current[id]
-      const warm = prewarmRef.current[id]
-      if (current === 'open' || (current === 'opening' && !warm)) return
-      if (warm) clearTimeout(warm.timer)
-      delete prewarmRef.current[id]
-      const start = () => {
-        if (modalsRef.current[id] === 'opening') setModal(id, 'open')
-      }
-      // Warmed, it is already 'opening'; setting it again only re-renders the page.
-      if (current !== 'opening') setModal(id, 'opening')
-      if (warm && performance.now() - warm.at > 20) requestAnimationFrame(start)
-      else requestAnimationFrame(() => requestAnimationFrame(start))
-    }
-
-    // Touch-down on anything that opens a popup starts its warm-up; not tapped
-    // after all (a scroll), it cools down.
-    const prewarmModal = id => {
-      if (modalsRef.current[id]) return
-      prewarmRef.current[id] = {
-        at: performance.now(),
-        timer: setTimeout(() => {
-          if (!prewarmRef.current[id]) return
-          delete prewarmRef.current[id]
-          setModal(id, undefined)
-        }, 800),
-      }
-      setModal(id, 'opening')
-    }
-
-    const closeModal = id => {
-      const warm = prewarmRef.current[id]
-      if (warm) clearTimeout(warm.timer)
-      delete prewarmRef.current[id]
-      setModal(id, undefined)
-      if (id === 'authModal') setAuthNotice('')
-    }
-
-    const openSignIn = notice => {
-      setAuthNotice(notice)
-      setLoginRequest(count => count + 1)
-      openModal('authModal')
-    }
-
-    const handleAccountClick = () => {
-      setAuthNotice('')
-      openModal('authModal')
-    }
+    // This page's own (photo scanner, welcome poster) open here; the sign-in
+    // card and the checkout are the shared ones.
+    const { openModal, prewarmModal, closeModal } = modal
+    const openSignIn = notice => checkout.openSignIn(notice)
+    const handleAccountClick = () => checkout.openAccount()
 
     // ---- catalogue ----
     const scrollToCatalog = () => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
@@ -292,91 +154,24 @@ export default function Storefront() {
     }
     const toggleFilterDrawer = open => setFilterDrawerOpen(current => (typeof open === 'boolean' ? open : !current))
 
-    // ---- basket ----
+    // ---- basket (hooks/useCheckout.js) ----
     const addToCart = productId => {
       const product = productsRef.current.find(item => item.id === productId)
       if (!product) return
-      const current = cartRef.current
-      const existing = current.find(item => item.id === productId)
-      const next = existing
-        ? current.map(item => (item === existing ? { ...item, qty: item.qty + 1 } : item))
-        // _id mirrors id so the checkout page keys off the same value.
-        : [...current, { ...product, _id: product.id, qty: 1, selectedPack: product.selectedPack || (Array.isArray(product.packSizes) ? product.packSizes[0] : undefined) }]
-      setCart(next)
-      saveCart(next)
+      checkout.addItem({ ...product, selectedPack: product.selectedPack || (Array.isArray(product.packSizes) ? product.packSizes[0] : undefined) })
 
       if (!live.current.user) {
         showToast(`"${product.name}" added to cart!`, 'success')
-        setCartOpen(false)
         openSignIn('Login or Sign Up is mandatory to access your basket and complete checkout.')
       } else {
         showToast(`"${product.name}" added to basket!`, 'success')
-        setCartOpen(true)
+        checkout.openBasket()
       }
-    }
-
-    const updateQty = (index, change) => {
-      const current = cartRef.current
-      if (!current[index]) return
-      const qty = current[index].qty + change
-      const next = qty <= 0 ? current.filter((_, i) => i !== index) : current.map((item, i) => (i === index ? { ...item, qty } : item))
-      setCart(next)
-      saveCart(next)
-    }
-
-    const removeFromCart = index => {
-      const next = cartRef.current.filter((_, i) => i !== index)
-      setCart(next)
-      saveCart(next)
     }
 
     const handleBasketClick = event => {
-      event?.preventDefault?.()
       event?.stopPropagation?.()
-      if (!live.current.user) {
-        setCartOpen(false)
-        openSignIn('Login or Sign Up is mandatory to access your basket and checkout.')
-        return
-      }
-      setCartOpen(true)
-    }
-
-    const goToCheckout = () => {
-      if (!live.current.user) {
-        setCartOpen(false)
-        openSignIn('Login or Sign Up is mandatory to access checkout.')
-        return
-      }
-      if (!cartRef.current.length) {
-        showToast('Your basket is empty. Add products from the catalog first.', 'warning')
-        return
-      }
-      // Saved first, so the checkout page reads the same basket.
-      Promise.resolve(saveCart()).finally(() => live.current.navigate('/checkout'))
-    }
-
-    // ---- account ----
-    const afterSignIn = async signedInUser => {
-      closeModal('authModal')
-      // Carry anything added as a guest into this user's own basket before leaving.
-      await syncCartFromServer()
-      // Staff roles each have their own portal; farmers stay on the storefront.
-      const home = STAFF_HOME[signedInUser?.role]
-      if (home) {
-        live.current.navigate(home)
-        return
-      }
-      fetchLiveProducts(signedInUser)
-    }
-
-    const signOut = () => {
-      live.current.logout(false)
-      live.current.user = null
-      // Never leave one user's basket on screen for the next person on this device.
-      setCart([])
-      try { localStorage.removeItem(GUEST_CART_KEY) } catch {}
-      fetchLiveProducts(null)
-      closeModal('authModal')
+      checkout.openBasket(event)
     }
 
     // ---- language ----
@@ -400,13 +195,12 @@ export default function Storefront() {
     const goTo = path => live.current.navigate(path)
 
     return {
-      saveCart, syncCartFromServer, fetchLiveProducts, fetchLiveCatalogOptions,
+      fetchLiveProducts, fetchLiveCatalogOptions,
       openModal, prewarmModal, closeModal, openSignIn, handleAccountClick,
       scrollToCatalog, setFilter, resetFilters, filterByCategory, filterByCrop, toggleFilterDrawer,
-      addToCart, updateQty, removeFromCart, handleBasketClick, goToCheckout, setCartOpen,
-      afterSignIn, signOut, changeLanguage, openProductPage, goTo,
+      addToCart, handleBasketClick, changeLanguage, openProductPage, goTo,
     }
-  }, [])
+  }, [modal, checkout])
 
   // ---- page lifetime ----
   useLayoutEffect(() => {
@@ -415,7 +209,8 @@ export default function Storefront() {
     const previousTitle = document.title
     document.title = PAGE_TITLE
     return () => {
-      body.classList.remove('sb-home-active', 'has-bottom-nav', 'overlay-open', 'poster-open')
+      body.classList.remove('sb-home-active', 'has-bottom-nav', 'poster-open')
+      setBodyFlag('overlay-open', 'storefront', false)
       body.style.overflow = ''
       document.title = previousTitle
     }
@@ -426,11 +221,14 @@ export default function Storefront() {
     if (loaded.current) return
     loaded.current = true
     cmsSettingsRequest = null
-    actions.syncCartFromServer()
-    actions.fetchLiveProducts()
     actions.fetchLiveCatalogOptions()
     loadCmsSettings().then(settings => setCertifications({ ...readLocalCms(), ...settings }))
   }, [actions])
+
+  // The catalogue is personalised for the signed-in farmer; signing in or out loads it again.
+  useEffect(() => {
+    actions.fetchLiveProducts(user)
+  }, [actions, user?.id])
 
   useEffect(() => {
     // The admin Products page announces changes on this channel.
@@ -445,23 +243,20 @@ export default function Storefront() {
     const onVisible = () => { if (document.visibilityState === 'visible') actions.fetchLiveProducts() }
     document.addEventListener('visibilitychange', onVisible)
 
-    // Escape closes the top-most open popup (or the basket drawer).
+    // Escape closes this page's top-most open popup. The shared popups
+    // (sign-in, checkout) take it first when they are open.
     const onKey = event => {
-      if (event.key !== 'Escape') return
+      if (event.key !== 'Escape' || event.defaultPrevented) return
       const open = [...document.querySelectorAll('.sb-home .modal-overlay.active')].pop()
       if (open) actions.closeModal(open.id)
-      else actions.setCartOpen(false)
     }
     document.addEventListener('keydown', onKey)
 
     // Anything marked data-modal-target opens that popup; touch-down warms it.
-    // So does touch-down on account: the header button here, or on phones the
-    // header row's account link (StoreHeader, /#account on this page).
     const onPointerDown = event => {
       if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return
       const trigger = event.target.closest('.sb-home [data-modal-target]')
       if (trigger) actions.prewarmModal(trigger.getAttribute('data-modal-target'))
-      else if (event.target.closest('#headerAccountBtn, .sb-store-head a[href="/#account"]')) actions.prewarmModal('authModal')
     }
     document.addEventListener('pointerdown', onPointerDown, { passive: true, capture: true })
     const onClick = event => {
@@ -486,17 +281,19 @@ export default function Storefront() {
   useEffect(() => {
     let cancelled = false
     const timer = setTimeout(async () => {
-      if (!(await shouldShowWelcomePoster()) || cancelled || Object.keys(modalsRef.current).length) return
+      if (!(await shouldShowWelcomePoster()) || cancelled) return
+      if (Object.keys(modal.modalsRef.current).length || document.body.classList.contains('overlay-open')) return
       actions.openModal('welcomePosterModal')
     }, 1800)
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [actions])
+  }, [actions, modal])
 
-  // Links into the page: #login / #auth, #account, #basket, #scan, a section
-  // id, and ?category= / ?crop= from the shared Menu sheet.
+  // Links into the page: #scan, a section id, and ?category= / ?crop= from
+  // the shared Menu sheet. #login, #account and the checkout steps belong to
+  // the shared popups (hooks/useCheckout.js).
   const handledLocation = useRef(null)
   useEffect(() => {
     if (handledLocation.current === location.key) return
@@ -508,22 +305,11 @@ export default function Storefront() {
     if (category || crop) setFilters(current => ({ ...current, ...(category && { category }), ...(crop && { crop }) }))
 
     const hash = decodeURIComponent(location.hash.slice(1))
-    let redirectMsg = null
-    try { redirectMsg = sessionStorage.getItem('sathya_auth_redirect_msg') } catch {}
-    // Arriving from another page, a popup opens once that page change has
-    // finished cross-fading (see pageTransition.js); on this page, at once.
-    const whenArrived = open => { afterPageTransition().then(open) }
-    if ((hash === 'login' || hash === 'auth' || redirectMsg) && !live.current.user) {
-      const notice = redirectMsg || 'Login or Sign Up is mandatory to access your basket and checkout. Please sign in.'
-      try { sessionStorage.removeItem('sathya_auth_redirect_msg') } catch {}
-      whenArrived(() => actions.openSignIn(notice))
-    } else if (hash === 'account') {
-      whenArrived(() => actions.handleAccountClick())
-    } else if (hash === 'basket') {
-      whenArrived(() => actions.handleBasketClick())
-    } else if (hash === 'scan') {
-      whenArrived(() => actions.openModal('photoScannerModal'))
-    } else if (hash && hash !== 'login' && hash !== 'auth') {
+    if (hash === 'scan') {
+      // Arriving from another page, the scanner opens once that page change
+      // has finished cross-fading (see pageTransition.js); on this page, at once.
+      afterPageTransition().then(() => actions.openModal('photoScannerModal'))
+    } else if (hash && !SHARED_POPUP_HASHES.has(hash)) {
       requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView())
     }
   }, [location.key, location.search, location.hash, actions])
@@ -531,19 +317,13 @@ export default function Storefront() {
   // Body classes other styles key off (pausing the ticker behind a popup).
   useEffect(() => {
     const blocking = filterDrawerOpen || Object.entries(modals).some(([id, value]) => id !== 'welcomePosterModal' && value)
-    document.body.classList.toggle('overlay-open', blocking)
+    setBodyFlag('overlay-open', 'storefront', blocking)
     document.body.classList.toggle('poster-open', modals.welcomePosterModal === 'open')
   }, [modals, filterDrawerOpen])
 
   useEffect(() => {
     document.body.style.overflow = filterDrawerOpen ? 'hidden' : ''
   }, [filterDrawerOpen])
-
-  // The shared bottom bar and the header basket show this count.
-  useEffect(() => {
-    const count = cart.reduce((sum, item) => sum + Number(item.qty || 0), 0)
-    window.dispatchEvent(new CustomEvent('sathya:cart-count', { detail: count }))
-  }, [cart])
 
   // ---- language ----
   // The chosen language is applied once its pack has loaded; until then (or
@@ -560,11 +340,6 @@ export default function Storefront() {
 
   const t = useCallback(key => translationFor(appliedLang, key) || key, [appliedLang])
 
-  const count = cart.reduce((sum, item) => sum + item.qty, 0)
-  // Same rule as the checkout page and the server: GST is 18% of the subtotal, rounded.
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const gst = Math.round(subtotal * 0.18)
-  const total = subtotal + gst
   const headerCategories = catalogOptions
     ? catalogOptions.categories.map(value => [value, value === 'All' ? 'All Categories' : value])
     : HEADER_CATEGORIES
@@ -574,7 +349,7 @@ export default function Storefront() {
       <div className="sb-home" id="top">
         <TickerBar />
         <Topbar t={t} user={user} appliedLang={appliedLang} />
-        <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={total} searchText={filters.search} headerCategories={headerCategories} />
+        <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} headerCategories={headerCategories} />
         <NavBar t={t} />
         <Hero t={t} />
         <DealBanner />
@@ -589,11 +364,9 @@ export default function Storefront() {
         <Newsletter />
         <Footer t={t} />
         <BackToTop />
-        <CartDrawer open={cartOpen} cart={cart} count={count} subtotal={subtotal} gst={gst} total={total} />
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />
         <Chatbot t={t} />
         <WelcomePoster state={modals.welcomePosterModal} />
-        <AuthModal t={t} state={modals.authModal} user={user} notice={authNotice} loginRequest={loginRequest} />
       </div>
     </StoreContext.Provider>
   )

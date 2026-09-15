@@ -153,7 +153,7 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
             </div>
           </div>
 
-          <div className="action-item cart-trigger-btn" id="cartTrigger" onClick={handleBasketClick} role="button" tabIndex={0} style={{ cursor: 'pointer' }}>
+          <div className="action-item cart-trigger-btn" id="cartTrigger" data-checkout-open onClick={handleBasketClick} role="button" tabIndex={0} style={{ cursor: 'pointer' }}>
             <div className="action-icon">
               <i className="fa-solid fa-bag-shopping"></i>
               {/* No "0" on the header basket: the count shows only when it has items. */}

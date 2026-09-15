@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ExternalLink, Heart, ShoppingCart, Star } from 'lucide-react'
 import axios from 'axios'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useCheckoutActions } from '../hooks/useCheckout'
 
 const FALLBACK_PRODUCT = {
   id: 'sb-6928',
@@ -36,6 +37,7 @@ const getWishlistIdentity = () => {
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { addItem, startCheckout } = useCheckoutActions()
   const [product, setProduct] = useState(null)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [activeImage, setActiveImage] = useState(0)
@@ -102,19 +104,16 @@ export default function ProductDetail() {
   }
   const selectedPrice = packagePrice(selectedPack)
   const selectedOriginalPrice = product.originalPrice ? Math.round(Number(product.originalPrice) * (selectedPrice / Number(product.price || 1))) : selectedPrice
+  // The store's one basket (hooks/useCheckout.js). The price is for the basket
+  // only; the server prices the order again.
   const addToCart = () => {
-    let cart = []
-    try { cart = JSON.parse(localStorage.getItem('sathya_cart_guest') || '[]') } catch { cart = [] }
-    const productId = product._id || product.id
-    const existing = cart.find(item => (item._id || item.id) === productId && item.selectedPack === selectedPack)
-    if (existing) existing.qty = (existing.qty || 1) + 1
-    else cart.push({ ...product, _id: productId, price: selectedPrice, originalPrice: selectedOriginalPrice, selectedPack, qty: 1 })
-    localStorage.setItem('sathya_cart_guest', JSON.stringify(cart))
+    addItem({ ...product, id: product.id || product._id, price: selectedPrice, originalPrice: selectedOriginalPrice, selectedPack })
     setCartAdded(true)
   }
+  // Opens the floating checkout at the delivery step (or sign-in first).
   const proceedToCheckout = () => {
     if (!cartAdded) addToCart()
-    navigate('/checkout')
+    startCheckout()
   }
   const toggleWishlist = async () => {
     const identity = getWishlistIdentity()

@@ -2,13 +2,16 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
+import { useCheckoutActions } from '../../hooks/useCheckout'
+import { STAFF_HOME } from '../../hooks/checkoutRules'
 import TransitionLink from './TransitionLink'
 
 // Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
 // it once, outside the routes, so it stays mounted - the same element, icons
 // and position - while the shopper moves between pages; nothing reloads or
-// redraws. On the home page the Menu goes to the storefront's own sections,
-// basket and sign-in (Storefront.jsx reads #basket, #account, ?category=...).
+// redraws. On the home page the Menu goes to the storefront's own sections and
+// sign-in (#account, ?category=...); My Cart opens the floating checkout over
+// any page (hooks/useCheckout.js).
 // Styles: index.css, "MOBILE MENU SHEET" and the floating bottom bar.
 
 const CATEGORY_CHIPS = [
@@ -27,8 +30,6 @@ const CROP_CHIPS = [
   ['Sugarcane', 'Sugarcane', '🎋 Sugarcane'],
   ['Grapes', 'Grapes', '🍇 Fruits'],
 ]
-
-const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 
 // The bar while scrolling: it steps aside as the shopper reads down and comes
 // back as soon as they scroll up. At the end of a list - the page, or either
@@ -50,6 +51,7 @@ export default function MobileBottomNav() {
   // sheet is closed. Read from storage as the sheet opened, the new name
   // re-laid out and repainted the whole sheet on the frame its slide started.
   const { user } = useAuth()
+  const { openBasket } = useCheckoutActions()
   const sheetRef = useRef(null)
 
   const path = location.pathname
@@ -66,10 +68,21 @@ export default function MobileBottomNav() {
   // ~20ms on a 4x slower CPU) - done while the finger is down, that no longer
   // lands on the frame the slide starts. Not tapped after all (a scroll), the
   // sheet is made inert again; it stays aria-hidden throughout.
+  //
+  // Touch-down also repaints the sheet. Left alone for a while (reading the
+  // page, a locked phone, another app), the browser drops the closed sheet's
+  // painted content, and the first open after that repainted all of it on the
+  // frame the slide started (traced: paint 55 -> 99ms at 4x slower CPU after
+  // two minutes idle; the first frame of the slide 100-150ms, the next open
+  // smooth). Flipping data-warm changes the border's colour by an invisible
+  // amount, so that repaint happens while the finger is still down. It is an
+  // attribute, not a class: React rewrites className when the sheet opens,
+  // which would repaint it again on exactly that frame.
   const warmTimer = useRef(0)
   const warmMenu = event => {
     const sheet = sheetRef.current
     if (isMenuOpen || !sheet || event.pointerType === 'mouse') return
+    sheet.dataset.warm = sheet.dataset.warm === '1' ? '0' : '1'
     sheet.removeAttribute('inert')
     clearTimeout(warmTimer.current)
     warmTimer.current = setTimeout(() => {
@@ -349,9 +362,9 @@ export default function MobileBottomNav() {
           <TransitionLink to="/blog" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#7c3aed' }}><i className="fa-solid fa-book-open"></i></span>Blog
           </TransitionLink>
-          <TransitionLink to={homeOr('basket', '/checkout')} className="mms-tile" onClick={closeMenu}>
+          <a href="#basket" className="mms-tile" data-checkout-open onClick={event => { closeMenu(); openBasket(event) }}>
             <span className="mms-tile-icon" style={{ '--tile': '#dc2626' }}><i className="fa-solid fa-bag-shopping"></i></span>My Cart
-          </TransitionLink>
+          </a>
           <TransitionLink to="/orders" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#2563eb' }}><i className="fa-solid fa-truck-fast"></i></span>Track Order
           </TransitionLink>

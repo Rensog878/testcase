@@ -27,7 +27,7 @@
 import crypto from 'node:crypto';
 import { isPublicHttpsUrl, publicAssetUrl } from './publicUrl.js';
 
-const BRAND = 'Sathya Bio';
+const BRAND = 'Sathyam Bio';
 
 // The sign-up code is sent as the caption of this banner: the brand as it
 // appears at the top of the sign-in card. Rebuild it with

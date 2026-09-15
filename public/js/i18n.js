@@ -1,4 +1,4 @@
-/* Sathya Bio - i18n Multilingual Support
+/* Sathyam Bio - i18n Multilingual Support
    South Indian Languages: English, Tamil, Telugu, Kannada, Malayalam, Tulu
 */
 
@@ -30,7 +30,7 @@ export const TRANSLATIONS = {
     nav_tickets:          'Support Tickets',
     nav_experts:          'Agronomists',
     nav_ai_scanner:       'AI Leaf Scanner',
-    hero_tag:             'Direct From Sathya Bio Labs',
+    hero_tag:             'Direct From Sathyam Bio Labs',
     hero_title:           'Protect Your Crops. Maximize Your Harvest Yield.',
     hero_desc:            'Order high-efficacy bio-fungicides, insecticides, and soil enhancers online. Fast express dispatch directly to your farm doorstep.',
     hero_shop_btn:        'Shop Pesticide Catalog',
@@ -80,12 +80,12 @@ export const TRANSLATIONS = {
     footer_nav:           'Store Navigation',
     footer_crops:         'Top Crops',
     footer_help:          'Helpline & Support',
-    footer_copyright:     '© 2026 Sathya Bio Agro Tech Ltd. All rights reserved.',
-    chatbot_title:        'Sathya Bio Chat Assistant',
+    footer_copyright:     '© 2026 Sathyam Bio Agro Tech Ltd. All rights reserved.',
+    chatbot_title:        'Sathyam Bio Chat Assistant',
     chat_auto:            'Auto AI',
     chat_agent:           'Agronomist',
     chat_placeholder:     'Type crop question...',
-    chat_welcome:         'Welcome to Sathya Bio Store! Need help selecting pesticides for Paddy, Cotton or Vegetables? Ask me!',
+    chat_welcome:         'Welcome to Sathyam Bio Store! Need help selecting pesticides for Paddy, Cotton or Vegetables? Ask me!',
     checkout_title:       'Complete Your Agro Order',
     field_name:           'Full Name',
     field_phone:          'Mobile Number (For WhatsApp Updates)',

@@ -21,7 +21,7 @@ export default memo(function WelcomePoster({ state }) {
     >
       <div className="welcome-poster-header">
         <div className="welcome-poster-leaf">🌱</div>
-        <div className="welcome-poster-brand">SATHYA <span>BIO</span></div>
+        <div className="welcome-poster-brand">SATHYAM <span>BIO</span></div>
         <div className="welcome-poster-tagline">Agro Pesticides &amp; Crop Advisory</div>
         <div className="welcome-poster-badge">
           <i className="fa-solid fa-heart" style={{ color: '#f87171' }}></i> We Care For You

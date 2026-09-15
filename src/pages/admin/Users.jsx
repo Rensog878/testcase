@@ -253,7 +253,7 @@ export default function AdminUsers() {
         <div className="stat-card" style={{ background: 'var(--dark-800)', padding: '20px', borderRadius: '12px', border: '1px solid var(--dark-700)' }}>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Active Accounts</div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#4ade80', marginTop: '6px' }}>{activeCount}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Can log into Sathya Bio</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Can log into Sathyam Bio</div>
         </div>
       </div>
 
@@ -457,7 +457,7 @@ export default function AdminUsers() {
               <button onClick={() => setCreateModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Create an account with login credentials for Sathya Bio. The user can immediately log in on <code>sathyambio.com</code> or staff portals.
+              Create an account with login credentials for Sathyam Bio. The user can immediately log in on <code>sathyambio.com</code> or staff portals.
             </p>
 
             <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

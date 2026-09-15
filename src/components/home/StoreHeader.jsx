@@ -64,7 +64,7 @@ export default function StoreHeader() {
         <TransitionLink to="/" className="sb-store-logo">
           <span className="sb-store-logo-icon"><i className="fa-solid fa-leaf" aria-hidden="true"></i></span>
           <span className="sb-store-logo-words">
-            <span className="sb-store-logo-text">SATHYA <span>BIO</span></span>
+            <span className="sb-store-logo-text">SATHYAM <span>BIO</span></span>
             <span className="sb-store-logo-sub">Agro Pesticide Store</span>
           </span>
         </TransitionLink>

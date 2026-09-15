@@ -560,7 +560,7 @@ export function CheckoutProvider({ enabled, children }) {
           order_id: razorpayOrderId,
           amount,
           currency,
-          name: 'Sathya Bio',
+          name: 'Sathyam Bio',
           description: `${items.length} item(s) — Crop Inputs`,
           // Razorpay only accepts the contact prefill with its country code.
           prefill: { name: details.customerName, contact: '+91' + String(details.customerPhone).replace(/\D/g, '').slice(-10) },

@@ -14,11 +14,11 @@ export default memo(function Footer({ t }) {
         {/* The grid's margin below is in storefront.css, so phones can drop it. */}
         <div className="footer-grid" style={{ gap: '30px' }}>
           <div>
-            <div className="logo-text" style={{ color: '#ffffff', fontSize: '1.6rem', marginBottom: '10px' }}>SATHYA <span style={{ color: 'var(--accent-gold)' }}>BIO</span></div>
+            <div className="logo-text" style={{ color: '#ffffff', fontSize: '1.6rem', marginBottom: '10px' }}>SATHYAM <span style={{ color: 'var(--accent-gold)' }}>BIO</span></div>
             {/* Two sentences, each its own key in the language packs; phones
                 show only the first. */}
             <p style={{ fontSize: '0.85rem', color: '#DCEFE4', lineHeight: 1.6, marginBottom: '16px' }}>
-              <span>Sathya Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.</span>{' '}
+              <span>Sathyam Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.</span>{' '}
               <span className="footer-brand-more">Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.</span>
             </p>
             <div style={{ display: 'flex', gap: '12px', fontSize: '1.2rem' }}>
@@ -53,7 +53,7 @@ export default memo(function Footer({ t }) {
             <div className="footer-col-body">
               <p style={HELP_STYLE}><i className="fa-solid fa-phone"></i> Toll Free: 1800-425-9999</p>
               <p style={HELP_STYLE}><i className="fa-solid fa-envelope"></i> support@sathyabio.com</p>
-              <p style={{ ...HELP_STYLE, marginBottom: '12px' }}><i className="fa-solid fa-location-dot"></i> Sathya Bio Tech Park, Hyderabad, India</p>
+              <p style={{ ...HELP_STYLE, marginBottom: '12px' }}><i className="fa-solid fa-location-dot"></i> Sathyam Bio Tech Park, Hyderabad, India</p>
               <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', fontSize: '0.78rem' }}>
                 <i className="fa-solid fa-lock" style={{ color: 'var(--accent-gold)' }}></i> 100% Secure Payment (UPI, COD, NetBanking)
               </div>

@@ -52,7 +52,7 @@ export default function AdminLayout() {
             <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu"><Menu size={20} /></button>
             <div>
               <div className="topbar-title">Dashboard</div>
-              <div className="topbar-subtitle">Sathya Bio Enterprise Management</div>
+              <div className="topbar-subtitle">Sathyam Bio Enterprise Management</div>
             </div>
           </div>
           <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

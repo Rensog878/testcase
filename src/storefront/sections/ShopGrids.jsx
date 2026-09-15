@@ -7,7 +7,7 @@ const CATEGORY_CARDS = [
   { value: 'Bio-Stimulant', image: 'photo-1523348837708-15d4a09cfac2', alt: 'Bio Stimulant Crop Growth', tag: 'Yield Booster', title: 'Bio-Stimulants', desc: 'Root Vigor, Flowering & Fruit Mass Booster' },
   { value: 'Herbicide', image: 'photo-1500937386664-56d1dfef3854', alt: 'Weed Free Agricultural Field', tag: 'Weed Elimination', title: 'Herbicides', desc: 'Selective Pre & Post Emergence Weed Control' },
   { value: 'Nematicide', image: 'photo-1464226184884-fa280b87c399', alt: 'Soil Root Nematode Defense', tag: 'Soil Protection', title: 'Nematicides', desc: 'Protect Roots Against Nematode Attacks' },
-  { value: 'All', image: 'photo-1500382017468-9049fed747ef', alt: 'Full Store Catalog', tag: 'Full Catalog', tagStyle: { background: 'white', color: 'black' }, title: 'All 35 Agro Formulations', desc: 'Browse complete Sathya Bio product range' },
+  { value: 'All', image: 'photo-1500382017468-9049fed747ef', alt: 'Full Store Catalog', tag: 'Full Catalog', tagStyle: { background: 'white', color: 'black' }, title: 'All 35 Agro Formulations', desc: 'Browse complete Sathyam Bio product range' },
 ]
 
 const CROP_CARDS = [

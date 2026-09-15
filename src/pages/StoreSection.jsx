@@ -32,9 +32,9 @@ const SECTION_CONTENT = {
   },
   brands: {
     title: 'Brands',
-    intro: 'Discover Sathya Bio products and trusted crop-care solutions.',
+    intro: 'Discover Sathyam Bio products and trusted crop-care solutions.',
     links: [
-      ['/products', 'Sathya Bio Formulations', 'Bio-certified crop protection'],
+      ['/products', 'Sathyam Bio Formulations', 'Bio-certified crop protection'],
       ['/products?category=Bio-Stimulant', 'Bio-Stimulants & Nutrition', 'Compare available formulations']
     ]
   },
@@ -47,7 +47,7 @@ export default function StoreSection({ type }) {
   return (
     <div className="store-section-page animate-fade-in">
       <div className="store-section-heading">
-        <span className="badge badge-green">Sathya Bio Store</span>
+        <span className="badge badge-green">Sathyam Bio Store</span>
         <h1>{section.title}</h1>
         <p>{section.intro}</p>
       </div>

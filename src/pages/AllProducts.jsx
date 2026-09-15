@@ -405,13 +405,13 @@ export default function AllProducts() {
         <Navigation />
       </div>
 
-      {/* MOBILE TOP HEADER (BigHaat / Sathya Bio app style matching screenshot 1) */}
+      {/* MOBILE TOP HEADER (BigHaat / Sathyam Bio app style matching screenshot 1) */}
       <header className="mobile-shop-header mobile-only-header">
         <div className="mobile-shop-top-row">
           <Link to="/" className="mobile-shop-brand">
             <span className="brand-leaf-icon"><Sprout size={20} /></span>
             <div className="brand-text-block">
-              <strong>SATHYA BIO</strong>
+              <strong>SATHYAM BIO</strong>
               <small>Agro Store</small>
             </div>
           </Link>
@@ -1317,7 +1317,7 @@ export default function AllProducts() {
           )}
         </section>
 
-        {/* 10. SATHYA BIO VALUE PROPOSITION & TRUST BADGES */}
+        {/* 10. SATHYAM BIO VALUE PROPOSITION & TRUST BADGES */}
         <section className="shop-trust-banner">
           <div className="trust-grid">
             <div className="trust-item">
@@ -1362,7 +1362,7 @@ export default function AllProducts() {
             <div className="modal-header">
               <div className="modal-title-box">
                 <span className="modal-sprout-icon"><Sprout size={20} /></span>
-                <strong>Sathya Bio Farmer Advisory</strong>
+                <strong>Sathyam Bio Farmer Advisory</strong>
               </div>
               <button type="button" onClick={() => setAdvisoryModalOpen(false)} className="modal-close-btn">
                 <X size={18} />

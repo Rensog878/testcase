@@ -116,7 +116,7 @@ function AuthBrand({ t }) {
     <div className="auth-brand">
       <span className="auth-brand-icon" aria-hidden="true"><i className="fa-solid fa-leaf"></i></span>
       <span className="auth-brand-words">
-        <span className="auth-brand-text">SATHYA <span>BIO</span></span>
+        <span className="auth-brand-text">SATHYAM <span>BIO</span></span>
         <span className="auth-brand-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
       </span>
     </div>
@@ -1050,7 +1050,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         {/* SIGN IN */}
         <form id="storefrontLoginForm" className="auth-form" role="tabpanel" aria-labelledby="authTabLogin" onSubmit={submitLogin} noValidate hidden={view !== 'login'}>
           <header className="auth-head">
-            <h2 id="authLoginTitle" className="auth-title" tabIndex={-1}>Welcome to Sathya Bio</h2>
+            <h2 id="authLoginTitle" className="auth-title" tabIndex={-1}>Welcome to Sathyam Bio</h2>
             <p className="auth-sub">Sign in to access personalized crop protection &amp; exclusive farm deals.</p>
           </header>
 

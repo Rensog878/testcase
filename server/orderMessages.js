@@ -54,7 +54,7 @@ export function buildOrderConfirmationMessage(order, { trackUrl = '', supportPho
       : null;
 
   const lines = [
-    `Hi ${firstName}, your Sathya Bio order is confirmed ✅`,
+    `Hi ${firstName}, your Sathyam Bio order is confirmed ✅`,
     '',
     `*Order ID:* ${order.id}`,
     `*Placed on:* ${formatDateTime(order.createdAt)}`,
@@ -77,7 +77,7 @@ export function buildOrderConfirmationMessage(order, { trackUrl = '', supportPho
     trackUrl ? `Track your order: ${trackUrl}` : null,
     supportPhone ? `Need help? Call or WhatsApp ${supportPhone}` : null,
     '',
-    'Thank you for choosing Sathya Bio 🌿',
+    'Thank you for choosing Sathyam Bio 🌿',
   ];
 
   return lines.filter((line) => line !== null).join('\n').replace(/\n{3,}/g, '\n\n');
@@ -91,19 +91,19 @@ export function buildDeliveryStatusMessage(order, newStatus, { trackUrl = '', su
 
   if (newStatus === 'Delivered') {
     return [
-      `Hi ${firstName}, your Sathya Bio order *${orderId}* has been delivered successfully! 🎉`,
+      `Hi ${firstName}, your Sathyam Bio order *${orderId}* has been delivered successfully! 🎉`,
       '',
       `Delivered on: ${formatDateTime(new Date().toISOString())}`,
       `Address: ${order.address}`,
       '',
-      'Thank you for trusting Sathya Bio for your farm crop protection 🌿',
+      'Thank you for trusting Sathyam Bio for your farm crop protection 🌿',
       supportPhone ? `Agronomist helpline & feedback: ${supportPhone}` : null,
     ].filter(Boolean).join('\n');
   }
 
   if (newStatus === 'Out for Delivery') {
     return [
-      `Hi ${firstName}, your Sathya Bio order *${orderId}* is *OUT FOR DELIVERY* today! 🛵`,
+      `Hi ${firstName}, your Sathyam Bio order *${orderId}* is *OUT FOR DELIVERY* today! 🛵`,
       '',
       agent ? `Delivery Agent: *${agent}*${agentPhone ? ` (Ph: ${agentPhone})` : ''}` : null,
       order.paymentStatus !== 'Paid' ? `*Payment:* Cash on Delivery — please keep ${rupees(order.total)} ready` : '*Payment:* Paid online ✔',
@@ -120,7 +120,7 @@ export function buildDeliveryStatusMessage(order, newStatus, { trackUrl = '', su
       ? `Expected delivery: *${formatDate(order.expectedDeliveryDate)}*`
       : null;
     return [
-      `Hi ${firstName}, your Sathya Bio order *${orderId}* has been dispatched! 📦`,
+      `Hi ${firstName}, your Sathyam Bio order *${orderId}* has been dispatched! 📦`,
       '',
       expected,
       agent ? `Assigned Delivery Partner: *${agent}*` : null,

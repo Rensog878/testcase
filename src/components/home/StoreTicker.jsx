@@ -6,7 +6,7 @@ const ITEMS = [
   ['fa-solid fa-truck-fast', '#34d399', 'Free express delivery on orders above ₹999 across all 28 states'],
   ['fa-solid fa-leaf', '#6ee7b7', 'BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season'],
   ['fa-brands fa-whatsapp', '#25d366', 'WhatsApp us at 9000-425-999 for instant crop advisory in your language'],
-  ['fa-solid fa-award', '#fbbf24', 'Sathya Bio — Winner of ICAR Best AgriTech 2025 Award'],
+  ['fa-solid fa-award', '#fbbf24', 'Sathyam Bio — Winner of ICAR Best AgriTech 2025 Award'],
   ['fa-solid fa-phone-volume', '#34d399', <>Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</>],
 ]
 

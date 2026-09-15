@@ -1,5 +1,5 @@
 /**
- * Catalog normalization utilities for Sathya Bio
+ * Catalog normalization utilities for Sathyam Bio
  * Provides resilient, typo-tolerant crop, category, and disease matching across Admin and Storefront.
  */
 

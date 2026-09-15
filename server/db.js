@@ -1,5 +1,5 @@
 /**
- * Sathya Bio - High Performance Structured Database Engine
+ * Sathyam Bio - High Performance Structured Database Engine
  * Persistent, MongoDB-backed relational store (via Mongoose) with the same
  * business logic, filtering, sorting and computed-field behavior as the
  * original JSON-file engine, but safe for Vercel's read-only filesystem.
@@ -222,7 +222,7 @@ const DEFAULT_PROFILE_FIELDS = [
   ];
 
 const INITIAL_CMS = {
-    heroTitle: 'SATHYA BIO-PESTICIDES & CROP CARE',
+    heroTitle: 'SATHYAM BIO-PESTICIDES & CROP CARE',
     heroSubtitle: 'Government & 100% Bio-Certified Solutions for High Yield & Zero Chemical Residue Farming',
     bannerAnnouncement:
           '🎉 KHARIF SPECIAL: Flat 20% OFF on Bio-Fungicides + Free Agronomist Hotline 1800-425-8899',
@@ -256,7 +256,7 @@ const INITIAL_USERS = [
   },
   {
         id: 'USR-1002',
-        name: 'Sathya Admin',
+        name: 'Sathyam Admin',
         phone: '9123456789',
         email: 'admin@sathyambio.com',
         password: 'admin',
@@ -362,7 +362,7 @@ const INITIAL_USERS = [
 const INITIAL_PRODUCTS = [
   {
         id: 'sb-01',
-        name: 'Sathya Bio BlastShield 75 WP',
+        name: 'Sathyam Bio BlastShield 75 WP',
         tagline: 'Systemic Bio-Fungicide for Paddy Blast & Neck Rot',
         category: 'Fungicide',
         price: 680,
@@ -382,7 +382,7 @@ const INITIAL_PRODUCTS = [
         description:
                 'Advanced systemic bio-fortified fungicide providing protective and curative control against Blast disease in Paddy, Leaf Rust in Wheat, and Neck Blast.',
         detailedDescription:
-                'Sathya Bio BlastShield 75 WP rapidly penetrates plant tissue, establishing a protective barrier that stops fungal spore germination.',
+                'Sathyam Bio BlastShield 75 WP rapidly penetrates plant tissue, establishing a protective barrier that stops fungal spore germination.',
         targetUserId: 'USR-1001',
         targetUserName: 'Rameshwar Patel (Paddy / Rice)',
         sortOrder: 1,
@@ -391,7 +391,7 @@ const INITIAL_PRODUCTS = [
   },
   {
         id: 'sb-02',
-        name: 'Sathya Bio FlyKill Ultra',
+        name: 'Sathyam Bio FlyKill Ultra',
         tagline: 'Multi-Action Insecticide for Whitefly & Aphids',
         category: 'Insecticide',
         price: 840,
@@ -420,7 +420,7 @@ const INITIAL_PRODUCTS = [
   },
   {
         id: 'sb-03',
-        name: 'Sathya Bio BlightStop Pro',
+        name: 'Sathyam Bio BlightStop Pro',
         tagline: 'Dual Action Systemic Fungicide for Blight Control',
         category: 'Fungicide',
         price: 750,
@@ -449,7 +449,7 @@ const INITIAL_PRODUCTS = [
   },
   {
         id: 'sb-04',
-        name: 'Sathya Bio RootVigor Gold',
+        name: 'Sathyam Bio RootVigor Gold',
         tagline: '100% Organic Bio-Stimulant & Root Enhancer',
         category: 'Bio-Stimulant',
         price: 990,
@@ -478,7 +478,7 @@ const INITIAL_PRODUCTS = [
   },
   {
         id: 'sb-26',
-        name: 'Sathya Bio WeedClear 24-D',
+        name: 'Sathyam Bio WeedClear 24-D',
         tagline: 'Systemic Broadleaf Herbicide',
         category: 'Herbicide',
         price: 340,
@@ -507,7 +507,7 @@ const INITIAL_PRODUCTS = [
   },
   {
         id: 'sb-27',
-        name: 'Sathya Bio AminoBoost Liquid',
+        name: 'Sathyam Bio AminoBoost Liquid',
         tagline: 'Advanced Amino Acid Bio-Stimulant',
         category: 'Bio-Stimulant',
         price: 460,
@@ -544,8 +544,8 @@ const INITIAL_ORDERS = [
         customerPhone: '9876543210',
         address: 'Plot 42, Green Valley Farm, Karur, Tamil Nadu - 613001',
         items: [
-          { id: 'sb-01', name: 'Sathya Bio BlastShield 75 WP', qty: 2, price: 680, packSize: '500g' },
-          { id: 'sb-04', name: 'Sathya Bio RootVigor Gold', qty: 1, price: 990, packSize: '1 Litre' }
+          { id: 'sb-01', name: 'Sathyam Bio BlastShield 75 WP', qty: 2, price: 680, packSize: '500g' },
+          { id: 'sb-04', name: 'Sathyam Bio RootVigor Gold', qty: 1, price: 990, packSize: '1 Litre' }
               ],
         subtotal: 2350,
         gst: 423,
@@ -564,7 +564,7 @@ const INITIAL_ORDERS = [
         customerName: 'Gurpreet Singh',
         customerPhone: '9814077889',
         address: 'Khasra 104, GT Road, Karnal, Haryana - 132001',
-        items: [{ id: 'sb-02', name: 'Sathya Bio FlyKill Ultra', qty: 3, price: 840, packSize: '250g' }],
+        items: [{ id: 'sb-02', name: 'Sathyam Bio FlyKill Ultra', qty: 3, price: 840, packSize: '250g' }],
         subtotal: 2520,
         gst: 453.6,
         total: 2973.6,
@@ -646,7 +646,7 @@ const INITIAL_TICKETS = [
           { from: 'Farmer', text: 'Leaves showing spindle shaped brown spots near tips.', time: '11:00 AM' },
           {
                     from: 'Dr. K. Senthil',
-                    text: 'Apply Sathya Bio BlastShield 75 WP @ 120g/acre mixed in 150L water immediately.',
+                    text: 'Apply Sathyam Bio BlastShield 75 WP @ 120g/acre mixed in 150L water immediately.',
                     time: '11:45 AM'
           }
               ]
@@ -668,8 +668,8 @@ const INITIAL_CHAT_RECORDS = [
                     timestamp: '02:30 PM'
           },
           {
-                    sender: 'Sathya Bio Bot',
-                    text: 'Hello Muthuvel ji! We recommend Sathya Bio FlyKill Ultra @ 250g per acre.',
+                    sender: 'Sathyam Bio Bot',
+                    text: 'Hello Muthuvel ji! We recommend Sathyam Bio FlyKill Ultra @ 250g per acre.',
                     timestamp: '02:30 PM'
           }
               ]
@@ -680,7 +680,7 @@ async function seedIfEmpty() {
     const userCount = await User.estimatedDocumentCount();
     if (userCount > 0) return;
 
-  console.log('Seeding Sathya Bio database with initial demo data...');
+  console.log('Seeding Sathyam Bio database with initial demo data...');
 
   await User.insertMany(
         await Promise.all(INITIAL_USERS.map(async u => ({ ...u, _id: u.id, password: await hashPassword(u.password) })))
@@ -705,7 +705,7 @@ async function seedIfEmpty() {
     { upsert: true }
       );
 
-  console.log('Sathya Bio database seed complete.');
+  console.log('Sathyam Bio database seed complete.');
 }
 
 // ================= DATABASE MANAGER (Mongoose-backed) =================
@@ -1729,7 +1729,7 @@ class DatabaseManager {
             summary: data.summary || '',
             content: data.content || '',
             coverImage: data.coverImage || 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80',
-            author: data.author || 'Sathya Bio Agronomy Team',
+            author: data.author || 'Sathyam Bio Agronomy Team',
             category: data.category || 'Crop Advisory',
             tags: splitTags(data.tags, ['Farming']),
             taggedProducts: Array.isArray(data.taggedProducts) ? data.taggedProducts : [],

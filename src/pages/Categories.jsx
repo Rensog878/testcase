@@ -202,7 +202,7 @@ export default function Categories() {
           </button>
           <div className="mobile-header-title-box">
             <h1 className="mobile-header-title">Categories</h1>
-            <span className="mobile-header-subtitle">Sathya Bio Agro Hub</span>
+            <span className="mobile-header-subtitle">Sathyam Bio Agro Hub</span>
           </div>
           <button
             type="button"
@@ -318,7 +318,7 @@ export default function Categories() {
                   <div className="subcat-banner-content">
                     <div className="subcat-banner-badge">
                       <Sparkles size={13} className="badge-sparkle" />
-                      <span>Verified Sathya Bio Quality</span>
+                      <span>Verified Sathyam Bio Quality</span>
                     </div>
                     <h2 className="subcat-banner-title">
                       {cat.name}
@@ -386,7 +386,7 @@ export default function Categories() {
               </div>
             ))}
 
-            {/* Sathya Bio Assurance Banner */}
+            {/* Sathyam Bio Assurance Banner */}
             <div className="sathya-assurance-banner">
               <div className="assurance-item">
                 <CheckCircle2 size={18} className="assurance-icon" />

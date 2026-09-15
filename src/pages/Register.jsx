@@ -102,7 +102,7 @@ export default function Register() {
     try {
       await verifyRegistrationOtp(form.phone.trim(), otp.trim())
       await register({ ...form, role: 'farmer' })
-      toast.success('Registration successful! Welcome to Sathya Bio 🌿')
+      toast.success('Registration successful! Welcome to Sathyam Bio 🌿')
       navigate('/', { replace: true })
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Registration failed')
@@ -123,7 +123,7 @@ export default function Register() {
         <div className="login-logo">
           <div className="login-logo-icon">🌱</div>
           <div className="login-logo-text">
-            <div className="brand">Join Sathya Bio</div>
+            <div className="brand">Join Sathyam Bio</div>
             <div className="tagline">Farmer Self-Registration</div>
           </div>
         </div>

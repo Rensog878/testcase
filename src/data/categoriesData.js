@@ -1,4 +1,4 @@
-// Category taxonomy extracted from BigHaat with Sathya Bio enhancements
+// Category taxonomy extracted from BigHaat with Sathyam Bio enhancements
 export const CATEGORIES_DATA = [
   {
     "id": "650e89fb7d8d25c5dc557b00",

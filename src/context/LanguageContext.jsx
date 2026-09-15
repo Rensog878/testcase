@@ -11,7 +11,7 @@ export const LANGUAGES = [
 
 export const TRANSLATIONS = {
   en: {
-    brand: 'Sathya Bio',
+    brand: 'Sathyam Bio',
     tagline: 'Agricultural ERP & E-Commerce Platform',
     shopProducts: 'Shop Products',
     myCart: 'My Cart',
@@ -56,7 +56,7 @@ export const TRANSLATIONS = {
     changeLanguage: 'Language',
   },
   ta: {
-    brand: 'சத்யா பயோ',
+    brand: 'சத்யம் பயோ',
     tagline: 'விவசாய ஈ-காமர்ஸ் & ஈஆர்பி தளம்',
     shopProducts: 'மருந்துகள் வாங்க',
     myCart: 'எனது கூடை',
@@ -101,7 +101,7 @@ export const TRANSLATIONS = {
     changeLanguage: 'மொழி',
   },
   hi: {
-    brand: 'सत्या बायो',
+    brand: 'सत्यम बायो',
     tagline: 'कृषि ई-कॉमर्स और ईआरपी प्लेटफॉर्म',
     shopProducts: 'उत्पाद खरीदें',
     myCart: 'मेरी गाड़ी',
@@ -146,7 +146,7 @@ export const TRANSLATIONS = {
     changeLanguage: 'भाषा',
   },
   te: {
-    brand: 'సత్య బయో',
+    brand: 'సత్యం బయో',
     tagline: 'వ్యవసాయ ఈ-కామర్స్ & ఈఆర్‌పీ వేదిక',
     shopProducts: 'ఉత్పత్తులు కొనండి',
     myCart: 'నా కార్ట్',
@@ -191,7 +191,7 @@ export const TRANSLATIONS = {
     changeLanguage: 'భాష',
   },
   kn: {
-    brand: 'ಸತ್ಯ ಬಯೋ',
+    brand: 'ಸತ್ಯಂ ಬಯೋ',
     tagline: 'ಕೃಷಿ ಇ-ಕಾಮರ್ಸ್ ಮತ್ತು ಇಆರ್‌ಪಿ ವೇದಿಕೆ',
     shopProducts: 'ಉತ್ಪನ್ನಗಳನ್ನು ಖರೀದಿಸಿ',
     myCart: 'ನನ್ನ ಕಾರ್ಟ್',

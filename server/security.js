@@ -1,5 +1,5 @@
 /**
- * Sathya Bio - password hashing and signed session tokens.
+ * Sathyam Bio - password hashing and signed session tokens.
  * Uses only node:crypto, so there is no extra dependency to install or audit.
  */
 

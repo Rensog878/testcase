@@ -30,7 +30,7 @@ export default function Footer() {
       <div className="public-footer-grid">
         {/* Brand */}
         <div className="public-footer-brand">
-          <h3>SATHYA <span>BIO</span></h3>
+          <h3>SATHYAM <span>BIO</span></h3>
           <p>
             India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.
           </p>
@@ -80,7 +80,7 @@ export default function Footer() {
               <MapPin size={16} aria-hidden="true" />
               <div>
                 <p className="public-footer-contact-label">Address</p>
-                <p>Sathya Bio Tech Park<br />Hyderabad, India</p>
+                <p>Sathyam Bio Tech Park<br />Hyderabad, India</p>
               </div>
             </li>
           </ul>
@@ -92,7 +92,7 @@ export default function Footer() {
       {/* Bottom Footer */}
       <div className="public-footer-bottom">
         <div>
-          <p>© 2026 Sathya Bio Agro Tech Ltd. All rights reserved.</p>
+          <p>© 2026 Sathyam Bio Agro Tech Ltd. All rights reserved.</p>
         </div>
 
         <div>

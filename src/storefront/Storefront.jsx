@@ -34,7 +34,7 @@ import './storefront.css'
 // ?category= / ?crop= from the shared Menu sheet.
 // Styles: storefront.css, scoped to this page's wrapper.
 
-const PAGE_TITLE = "Sathya Bio - India's Largest Online Agro Pesticides & Crop Protection Store"
+const PAGE_TITLE = "Sathyam Bio - India's Largest Online Agro Pesticides & Crop Protection Store"
 const DEFAULT_FILTERS = { crop: 'all', disease: 'all', category: 'All', search: '' }
 const HEADER_CATEGORIES = [
   ['All', 'All Categories'],

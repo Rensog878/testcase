@@ -9,7 +9,7 @@ const DEFAULT_OPTIONS = {
 }
 
 /**
- * Unified real-time product catalog hook for Sathya Bio.
+ * Unified real-time product catalog hook for Sathyam Bio.
  * 
  * Features:
  * - Fetches products dynamically from MongoDB via /api/products

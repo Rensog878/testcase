@@ -1,5 +1,5 @@
 /**
- * Sathya Bio - Express API Server with Persistent MongoDB-backed DB
+ * Sathyam Bio - Express API Server with Persistent MongoDB-backed DB
  * Integrated E-Commerce, User Management, Admin Products Master,
  * ERP & Multi-Role Engine
  */
@@ -169,7 +169,7 @@ function hashOtp(otp) {
 
 // OTP message text lives in ./otpTemplates.js — it assembles each message
 // from interchangeable parts so no two sends look alike. The sign-up code is
-// the caption of the Sathya Bio banner, or plain text where there is no public
+// the caption of the Sathyam Bio banner, or plain text where there is no public
 // address for the banner.
 
 async function sendWhatsAppOtp(phone, otp, userName = 'Farmer') {
@@ -446,7 +446,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 // have accounts. (Nothing is sent to an unregistered number.)
 
 const resetOtpKey = (phone) => `reset-otp:${phone}`;
-const RESET_REQUEST_MESSAGE = 'If this number is registered with Sathya Bio, a 6-digit reset code has been sent to its WhatsApp.';
+const RESET_REQUEST_MESSAGE = 'If this number is registered with Sathyam Bio, a 6-digit reset code has been sent to its WhatsApp.';
 
 app.post('/api/auth/forgot-password/send-otp', async (req, res) => {
   try {
@@ -1824,7 +1824,7 @@ app.use((err, req, res, _next) => {
 
 if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`🚀 Sathya Bio Engine running with persistent DB on port ${PORT}`);
+    console.log(`🚀 Sathyam Bio Engine running with persistent DB on port ${PORT}`);
     console.log(`📱 WhatsApp OTP system enabled`);
   });
 }

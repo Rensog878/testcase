@@ -22,7 +22,7 @@ export default function Sidebar({ items, roleName, roleEmoji, isOpen, onClose })
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">🌿</div>
           <div className="sidebar-logo-text">
-            <div className="brand-name">Sathya Bio</div>
+            <div className="brand-name">Sathyam Bio</div>
             <div className="brand-tagline">AgriTech Platform</div>
           </div>
         </div>

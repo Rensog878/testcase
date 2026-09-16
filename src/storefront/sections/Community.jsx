@@ -1,4 +1,5 @@
 import { memo, useState } from 'react'
+import { cmsText } from '../../hooks/useCmsSettings'
 
 const TESTIMONIALS = [
   {
@@ -49,7 +50,7 @@ export const Testimonials = memo(function Testimonials() {
   )
 })
 
-export const Newsletter = memo(function Newsletter() {
+export const Newsletter = memo(function Newsletter({ cms }) {
   const [subscribed, setSubscribed] = useState(false)
   return (
     <section className="newsletter-section">
@@ -60,8 +61,12 @@ export const Newsletter = memo(function Newsletter() {
           </div>
           <div className="newsletter-right">
             <span className="newsletter-tag"><i className="fa-solid fa-seedling"></i> Free Seasonal Advisory</span>
-            <h2 className="newsletter-title">Get Weekly Crop &amp; Pesticide<br />Recommendations</h2>
-            <p className="newsletter-desc">Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif &amp; Rabi crop schedules, disease alerts, and exclusive offers every week.</p>
+            <h2 className="newsletter-title">
+              {cms && typeof cms.advisoryTitle === 'string' && cms.advisoryTitle.trim()
+                ? cms.advisoryTitle
+                : <>Get Weekly Crop &amp; Pesticide<br />Recommendations</>}
+            </h2>
+            <p className="newsletter-desc">{cmsText(cms, 'advisoryDesc', 'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.')}</p>
             <form
               className="newsletter-form"
               onSubmit={event => {

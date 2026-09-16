@@ -5,6 +5,7 @@ import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
 import LanguageSelect from './LanguageSelect'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
+import { cmsText, cmsTickerLines } from '../../hooks/useCmsSettings'
 
 export const TICKER_ITEMS = (
   <>
@@ -17,18 +18,36 @@ export const TICKER_ITEMS = (
   </>
 )
 
-export const TickerBar = memo(function TickerBar() {
+// The promos an admin typed in the CMS, one per line. An empty field leaves the
+// six built-in promos above exactly as they are, so the strip only changes once
+// someone deliberately edits it.
+function tickerItemsFor(cms) {
+  const lines = cmsTickerLines(cms)
+  if (!lines.length) return TICKER_ITEMS
+  return (
+    <>
+      {lines.map((line, index) => (
+        <span className="ticker-item" key={`${index}-${line}`}>
+          <i className="fa-solid fa-bullhorn" style={{ color: '#C77D18' }}></i> {line}
+        </span>
+      ))}
+    </>
+  )
+}
+
+export const TickerBar = memo(function TickerBar({ cms }) {
   // The items are drawn twice so the scroll (translateX -50%) loops seamlessly.
+  const items = tickerItemsFor(cms)
   return (
     <div className="ticker-wrap">
-      <div className="ticker-track" id="tickerTrack">{TICKER_ITEMS}{TICKER_ITEMS}</div>
+      <div className="ticker-track" id="tickerTrack">{items}{items}</div>
     </div>
   )
 })
 
 export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
 
-export const Topbar = memo(function Topbar({ t, user, appliedLang }) {
+export const Topbar = memo(function Topbar({ t, user, appliedLang, cms }) {
   return (
     <div className="topbar">
       <div className="container topbar-content">
@@ -41,7 +60,7 @@ export const Topbar = memo(function Topbar({ t, user, appliedLang }) {
           >
             {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
           </span>
-          <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>1800-425-9999</strong></span>
+          <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>{cmsText(cms, 'phone', '1800-425-9999')}</strong></span>
         </div>
         <div className="topbar-right-info">
           <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> <span data-i18n="topbar_shipping">{t('topbar_shipping')}</span></span>

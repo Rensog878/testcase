@@ -1,7 +1,8 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { WHATSAPP_EXPERT_URL } from '../data'
+import { cmsText } from '../../hooks/useCmsSettings'
 
-export const Hero = memo(function Hero({ t }) {
+export const Hero = memo(function Hero({ t, cms }) {
   return (
     <section className="section" style={{ padding: '24px 0 40px 0' }}>
       <div className="container">
@@ -11,8 +12,8 @@ export const Hero = memo(function Hero({ t }) {
             <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80" className="bento-bg-img" alt="Agriculture Farm Field" fetchpriority="high" decoding="async" />
             <div className="bento-overlay">
               <span className="bento-tag">India's #1 Bio-Pesticide Store</span>
-              <h1 className="bento-title" style={{ fontSize: '2rem' }} data-i18n="hero_title">{t('hero_title')}</h1>
-              <p className="bento-desc" data-i18n="hero_desc">{t('hero_desc')}</p>
+              <h1 className="bento-title" style={{ fontSize: '2rem' }} data-i18n="hero_title">{cmsText(cms, 'heroTitle', t('hero_title'))}</h1>
+              <p className="bento-desc" data-i18n="hero_desc">{cmsText(cms, 'heroSubtitle', t('hero_desc'))}</p>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '10px' }}>
                 <a href="#catalog" className="btn btn-primary bento-btn"><span data-i18n="hero_shop_btn">{t('hero_shop_btn')}</span></a>
               </div>

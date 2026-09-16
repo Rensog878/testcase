@@ -7,7 +7,8 @@ import Modal from './Modal'
 // swipe from the top of its text closes it.
 const posterScroller = card => card.querySelector('.welcome-poster-body')
 
-export default memo(function WelcomePoster({ state }) {
+export default memo(function WelcomePoster({ state, cms }) {
+  const posterImage = cms && typeof cms.popupImage === 'string' ? cms.popupImage.trim() : ''
   const { closeModal } = useStore()
   const close = () => closeModal('welcomePosterModal')
 
@@ -20,6 +21,16 @@ export default memo(function WelcomePoster({ state }) {
       getSwipeScroller={posterScroller}
     >
       <div className="welcome-poster-header">
+        {posterImage && (
+          <img
+            className="welcome-poster-image"
+            src={posterImage}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={event => { event.currentTarget.style.display = 'none' }}
+          />
+        )}
         <div className="welcome-poster-leaf">🌱</div>
         <div className="welcome-poster-brand">SATHYAM <span>BIO</span></div>
         <div className="welcome-poster-tagline">Agro Pesticides &amp; Crop Advisory</div>

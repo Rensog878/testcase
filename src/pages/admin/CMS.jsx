@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 
@@ -33,14 +33,78 @@ export default function AdminCMS() {
   })
   const [saving, setSaving] = useState(false)
 
+  // Load what is actually published, not just this browser's copy. Without
+  // this, opening the editor on another machine showed the built-in defaults
+  // and publishing from there would overwrite the live content with them.
+  useEffect(() => {
+    let cancelled = false
+    axios.get('/api/cms')
+      .then(({ data }) => {
+        if (cancelled || !data?.success || !data.data) return
+        setContent(current => ({ ...data.data, ...current }))
+      })
+      .catch(() => {}) // keep the local copy; the editor still works offline
+    return () => { cancelled = true }
+  }, [])
+
   const merged = { ...DEFAULT_CONTENT, ...content }
   const set = k => e => setContent(c => ({ ...c, [k]: e.target.value }))
+
+  // Image fields accept a pasted URL or an upload. Uploads go to MongoDB via
+  // /api/upload and come back as /api/upload/<id>, so the image survives a
+  // deploy — the host has no writable disk. Sent as base64 JSON rather than
+  // multipart so the server needs no extra dependency.
+  const [uploadingKey, setUploadingKey] = useState('')
+  const fileRefs = useRef({})
+
+  const handleUpload = key => async event => {
+    const file = event.target.files?.[0]
+    event.target.value = '' // let the same file be re-picked after an error
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file')
+      return
+    }
+    setUploadingKey(key)
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = () => reject(reader.error)
+        reader.readAsDataURL(file)
+      })
+      const { data } = await axios.post('/api/upload', {
+        filename: file.name,
+        contentType: file.type,
+        data: dataUrl
+      })
+      if (data?.success && data.url) {
+        setContent(c => ({ ...c, [key]: data.url }))
+        toast.success('Image uploaded — publish to make it live')
+      } else {
+        toast.error(data?.message || 'Upload failed')
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Upload failed')
+    } finally {
+      setUploadingKey('')
+    }
+  }
 
   const save = async () => {
     setSaving(true)
     localStorage.setItem('sathya_cms', JSON.stringify(merged))
     try {
       await axios.put('/api/cms', merged)
+      // Tell any open storefront tab to re-read immediately, so "live" means
+      // live rather than "after the farmer reloads".
+      try {
+        if ('BroadcastChannel' in window) {
+          const channel = new BroadcastChannel('sathya_cms')
+          channel.postMessage('cms-changed')
+          channel.close()
+        }
+      } catch {}
       toast.success('Content published live! ✅')
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to publish content to server')
@@ -52,7 +116,7 @@ export default function AdminCMS() {
   const fields = [
     { key: 'heroTitle',      label: '🏠 Hero Title',      type: 'input' },
     { key: 'heroSubtitle',   label: '📝 Hero Subtitle',   type: 'textarea' },
-    { key: 'banner',         label: '📢 Announcement Banner', type: 'input' },
+    { key: 'banner',         label: '📢 Promo Ticker — one promo per line (blank = keep the built-in promos)', type: 'textarea' },
     { key: 'advisoryTitle',  label: '🌾 Advisory Section Title', type: 'input' },
     { key: 'advisoryDesc',   label: '📩 Advisory Description', type: 'textarea' },
     { key: 'phone',          label: '📞 Support Phone', type: 'input' },
@@ -91,10 +155,40 @@ export default function AdminCMS() {
             <div key={f.key} className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">{f.label}</label>
               {f.type === 'textarea'
-                ? <textarea className="form-textarea" value={merged[f.key]} onChange={set(f.key)} rows={3} />
+                ? <textarea className="form-textarea" value={merged[f.key]} onChange={set(f.key)} rows={f.key === 'banner' ? 6 : 3} />
                 : f.type === 'select'
                   ? <select className="form-input" value={merged[f.key]} onChange={set(f.key)}>{f.options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
-                  : <input className="form-input" value={merged[f.key]} onChange={set(f.key)} />
+                  : f.key.endsWith('Image')
+                    ? (
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <input className="form-input" value={merged[f.key]} onChange={set(f.key)} placeholder="https://… or upload an image" />
+                        <button
+                          type="button"
+                          className="btn"
+                          onClick={() => fileRefs.current[f.key]?.click()}
+                          disabled={uploadingKey === f.key}
+                          style={{ whiteSpace: 'nowrap' }}
+                        >
+                          {uploadingKey === f.key ? 'Uploading…' : '⬆ Upload'}
+                        </button>
+                        <input
+                          ref={el => { fileRefs.current[f.key] = el }}
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={handleUpload(f.key)}
+                        />
+                        {merged[f.key] && (
+                          <img
+                            src={merged[f.key]}
+                            alt=""
+                            style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--surface-border)' }}
+                            onError={event => { event.currentTarget.style.visibility = 'hidden' }}
+                          />
+                        )}
+                      </div>
+                    )
+                    : <input className="form-input" value={merged[f.key]} onChange={set(f.key)} />
               }
             </div>
           ))}

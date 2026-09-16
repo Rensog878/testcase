@@ -121,6 +121,14 @@ const Video = mongoose.models.Video || mongoose.model('Video', videoSchema);
 const invoiceSchema = new mongoose.Schema({ _id: String }, permissive);
 const Invoice = mongoose.models.Invoice || mongoose.model('Invoice', invoiceSchema);
 
+// Images uploaded from the admin CMS. They live in MongoDB rather than on disk
+// because the app is deployed to a serverless host, where the filesystem is
+// wiped between invocations. Base64 costs ~33% over the raw bytes, which is
+// fine for a handful of certification logos and poster images; a product
+// catalogue's worth of photos would belong in object storage instead.
+const uploadSchema = new mongoose.Schema({ _id: String }, permissive);
+const Upload = mongoose.models.Upload || mongoose.model('Upload', uploadSchema);
+
 export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing'];
 
 // Human-readable ids with enough randomness that records created in the same
@@ -1471,6 +1479,26 @@ class DatabaseManager {
         const merged = { ...current, ...updates };
         await Settings.findByIdAndUpdate('global', { $set: { cms: merged } }, { upsert: true });
         return merged;
+  }
+
+  async createUpload({ data, contentType, filename, uploadedBy }) {
+        await connectDB();
+        const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+        await Upload.create({
+              _id: id,
+              data,
+              contentType,
+              filename: filename || '',
+              size: Buffer.byteLength(data, 'base64'),
+              uploadedBy: uploadedBy || '',
+              createdAt: new Date().toISOString()
+        });
+        return id;
+  }
+
+  async getUpload(id) {
+        await connectDB();
+        return await Upload.findById(id).lean();
   }
 
   async getAdvisorySubscribers() {

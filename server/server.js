@@ -1624,6 +1624,57 @@ app.put('/api/cms', requireAuth('admin'), async (req, res) => {
 });
 
 // ============================================================
+// IMAGE UPLOADS (admin CMS and blog covers)
+// Stored in MongoDB: the deploy target has no writable disk. The client sends
+// base64 JSON rather than multipart so no extra dependency is needed; the
+// existing express.json limit (4mb) caps the request, and ALLOWED_UPLOAD_TYPES
+// keeps it to images so this cannot become a general file host.
+// ============================================================
+
+const ALLOWED_UPLOAD_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+
+app.post('/api/upload', requireAuth('admin'), async (req, res) => {
+  try {
+    const { filename, contentType } = req.body || {};
+    // Accept either a bare base64 string or a data: URL from FileReader.
+    const raw = typeof req.body?.data === 'string' ? req.body.data : '';
+    const base64 = raw.includes(',') ? raw.slice(raw.indexOf(',') + 1) : raw;
+
+    if (!base64) return res.status(400).json({ success: false, message: 'No file data received' });
+    if (!ALLOWED_UPLOAD_TYPES.includes(contentType)) {
+      return res.status(400).json({ success: false, message: 'Only PNG, JPEG, WebP, GIF or SVG images can be uploaded' });
+    }
+    const size = Buffer.byteLength(base64, 'base64');
+    if (size > MAX_UPLOAD_BYTES) {
+      return res.status(413).json({ success: false, message: 'Image is larger than 2MB. Please use a smaller image.' });
+    }
+
+    const user = await getAuthenticatedUser(req);
+    const id = await db.createUpload({ data: base64, contentType, filename, uploadedBy: user?.id || '' });
+    res.json({ success: true, url: `/api/upload/${id}`, id, size });
+  } catch (err) {
+    sendError(res, err, 'Upload');
+  }
+});
+
+// Public: an uploaded image has to be readable by every farmer visiting the
+// site. Ids are random, and only admins can create them.
+app.get('/api/upload/:id', async (req, res) => {
+  try {
+    const file = await db.getUpload(req.params.id);
+    if (!file || !file.data) return res.status(404).json({ success: false, message: 'Image not found' });
+    const body = Buffer.from(file.data, 'base64');
+    res.set('Content-Type', file.contentType || 'application/octet-stream');
+    res.set('Content-Length', String(body.length));
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(body);
+  } catch (err) {
+    sendError(res, err, 'Read upload');
+  }
+});
+
+// ============================================================
 // ADVISORY
 // ============================================================
 

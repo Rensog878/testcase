@@ -8,6 +8,7 @@ import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
 import { StoreContext } from './StoreContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
+import useCmsSettings from '../hooks/useCmsSettings'
 import { TEXT_PACKS, isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { showToast } from './toast'
 import { setBodyFlag } from './bodyFlags'
@@ -112,7 +113,10 @@ export default function Storefront() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [appliedLang, setAppliedLang] = useState('en')
-  const [certifications, setCertifications] = useState({})
+  // Site content the admin edits in the CMS. The hook keeps it live: it
+  // re-reads on a BroadcastChannel ping when an admin publishes, and when this
+  // tab becomes visible again (same pattern as useCatalogProducts).
+  const { cms } = useCmsSettings()
 
   const productsRef = useRef(products)
   productsRef.current = products
@@ -212,12 +216,15 @@ export default function Storefront() {
     }
   }, [])
 
+  // The welcome poster decides whether to open from its own cached copy of the
+  // CMS (shouldShowWelcomePoster, above). Clearing the memo on mount keeps that
+  // decision fresh for this visit; the content itself now comes from
+  // useCmsSettings, so nothing is stored in component state here any more.
   const loaded = useRef(false)
   useEffect(() => {
     if (loaded.current) return
     loaded.current = true
     cmsSettingsRequest = null
-    loadCmsSettings().then(settings => setCertifications({ ...readLocalCms(), ...settings }))
   }, [])
 
   useEffect(() => {
@@ -326,26 +333,26 @@ export default function Storefront() {
   return (
     <StoreContext.Provider value={actions}>
       <div className="sb-home" id="top">
-        <TickerBar />
-        <Topbar t={t} user={user} appliedLang={appliedLang} />
+        <TickerBar cms={cms} />
+        <Topbar t={t} user={user} appliedLang={appliedLang} cms={cms} />
         <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} headerCategories={headerCategories} />
         <NavBar t={t} />
-        <Hero t={t} />
+        <Hero t={t} cms={cms} />
         <DealBanner />
         <TrustStrip t={t} />
         <StatsStrip />
         <CategoryGrid t={t} />
         <CropGrid />
-        <Certifications settings={certifications} />
+        <Certifications settings={cms} />
         <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} loading={catalogLoading} />
         <Trending t={t} products={products} loading={catalogLoading} />
         <Testimonials />
-        <Newsletter />
-        <Footer t={t} />
+        <Newsletter cms={cms} />
+        <Footer t={t} cms={cms} />
         <BackToTop />
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />
         <Chatbot t={t} />
-        <WelcomePoster state={modals.welcomePosterModal} />
+        <WelcomePoster state={modals.welcomePosterModal} cms={cms} />
       </div>
     </StoreContext.Provider>
   )

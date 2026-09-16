@@ -1,12 +1,13 @@
 import { memo } from 'react'
 import { useStore } from '../StoreContext'
 import FooterColumn from '../../components/FooterColumn'
+import { cmsText } from '../../hooks/useCmsSettings'
 
 const COLUMN_TITLE_STYLE = { color: 'var(--accent-gold)', marginBottom: '14px', fontSize: '0.95rem' }
 const LIST_STYLE = { listStyle: 'none', fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px', color: '#DCEFE4' }
 const HELP_STYLE = { fontSize: '0.85rem', color: '#DCEFE4', marginBottom: '8px' }
 
-export default memo(function Footer({ t }) {
+export default memo(function Footer({ t, cms }) {
   const { filterByCategory, filterByCrop } = useStore()
   return (
     <footer style={{ background: 'var(--primary-dark)', color: '#ffffff', padding: '50px 0 20px' }}>
@@ -51,9 +52,9 @@ export default memo(function Footer({ t }) {
 
           <FooterColumn i18nKey="footer_help" title={t('footer_help')} titleStyle={COLUMN_TITLE_STYLE}>
             <div className="footer-col-body">
-              <p style={HELP_STYLE}><i className="fa-solid fa-phone"></i> Toll Free: 1800-425-9999</p>
-              <p style={HELP_STYLE}><i className="fa-solid fa-envelope"></i> support@sathyabio.com</p>
-              <p style={{ ...HELP_STYLE, marginBottom: '12px' }}><i className="fa-solid fa-location-dot"></i> Sathyam Bio Tech Park, Hyderabad, India</p>
+              <p style={HELP_STYLE}><i className="fa-solid fa-phone"></i> Toll Free: {cmsText(cms, 'phone', '1800-425-9999')}</p>
+              <p style={HELP_STYLE}><i className="fa-solid fa-envelope"></i> {cmsText(cms, 'email', 'support@sathyabio.com')}</p>
+              <p style={{ ...HELP_STYLE, marginBottom: '12px' }}><i className="fa-solid fa-location-dot"></i> {cmsText(cms, 'address', 'Sathyam Bio Tech Park, Hyderabad, India')}</p>
               <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', fontSize: '0.78rem' }}>
                 <i className="fa-solid fa-lock" style={{ color: 'var(--accent-gold)' }}></i> 100% Secure Payment (UPI, COD, NetBanking)
               </div>

@@ -29,3 +29,38 @@
   opacity: 1;
   background: rgba(15, 23, 42, 0.08);
 }
+
+/* =========================================
+   PHASE 3 — DESKTOP TOAST SPEC (>=1025px)
+   Section 8: radius 12 (elevated surface), 1px border, shadow-md, and the
+   one neutral hover tint. Desktop-only by construction: the rules below are
+   inside min-width: 1025px, so the phone toast is byte-identical to before.
+   Sonner exposes these as custom properties on the toaster element, which is
+   why the radius/shadow are set there rather than fought for on the card.
+   ========================================= */
+@media (min-width: 1025px) {
+  [data-sonner-toaster] {
+    --border-radius: 12px;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] {
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(20, 35, 28, 0.10);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] [data-close-button] {
+    border-radius: 6px;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] [data-close-button]:hover,
+  [data-sonner-toaster] [data-sonner-toast] [data-close-button]:focus-visible {
+    background: rgba(20, 35, 28, 0.08);
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] [data-close-button]:focus-visible {
+    outline: 2px solid #0b7a4b;
+    outline-offset: 2px;
+  }
+}

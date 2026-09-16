@@ -8316,3 +8316,314 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     padding-right: var(--space-10);
   }
 }
+
+
+/* ==========================================================================
+   PHASE 3 — DESKTOP UI PRIMITIVES (>=1025px), STORE HALF
+   --------------------------------------------------------------------------
+   Appended after the Phase 2 block, which itself continues "DESKTOP 2026 —
+   THE AUTHORITATIVE LAYER". This is the same authoritative sequence carried
+   on, not a competing stack: where a value here differs from one in the
+   >=769 authoritative block, it is because that block also styles tablets
+   (769-1024) and CLAUDE.md forbids editing it, so the desktop value is
+   stated here instead.
+
+   Desktop-only by construction: this stylesheet is desktop-default with
+   max-width: 768px phone overrides, and a phone never evaluates a min-width
+   query, so nothing below can reach a phone or a tablet. Every selector
+   keeps the :is(body.sb-home-active .sb-home, .sb-portal) scope (or the
+   .sb-portal #checkoutSheet scope the checkout rules already use), so no
+   staff or auth page is touched. No forced override is added: the file stays
+   at 323.
+
+   Why the same spec is written twice: src/index.css is inside @layer app, so
+   nothing in it can override an unlayered rule in this file however specific.
+   .btn therefore cannot be merged into one rule set; the two are instead
+   given values that produce the same visual result (40px tall, radius 8,
+   #0B7A4B, hover #075437, active #064A30, no lift).
+   ========================================================================== */
+
+@media (min-width: 1025px) {
+  /* ---- buttons ----------------------------------------------------------
+     The store .btn was radius 6 (--radius-sm), 0.88rem, with a coloured
+     resting shadow on primary and a translateY on hover. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn {
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    gap: var(--space-2);
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn:active {
+    transform: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-primary {
+    background: #0b7a4b;
+    border-color: #0b7a4b;
+    color: #ffffff;
+    box-shadow: none;
+  }
+  /* The >=769 authoritative block still sets a 22px green hover shadow. That
+     block also styles tablets, so it is overridden here rather than edited. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-primary:hover {
+    background: #075437;
+    border-color: #075437;
+    transform: none;
+    box-shadow: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-primary:active {
+    background: #064a30;
+    border-color: #064a30;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-outline {
+    background: #ffffff;
+    border-color: #d0d4cd;
+    color: #14231c;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-outline:hover {
+    background: #f4f3ef;
+    border-color: #d0d4cd;
+    color: #14231c;
+    box-shadow: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-gold {
+    background: var(--accent-gold);
+    border-color: var(--accent-gold);
+    color: #ffffff;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn-gold:hover {
+    background: #a96712;
+    border-color: #a96712;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn:disabled,
+  :is(body.sb-home-active .sb-home, .sb-portal) .btn[aria-disabled="true"] {
+    opacity: 1;
+    background: #f4f3ef;
+    border-color: #e3e5df;
+    color: #8d9a93;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* The product card action row is its own compact size (the authoritative
+     block gives it 34px round icon buttons). The 40px floor above must not
+     stretch those into ovals, so the row restates its own height. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .card-btn-row .btn {
+    min-height: 34px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .card-btn-row .view-details-btn,
+  :is(body.sb-home-active .sb-home, .sb-portal) .card-btn-row .trending-view-btn {
+    min-height: 34px;
+    height: 34px;
+  }
+
+  /* ---- fields -----------------------------------------------------------
+     40 tall, radius 8, 1px #D0D4CD, the 3px green focus ring. The >=769
+     layer 4px .12 ring is replaced here (that block also styles tablets). */
+  :is(body.sb-home-active .sb-home, .sb-portal) .text-input,
+  :is(body.sb-home-active .sb-home, .sb-portal) .select-input {
+    min-height: 40px;
+    padding: 9px var(--space-3);
+    border: 1px solid #d0d4cd;
+    border-radius: 8px;
+    font-size: 0.875rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .text-input:focus,
+  :is(body.sb-home-active .sb-home, .sb-portal) .select-input:focus {
+    border-color: #0b7a4b;
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.18);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .text-input:disabled,
+  :is(body.sb-home-active .sb-home, .sb-portal) .select-input:disabled {
+    background: #f4f3ef;
+    border-color: #e3e5df;
+    color: #8d9a93;
+    cursor: not-allowed;
+  }
+
+  /* The sign-in modal is the large-field context: 48, not 52, and the same
+     1px border and radius as every other field. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-input {
+    height: 48px;
+    border-width: 1px;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-input:focus {
+    border-color: #0b7a4b;
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.18);
+  }
+  /* The sign-in modal carries its own id-specific height (storefront.css
+     6596), which is top level and therefore also a phone rule, so it cannot
+     be edited. It out-specifies the class rule above, so the 48px desktop
+     field is restated here at the same id specificity. */
+  :is(body.sb-home-active .sb-home, .sb-portal) #authModal .auth-input {
+    height: 48px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-otp-input {
+    border-width: 1px;
+    border-radius: 8px;
+  }
+
+  /* Header search: the one large field in the chrome. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-search {
+    border-radius: 8px;
+  }
+
+  /* ---- segmented tabs (sign-in) ----------------------------------------- */
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-tabs {
+    border-radius: 12px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-tabs::before {
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.06);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-tab {
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-tab[aria-selected="true"] {
+    color: #075437;
+  }
+
+  /* ---- chips and tags ---------------------------------------------------
+     Radius 6 for small tags (section 8), full for pills. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .pack-chip,
+  :is(body.sb-home-active .sb-home, .sb-portal) .discount-tag {
+    border-radius: 6px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .pack-chip.active {
+    background: #e7f2ec;
+    border-color: #0b7a4b;
+    color: #075437;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .bento-tag,
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-badge,
+  :is(body.sb-home-active .sb-home, .sb-portal) .topbar-badge {
+    border-radius: var(--radius-full);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .role-chip {
+    border-radius: var(--radius-full);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .role-chip:hover {
+    transform: none;
+  }
+
+  /* ---- cards ------------------------------------------------------------ */
+  :is(body.sb-home-active .sb-home, .sb-portal) .product-card {
+    border-radius: 12px;
+    box-shadow: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .product-card:hover {
+    transform: none;
+    border-color: #d0d4cd;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.06);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .product-card:hover .product-img-box img {
+    transform: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    box-shadow: none;
+  }
+
+  /* ---- menus and dropdowns ----------------------------------------------
+     Elevated surface: white, radius 12, shadow-md. The mega panel is
+     full-bleed against the nav, so only its bottom corners are rounded. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-panel {
+    border-radius: 0 0 12px 12px;
+    box-shadow: var(--shadow-md);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .search-category-dropdown {
+    border-radius: 8px 0 0 8px;
+  }
+
+  /* ---- modals, drawers, sheets ------------------------------------------
+     At 1280x720 every dialog fits with internal scroll: max-height
+     calc(100vh - 48px). Sizes md 560 / lg 760, with the sign-in card kept at
+     440 (section 8 sizing). Behaviour - overlay click, the close button and
+     Escape - is untouched; only the box changes. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay {
+    background: rgba(20, 35, 28, 0.55);
+    padding: var(--space-6);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
+    max-width: 560px;
+    max-height: calc(100vh - 48px);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-lg {
+    max-width: 760px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #authModal .modal-card.auth-card {
+    max-width: 440px;
+    max-height: calc(100vh - 48px);
+    border-radius: 16px;
+  }
+  /* 36px icon button, no press-scale (section 8 allows no scale on active). */
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-close {
+    width: 36px;
+    height: 36px;
+    border-width: 1px;
+    font-size: 1.25rem;
+    box-shadow: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-close:hover {
+    transform: none;
+    background: #b42318;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
+    border-radius: 16px;
+    max-height: calc(100vh - 148px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* The checkout side panel: 440 wide (unchanged), modal radius and the
+     shared large shadow. Its head and foot are already flex:none with the
+     body scrolling, so the action row stays visible at 720. */
+  .sb-portal #checkoutSheet .co-panel {
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+  }
+  .sb-portal #checkoutSheet .co-input {
+    height: 48px;
+    border-color: #d0d4cd;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+  }
+  .sb-portal #checkoutSheet .co-input:focus {
+    border-color: #0b7a4b;
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.18);
+  }
+  .sb-portal #checkoutSheet .co-input[aria-invalid="true"] {
+    border-color: #b42318;
+  }
+  .sb-portal #checkoutSheet .co-input:disabled {
+    background: #f4f3ef;
+    border-color: #e3e5df;
+    color: #8d9a93;
+    cursor: not-allowed;
+  }
+
+  /* ---- empty state ------------------------------------------------------
+     Section 8: a 24px glyph in a 40px tile, 16/600 title, 14px muted body. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-empty-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-empty h4 {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-empty p {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}

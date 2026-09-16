@@ -8627,3 +8627,91 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     line-height: 20px;
   }
 }
+
+/* ==========================================================================
+   PHASE 4 WAVE 3 — HOME POPUPS, CHECKOUT AND SIGN-IN (>=1025px)
+   Appended to storefront.css, AFTER the Phase 2 block, because these are all
+   store surfaces: index.css is inside @layer app and can never override an
+   unlayered storefront.css rule, however specific.
+   --------------------------------------------------------------------------
+   Desktop-only by construction: everything is inside @media (min-width: 1025px).
+   No .jsx touched, and no forced overrides added.
+
+   Every selector was checked against the markup first. Dropped because no
+   component renders them: `.poster-card`, `.scanner-modal`, `.photo-scanner`,
+   `.checkout-panel`, `.auth-modal`, `.signin-card`.
+
+   NOT written, because inline styles would beat any rule here (recorded for
+   the deferred inline-style pass): PhotoScannerModal.jsx carries 13 inline
+   styles and is effectively unreachable from CSS; Chatbot.jsx has 5 and
+   WelcomePoster.jsx 4, so only their outer, classed surfaces are styled below.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  /* ---- floating widgets: one stack, never over content -------------------
+     Audit section 3 #9: the chat bubble and back-to-top sat over the last
+     product column's "Add to Cart" and over the footer's "Refund Policy", and
+     the open chat window covered the header's account and basket at 1280x720.
+     Section 9: one stack bottom-right, 24 from the edges, 12 apart. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn {
+    right: var(--space-6);
+    bottom: var(--space-6);
+    box-shadow: 0 8px 24px rgba(20, 35, 28, 0.10);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn:hover {
+    transform: none;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .back-to-top {
+    right: var(--space-6);
+    bottom: calc(var(--space-6) + 64px + var(--space-3));
+    box-shadow: 0 8px 24px rgba(20, 35, 28, 0.10);
+  }
+
+  /* The window must fit a 720px-tall viewport under the pinned 72px header
+     and stay clear of the trigger it springs from. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
+    right: var(--space-6);
+    bottom: calc(var(--space-6) + 64px + var(--space-3));
+    max-height: calc(100vh - 72px - var(--space-10));
+    border-radius: 16px;
+    box-shadow: 0 20px 48px rgba(20, 35, 28, 0.16);
+  }
+
+  /* ---- welcome poster ---------------------------------------------------
+     Audit: its buttons were below the viewport at 1280x720. A modal must fit
+     with its actions visible (section 9). */
+  :is(body.sb-home-active .sb-home, .sb-portal) .welcome-poster {
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 16px;
+  }
+
+  /* ---- checkout panel ---------------------------------------------------
+     CheckoutSheet.jsx has ZERO inline styles, so this one is fully reachable.
+     Section 8 sizing: side panel 440, radius 16, shadow-lg, internal scroll so
+     the summary and the pay button stay visible at 1280x720. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .co-panel {
+    width: 440px;
+    max-width: calc(100vw - 48px);
+    max-height: calc(100vh - 48px);
+    border-radius: 16px;
+    box-shadow: 0 20px 48px rgba(20, 35, 28, 0.16);
+  }
+
+  /* Audit: the checkout drew a focus ring around its own title, so "Your
+     Basket" looked like a text input. Section 8 puts focus rings on
+     interactive things only, never on a programmatically focused heading. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .co-panel :is(h1, h2, h3):focus,
+  :is(body.sb-home-active .sb-home, .sb-portal) .co-panel :is(h1, h2, h3):focus-visible {
+    outline: none;
+  }
+
+  /* The desktop cart item (storefront.css:4751) is already a 92px+1fr grid;
+     this only settles its surface to match the rest of the redesign. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-items-container .cart-item {
+    border: 1px solid var(--border-light);
+    box-shadow: none;
+  }
+}

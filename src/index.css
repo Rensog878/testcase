@@ -10286,3 +10286,661 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     padding-right: var(--space-10);
   }
 }
+
+
+/* ==========================================================================
+   PHASE 4 BATCH 2 — /product/:id AND /product/:id/ingredients (>=1025px)
+   --------------------------------------------------------------------------
+   Desktop-only by construction: everything is inside @media (min-width: 1025px),
+   which phones (<=768) and tablets (769-1024) never evaluate. No .jsx touched,
+   and no forced overrides added (the budget stays at 50 declarations; this
+   comment avoids the literal token so the documented grep check stays honest).
+
+   Deliberately NOT edited (verified media queries before writing):
+     index.css:1798  "DESKTOP REFINEMENT LAYER — PRODUCT DETAIL" is >=769px, so
+                     it styles tablets too — overridden from here, never edited.
+     index.css:1824  max-width: 760px   (phone collapse)
+     index.css:3617  max-width: ~768px  ("Product Detail Page Mobile")
+     index.css:3665  max-width: 480px
+   ========================================================================== */
+@media (min-width: 1025px) {
+  /* ---- P1: the buy box must be reachable at 1280x720 --------------------
+     Audit section 3 #2: price started at y~680 and "Add to cart" at y~1110,
+     both below the fold. Phase 2 already cut the store chrome from 274 to a
+     72px pinned row; the rest is this page's own hero, which used a 40px gap
+     and a full-width square image. A 520px image column and a tighter gap put
+     the price and both CTAs above 720. */
+  .product-detail-page {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-8) var(--space-16);
+  }
+
+  .product-detail-hero {
+    grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+    gap: var(--space-8);
+    padding: var(--space-8);
+    align-items: start;
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .product-detail-image-zoom {
+    height: 420px;
+    border-radius: 12px;
+  }
+
+  /* Section 8 retires hover lifts and scale on desktop; the 1.18x zoom made
+     the image jump out of its rounded frame. */
+  .product-detail-image-zoom:hover img {
+    transform: none;
+  }
+
+  /* ---- P2: type scale ---------------------------------------------------
+     h1 was clamp(1.8rem, 4vw, 3rem) = up to 48px in navy Poppins. Section 8:
+     page title is Outfit 28/36 in the store ink. */
+  .product-detail-summary h1 {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2);
+  }
+
+  .product-detail-price {
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: var(--space-4);
+  }
+
+  .product-detail-price del {
+    font-size: 16px;
+  }
+
+  /* ---- pack selector: primitive sizing, no motion ----------------------- */
+  .product-pack-selector button {
+    min-height: 40px;
+    border-radius: 8px;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .product-pack-selector button:hover {
+    transform: none;
+    border-color: #d0d4cd;
+    background: var(--surface-secondary);
+  }
+
+  .product-pack-selector button.active {
+    box-shadow: none;
+    border-color: var(--brand-600);
+    background: var(--brand-50);
+  }
+
+  .product-pack-selector button:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  /* ---- actions: one primary, one secondary, same row -------------------- */
+  .product-detail-actions {
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  /* ---- facts and sections ---------------------------------------------- */
+  .product-detail-facts {
+    gap: var(--space-4);
+    margin: var(--space-6) 0;
+  }
+
+  .product-detail-facts div {
+    border-radius: 12px;
+    padding: var(--space-4);
+  }
+
+  .product-detail-section {
+    margin-top: var(--space-6);
+    padding: var(--space-6);
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  .product-detail-section h2 {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: 700;
+  }
+
+  .product-detail-content-grid {
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  /* ---- P3: the sparse band under the single thumbnail -------------------
+     related-product-grid was minmax(160px, 1fr) with 120px-tall images, so a
+     short related list left a wide empty strip. Section 9's card rule: 220px
+     minimum, rows aligned. */
+  .related-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .related-product-grid img {
+    height: 160px;
+  }
+
+  .related-product-grid button {
+    border-radius: 12px;
+    padding: var(--space-4);
+    background: var(--surface-card);
+    transition: border-color 0.2s ease;
+  }
+
+  .related-product-grid button:hover {
+    border-color: #d0d4cd;
+  }
+
+  .related-product-grid button:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  /* ---- reviews ---------------------------------------------------------- */
+  .verified-review {
+    padding: var(--space-4) 0;
+  }
+
+  /* ---- /product/:id/ingredients ----------------------------------------
+     Audit P3: a 48px title inside a large tinted hero. Same type scale as the
+     product page so the two read as one section of the site. */
+  .ingredient-page-hero {
+    padding: var(--space-8);
+    border-radius: 16px;
+  }
+
+  .ingredient-page-hero h1 {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: var(--space-2) 0 var(--space-2);
+  }
+}
+
+/* ==========================================================================
+   PHASE 4 BATCH 5 — /crops, /brands, /wishlist, /orders (>=1025px)
+   --------------------------------------------------------------------------
+   All four are thin list pages sharing one layout: .store-section-page with
+   .store-section-grid / .wishlist-grid / .order-status-list (one shared rule
+   at index.css:157) and .store-section-card.
+
+   Phase 2 already put .store-section-page on the 1320 container and
+   .sb-orders-page on 960 (index.css ~8960), so this batch is card, hover and
+   type work, NOT layout width.
+
+   Deliberately NOT edited (media queries verified first):
+     index.css:153-160  unqualified base rules — phones read them
+     index.css:3655     max-width: 600px
+     index.css:3658     max-width: 600px grid collapse
+   ========================================================================== */
+@media (min-width: 1025px) {
+  /* ---- section heading: section 8 type scale ----------------------------
+     h1 inherited the global heading size and sat in navy-ish #062d25 with a
+     1.05rem lede. Page title is Outfit 28/36 in the store ink. */
+  .store-section-heading {
+    max-width: 760px;
+    margin-bottom: var(--space-8);
+  }
+
+  .store-section-heading h1 {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2);
+  }
+
+  .store-section-heading p {
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--text-secondary);
+  }
+
+  /* ---- the shared grid --------------------------------------------------
+     Section 9: card grids are repeat(auto-fill, minmax(220px, 1fr)) with a
+     24px gap so rows align instead of stretching to fill. auto-fit stretched
+     a short list (a 2-item wishlist) across the full 1320.
+
+     NOTE: index.css:157 groups `.order-status-list` into this same base rule,
+     but that class is rendered by NO .jsx file (checked every component) —
+     /orders is OrderStatus.jsx and renders .sb-orders-page > .status-card /
+     .order-row. So `.order-status-list` is omitted here rather than carried
+     forward as dead code; the stale selector in the base rule is recorded for
+     the deferred cleanup pass. */
+  .store-section-grid,
+  .wishlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-6);
+  }
+
+  /* ---- /orders: the real markup ----------------------------------------
+     Phase 2 already caps .sb-orders-page at 960 (a reading width). These are
+     the card surfaces inside it, brought to section 8: one border colour,
+     radius 12, no coloured shadow. */
+  .sb-orders-page .status-card {
+    padding: var(--space-6);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  .sb-orders-page .order-card-head {
+    gap: var(--space-4);
+    align-items: baseline;
+  }
+
+  .sb-orders-page .order-card-id {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sb-orders-page .order-card-meta,
+  .sb-orders-page .order-row {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-secondary);
+  }
+
+  .sb-orders-page .order-card-otp {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+  }
+
+  .sb-orders-page .retry-button:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  /* ---- the card ---------------------------------------------------------
+     Section 8: one border colour, no coloured shadow, no hover lift. The base
+     rule uses #d8eee2 + a green-tinted 24px shadow and translateY(-2px);
+     desktop gets the flat surface the rest of the redesign uses. Phones keep
+     the lift because they never read this block. */
+  .store-section-card {
+    min-height: 132px;
+    padding: var(--space-6);
+    border-color: var(--surface-border);
+    border-radius: 12px;
+    box-shadow: none;
+    color: var(--text-primary);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .store-section-card:hover {
+    transform: none;
+    border-color: #d0d4cd;
+    background: var(--surface-secondary);
+  }
+
+  .store-section-card:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  .store-section-card strong {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .store-section-card span {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-secondary);
+  }
+
+  .store-section-card small {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    color: var(--brand-700);
+  }
+
+  .store-section-filter {
+    margin-top: var(--space-6);
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+}
+
+/* ==========================================================================
+   PHASE 4 BATCH 6 — /blog, /blog/:id, and the auth cards (>=1025px)
+   --------------------------------------------------------------------------
+   Phase 2 already put .sb-blog on the 1320 container and overrode
+   .login-solo .login-card so the 734px card fits a 720px viewport
+   (index.css ~8960 and ~8989). This batch is type, surface and density.
+
+   Deliberately NOT edited (media queries verified first):
+     index.css:7404-7463  unqualified base rules — phones read them
+     index.css:2652       .login-solo .login-card, >=769px (tablets too)
+     index.css:2747       .login-card, >=769px (tablets too)
+     index.css:3555, 4714 phone overrides
+   Auth therefore gets a >=1025 override layered over those, never an edit.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  /* ---- blog hero --------------------------------------------------------
+     The hero was a mint gradient panel (#f0fdf4 -> #ecfdf5, #bbf7d0 border,
+     radius 20) with a 1.25rem h1 and 0.84rem lede — smaller than body text on
+     the rest of the site. Section 8: page title Outfit 28/36, body 15/24,
+     radius 16, flat surface with one border colour. */
+  .sb-blog-hero {
+    margin-bottom: var(--space-8);
+    padding: var(--space-10) var(--space-8);
+    background: var(--surface-secondary);
+    border-color: var(--surface-border);
+    border-radius: 16px;
+  }
+
+  .sb-blog-hero h1 {
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2);
+  }
+
+  .sb-blog-hero p {
+    max-width: 680px;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--text-secondary);
+    margin: 0 auto var(--space-6);
+  }
+
+  .sb-blog-badge {
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.08em;
+    background: var(--brand-50);
+    color: var(--brand-700);
+  }
+
+  .sb-blog-search {
+    max-width: 560px;
+  }
+
+  /* ---- blog body --------------------------------------------------------
+     Section 9: an article is a 760px reading column, centred inside the store
+     container rather than stretched across 1320. */
+  .sb-article-page {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .sb-blog :is(h2, h3),
+  .sb-article-page :is(h2, h3) {
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .sb-article-page p {
+    font-size: 17px;
+    line-height: 28px;
+    color: var(--text-secondary);
+  }
+
+  /* ---- auth cards -------------------------------------------------------
+     Section 9: login/forgot 440, register 560, centred and vertically centred
+     when they fit. Section 8: radius 16, one border, shadow-lg, no gradient
+     ::before wash. The >=769 blocks above set padding 44 and shadow-xl.
+
+     NOTE: no max-width is set here. Register.jsx:122 renders
+     `<div className="login-card" style={{ maxWidth: '560px' }}>` — an inline
+     style beats any stylesheet rule, so a width declaration would be dead
+     code. 560 happens to be what section 9 wants for register, so nothing is
+     lost today; it is recorded for the deferred inline-style pass because the
+     value is currently unreachable from CSS if it ever needs to change. */
+  .login-solo .login-card,
+  .login-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
+  }
+
+  .login-card h1,
+  .login-card h2 {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  .login-card .form-group + .form-group {
+    margin-top: var(--space-4);
+  }
+
+  .login-card .btn-lg {
+    min-height: 48px;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+
+  .auth-tabs {
+    gap: var(--space-2);
+  }
+
+  .auth-tab:focus-visible,
+  .role-chip:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  /* Section 8 retires hover lifts; the >=769 LOGIN/FORGOT layer lifts the
+     role chips. */
+  .role-chip:hover {
+    transform: none;
+    border-color: #d0d4cd;
+  }
+}
+
+/* ==========================================================================
+   PHASE 4 WAVE 2 — STAFF PAGES (>=1025px)
+   /admin and its 14 sub-pages, /employee, /employee/tickets, /delivery,
+   /billing, /billing/history.
+   --------------------------------------------------------------------------
+   Desktop-only by construction: every rule is inside @media (min-width: 1025px),
+   which phones (<=768) and tablets (769-1024) never evaluate. No .jsx touched,
+   and no forced overrides added.
+
+   Phase 2 already rebuilt the staff SHELL (sidebar flush left, content capped
+   1440, topbar 64) and Phase 3 the PRIMITIVES (buttons, fields, tables,
+   badges, tabs). This block is per-page layout only.
+
+   Every selector below was checked against the markup first. Dropped because
+   no .jsx renders them: `.ticket-card`, `.status-pill`.
+
+   NOT written, because inline styles in the JSX would beat any rule here and
+   it would be dead code (recorded for the deferred inline-style pass):
+     - admin/Users.jsx (129 inline styles) — the grey stat tiles whose "0"
+       renders white-on-grey and is invisible, and the whole user modal;
+     - admin/Employees.jsx (24) — the "ACTIVE" pill stretched to the full
+       column width;
+     - admin/Analytics.jsx (21), billing/Dashboard.jsx (18),
+       delivery/Dashboard.jsx (16) — assorted tiles and rows;
+     - admin/Videos.jsx — the ~56px "Video Management" title (inline) against
+       28px on Blogs.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  /* ---- page header: one shape on all 19 staff routes --------------------
+     15 files render .page-header. Section 8: page title Outfit 28/36. The
+     staff topbar hard-codes "Dashboard" on every admin page, so the page
+     header is the only thing telling you where you are — it should read
+     clearly rather than compete with the topbar. */
+  .page-header {
+    margin-bottom: var(--space-6);
+    gap: var(--space-4);
+  }
+
+  .page-header h1,
+  .page-header .page-title {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  .page-header p {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-secondary);
+  }
+
+  /* ---- stat tiles: one design, no orphan rows ---------------------------
+     Audit: /admin has 7 tiles in a 4-column grid (orphan row of 3),
+     /admin/analytics and /admin/users have 3 + 1. auto-fit with a sensible
+     minimum lets the row fill instead of leaving a ragged tail, and the same
+     rule covers all 5 files that render .stat-grid. */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .stat-card {
+    padding: var(--space-6);
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  /* Section 8 retires hover elevation on non-interactive surfaces; a grid of
+     stat tiles lifting under the pointer was pure noise. */
+  .stat-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* The audit found `.stat-card.green` and `.stat-icon.green` rendering PINK
+     (index.css ~2029/~2049) — a "green" variant that is not green. */
+  .stat-card.green::before,
+  .stat-icon.green {
+    background: var(--brand-600);
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  /* ---- the admin hero ---------------------------------------------------
+     Audit: a navy gradient panel, off-brand against a green product. Flat
+     surface, brand ink. */
+  .admin-hero {
+    padding: var(--space-8);
+    background: var(--surface-secondary);
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
+    box-shadow: none;
+    color: var(--text-primary);
+  }
+
+  .admin-hero h1,
+  .admin-hero h2 {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    color: var(--text-primary);
+  }
+
+  /* ---- tables: stop the double container --------------------------------
+     Audit on /admin/products: a table inside a grey-tinted box inside a card,
+     so the data sat in two nested frames and the last column was cut at 1280.
+     One frame: the .table-wrap IS the container, and it scrolls internally
+     rather than pushing the page sideways (9 files render it). */
+  .table-wrap {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .table-wrap > table {
+    width: 100%;
+  }
+
+  /* NOT FIXED HERE: the audit's /admin/subscribers and /admin/chat finding
+     (dates and names wrapping to two lines at 1280). The intended rule was a
+     nowrap on date/id/amount columns, but those cells carry NO class at all —
+     `col-date`, `col-id`, `col-amount` and `col-count` match 0 .jsx files, and
+     both tables render bare <td>/<th>. A positional rule (nth-child) would
+     break the moment a column is added or reordered, so this needs a class in
+     the markup: recorded for the deferred JSX pass rather than guessed at. */
+
+  /* ---- filters and search ----------------------------------------------
+     Audit: /admin/blogs and /admin/videos use an unstyled native search box
+     (1px black border) next to styled controls. 7 files render
+     .filter-select; the search inputs share .form-input where they are
+     classed at all. */
+  .filter-select,
+  .users-filter-bar .form-input {
+    min-height: 40px;
+    border-radius: 8px;
+  }
+
+  .admin-users-page .users-filter-bar {
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  /* ---- analytics --------------------------------------------------------
+     Same tile treatment as the rest of the product rather than a third style. */
+  .bi-kpi,
+  .bi-card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  /* ---- employee / delivery / billing workspaces -------------------------
+     Audit: the employee side uses orange (#e27354) primaries while admin uses
+     green, so the same action looked like two different products. */
+  .employee-workspace .page-content,
+  .billing-workspace .page-content {
+    padding: var(--space-8);
+  }
+
+  .employee-stat {
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  .employee-stat:hover {
+    transform: none;
+  }
+
+  .pos-billing-layout {
+    gap: var(--space-6);
+  }
+}

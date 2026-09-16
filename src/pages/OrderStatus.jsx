@@ -3,7 +3,13 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuth } from '../context/AuthContext'
+import ComingSoon from '../components/ComingSoon'
 
+// Order Management / Order Tracking is Phase 2 work — not part of this
+// presentation build. Showing "Coming soon" instead; the real page is kept
+// below, commented out, to restore later.
+
+/*
 // Order status for the signed-in customer; the server only ever returns their
 // own orders. Replaces public/order-status.html, which now redirects here.
 // Styles: index.css, "ORDER STATUS".
@@ -118,6 +124,15 @@ export default function OrderStatus() {
       <h1>Order status</h1>
       <p className="muted">{intro}</p>
       <section className="status-card" aria-live="polite">{body}</section>
+    </div>
+  )
+}
+*/
+
+export default function OrderStatus() {
+  return (
+    <div className="sb-orders-page">
+      <ComingSoon title="Order tracking — coming soon" message="You'll be able to track your orders right here soon." />
     </div>
   )
 }

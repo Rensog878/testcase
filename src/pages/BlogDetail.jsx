@@ -1,5 +1,12 @@
+import { Link } from 'react-router-dom'
+import ComingSoon from '../components/ComingSoon'
+
+// Community Blogs is Phase 3 work — not part of this presentation build.
+// Real implementation kept below, commented out, to restore later.
+
+/*
 import { useState, useEffect } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Calendar, User, Clock, Tag, Share2, Youtube,
   ShoppingCart, BookOpen, ExternalLink, Sprout, ChevronRight
@@ -146,7 +153,7 @@ export default function BlogDetail() {
 
         <div className="sb-article-content">
           {paragraphs.map((para, idx) => {
-            const clean = para.replace(/^#+\s*/, '')
+            const clean = para.replace(new RegExp('^#+\\s*'), '')
             if (para.startsWith('## ')) return <h2 key={idx}>{clean}</h2>
             if (para.startsWith('# ')) return <h3 key={idx}>{clean}</h3>
             return <p key={idx}>{para}</p>
@@ -229,6 +236,18 @@ export default function BlogDetail() {
           <Link to="/blog">All Articles</Link>
         </div>
       </article>
+    </div>
+  )
+}
+*/
+
+export default function BlogDetail() {
+  return (
+    <div className="sb-article-page animate-fade-in">
+      <div className="sb-article">
+        <ComingSoon title="Blog — coming soon" message="This article will be available once the blog goes live." />
+        <p style={{ textAlign: 'center' }}><Link to="/">Back to the store</Link></p>
+      </div>
     </div>
   )
 }

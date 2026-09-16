@@ -1,3 +1,10 @@
+import ComingSoon from '../../components/ComingSoon'
+
+// Delivery/shipment status is part of Order Management, Phase 2 work — not
+// part of this presentation build. Real implementation kept below, commented
+// out, to restore later.
+
+/*
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import axios from 'axios'
@@ -162,6 +169,20 @@ export default function DeliveryDashboard() {
             )}
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+*/
+
+export default function DeliveryDashboard() {
+  return (
+    <div className="animate-fade-in">
+      <div className="page-header">
+        <div><h1>🚚 My deliveries</h1></div>
+      </div>
+      <div className="card">
+        <ComingSoon title="Deliveries — coming soon" message="Assigned deliveries and OTP-verified drop-offs will appear here in the next phase." />
       </div>
     </div>
   )

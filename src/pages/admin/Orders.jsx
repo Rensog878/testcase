@@ -1,3 +1,9 @@
+import ComingSoon from '../../components/ComingSoon'
+
+// Order Management is Phase 2 work — not part of this presentation build.
+// Real implementation kept below, commented out, to restore later.
+
+/*
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
@@ -94,6 +100,18 @@ export default function AdminOrders() {
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  )
+}
+*/
+
+export default function AdminOrders() {
+  return (
+    <div className="animate-fade-in">
+      <div className="page-header"><h1>📦 Order Management</h1><p>Coming soon</p></div>
+      <div className="card">
+        <ComingSoon title="Order management — coming soon" message="Order tracking, status updates and WhatsApp confirmations will land here in the next phase." />
       </div>
     </div>
   )

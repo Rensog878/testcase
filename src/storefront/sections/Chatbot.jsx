@@ -1,4 +1,12 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useState } from 'react'
+import ComingSoon from '../../components/ComingSoon'
+
+// AI Chat Bot is Phase 3 work — not part of this presentation build. The
+// trigger button stays visible; opening it shows Coming Soon instead of the
+// real canned-answer assistant, kept below commented out, to restore later.
+
+/*
+import { useEffect, useRef } from 'react'
 import { useStore } from '../StoreContext'
 import { WHATSAPP_EXPERT_URL } from '../data'
 
@@ -38,7 +46,7 @@ function replyTo(text, addToCart) {
   return <>🌿 <strong>Sathyam Bio Crop Assistant:</strong> We offer 35+ bio-certified pesticides and crop nutrients for Paddy, Cotton, Tomato, Wheat, Sugarcane, and Grapes. Filter products by crop or disease above!</>
 }
 
-export default memo(function Chatbot({ t }) {
+function ChatbotReal({ t }) {
   const { addToCart } = useStore()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
@@ -110,6 +118,30 @@ export default memo(function Chatbot({ t }) {
             onKeyDown={event => { if (event.key === 'Enter') sendDraft() }}
           />
           <button id="chatbotSendBtn" onClick={sendDraft} aria-label="Send"><i className="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </>
+  )
+}
+*/
+
+export default memo(function Chatbot() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <div className="chatbot-trigger-btn" id="chatbotTriggerBtn" onClick={() => setOpen(current => !current)} role="button" tabIndex={0} aria-label="Chat assistant">
+        <i className={open ? 'fa-solid fa-xmark' : 'fa-solid fa-comments'}></i>
+      </div>
+      <div className={`chatbot-window${open ? ' active' : ''}`} id="chatbotWindow">
+        <div className="chatbot-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="fa-solid fa-robot"></i>
+            <span style={{ fontWeight: 700 }}>Crop Assistant</span>
+          </div>
+          <button id="chatbotCloseBtn" onClick={() => setOpen(false)} style={{ background: 'transparent', color: 'white', fontSize: '1.2rem', cursor: 'pointer' }} aria-label="Close chat">&times;</button>
+        </div>
+        <div className="chatbot-messages" id="chatbotMessages">
+          <ComingSoon title="Chat assistant — coming soon" message="Our AI crop assistant will be here to help soon." />
         </div>
       </div>
     </>

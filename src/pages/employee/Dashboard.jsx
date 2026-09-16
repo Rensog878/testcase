@@ -1,3 +1,10 @@
+import ComingSoon from '../../components/ComingSoon'
+
+// Operations workspace is built on top of order management, which is Phase 2
+// work — not part of this presentation build. Real implementation kept
+// below, commented out, to restore later.
+
+/*
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
@@ -140,6 +147,20 @@ export default function EmployeeDashboard() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+*/
+
+export default function EmployeeDashboard() {
+  return (
+    <div className="animate-fade-in employee-dashboard">
+      <div className="page-header">
+        <div><p className="employee-eyebrow">OPERATIONS WORKSPACE</p><h1>Good morning</h1></div>
+      </div>
+      <div className="card">
+        <ComingSoon title="Operations workspace — coming soon" message="Inventory, orders, customers and tasks will be managed here in the next phase." />
+      </div>
     </div>
   )
 }

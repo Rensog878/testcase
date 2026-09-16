@@ -1,3 +1,10 @@
+import ComingSoon from '../components/ComingSoon'
+
+// Community Blogs is Phase 3 work — not part of this presentation build.
+// Real implementation kept below, commented out, to restore later.
+// Note: admin blog management (/admin/blogs) is untouched.
+
+/*
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Search, Calendar, User, Clock, ArrowRight } from 'lucide-react'
@@ -145,6 +152,15 @@ export default function Blog() {
           })}
         </div>
       )}
+    </div>
+  )
+}
+*/
+
+export default function Blog() {
+  return (
+    <div className="sb-blog animate-fade-in">
+      <ComingSoon title="Blog — coming soon" message="Farmer guides, crop care and bio insights will be published here soon." />
     </div>
   )
 }

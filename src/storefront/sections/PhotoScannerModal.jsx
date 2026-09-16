@@ -1,12 +1,20 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo } from 'react'
+import Modal from './Modal'
+import ComingSoon from '../../components/ComingSoon'
+
+// AI Image Recognition Scanner is Phase 3 work — not part of this
+// presentation build. Real implementation kept below, commented out, to
+// restore later.
+
+/*
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../StoreContext'
 import { SAMPLE_DISEASE_DIAGNOSES } from '../data'
 import { showToast } from '../toast'
-import Modal from './Modal'
 
 const NO_FILE = 'JPG or PNG · a clear, close-up photo'
 
-export default memo(function PhotoScannerModal({ state, t }) {
+function PhotoScannerModalReal({ state, t }) {
   const { addToCart, closeModal, findRemedyProduct } = useStore()
   const inputRef = useRef(null)
   const timer = useRef(null)
@@ -72,6 +80,15 @@ export default memo(function PhotoScannerModal({ state, t }) {
           </div>
         )}
       </div>
+    </Modal>
+  )
+}
+*/
+
+export default memo(function PhotoScannerModal({ state }) {
+  return (
+    <Modal id="photoScannerModal" state={state}>
+      <ComingSoon title="AI crop scanner — coming soon" message="Upload a leaf photo for an instant diagnosis, coming in the next phase." />
     </Modal>
   )
 })

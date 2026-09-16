@@ -3,6 +3,12 @@ import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
 import { ADDRESS_LABELS, CHECKOUT_STEPS, STATES } from '../../hooks/checkoutRules'
 import { productImage, rupees, useFallbackImage } from '../data'
 import useSwipeToDismiss from '../useSwipeToDismiss'
+import ComingSoon from '../../components/ComingSoon'
+
+// Payment Gateway Integration is Phase 2 work — not part of this
+// presentation build. The basket (Phase 1 "Shopping Cart") still works;
+// past that, "Continue to payment" shows Coming Soon instead of the real
+// address/payment/order-confirmation steps (kept below, commented out).
 
 // The floating checkout: Basket → Delivery details → Payment → Order
 // confirmed, in one popup over whichever store page the customer is on
@@ -106,6 +112,7 @@ function BasketStep({ cart, cartReady, actions }) {
   )
 }
 
+/*
 function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
   return (
     <div className="co-form">
@@ -119,7 +126,6 @@ function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
       </div>
       <div className="co-grid">
         {field('doorNo', 'Door no. / house no.', { enterKeyHint: 'next' })}
-        {/* No maxLength: a pasted "613 204" would lose its last digit before the space is dropped (useCheckout keeps 6 digits). */}
         {field('pincode', 'PIN code', { inputMode: 'numeric', autoComplete: 'postal-code', enterKeyHint: 'next' })}
         {field('street', 'Street / road', { wide: true, autoComplete: 'address-line1', enterKeyHint: 'next' })}
         {field('area', 'Area / village', { wide: true, autoComplete: 'address-line2', enterKeyHint: 'next' })}
@@ -293,6 +299,7 @@ function DoneStep({ order }) {
     </div>
   )
 }
+*/
 
 function SheetFooter({ step, checkout, actions }) {
   const { cart, totals, busy, draft } = checkout
@@ -315,6 +322,7 @@ function SheetFooter({ step, checkout, actions }) {
     )
   }
 
+  /*
   if (step === 'done') {
     return (
       <div className="cart-footer co-foot">
@@ -353,6 +361,16 @@ function SheetFooter({ step, checkout, actions }) {
         onClick={paying ? actions.placeOrder : actions.continueToPayment}
       >
         {label}
+      </button>
+    </div>
+  )
+  */
+
+  // Address/payment/order-confirmation footer replaced with a simple way back to the basket.
+  return (
+    <div className="cart-footer co-foot">
+      <button type="button" className="btn btn-outline co-secondary" onClick={actions.back}>
+        <i className="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to basket
       </button>
     </div>
   )
@@ -423,9 +441,7 @@ export default function CheckoutSheet() {
         <div ref={bodyRef} className="co-body">
           <div key={current} className={`co-step co-step--${current}${current === 'basket' && !cart.length ? ' is-empty' : ''}`} data-direction={direction}>
             {current === 'basket' && <BasketStep cart={cart} cartReady={cartReady} actions={actions} />}
-            {current === 'address' && <AddressStep checkout={checkout} actions={actions} />}
-            {current === 'payment' && <PaymentStep checkout={checkout} actions={actions} />}
-            {current === 'done' && <DoneStep order={checkout.order} />}
+            {current !== 'basket' && <ComingSoon title="Checkout — coming soon" message="Online payment and order placement will be available here in the next phase." />}
           </div>
         </div>
 

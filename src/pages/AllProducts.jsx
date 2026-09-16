@@ -174,6 +174,7 @@ export default function AllProducts() {
       tagColor: '#166534',
       tagIcon: '🌿',
       tag: p.category || 'Bio',
+      title: p.name,
       sizes: Array.isArray(p.packSizes) ? p.packSizes : ['500g'],
       reviews: p.reviewsCount || 0
     }))
@@ -665,7 +666,7 @@ export default function AllProducts() {
                   <div key={prod.id} className="agro-product-card">
                     {/* Top Badges: Discount Tag + Wishlist Heart */}
                     <div className="card-top-bar">
-                      <span className="discount-tag">{prod.discount}% OFF</span>
+                      <span className="discount-tag">{prod.discount}</span>
                       <button 
                         type="button" 
                         className={`wishlist-heart-btn ${isWishlisted ? 'active' : ''}`}
@@ -695,7 +696,7 @@ export default function AllProducts() {
                     <div className="card-rating-badge">
                       <span>{prod.rating} ★</span>
                       <span className="rating-divider">|</span>
-                      <span>{prod.reviews}</span>
+                      <span>{prod.reviewsCount ?? 0}</span>
                     </div>
 
                     {/* High Demand banner if present */}
@@ -842,7 +843,7 @@ export default function AllProducts() {
               return (
                 <div key={prod.id} className="agro-product-card">
                   <div className="card-top-bar">
-                    <span className="discount-tag">{prod.discount}% OFF</span>
+                    <span className="discount-tag">{prod.discount}</span>
                     <button 
                       type="button" 
                       className={`wishlist-heart-btn ${isWishlisted ? 'active' : ''}`}
@@ -868,7 +869,7 @@ export default function AllProducts() {
                   <div className="card-rating-badge">
                     <span>{prod.rating} ★</span>
                     <span className="rating-divider">|</span>
-                    <span>{prod.reviews}</span>
+                    <span>{prod.reviewsCount ?? 0}</span>
                   </div>
 
                   {user && prod.targetUserId === user.id ? (
@@ -992,7 +993,7 @@ export default function AllProducts() {
               return (
                 <div key={prod.id} className="agro-product-card">
                   <div className="card-top-bar">
-                    <span className="discount-tag">{prod.discount}% OFF</span>
+                    <span className="discount-tag">{prod.discount}</span>
                     <button 
                       type="button" 
                       className={`wishlist-heart-btn ${isWishlisted ? 'active' : ''}`}
@@ -1018,7 +1019,7 @@ export default function AllProducts() {
                   <div className="card-rating-badge">
                     <span>{prod.rating} ★</span>
                     <span className="rating-divider">|</span>
-                    <span>{prod.reviews}</span>
+                    <span>{prod.reviewsCount ?? 0}</span>
                   </div>
 
                   {prod.tagBadge ? (
@@ -1199,7 +1200,7 @@ export default function AllProducts() {
                 return (
                   <div key={prod.id} className="agro-product-card">
                     <div className="card-top-bar">
-                      <span className="discount-tag">{prod.discount}% OFF</span>
+                      <span className="discount-tag">{prod.discount}</span>
                       <button 
                         type="button" 
                         className={`wishlist-heart-btn ${isWishlisted ? 'active' : ''}`}
@@ -1225,7 +1226,7 @@ export default function AllProducts() {
                     <div className="card-rating-badge">
                       <span>{prod.rating} ★</span>
                       <span className="rating-divider">|</span>
-                      <span>{prod.reviews}</span>
+                      <span>{prod.reviewsCount ?? 0}</span>
                     </div>
 
                     {user && prod.targetUserId === user.id ? (

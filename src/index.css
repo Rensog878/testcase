@@ -9591,3 +9591,698 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     outline-offset: 2px;
   }
 }
+
+
+/* ==========================================================================
+   PHASE 4 BATCH 1 — /products AND /categories (>=1025px)
+   --------------------------------------------------------------------------
+   Continues the Phase 2 and Phase 3 blocks above; not a new override stack.
+   Desktop-only by construction: every rule lives inside
+   @media (min-width: 1025px) (plus one sibling min-width: 1440px gutter step
+   that mirrors storefront.css:8312), so phones (<=768) and tablets (769-1024)
+   never evaluate any of it. No .jsx was touched and no forced override is
+   added: the budget stays at 50.
+
+   Both page bodies are reachable ONLY from this file. StoreLayout renders the
+   route into <main class="public-page-shell">, while .sb-portal wraps just the
+   header (Navigation.jsx:63) and the popups (StorePopups.jsx:127) - so the
+   storefront.css store scope cannot see .all-products-page or
+   .bighaat-categories-page at all.
+
+   Everything here is scoped to .all-products-page or .bighaat-categories-page,
+   because .section-title, .discount-tag, .card-* and .modal-* are generic names
+   this file also uses on other pages.
+
+   NOT fixed here, because they are content/JSX defects rather than CSS, and
+   this batch is CSS-only (recorded for the deferred JSX pass):
+     - the discount badge renders "20% OFF% OFF": the API already returns
+       discount as the STRING "20% OFF" and the markup appends another
+       "% OFF"  (AllProducts.jsx:668, 845, 995, 1202);
+     - the rating chip renders an empty "star |": the API returns
+       rating: null and reviewsCount: 0  (AllProducts.jsx:696-698, 869-871,
+       1019-1021, 1226-1228);
+     - Top-10 cards have no name: the card reads item.title but the product
+       objects carry `name`, so the fixed-height h3 paints empty
+       (AllProducts.jsx:560-562, list built at :168-180).
+   No CSS here works around any of them.
+   ========================================================================== */
+
+@media (min-width: 1025px) {
+  /* ---- one container, one left edge (section 9, decision 7) --------------
+     Phase 2 already put these bodies on max-width 1320 + 32px gutters. What it
+     did not carry over is the >=1440 gutter STEP that storefront.css:8311-8318
+     applies to the header and the footer, so above 1440 the header stepped to
+     40 while these bodies stayed at 32 and the edges diverged by 8px. The step
+     is added below in its own 1440 query. */
+
+  /* ---------------------------------------------------------------- /products
+     ---- type: Outfit headings, Plus Jakarta Sans body (decision 3) --------
+     The page hard-sets Inter at index.css:4918 and its section headings are
+     Poppins 24 while the home page uses Outfit, which is the P2 finding. */
+  .all-products-page {
+    font-family: 'Plus Jakarta Sans', var(--script-font, system-ui), system-ui, -apple-system, sans-serif;
+  }
+
+  .all-products-page .section-title,
+  .all-products-page .top10-title {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  .all-products-page .section-subtitle,
+  .all-products-page .top10-subtitle {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .all-products-page .catalog-badge {
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-full);
+    background: var(--brand-50);
+    color: var(--brand-700);
+  }
+
+  .all-products-page .view-all-link {
+    font-size: 14px;
+    color: var(--brand-600);
+    border-radius: 8px;
+  }
+  .all-products-page .view-all-link:hover {
+    background: var(--surface-secondary);
+  }
+
+  /* ---- section rhythm: 64 between sections, 24 heading -> content -------- */
+  .all-products-page .shop-section {
+    margin-bottom: var(--space-16);
+  }
+  .all-products-page .section-header-row {
+    margin-bottom: var(--space-6);
+    gap: var(--space-6);
+  }
+
+  /* ---- the category circle rail wrapped into two ragged rows (P3) -------
+     The >=1024 rule pins it to exactly 12 columns, but the rail renders
+     SHOP_CATEGORIES (12) PLUS any admin category from /api/catalog-options
+     that is not already in that list, so it is routinely 13+ items: the
+     thirteenth fell onto a second row of one. An auto-fill track fills each
+     row completely at any count and at any of the five target widths. */
+  .all-products-page .categories-circular-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-5) var(--space-4);
+  }
+  /* Uniform 96px cells so both rows read as one rail; the base rule is
+     flex: 0 0 76px on phones and flex: 0 0 auto from 768up, which let the
+     items size themselves unevenly. */
+  .all-products-page .category-circle-item {
+    flex: 0 0 96px;
+  }
+  .all-products-page .category-circle-label {
+    max-width: 96px;
+  }
+
+  /* Indic scripts: the base rule (index.css:5250) is a 2-line -webkit-line-clamp
+     with overflow:hidden and no ellipsis, so a long label is cut mid-glyph
+     rather than trailed off. In English "Fungicides" fits two lines; in Tamil
+     "பூச்சிக்கொல்லி", "பூஞ்சைக்கொல்லி" and "நூற்புழுக்கொல்லி" do not, and the
+     rail showed half-letters. A third line on desktop costs only vertical
+     space -- the 96px cell width and the rail's horizontal rhythm are
+     unchanged -- and phones keep the 2-line clamp because they never read
+     this block. The crop and pest rails share the same base pattern
+     (index.css:5569-5570), so they are corrected together. */
+  .all-products-page :is(
+    .category-circle-label,
+    .crop-circle-label,
+    .pest-circle-label
+  ) {
+    -webkit-line-clamp: 3;
+    overflow-wrap: anywhere;
+  }
+
+  /* ---- rails and carousels (section 9) ----------------------------------
+     A rail must not cut a card in half at the container edge. Each track gets
+     a right-hand run-off equal to the page gutter so the last card ends clear
+     of the edge instead of flush against it, and the snap becomes proximity so
+     a rail that already fits is not dragged to a snap point. Arrows move to
+     the end of the row rather than floating centred under the cards. */
+  .all-products-page :is(
+    .top10-cards-track,
+    .product-cards-carousel,
+    .crops-scroll-container,
+    .pests-scroll-container,
+    .nutrients-scroll-container
+  ) {
+    scroll-snap-type: x proximity;
+    scroll-padding-left: var(--space-1);
+    padding-right: var(--space-8);
+  }
+
+  .all-products-page .carousel-nav-arrows {
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .all-products-page .carousel-arrow-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border-color: #d0d4cd;
+    color: var(--text-secondary);
+  }
+  .all-products-page .carousel-arrow-btn:hover {
+    background: var(--surface-secondary);
+    border-color: #d0d4cd;
+    color: var(--brand-700);
+  }
+  .all-products-page .carousel-arrow-btn:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  .all-products-page .top10-banner-header {
+    border-radius: 12px;
+    border-color: var(--surface-border);
+    padding: var(--space-5) var(--space-6);
+  }
+
+  /* ---- the catalogue grid: 5 columns, rows that line up (section 9) ------
+     There is no filter sidebar on this page, so section 9's "5 without" case
+     applies; the >=1024 rule below pins it to 4. minmax(220px) yields 5 at
+     every target width (1280 -> 224 each, 1920 -> 228) and never drops a card
+     under the 200px floor. */
+  .all-products-page .catalog-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-6);
+  }
+
+  /* Rows align: the card fills its cell, the title is already a fixed 2-line
+     clamp, and the price block through the button is pushed to the bottom so
+     buttons sit on one line across a row regardless of name length. */
+  .all-products-page .catalog-products-grid .agro-product-card {
+    height: 100%;
+  }
+  .all-products-page .agro-product-card .card-pricing-row {
+    margin-top: auto;
+    padding-top: var(--space-3);
+  }
+
+  .all-products-page .agro-product-card {
+    border-radius: 12px;
+    border-color: var(--surface-border);
+  }
+
+  /* Section 8 retires hover lifts on cards; the >=769 AGRO PRODUCT CARD layer
+     (index.css 5860) sets translateY(-5px) and a large shadow, and that block
+     also styles tablets, so it is cancelled here instead of edited. */
+  .all-products-page .agro-product-card:hover,
+  .all-products-page .top10-product-card:hover,
+  .all-products-page .nutrient-card-item:hover,
+  .all-products-page .nutrient-card-item.selected,
+  .all-products-page .category-circle-item:hover,
+  .all-products-page .crop-circle-item:hover,
+  .all-products-page .pest-circle-item:hover {
+    transform: none;
+  }
+  .all-products-page .agro-product-card:hover,
+  .all-products-page .top10-product-card:hover {
+    border-color: #d0d4cd;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .all-products-page .card-product-title {
+    font-size: 15px;
+    line-height: 22px;
+    height: 44px;
+    margin: var(--space-2) 0 2px;
+  }
+  .all-products-page .card-brand-name {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--text-muted);
+  }
+  .all-products-page .card-current-price {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .all-products-page .card-add-to-cart-btn {
+    min-height: 40px;
+    border-radius: 8px;
+    background: var(--brand-600);
+    font-size: 14px;
+  }
+  .all-products-page .card-add-to-cart-btn:hover {
+    background: var(--brand-700);
+  }
+  .all-products-page .card-add-to-cart-btn:active {
+    transform: none;
+    background: var(--brand-800);
+  }
+  .all-products-page .card-size-dropdown {
+    min-height: 36px;
+    border-radius: 8px;
+    border-color: #d0d4cd;
+    font-size: 12.5px;
+  }
+
+  /* Wishlist heart: a real 32px icon target with a hover surface. */
+  .all-products-page .wishlist-heart-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .all-products-page .wishlist-heart-btn:hover {
+    background: var(--surface-secondary);
+  }
+  .all-products-page .wishlist-heart-btn:active {
+    transform: none;
+  }
+  .all-products-page .wishlist-heart-btn:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  .all-products-page .top10-card-title {
+    font-size: 14px;
+    line-height: 20px;
+    height: 40px;
+  }
+  .all-products-page .top10-quick-add {
+    min-height: 32px;
+    border-radius: 8px;
+    padding: 0 var(--space-3);
+  }
+
+  /* ---- the explorer header ---------------------------------------------- */
+  .all-products-page .catalog-search-sort-bar {
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+  }
+  .all-products-page .catalog-search-field {
+    flex: 1 1 420px;
+    max-width: 560px;
+    min-height: 40px;
+    border-color: #d0d4cd;
+  }
+  /* 16px exists to stop iOS zooming on focus; that cannot happen at >=1025. */
+  .all-products-page .catalog-search-field input {
+    font-size: 14px;
+  }
+  .all-products-page .catalog-search-field:focus-within {
+    border-color: var(--brand-600);
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.18);
+  }
+  .all-products-page .catalog-sort-select {
+    font-size: 13px;
+    gap: var(--space-3);
+  }
+  .all-products-page .catalog-sort-select select {
+    min-height: 40px;
+    border-radius: 8px;
+    border-color: #d0d4cd;
+    font-size: 14px;
+  }
+  .all-products-page .catalog-sort-select select:focus {
+    border-color: var(--brand-600);
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.18);
+  }
+
+  /* The pills scrolled sideways inside the header box, which hid the later
+     categories behind an invisible scroll. There is room to wrap them at
+     >=1025, and Tamil labels are much longer, so wrapping matters more there. */
+  .all-products-page .catalog-category-filter-pills {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: var(--space-2);
+    padding-top: var(--space-5);
+  }
+  .all-products-page .cat-pill-btn {
+    min-height: 32px;
+    border-radius: var(--radius-full);
+    border-color: #d0d4cd;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .all-products-page .cat-pill-btn:hover {
+    background: var(--surface-secondary);
+    border-color: #d0d4cd;
+    color: var(--text-primary);
+  }
+  .all-products-page .cat-pill-btn.active {
+    background: var(--brand-600);
+    border-color: var(--brand-600);
+    color: #ffffff;
+  }
+  .all-products-page .cat-pill-btn:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+
+  /* Active filter chips: section 8's info role instead of the sky-blue pair. */
+  .all-products-page .active-filters-bar {
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top-color: var(--surface-border);
+  }
+  .all-products-page .active-filter-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .all-products-page .filter-pill-tag {
+    min-height: 28px;
+    padding: 2px var(--space-3);
+    border-radius: var(--radius-full);
+    background: #e8f0fb;
+    border-color: #cbdcf4;
+    color: #1d5fbf;
+    font-size: 12px;
+  }
+  .all-products-page .clear-all-filters-btn {
+    color: #b42318;
+    font-size: 12px;
+  }
+  .all-products-page .catalog-count-row {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+  }
+
+  /* ---- the empty result state ------------------------------------------- */
+  .all-products-page .catalog-empty-state h3 {
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--text-primary);
+  }
+  .all-products-page .catalog-empty-state p {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-muted);
+    max-width: 60ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .all-products-page .btn-reset-filters {
+    min-height: 40px;
+    padding: 0 var(--space-5);
+    border-radius: 8px;
+    background: var(--brand-600);
+    font-size: 14px;
+  }
+  .all-products-page .btn-reset-filters:hover {
+    background: var(--brand-700);
+  }
+
+  /* ---- trust banner ------------------------------------------------------ */
+  .all-products-page .shop-trust-banner {
+    background: var(--surface-secondary);
+    border-color: var(--surface-border);
+    border-radius: 12px;
+    padding: var(--space-6);
+    margin-top: 0;
+  }
+  .all-products-page .trust-item strong {
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .all-products-page .trust-item span {
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--text-muted);
+  }
+
+  /* ---- the floating advisory button and its sheet ------------------------
+     Section 9 puts floating widgets 24px from the edges and asks the page to
+     carry bottom padding equal to the stack so the button never sits over the
+     last row of content. Phase 3 already sized the sheet (560 / radius 16). */
+  .all-products-page .floating-agronomist-btn {
+    right: var(--space-6);
+    bottom: var(--space-6);
+    width: 48px;
+    height: 48px;
+    background: var(--brand-600);
+    box-shadow: var(--shadow-md);
+  }
+  .all-products-page .floating-agronomist-btn:hover {
+    transform: none;
+    background: var(--brand-700);
+  }
+  .all-products-page .floating-agronomist-btn:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+  }
+  .all-products-page .shop-main-container {
+    padding-top: var(--space-8);
+    padding-bottom: 96px;
+  }
+
+  .advisory-modal-sheet .modal-header {
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--surface-border);
+  }
+  .advisory-modal-sheet .modal-title-box strong {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 26px;
+  }
+  .advisory-modal-sheet .modal-close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .advisory-modal-sheet .modal-close-btn:hover {
+    background: var(--surface-secondary);
+  }
+  .advisory-modal-sheet .modal-description {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-muted);
+  }
+  .advisory-modal-sheet .advisory-action-card {
+    border-radius: 12px;
+    border: 1px solid var(--surface-border);
+  }
+  .advisory-modal-sheet .advisory-action-card:hover {
+    background: var(--surface-secondary);
+    border-color: #d0d4cd;
+  }
+
+  /* -------------------------------------------------------------- /categories
+     ---- the split box on the same container edges (P2) --------------------
+     Phase 2 put .bighaat-categories-wrapper on the 1320 container; the box
+     inside it gets section 8's flat surface instead of the floating shadow. */
+  .bighaat-categories-page .bighaat-split-container {
+    border-radius: 12px;
+    border-color: var(--surface-border);
+    box-shadow: none;
+  }
+
+  /* ---- the rail: room for long labels, section 8's selected state --------
+     116px cut Tamil labels in half (they are much longer than the English
+     ones); 152 fits two lines at 12px without touching the pane. */
+  .bighaat-categories-page .bighaat-aside-rail {
+    width: 152px;
+    background-color: var(--surface-secondary);
+    border-right-color: var(--surface-border);
+  }
+  .bighaat-categories-page .bighaat-rail-tab {
+    padding: var(--space-3) var(--space-2);
+  }
+  .bighaat-categories-page .bighaat-rail-tab:hover {
+    background-color: rgba(11, 122, 75, 0.06);
+  }
+  .bighaat-categories-page .bighaat-rail-tab.active {
+    background-color: var(--brand-50);
+  }
+  .bighaat-categories-page .bighaat-rail-tab.active .rail-tab-label {
+    color: var(--brand-700);
+  }
+  .bighaat-categories-page .bighaat-rail-tab:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: -2px;
+  }
+  /* Section 8's selected marker is a 2px bar, not a 5px slab with a glow. */
+  .bighaat-categories-page .active-pill-bar {
+    top: var(--space-2);
+    bottom: var(--space-2);
+    width: 2px;
+    border-radius: 2px;
+    background-color: var(--brand-600);
+    box-shadow: none;
+  }
+  .bighaat-categories-page .rail-tab-label {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .bighaat-categories-page .bighaat-rail-tab.active .rail-tab-circle {
+    border-color: var(--brand-600);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .bighaat-categories-page .bighaat-subcat-pane {
+    padding: var(--space-8);
+  }
+
+  /* ---- the category banner: one flat surface ----------------------------- */
+  .bighaat-categories-page .subcat-banner-card {
+    background: var(--surface-secondary);
+    border-color: var(--surface-border);
+    border-radius: 12px;
+    box-shadow: none;
+    padding: var(--space-5) var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  .bighaat-categories-page .subcat-banner-title {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 24px;
+    line-height: 32px;
+    color: var(--text-primary);
+  }
+  .bighaat-categories-page .subcat-banner-desc {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-muted);
+    opacity: 1;
+  }
+  .bighaat-categories-page .subcat-banner-badge {
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.08em;
+    color: var(--brand-700);
+  }
+  .bighaat-categories-page .subcat-banner-image {
+    width: 64px;
+    height: 64px;
+    border-color: var(--surface-border);
+    box-shadow: none;
+  }
+
+  .bighaat-categories-page .subcat-group-title {
+    font-size: 13px;
+    line-height: 18px;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+  }
+  .bighaat-categories-page .subcat-group-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .bighaat-categories-page .subcat-group-line {
+    background-color: var(--surface-border);
+  }
+
+  /* ---- the tile grid was sparse at six columns (P3) ---------------------
+     The pane is ~1070px wide at 1920, so six columns left ~178px per 86px
+     circle and a long run of whitespace. An auto-fill track at 132px gives
+     eight columns there and still five at 1280, and it reflows on its own for
+     the longer Tamil titles instead of being pinned to a count. */
+  .bighaat-categories-page .subcat-circles-grid {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: var(--space-6) var(--space-4);
+  }
+  .bighaat-categories-page .subcat-circle-title {
+    font-size: 12.5px;
+    line-height: 17px;
+    color: var(--text-secondary);
+  }
+  .bighaat-categories-page .subcat-circle-card:hover {
+    transform: none;
+  }
+  .bighaat-categories-page .subcat-circle-card:hover .subcat-circle-img-wrap {
+    border-color: var(--brand-600);
+    box-shadow: var(--shadow-sm);
+  }
+  .bighaat-categories-page .subcat-circle-card:hover .subcat-circle-title {
+    color: var(--brand-700);
+  }
+  .bighaat-categories-page .subcat-circle-card:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+  .bighaat-categories-page .subcat-circle-img-wrap {
+    border-width: 1px;
+    border-color: var(--surface-border);
+    box-shadow: none;
+  }
+
+  /* ---- the search empty state ------------------------------------------- */
+  .bighaat-categories-page .no-subcat-results {
+    background: var(--surface-secondary);
+    border-color: #d0d4cd;
+    border-radius: 12px;
+    padding: 48px var(--space-5);
+  }
+  .bighaat-categories-page .no-subcat-results p {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-muted);
+  }
+  .bighaat-categories-page .btn-clear-search {
+    min-height: 40px;
+    padding: 0 var(--space-5);
+    border-radius: 8px;
+    background: var(--brand-600);
+    font-size: 14px;
+  }
+  .bighaat-categories-page .btn-clear-search:hover {
+    background: var(--brand-700);
+  }
+
+  /* ---- the assurance banner: three columns instead of a tall stack ------- */
+  .bighaat-categories-page .sathya-assurance-banner {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+    background: var(--surface-secondary);
+    border-color: var(--surface-border);
+    border-radius: 12px;
+    padding: var(--space-6);
+    margin-top: var(--space-8);
+  }
+  .bighaat-categories-page .assurance-item strong {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .bighaat-categories-page .assurance-item small {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--text-muted);
+  }
+}
+
+/* Section 9: 40px gutters from 1440 up, 32 between 1280 and 1439. This mirrors
+   storefront.css:8311-8318, which steps the store header and footer at exactly
+   this breakpoint. Measured before this change at 1920: the body's first
+   heading sat at x 332 ((1920-1320)/2 + 32) while the header container had
+   already stepped to 40 and started at x 340 - an 8px divergence on the very
+   edge section 9 asks every store page to share.
+
+   ONLY the two bodies this batch owns are stepped. The other store pages that
+   Phase 2 put on the 1320 container are deliberately left alone:
+     - .store-section-page (/crops, /brands, /wishlist) sets `padding: 56px 5vw
+       80px`, a VIEWPORT-relative gutter that is 96px at 1920, so forcing 40
+       here would move those three pages by 56px - a visible change to pages
+       outside this batch;
+     - .sb-blog and .sb-orders-page belong to batches 7 and 6.
+   Each should be brought onto the step by the batch that owns it, after that
+   batch has re-shot the page. */
+@media (min-width: 1440px) {
+  .shop-main-container,
+  .bighaat-categories-wrapper {
+    padding-left: var(--space-10);
+    padding-right: var(--space-10);
+  }
+}

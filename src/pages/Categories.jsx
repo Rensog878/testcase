@@ -5,12 +5,30 @@ import {
   Sparkles, CheckCircle2,
   ShieldCheck, PhoneCall
 } from 'lucide-react'
-import { CATEGORIES_DATA, DEFAULT_CATEGORY_HANDLE } from '../data/categoriesData'
+import { CATEGORIES } from '../storefront/data'
+import { SHOP_CATEGORIES } from '../data/allProductsData'
+import { matchesCategory } from '../utils/catalogUtils'
+import useCatalogProducts from '../hooks/useCatalogProducts'
 
 // Every category is one section of the right-hand pane, one after another.
 // The left rail follows the scroll (the category being read is highlighted and
 // kept in view), and tapping a rail tab scrolls the pane to that category.
 // ?ct= in the URL names the category, so links like Shop -> ?ct=Brands land on it.
+// The rail mirrors the header's "Categories" mega menu (src/storefront/data.js
+// CATEGORIES) so the two never drift apart; the right pane lists the live
+// products in each of those categories.
+
+const iconFor = name => SHOP_CATEGORIES.find(c => matchesCategory(c.filterCategory, name))?.image
+  || 'https://media.bighaat.com/categories/fungicides_ct.webp'
+
+const CATEGORIES_DATA = CATEGORIES.filter(value => value !== 'All').map(value => ({
+  id: value,
+  handle: value,
+  name: `${value}s`,
+  icon: iconFor(value),
+}))
+
+const DEFAULT_CATEGORY_HANDLE = CATEGORIES_DATA[0]?.handle
 
 const findCategory = handle => {
   const wanted = String(handle || '').toLowerCase()
@@ -47,6 +65,10 @@ export default function Categories() {
 
   const activeCategory = findCategory(activeHandle)
 
+  // Live catalog: the same MongoDB-backed product list every other store
+  // page uses, filtered client-side per rail category below.
+  const { products: dbProducts } = useCatalogProducts({ onlineOnly: true })
+
   // Phones: a full-screen view, so the document behind it does not scroll
   // (index.css, html.sb-fullscreen-page). Set before paint, removed on leaving.
   useLayoutEffect(() => {
@@ -56,22 +78,20 @@ export default function Categories() {
     return () => root.classList.remove('sb-fullscreen-page')
   }, [])
 
-  // The pane's sections: every category, narrowed by the search.
+  // The pane's sections: every category, each holding its live products,
+  // narrowed by the search (matches the category name or a product name).
   const sections = useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
     return CATEGORIES_DATA.map(cat => {
-      const all = cat.subMenus || []
-      const total = all.reduce((sum, s) => sum + (s.items?.length || 0), 0)
-      if (!q || cat.name.toLowerCase().includes(q)) return { cat, subMenus: all, total }
-      const subMenus = all
-        .map(sub => ({
-          ...sub,
-          items: sub.items.filter(item => item.title.toLowerCase().includes(q) || sub.name.toLowerCase().includes(q)),
-        }))
-        .filter(sub => sub.items.length > 0)
-      return { cat, subMenus, total }
+      const catMatches = !q || cat.name.toLowerCase().includes(q)
+      const items = dbProducts
+        .filter(p => matchesCategory(p.category, cat.handle))
+        .filter(p => catMatches || p.name.toLowerCase().includes(q))
+        .map(p => ({ handle: p.id, title: p.name, image: p.image, price: p.price }))
+      const subMenus = items.length ? [{ name: cat.name, items }] : []
+      return { cat, subMenus, total: items.length }
     }).filter(section => section.subMenus.length > 0)
-  }, [searchQuery])
+  }, [searchQuery, dbProducts])
 
   const sectionsRef = useRef(sections)
   sectionsRef.current = sections
@@ -350,7 +370,7 @@ export default function Categories() {
                         {sub.items.map((item, iIdx) => (
                           <Link
                             key={item.handle + iIdx}
-                            to={`/products?category=${encodeURIComponent(item.title)}`}
+                            to={`/product/${encodeURIComponent(item.handle)}`}
                             className="subcat-circle-card"
                             title={item.title}
                           >
@@ -368,7 +388,7 @@ export default function Categories() {
                             </div>
                             {/* Title Underneath */}
                             <span className="subcat-circle-title">
-                              {item.title}
+                              {item.title}{item.price != null ? ` — ₹${item.price}` : ''}
                             </span>
                           </Link>
                         ))}

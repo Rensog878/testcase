@@ -3453,6 +3453,14 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   .employee-overview-grid {
     gap: var(--space-8);
   }
+  .pos-add-item-row {
+    grid-template-columns: minmax(180px, 0.7fr) minmax(320px, 1.4fr) auto auto;
+  }
+  .pos-add-item-row .form-select {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 }
 
 /* Table Wrap Scroll */

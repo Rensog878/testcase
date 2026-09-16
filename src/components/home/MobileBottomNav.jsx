@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
 import { useCheckoutActions } from '../../hooks/useCheckout'
+import useCmsSettings, { cmsText } from '../../hooks/useCmsSettings'
 import TransitionLink from './TransitionLink'
 
 // Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
@@ -46,6 +47,8 @@ export default function MobileBottomNav() {
   const location = useLocation()
   const navigate = useNavigate()
   const { lang, setLang, languages } = useLanguage()
+  const { cms } = useCmsSettings()
+  const supportPhone = cmsText(cms, 'phone', '1800-425-9999')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   // The account row follows sign-in and sign-out as they happen, while the
   // sheet is closed. Read from storage as the sheet opened, the new name
@@ -406,7 +409,7 @@ export default function MobileBottomNav() {
               ))}
             </select>
           </label>
-          <a className="mms-call" href="tel:18004259999"><i className="fa-solid fa-phone-volume" aria-hidden="true"></i> 1800-425-9999</a>
+          <a className="mms-call" href={`tel:${supportPhone.replace(/\D/g, '')}`}><i className="fa-solid fa-phone-volume" aria-hidden="true"></i> {supportPhone}</a>
         </div>
       </aside>
 

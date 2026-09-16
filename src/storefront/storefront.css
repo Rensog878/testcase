@@ -6667,9 +6667,15 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-act
 
   :is(body.sb-home-active .sb-home, .sb-portal) .header-search button,
   :is(body.sb-home-active .sb-home, .sb-portal) .voice-search-btn,
-  :is(body.sb-home-active .sb-home, .sb-portal) .cart-close-btn,
   :is(body.sb-home-active .sb-home, .sb-portal) .modal-close-btn {
     min-width: 44px;
+  }
+
+  /* .cart-close-btn is a circle (width == height set elsewhere); bumping
+     min-width alone without min-height would stretch it into an oval. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .cart-close-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 
   /* Footer links sit in tight lists; a little vertical padding makes them

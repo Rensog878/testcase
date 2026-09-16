@@ -8700,3 +8700,291 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
 
 
 
+
+/* ==========================================================================
+   PHASE 2 — DESKTOP FOUNDATION & APP SHELLS (>=1025px)
+   --------------------------------------------------------------------------
+   Desktop-only by construction: every rule below lives inside
+   @media (min-width: 1025px), so phones (<=768) and tablets (769-1024) cannot
+   read any of it. Nothing above this block was edited, and no forced-override was
+   added (the budget stays at 50 declarations).
+
+   Scope: the approved design system in port-notes/DESKTOP_REDESIGN.md
+   sections 4, 6, 8 and 9 — token conflict resolution, the staff shell
+   (decision 6), and the store page containers that StoreLayout page bodies
+   own (the store header/footer/home live in storefront.css, which this file
+   can never reach: index.css is inside @layer app).
+   ========================================================================== */
+
+@media (min-width: 1025px) {
+  /* ---- tokens: resolve the two-palette conflict (section 4) --------------
+     index.css shipped Tailwind emerald plus an indigo focus/hover tint while
+     storefront.css shipped #0B7A4B. Section 8 picks #0B7A4B as the single
+     primary, so the --brand-* ramp is retargeted onto it here. Phones keep
+     the emerald values because they never evaluate this query. */
+  :root {
+    --brand-50: #e7f2ec;
+    --brand-100: #d3e8de;
+    --brand-200: #b3d7c6;
+    --brand-300: #85c0a5;
+    --brand-400: #45a87c;
+    --brand-500: #16a46a;
+    --brand-600: #0b7a4b;
+    --brand-700: #075437;
+    --brand-800: #064a30;
+    --brand-900: #053a26;
+
+    /* One ink, one muted: #1f2b3b / #7b8794 retire in favour of the store's
+       green-black, so a staff table and a store card read as one product. */
+    --text-primary: #14231c;
+    --text-secondary: #3c4a43;
+    --text-muted: #5a6b63;
+    --text-disabled: #8d9a93;
+
+    /* One border colour instead of the rgba grey/green mix. */
+    --surface-border: #e3e5df;
+    --surface-border-subtle: rgba(20, 35, 28, 0.12);
+    --surface-secondary: #f4f3ef;
+    --surface-elevated: #ffffff;
+
+    /* --radius-md 12 and --radius-xl 20 are already section 8's values here;
+       storefront.css is the file that carries 14/28 and is corrected there. */
+
+    /* Neutral elevation. --shadow-brand / --shadow-glow were the indigo
+       glow; they are read by 20-odd rules, so retargeting them kills the
+       purple everywhere at once instead of rule by rule. */
+    --shadow-sm: 0 1px 2px rgba(20, 35, 28, 0.06);
+    --shadow-md: 0 8px 24px rgba(20, 35, 28, 0.10);
+    --shadow-lg: 0 20px 48px rgba(20, 35, 28, 0.16);
+    --shadow-xl: 0 20px 48px rgba(20, 35, 28, 0.16);
+    --shadow-brand: 0 1px 2px rgba(20, 35, 28, 0.06);
+    --shadow-glow: 0 0 0 0 rgba(11, 122, 75, 0);
+
+    /* The --text-* and --fs-* scales were identical except 4xl; align them so
+       the two files describe one type scale. */
+    --text-4xl: 3rem;
+
+    /* Staff topbar 78 -> 64 (section 8 sizing). */
+    --navbar-height: 64px;
+  }
+
+  /* ---- staff shell (decision 6) ----------------------------------------
+     .app-layout was a centred 1440px rounded card while .sidebar is
+     position:fixed;left:0 and .main-content keeps margin-left:240px. At 1920
+     the sidebar sat outside the card and the card's first 240px were an empty
+     band (content started at x 481); at 1280 the sidebar overlapped the card.
+     Dropping the card at >=1025 makes the fixed sidebar and the content share
+     one full-height frame. <=1024 already flattens the card its own way and is
+     untouched. */
+  .app-layout {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #f4f5f2;
+  }
+
+  .sidebar {
+    width: var(--sidebar-width);
+    background: #ffffff;
+    border-right: 1px solid var(--surface-border);
+  }
+
+  .main-content {
+    margin-left: var(--sidebar-width);
+    background: transparent;
+  }
+
+  /* Content max 1440, centred in the main area, 32px page padding. */
+  .page-content,
+  .employee-workspace .page-content {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: var(--space-8);
+  }
+
+  .topbar {
+    height: 64px;
+    padding: 0 var(--space-8);
+    background: #ffffff;
+    border-bottom: 1px solid var(--surface-border);
+    box-shadow: none;
+  }
+
+  .employee-workspace .topbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  /* ---- sidebar: quiet surface, no motion, real selected state ----------- */
+  .sidebar-logo {
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .sidebar-logo-icon {
+    background: var(--brand-600);
+    box-shadow: none;
+  }
+
+  /* Section 8 retires hover lifts on nav rows; the earlier DASHBOARD SHELL
+     layer set translateX(3px), so it is cancelled rather than deleted. */
+  .sidebar-link,
+  .sidebar-link:hover {
+    transform: none;
+  }
+
+  .sidebar-logo:hover .sidebar-logo-icon {
+    transform: none;
+  }
+
+  .sidebar-role-badge {
+    background: var(--brand-50);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+  }
+
+  .sidebar-role-badge .role-name {
+    color: var(--brand-700);
+  }
+
+  .sidebar-section-title {
+    color: var(--text-muted);
+  }
+
+  .sidebar-link:hover {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+  }
+
+  .sidebar-link:hover .nav-icon {
+    background: rgba(11, 122, 75, 0.08);
+  }
+
+  /* Selected: soft primary tint plus a 2px left bar, not a gradient slab. */
+  .sidebar-link.active {
+    background: var(--brand-50);
+    color: var(--brand-700);
+    box-shadow: none;
+  }
+
+  .sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--brand-600);
+  }
+
+  .sidebar-link.active .nav-icon {
+    background: rgba(11, 122, 75, 0.12);
+  }
+
+  /* ---- keyboard: a visible ring on every shell control ------------------
+     Tab order and behaviour are untouched; this only paints the ring. */
+  .sidebar-link:focus-visible,
+  .sidebar-logout-btn:focus-visible,
+  .sidebar-logo:focus-visible,
+  .hamburger-btn:focus-visible,
+  .topbar :is(a, button, select, input, [tabindex]):focus-visible,
+  .page-header :is(a, button, select, input):focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ---- retire the indigo tints (section 4, decision 9) ------------------ */
+  .hamburger-btn:hover {
+    background: var(--surface-secondary);
+    color: var(--brand-700);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 8px 22px rgba(11, 122, 75, 0.24);
+  }
+
+  .card:hover {
+    border-color: var(--surface-border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus,
+  .search-box input:focus {
+    border-color: var(--brand-600);
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.18);
+  }
+
+  thead {
+    background: var(--surface-secondary);
+  }
+
+  tbody tr:hover {
+    background: var(--surface-secondary);
+  }
+
+  .alert-row.info {
+    background: rgba(11, 122, 75, 0.06);
+  }
+
+  /* "green" rendered PINK (the ::before gradient and the icon tile). */
+  .stat-card.green::before {
+    background: linear-gradient(90deg, #0b7a4b, #16a46a);
+  }
+
+  .stat-icon.green {
+    background: rgba(11, 122, 75, 0.10);
+    color: #0b7a4b;
+  }
+
+  .stat-change.positive {
+    color: var(--brand-600);
+  }
+
+  /* ---- store page bodies: one 1320px container (decision 7) -------------
+     The StoreLayout page bodies are index.css layouts with five different
+     widths (products 1240, categories 1310, crops/brands/wishlist 1180,
+     orders 860, footer 1180), which is why a single page showed three
+     different left edges. The store header and footer are storefront.css and
+     are aligned to the same 1320 there. */
+  .store-section-page,
+  .shop-main-container,
+  .bighaat-categories-wrapper,
+  .sb-blog {
+    max-width: 1320px;
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
+  /* Reading-width pages stay narrow but centre inside the same container. */
+  .sb-orders-page {
+    max-width: 960px;
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
+  .public-footer-grid {
+    width: min(1320px, calc(100% - 64px));
+  }
+
+  .public-footer-bottom {
+    width: min(1320px, calc(100% - 64px));
+    margin: 0 auto;
+  }
+
+  /* ---- section 5 stragglers --------------------------------------------
+     .login-solo .login-card is styled in a >=769px block (index.css 2652)
+     that also hits tablets, so it gets an override here instead of an edit.
+     The 734px card overflowed a 720px viewport. */
+  .login-solo .login-card {
+    padding: var(--space-8);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+}

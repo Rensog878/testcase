@@ -8129,3 +8129,190 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ==========================================================================
+   PHASE 2 — DESKTOP SHELLS (>=1025px), EXTENDS THE AUTHORITATIVE LAYER
+   --------------------------------------------------------------------------
+   Last in the file, immediately after "DESKTOP 2026 — THE AUTHORITATIVE
+   LAYER", so it wins over that block for the few properties it restates
+   (container width, header chrome, footer columns) without any of it having
+   to be picked apart. This is the same authoritative layer continued, not a
+   new override stack on top of an unrelated one.
+
+   Everything is inside min-width: 1025px. This stylesheet is desktop-default
+   with max-width: 768px phone overrides, and the phone layout never reads a
+   min-width block, so nothing here can reach a phone or a tablet. No
+   forced overrides are added (the budget stays at 323).
+   ========================================================================== */
+
+@media (min-width: 1025px) {
+  /* ---- tokens: the two names that disagree with index.css (section 4) ----
+     --radius-md was 14 here and 12 there, --radius-xl 28 vs 20. Section 8
+     resolves both to the index.css value on desktop. Phones keep 14/28. */
+  :is(:root:has(> body.sb-home-active), .sb-portal) {
+    --radius-md: 12px;
+    --radius-xl: 20px;
+    --shadow-md: 0 8px 24px rgba(20, 35, 28, 0.10);
+    --shadow-lg: 0 20px 48px rgba(20, 35, 28, 0.16);
+    --shadow-hover: 0 8px 24px rgba(20, 35, 28, 0.10);
+  }
+
+  /* ---- one container for every store page, the header and the footer ----
+     Decision 7. Today the header content is 1376 wide while page bodies are
+     1180-1310 and the footer 1178, so a single page shows three different
+     left edges. 1320 + 32px gutters (40 from 1440up, below). */
+  :is(body.sb-home-active .sb-home, .sb-portal) .container,
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-cols {
+    max-width: 1320px;
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
+  /* ---- store chrome: 274 -> 188 (section 8 sizing) ----------------------
+     ticker 32 + utility bar 36 + main row 72 + nav 48. Only .header-main is
+     sticky (it already is), so the ticker, the utility bar and the nav scroll
+     away and the pinned chrome drops from ~145 to 72. That leaves 648px of
+     content visible at 1280x720, above the 560 the plan requires. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .ticker-wrap {
+    padding: 5px 0;
+    font-size: 0.78rem;
+    line-height: 20px;
+    border-bottom-width: 1px;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .topbar {
+    padding: 8px 0;
+    font-size: 0.78rem;
+    line-height: 20px;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-main {
+    padding: var(--space-3) 0;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-grid {
+    min-height: 48px;
+    flex-wrap: nowrap;
+    gap: var(--space-6);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-content {
+    height: 48px;
+  }
+
+  /* The wordmark and the tagline each wrapped to two lines, which is what
+     made the row 146px tall; nothing here changes what the logo says. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-box {
+    flex: none;
+    min-width: 0;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-text,
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-sub {
+    white-space: nowrap;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-text {
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .logo-sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* The search field is the highest-value control in the bar; it was ~120px
+     at 1280 ("Search by crc..."). It now takes the width the logo and the
+     duplicated language control were wasting. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-search {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 560px;
+    border-width: 1px;
+    border-color: var(--border-light);
+    border-radius: var(--radius-sm);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-search input {
+    padding: 9px 14px;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-search button {
+    padding: 0 18px;
+  }
+
+  /* Action labels wrapped ("Order / Status", "Sign In / Register"). */
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-actions {
+    flex: none;
+    gap: var(--space-4);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .action-item {
+    white-space: nowrap;
+  }
+
+  /* Decision 4: language is offered twice in the header. The utility-bar
+     select stays (it is the one with the full language name); the duplicate
+     header-row action is hidden at >=1025 only, so phones and tablets - where
+     the utility bar is hidden instead - are unaffected. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .action-item.lang-item {
+    display: none;
+  }
+
+  /* ---- menus must fit the viewport -------------------------------------- */
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-panel {
+    max-height: calc(100vh - 188px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Sticky catalogue sidebar clears the 72px pinned row plus 16. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar {
+    top: 88px;
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
+    top: 88px;
+  }
+
+  /* ---- footer: same container, no orphan column -------------------------
+     The authoritative layer sets 1.6fr repeat(4, 1fr) but the footer has one
+     brand column and three link columns, so the fifth column was always
+     empty at 1280 and 1920. */
+  /* NOTE: gap is NOT set here on purpose. Footer.jsx:15 carries an inline
+     style={{ gap: '30px' }}, and an inline style beats any stylesheet rule
+     regardless of specificity or layer, so a `gap` declaration here would be
+     dead code. Section 9 wants 40px; that needs the inline style removed from
+     the JSX, which is deferred to the single inline-style pass (see section 0). */
+  :is(body.sb-home-active .sb-home, .sb-portal) .footer-grid {
+    grid-template-columns: 1.6fr repeat(3, minmax(0, 1fr));
+  }
+
+  /* ---- keyboard --------------------------------------------------------
+     The >=769 layer already paints a green ring on focus-visible; the nav bar
+     is dark, so its ring needs a light colour to be visible at all. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .navbar :is(a, button, [tabindex]):focus-visible,
+  :is(body.sb-home-active .sb-home, .sb-portal) .topbar :is(a, button, select, [tabindex]):focus-visible,
+  :is(body.sb-home-active .sb-home, .sb-portal) .footer :is(a, button, [tabindex]):focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+}
+
+/* Section 9: 40px gutters from 1440 up, 32 between 1280 and 1439. */
+@media (min-width: 1440px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .container,
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-cols {
+    padding-left: var(--space-10);
+    padding-right: var(--space-10);
+  }
+}

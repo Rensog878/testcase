@@ -8803,37 +8803,62 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     background: #f4f5f2;
   }
 
+  /* Floating rail: detached from the viewport's top/left edges with a
+     margin, rounded corners and a shadow, matching the store header's
+     floating treatment, instead of sitting flush against the frame. */
   .sidebar {
+    top: var(--space-4);
+    left: var(--space-4);
+    height: calc(100vh - var(--space-4) * 2);
     width: var(--sidebar-width);
     background: #ffffff;
-    border-right: 1px solid var(--surface-border);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
   }
 
   .main-content {
-    margin-left: var(--sidebar-width);
+    margin-left: calc(var(--sidebar-width) + var(--space-4) * 2);
     background: transparent;
   }
 
-  /* Content max 1440, centred in the main area, 32px page padding. */
+  /* The content column floats too, inset from the right/bottom edges (the
+     left edge is already the sidebar's own gap, via .main-content's
+     margin-left above) with rounded corners and a shadow, so it reads as
+     its own floating page rather than a bare strip run to the frame. */
   .page-content,
   .employee-workspace .page-content {
-    width: 100%;
-    max-width: 1440px;
-    margin: 0 auto;
+    width: auto;
+    max-width: none;
+    margin: var(--space-4) var(--space-4) var(--space-4) 0;
     padding: var(--space-8);
+    background: #ffffff;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
   }
 
+  /* The topbar floats the same way directly above it, with the same gap
+     used for the sticky offset, so scrolling keeps it clear of the frame
+     instead of snapping flush to the very top. */
   .topbar {
+    top: var(--space-4);
     height: 64px;
     padding: 0 var(--space-8);
+    margin: 0 var(--space-4) 0 0;
     background: #ffffff;
-    border-bottom: 1px solid var(--surface-border);
-    box-shadow: none;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
   }
 
   .employee-workspace .topbar {
     background: #ffffff;
-    border-bottom: 1px solid var(--surface-border);
+    /* Same specificity as the unlayered rule above (employee-workspace
+       lines), so this has to restate the border to win the bottom edge
+       back from its border-bottom: it would otherwise square off just
+       that one side of an otherwise fully rounded, floating topbar. */
+    border: 1px solid var(--surface-border);
   }
 
   /* ---- sidebar: quiet surface, no motion, real selected state ----------- */
@@ -10888,6 +10913,13 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   .admin-hero h2 {
     font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
     color: var(--text-primary);
+  }
+
+  /* The base rule's near-white paragraph color (for the old navy gradient)
+     was never re-pointed when this panel went flat and light above, so
+     "Welcome back, ..." rendered almost invisible on the new background. */
+  .admin-hero p {
+    color: var(--text-muted);
   }
 
   /* ---- tables: stop the double container --------------------------------

@@ -314,6 +314,13 @@ export default function MobileBottomNav() {
     showAccount(event)
   }
 
+  // Enquiry: phones have no floating Enquiry button, so the Menu opens the
+  // same sheet (storefront/sections/EnquirySheet.jsx). Focus returns to Menu.
+  const openEnquiry = () => {
+    closeMenu()
+    window.dispatchEvent(new CustomEvent('sb:open-enquiry', { detail: { opener: document.getElementById('mobileNavMenu') } }))
+  }
+
   // On the home page a Menu tile goes to that section of the page.
   const homeOr = (section, elsewhere) => (onHome ? `/#${section}` : elsewhere)
 
@@ -370,6 +377,9 @@ export default function MobileBottomNav() {
           <a href="https://wa.me/919442562423?text=Hello%20Sathyam%20Bio%20Expert%2C%20I%20need%20crop%20advice" target="_blank" rel="noopener noreferrer" className="mms-tile" onClick={closeMenu}>
             <span className="mms-tile-icon" style={{ '--tile': '#16a34a' }}><i className="fa-brands fa-whatsapp"></i></span>WhatsApp Expert
           </a>
+          <button type="button" className="mms-tile" aria-haspopup="dialog" onClick={openEnquiry}>
+            <span className="mms-tile-icon" style={{ '--tile': '#0d9488' }}><i className="fa-solid fa-clipboard-question"></i></span>Enquiry
+          </button>
         </div>
 
         <h3 className="mms-title">Shop by category</h3>

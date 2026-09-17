@@ -7870,6 +7870,15 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   }
 }
 
+/* Phones (where the bottom nav and its Menu exist): no floating Enquiry
+   button; Menu → Enquiry opens the sheet (MobileBottomNav.jsx). Tablet and
+   desktop keep the button. */
+@media (max-width: 767px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    DESKTOP 2026 — THE AUTHORITATIVE LAYER (>=769px / >=1025px)
    --------------------------------------------------------------------------

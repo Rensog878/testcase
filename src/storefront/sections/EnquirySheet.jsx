@@ -3,12 +3,15 @@ import axios from 'axios'
 import { showToast } from '../toast'
 
 // A floating "Farmer Enquiry" button and its premium sheet, mounted once
-// (StorePopups.jsx) so it floats over every store page on both phone and
-// desktop. Self-contained: its own open state, focus and scroll lock -
+// (StorePopups.jsx) so it floats over every store page on desktop and tablet (on phones
+// it opens from Menu → Enquiry instead). Self-contained: its own open state, focus and scroll lock -
 // it does not touch the checkout/sign-in modal system in hooks/useCheckout.js.
 // Styles: storefront.css, "ENQUIRY SHEET" block. Reuses the generic
 // .modal-overlay/.modal-card and .auth-* field classes for a consistent,
 // already-accessible look.
+
+// Also dispatched by components/home/MobileBottomNav.jsx (Menu → Enquiry).
+const ENQUIRY_OPEN_EVENT = 'sb:open-enquiry'
 
 const ENQUIRY_TYPES = ['Product', 'Price', 'Availability', 'Crop Problem', 'Dealer', 'Other']
 const INITIAL_FIELDS = { name: '', phone: '', location: '', crop: '', type: 'Product', message: '' }
@@ -45,6 +48,20 @@ export default memo(function EnquirySheet() {
     setErrors({})
     setOpen(true)
   }
+
+  // Phones have no floating button (hidden at <=767px, where the bottom nav is): the Menu
+  // sheet's Enquiry tile asks for the sheet with this event instead.
+  // detail.opener is where focus goes back to on close.
+  useEffect(() => {
+    const onRequest = event => {
+      openerRef.current = event.detail?.opener || null
+      setDone(false)
+      setErrors({})
+      setOpen(true)
+    }
+    window.addEventListener(ENQUIRY_OPEN_EVENT, onRequest)
+    return () => window.removeEventListener(ENQUIRY_OPEN_EVENT, onRequest)
+  }, [])
 
   // Body scroll lock + Escape + focus trap, only while the sheet is open.
   useEffect(() => {

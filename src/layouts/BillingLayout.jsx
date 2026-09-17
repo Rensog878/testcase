@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
-import LanguageSwitcher from '../components/LanguageSwitcher'
 import { Menu } from 'lucide-react'
 
 const BILL_NAV = [{ title: 'BILLING', links: [
@@ -24,7 +23,6 @@ export default function BillingLayout() {
             </div>
           </div>
           <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <LanguageSwitcher />
             <span className="badge badge-teal topbar-role">BILLING</span>
           </div>
         </header>

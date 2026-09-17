@@ -17,6 +17,9 @@ export default function PageTranslator({ enabled }) {
       if (cancelled) return
       const applied = loaded ? wanted : 'en'
       setPageLanguage(applied)
+      // The language actually shown: staff portals are English even when a
+      // store language is saved, so language-specific CSS does not apply there.
+      document.documentElement.lang = applied
       // Translates what is on the page now (or puts it back in English).
       localizeTree(document.body)
       watchPageText(Boolean(TEXT_PACKS[applied]))

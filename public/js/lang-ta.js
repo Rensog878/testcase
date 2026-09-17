@@ -79,6 +79,26 @@ window.SB_LANG_TA = {
   },
 
   text: {
+    // Catalog filter names, home testimonials, default CMS ticker banner
+    'Fertilizer': 'உரம்',
+    'Adjuvant': 'துணைக் கலவை',
+    'Corn': 'சோளம்',
+    'Stem Borer': 'தண்டுத் துளைப்பான்',
+    'Blast': 'குலை நோய்',
+    'Rust': 'துரு நோய்',
+    'Leaf hopper': 'தத்துப்பூச்சி',
+    'Blight': 'கருகல் நோய்',
+    'Weeds': 'களைகள்',
+    'Pinworm': 'ஊசிப்புழு',
+    'Downy Mildew': 'அடிச்சாம்பல் நோய்',
+    'Caterpillars': 'கம்பளிப்புழுக்கள்',
+    'Sathyam Bio BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!': 'கனமழைக்குப் பிறகு கழுத்துக் குலை நோயிலிருந்து என் 5 ஏக்கர் நெல் பயிரை சத்யம் பயோ BlastShield 75 WP முழுமையாகக் காப்பாற்றியது. உயர்தரமான பொருள்!',
+    'Paddy Farmer, Guntur (AP)': 'நெல் விவசாயி, குண்டூர் (ஆந்திரா)',
+    'FlyKill Ultra controlled whitefly infestation in my cotton crop within 48 hours. Fast delivery and COD service.': 'FlyKill Ultra என் பருத்திப் பயிரில் வெள்ளை ஈ தாக்குதலை 48 மணி நேரத்தில் கட்டுப்படுத்தியது. விரைவான டெலிவரி, COD வசதி.',
+    'Cotton Grower, Yavatmal (MH)': 'பருத்தி விவசாயி, யவத்மால் (மகாராஷ்டிரா)',
+    'RootVigor Gold organic biostimulant increased white root mass and fruit size in my tomato farm by 30%.': 'RootVigor Gold இயற்கை உயிர் ஊக்கி என் தக்காளித் தோட்டத்தில் வெண்வேர் வளர்ச்சியையும் பழ அளவையும் 30% அதிகரித்தது.',
+    'Horticulture Farmer, Salem (TN)': 'தோட்டக்கலை விவசாயி, சேலம் (தமிழ்நாடு)',
+    'Free Delivery on orders above ₹999 | Use code KISAN20 for 20% off first order': '₹999-க்கு மேல் ஆர்டர்களுக்கு இலவச டெலிவரி | முதல் ஆர்டரில் 20% தள்ளுபடிக்கு KISAN20 குறியீட்டைப் பயன்படுத்துங்கள்',
     // Ticker
     'FLAT 15% OFF on first order — Use code': 'முதல் ஆர்டருக்கு 15% தள்ளுபடி — குறியீடு',
     'Free express delivery on orders above ₹999 across all 28 states': '28 மாநிலங்களிலும் ₹999-க்கு மேல் ஆர்டர்களுக்கு இலவச விரைவு டெலிவரி',

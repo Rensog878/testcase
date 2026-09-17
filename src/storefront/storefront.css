@@ -4518,6 +4518,13 @@ body.sb-home-active {
        (46px, 90px up - "Floating Buttons" below), not under it. */
     padding-bottom: 40px;
   }
+  /* The policy links are one no-wrap line; in Tamil/Kannada/Telugu/Hindi it
+     is wider than the phone and ran off both edges. */
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .footer-bottom-row > div {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+  }
   /* The groups' last divider runs straight into the bottom row's. */
   :is(body.sb-home-active .sb-home, .sb-portal) .footer-grid {
     margin-bottom: 0;
@@ -8649,6 +8656,12 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* The Indic delivery promise (~350px) was hard-cut mid-word - an ellipsis
+     cannot show on an inline-flex box; the scrolling ticker beside it gives
+     up the room instead. */
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-shipping-note {
+    flex: none;
+  }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper {
     flex: none;
     height: 27px;
@@ -9093,12 +9106,12 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   /* Narrow desktops, and the longer Indic labels below 1440: the account
      keeps its icon and hands its label to screen readers. */
   @media (max-width: 1279px) {
-    :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell #headerAccountBtn {
+    :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(#headerAccountBtn, .header-actions > .action-item:not(.action-track, .action-wishlist, .cart-trigger-btn)) {
       justify-content: center;
       width: 40px;
       padding: 0;
     }
-    :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell #headerAccountBtn > div {
+    :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(#headerAccountBtn, .header-actions > .action-item:not(.action-track, .action-wishlist, .cart-trigger-btn)) > div {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -9110,12 +9123,12 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   }
   /* At every desktop width for the Indic languages: the bar's content box
      tops out at 1256px, so a wider window never makes room for the label. */
-  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell #headerAccountBtn {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(#headerAccountBtn, .header-actions > .action-item:not(.action-track, .action-wishlist, .cart-trigger-btn)) {
     justify-content: center;
     width: 40px;
     padding: 0;
   }
-  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell #headerAccountBtn > div {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(#headerAccountBtn, .header-actions > .action-item:not(.action-track, .action-wishlist, .cart-trigger-btn)) > div {
     position: absolute;
     width: 1px;
     height: 1px;

@@ -69,6 +69,26 @@ window.SB_LANG_HI = {
   },
 
   text: {
+    // Catalog filter names, home testimonials, default CMS ticker banner
+    'Fertilizer': 'उर्वरक',
+    'Adjuvant': 'सहायक मिश्रण',
+    'Corn': 'मक्का',
+    'Stem Borer': 'तना छेदक',
+    'Blast': 'ब्लास्ट रोग',
+    'Rust': 'रतुआ रोग',
+    'Leaf hopper': 'फुदका',
+    'Blight': 'झुलसा रोग',
+    'Weeds': 'खरपतवार',
+    'Pinworm': 'पिनवर्म',
+    'Downy Mildew': 'मृदुरोमिल आसिता',
+    'Caterpillars': 'इल्लियाँ',
+    'Sathyam Bio BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!': 'भारी बारिश के बाद गर्दन ब्लास्ट से मेरी 5 एकड़ धान की फसल को सत्यम बायो BlastShield 75 WP ने पूरी तरह बचा लिया। उच्च गुणवत्ता वाला उत्पाद!',
+    'Paddy Farmer, Guntur (AP)': 'धान किसान, गुंटूर (आंध्र प्रदेश)',
+    'FlyKill Ultra controlled whitefly infestation in my cotton crop within 48 hours. Fast delivery and COD service.': 'FlyKill Ultra ने मेरी कपास की फसल में सफेद मक्खी के प्रकोप को 48 घंटों में नियंत्रित कर दिया। तेज़ डिलीवरी और COD सेवा।',
+    'Cotton Grower, Yavatmal (MH)': 'कपास किसान, यवतमाल (महाराष्ट्र)',
+    'RootVigor Gold organic biostimulant increased white root mass and fruit size in my tomato farm by 30%.': 'RootVigor Gold जैविक बायो-स्टिमुलेंट ने मेरे टमाटर के खेत में सफेद जड़ों का विकास और फलों का आकार 30% बढ़ा दिया।',
+    'Horticulture Farmer, Salem (TN)': 'बागवानी किसान, सेलम (तमिलनाडु)',
+    'Free Delivery on orders above ₹999 | Use code KISAN20 for 20% off first order': '₹999 से अधिक के ऑर्डर पर मुफ़्त डिलीवरी | पहले ऑर्डर पर 20% छूट के लिए KISAN20 कोड का उपयोग करें',
     // Synced with the Tamil pack (store sections, enquiry form, coming-soon states)
     'Register': 'रजिस्टर करें',
     'Rice Blast': 'धान का ब्लास्ट रोग',

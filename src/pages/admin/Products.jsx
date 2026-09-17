@@ -6,6 +6,7 @@ import {
   ArrowUpDown, RefreshCw, Sparkles, Tag, ShieldAlert, BarChart3,
   IndianRupee, Sprout, Package, Image as ImageIcon, Info
 } from 'lucide-react'
+import { parseImageList } from '../../shared/productImages.js'
 
 const PFORM_SECTIONS = [
   { id: 'pform-basic', label: 'Basic details', hint: 'Title, category, badge' },
@@ -121,10 +122,18 @@ export default function AdminProducts() {
     if (body.scrollTop + body.clientHeight >= body.scrollHeight - 2) current = PFORM_SECTIONS[PFORM_SECTIONS.length - 1].id
     if (current !== activeSection) setActiveSection(current)
   }
+  // On tablet/phone the rail is a horizontal strip: keep the active step in view.
+  useEffect(() => {
+    const button = document.querySelector('.pform-rail > button.active')
+    const rail = button?.parentElement
+    if (rail && rail.scrollWidth > rail.clientWidth) {
+      rail.scrollTo({ left: Math.max(0, button.offsetLeft - (rail.clientWidth - button.offsetWidth) / 2), behavior: 'smooth' })
+    }
+  }, [activeSection])
   const removeListItem = (field, item) => {
     setForm(current => ({ ...current, [field]: current[field].split(',').map(s => s.trim()).filter(s => s && s !== item).join(', ') }))
   }
-  const photoList = (form.images || '').split(/\n|,/).map(value => value.trim()).filter(Boolean)
+  const photoList = parseImageList(form.images)
   const requiredChecks = [
     { label: 'Product title', done: Boolean(String(form.name).trim()) },
     { label: 'Selling price', done: form.price !== '' },
@@ -243,7 +252,7 @@ export default function AdminProducts() {
       return
     }
 
-    const images = form.images.split(/\n|,/).map(value => value.trim()).filter(Boolean)
+    const images = parseImageList(form.images)
     if (images.length === 0) {
       toast.error('Add at least one product photo URL or asset path')
       return

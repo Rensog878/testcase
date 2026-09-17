@@ -205,24 +205,27 @@ export const NavBar = memo(function NavBar({ t }) {
     if (!navRef.current?.contains(event.relatedTarget)) close()
   }
 
-  const megaItem = (id, icon, label, panel) => (
+  // A real link, not a <button>: at 769-1024px (a restored/narrow desktop
+  // window) the panel is CSS-hidden and every .nav-mega-trigger rule is
+  // >=1025px only, so a button rendered as a bare native box that did nothing.
+  const megaItem = (id, icon, label, fallbackTo, panel) => (
     <li
       className={`nav-mega${openMenu === id ? ' is-open' : ''}`}
       onMouseEnter={() => setOpenMenu(id)}
       onMouseLeave={close}
     >
-      <button
-        type="button"
+      <Link
+        to={fallbackTo}
         className="nav-mega-trigger"
         data-mega={id}
         aria-expanded={openMenu === id}
         aria-haspopup="true"
         onFocus={() => setOpenMenu(id)}
-        onClick={() => setOpenMenu(current => (current === id ? null : id))}
+        onClick={close}
       >
         <i className={`fa-solid ${icon}`}></i> <span>{label}</span>
         <i className="fa-solid fa-chevron-down nav-mega-caret" aria-hidden="true"></i>
-      </button>
+      </Link>
       <div className="nav-mega-panel" role="group" aria-label={label} hidden={openMenu !== id}>
         {panel}
       </div>
@@ -235,7 +238,7 @@ export const NavBar = memo(function NavBar({ t }) {
         <ul className="nav-links" id="navLinks">
           <li><a href="#catalog" className="active"><i className="fa-solid fa-store"></i> <span data-i18n="nav_all_products">{t('nav_all_products')}</span></a></li>
 
-          {megaItem('cat', 'fa-layer-group', 'Categories', (
+          {megaItem('cat', 'fa-layer-group', 'Categories', '/categories', (
             <div className="nav-mega-cols">
               <div className="nav-mega-col">
                 <p className="nav-mega-head">Shop by category</p>
@@ -274,7 +277,7 @@ export const NavBar = memo(function NavBar({ t }) {
             </div>
           ))}
 
-          {megaItem('crop', 'fa-wheat-awn', 'Shop by Crop', (
+          {megaItem('crop', 'fa-wheat-awn', 'Shop by Crop', '/crops', (
             <div className="nav-mega-cols">
               <div className="nav-mega-col nav-mega-col--wide">
                 <p className="nav-mega-head">Pick your crop</p>

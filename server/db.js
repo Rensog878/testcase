@@ -68,6 +68,7 @@ const userSchema = new mongoose.Schema(
 const productSchema = new mongoose.Schema({ _id: String }, permissive);
 const orderSchema = new mongoose.Schema({ _id: String }, permissive);
 const advisorySubscriberSchema = new mongoose.Schema({ _id: String }, permissive);
+const advisoryBroadcastSchema = new mongoose.Schema({ _id: String }, permissive);
 const inventoryItemSchema = new mongoose.Schema({ _id: String }, permissive);
 const staffTaskSchema = new mongoose.Schema({ _id: String }, permissive);
 const ticketSchema = new mongoose.Schema({ _id: String }, permissive);
@@ -107,6 +108,8 @@ const Product = mongoose.models.Product || mongoose.model('Product', productSche
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 const AdvisorySubscriber =
     mongoose.models.AdvisorySubscriber || mongoose.model('AdvisorySubscriber', advisorySubscriberSchema);
+const AdvisoryBroadcast =
+    mongoose.models.AdvisoryBroadcast || mongoose.model('AdvisoryBroadcast', advisoryBroadcastSchema);
 const InventoryItem = mongoose.models.InventoryItem || mongoose.model('InventoryItem', inventoryItemSchema);
 const StaffTask = mongoose.models.StaffTask || mongoose.model('StaffTask', staffTaskSchema);
 const Ticket = mongoose.models.Ticket || mongoose.model('Ticket', ticketSchema);
@@ -1515,6 +1518,83 @@ class DatabaseManager {
         const doc = { ...sub, _id: sub.id };
         const created = await AdvisorySubscriber.create(doc);
         return serialize(created.toObject());
+  }
+
+  async updateAdvisorySubscriber(id, patch) {
+        await connectDB();
+        const doc = await AdvisorySubscriber.findByIdAndUpdate(id, { $set: patch }, { returnDocument: 'after', lean: true });
+        return doc ? serialize(doc) : null;
+  }
+
+  async setAdvisoryStatusByPhone(phone, status) {
+        await connectDB();
+        await AdvisorySubscriber.updateMany({ phone }, { $set: { status } });
+  }
+
+  // ---- Advisory broadcasts ----
+  // A broadcast keeps its own snapshot of recipients, each with a delivery
+  // status: queued -> sending -> sent | failed | skipped (or cancelled).
+
+  async createAdvisoryBroadcast(broadcast) {
+        await connectDB();
+        const created = await AdvisoryBroadcast.create({ ...broadcast, _id: broadcast.id });
+        return serialize(created.toObject());
+  }
+
+  async getAdvisoryBroadcast(id) {
+        await connectDB();
+        return serialize(await AdvisoryBroadcast.findById(id).lean());
+  }
+
+  // Newest first, without the recipient lists.
+  async getAdvisoryBroadcasts(limit = 20) {
+        await connectDB();
+        const docs = await AdvisoryBroadcast.find({}, { recipients: 0 }).sort({ createdAt: -1 }).limit(limit).lean();
+        return docs.map(serialize);
+  }
+
+  // Atomically moves one queued recipient to "sending" and returns it, or null
+  // when none is left. Two parallel workers can never claim the same farmer.
+  async claimBroadcastRecipient(id) {
+        await connectDB();
+        const token = crypto.randomUUID();
+        const doc = await AdvisoryBroadcast.findOneAndUpdate(
+            { _id: id, status: 'sending', 'recipients.status': 'queued' },
+            { $set: { 'recipients.$.status': 'sending', 'recipients.$.claimedAt': new Date().toISOString(), 'recipients.$.claimToken': token } },
+            { returnDocument: 'after', lean: true, projection: { recipients: { $elemMatch: { claimToken: token } } } }
+        );
+        return doc?.recipients?.[0] || null;
+  }
+
+  async setBroadcastRecipient(id, phone, fields) {
+        await connectDB();
+        const set = Object.fromEntries(Object.entries(fields).map(([k, v]) => [`recipients.$.${k}`, v]));
+        await AdvisoryBroadcast.updateOne({ _id: id, 'recipients.phone': phone }, { $set: set });
+  }
+
+  // Recipients stuck in "sending" (their worker died) are marked failed, never
+  // re-sent: the message may already have been delivered.
+  async failStaleBroadcastRecipients(id, olderThanIso) {
+        await connectDB();
+        await AdvisoryBroadcast.updateOne(
+            { _id: id },
+            { $set: { 'recipients.$[r].status': 'failed', 'recipients.$[r].error': 'Delivery not confirmed (interrupted)' } },
+            { arrayFilters: [{ 'r.status': 'sending', 'r.claimedAt': { $lt: olderThanIso } }] }
+        );
+  }
+
+  async cancelAdvisoryBroadcast(id) {
+        await connectDB();
+        await AdvisoryBroadcast.updateOne(
+            { _id: id, status: 'sending' },
+            { $set: { status: 'cancelled', finishedAt: new Date().toISOString(), 'recipients.$[r].status': 'cancelled' } },
+            { arrayFilters: [{ 'r.status': 'queued' }] }
+        );
+  }
+
+  async updateAdvisoryBroadcast(id, patch, { onlyIfStatus } = {}) {
+        await connectDB();
+        await AdvisoryBroadcast.updateOne(onlyIfStatus ? { _id: id, status: onlyIfStatus } : { _id: id }, { $set: patch });
   }
 
   async getFarmerEnquiries() {

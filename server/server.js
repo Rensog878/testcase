@@ -12,7 +12,8 @@ import Razorpay from 'razorpay';
 import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
-import { sendWhatsAppText, sendWhatsAppImage } from './whatsapp.js';
+import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
+import { selectRecipients, renderAdvisory, parseBroadcastRequest, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
@@ -1716,6 +1717,158 @@ app.get('/api/advisory/subscribers', requireAuth('admin'), async (req, res) => {
     res.json({ success: true, data });
   } catch (err) {
     sendError(res, err, 'Advisory subscribers');
+  }
+});
+
+app.patch('/api/advisory/subscribers/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const status = req.body?.status;
+    if (!SUBSCRIBER_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Unknown subscription status.' });
+    }
+    const data = await db.updateAdvisorySubscriber(req.params.id, { status });
+    if (!data) return res.status(404).json({ success: false, message: 'Subscriber not found.' });
+    // A farmer who opts out is opted out on every sign-up with that number.
+    if (status === 'Unsubscribed') await db.setAdvisoryStatusByPhone(data.phone, status);
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Update advisory subscriber');
+  }
+});
+
+// A broadcast is a job: it is created with its recipient list, then sent in
+// short batches (POST .../process) that the admin page keeps calling until it
+// is done. WhatsApp numbers are paced to ~1 message / 5s, so a large broadcast
+// cannot fit in one serverless request, and a closed tab can resume later.
+const BROADCAST_BATCH_MS = 6000;
+const BROADCAST_STALE_MS = 2 * MINUTE_MS;
+// Send failures where WhatsApp never took the message, so it is safe to try again later.
+const NOT_SENT_CODES = new Set(['BUSY', 'NO_SENDER', 'NOT_CONFIGURED', 'RATE_LIMITED', 'KEY_REJECTED', 'SESSION_DOWN']);
+
+function broadcastSummary(broadcast) {
+  const { recipients, ...rest } = broadcast;
+  return recipients ? { ...rest, counts: broadcastCounts(recipients) } : rest;
+}
+
+app.get('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
+  try {
+    res.json({ success: true, data: await db.getAdvisoryBroadcasts(20) });
+  } catch (err) {
+    sendError(res, err, 'Advisory broadcasts');
+  }
+});
+
+app.get('/api/advisory/broadcasts/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const broadcast = await db.getAdvisoryBroadcast(req.params.id);
+    if (!broadcast) return res.status(404).json({ success: false, message: 'Broadcast not found.' });
+    res.json({ success: true, data: { ...broadcastSummary(broadcast), recipients: broadcast.recipients } });
+  } catch (err) {
+    sendError(res, err, 'Advisory broadcast');
+  }
+});
+
+app.post('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
+  try {
+    let request;
+    try {
+      request = parseBroadcastRequest(req.body);
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    if (!whatsAppConfigured()) {
+      return res.status(503).json({ success: false, message: 'WhatsApp sending is not configured on this server (WASENDER_API_KEY).' });
+    }
+
+    const recipients = selectRecipients(await db.getAdvisorySubscribers(), request).map((sub) => ({
+      subscriberId: sub.id,
+      phone: sub.phone,
+      name: sub.name || '',
+      crop: sub.crop || '',
+      cropGroup: cropGroupKey(sub.crop),
+      season: sub.season || '',
+      acreage: Number(sub.acreage ?? sub.acres) || 1,
+      status: 'queued',
+    }));
+    if (!recipients.length) {
+      return res.status(400).json({ success: false, message: 'No active subscribers match these crops and seasons.' });
+    }
+
+    const broadcast = await db.createAdvisoryBroadcast({
+      id: newId('ADVB'),
+      ...request,
+      status: 'sending',
+      createdAt: new Date().toISOString(),
+      createdBy: { id: req.user.id, name: req.user.name || '' },
+      recipients,
+      counts: broadcastCounts(recipients),
+    });
+    res.json({ success: true, data: broadcastSummary(broadcast) });
+  } catch (err) {
+    sendError(res, err, 'Create advisory broadcast');
+  }
+});
+
+app.post('/api/advisory/broadcasts/:id/process', requireAuth('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const started = Date.now();
+    await db.failStaleBroadcastRecipients(id, new Date(started - BROADCAST_STALE_MS).toISOString());
+
+    const broadcast = await db.getAdvisoryBroadcast(id);
+    if (!broadcast) return res.status(404).json({ success: false, message: 'Broadcast not found.' });
+
+    let paused = null;
+    while (broadcast.status === 'sending' && Date.now() - started < BROADCAST_BATCH_MS) {
+      const recipient = await db.claimBroadcastRecipient(id);
+      if (!recipient) break;
+
+      try {
+        await sendWhatsAppText(recipient.phone, renderAdvisory(broadcast.message, recipient));
+        const sentAt = new Date().toISOString();
+        await db.setBroadcastRecipient(id, recipient.phone, { status: 'sent', sentAt });
+        if (recipient.subscriberId) {
+          await db.updateAdvisorySubscriber(recipient.subscriberId, { lastAdvisorySent: broadcast.title, lastAdvisoryAt: sentAt })
+            .catch(() => {});
+        }
+      } catch (err) {
+        // Nothing was sent (numbers busy, resting or rate limited), so
+        // the farmer goes back in the queue and this batch stops for now.
+        if (NOT_SENT_CODES.has(err.code)) {
+          await db.setBroadcastRecipient(id, recipient.phone, { status: 'queued' });
+          paused = err.code === 'NOT_CONFIGURED' ? err.message : 'WhatsApp numbers are busy. Retrying shortly.';
+          break;
+        }
+        await db.setBroadcastRecipient(id, recipient.phone, {
+          status: err.code === 'NOT_ON_WHATSAPP' ? 'skipped' : 'failed',
+          error: String(err.message || 'Send failed').slice(0, 200),
+        });
+      }
+    }
+
+    const current = await db.getAdvisoryBroadcast(id);
+    const counts = broadcastCounts(current.recipients);
+    const patch = { counts };
+    if (current.status === 'sending' && !counts.queued && !counts.sending) {
+      Object.assign(patch, { status: 'completed', finishedAt: new Date().toISOString() });
+    }
+    await db.updateAdvisoryBroadcast(id, patch);
+    res.json({ success: true, data: { ...broadcastSummary(current), ...patch }, paused });
+  } catch (err) {
+    sendError(res, err, 'Send advisory broadcast');
+  }
+});
+
+app.post('/api/advisory/broadcasts/:id/cancel', requireAuth('admin'), async (req, res) => {
+  try {
+    await db.cancelAdvisoryBroadcast(req.params.id);
+    const current = await db.getAdvisoryBroadcast(req.params.id);
+    if (!current) return res.status(404).json({ success: false, message: 'Broadcast not found.' });
+    const counts = broadcastCounts(current.recipients);
+    await db.updateAdvisoryBroadcast(req.params.id, { counts });
+    res.json({ success: true, data: { ...broadcastSummary(current), counts } });
+  } catch (err) {
+    sendError(res, err, 'Cancel advisory broadcast');
   }
 });
 

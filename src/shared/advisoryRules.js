@@ -160,3 +160,28 @@ export function broadcastCounts(recipients) {
   }
   return counts;
 }
+
+// Replies that opt a farmer out of, or back into, advisories. Matched on the
+// whole message, so "please stop the spray?" in a normal chat never unsubscribes.
+const STOP_WORDS = /^(stop|unsubscribe|stop advisory|நிறுத்து|रोको|ఆపు|ನಿಲ್ಲಿಸಿ)[\s.!]*$/iu;
+const START_WORDS = /^(start|subscribe|resume)[\s.!]*$/iu;
+
+// Reads a WaSender incoming-message webhook. Returns
+// { id, phone, intent: 'stop' | 'start' } for an opt-out/opt-in reply, else null.
+export function parseOptOutWebhook(payload) {
+  if (!/^messages\.(received|upsert)$/.test(String(payload?.event || ''))) return null;
+  const raw = payload?.data?.messages;
+  const msg = Array.isArray(raw) ? raw[0] : raw;
+  const key = msg?.key || {};
+  if (!msg || key.fromMe) return null;
+
+  const text = String(msg.messageBody ?? msg.message?.conversation ?? msg.message?.extendedTextMessage?.text ?? '').trim();
+  const intent = STOP_WORDS.test(text) ? 'stop' : START_WORDS.test(text) ? 'start' : null;
+  if (!intent) return null;
+
+  const pn = [key.cleanedSenderPn, key.senderPn, key.remoteJid].find((v) => v && !String(v).includes('@lid') && !String(v).includes('@g.us'));
+  const digits = String(pn || '').split('@')[0].replace(/\D/g, '');
+  const phone = digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits;
+  if (!/^[6-9]\d{9}$/.test(phone)) return null;
+  return { id: String(key.id || ''), phone, intent };
+}

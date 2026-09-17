@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ADVISORY_TEMPLATES, CROP_GROUPS, OPT_OUT_FOOTER, broadcastCounts, cropGroupKey, parseBroadcastRequest,
-  renderAdvisory, selectRecipients,
+  parseOptOutWebhook, renderAdvisory, selectRecipients,
 } from '../advisoryRules.js';
 
 test('free-text crop labels fold into crop groups', () => {
@@ -70,4 +70,32 @@ test('broadcast requests are validated and cleaned', () => {
 test('broadcast counts', () => {
   assert.deepEqual(broadcastCounts([{ status: 'sent' }, { status: 'sent' }, { status: 'queued' }, { status: 'failed' }]),
     { total: 4, queued: 1, sending: 0, sent: 2, failed: 1, skipped: 0, cancelled: 0 });
+});
+
+const incoming = (text, key = {}) => ({
+  event: 'messages.received',
+  data: { messages: { key: { id: 'M1', fromMe: false, cleanedSenderPn: '918778613372', ...key }, messageBody: text } },
+});
+
+test('a WhatsApp reply of STOP or START is read as an opt-out or opt-in', () => {
+  assert.deepEqual(parseOptOutWebhook(incoming('STOP')), { id: 'M1', phone: '8778613372', intent: 'stop' });
+  assert.equal(parseOptOutWebhook(incoming(' stop. ')).intent, 'stop');
+  assert.equal(parseOptOutWebhook(incoming('நிறுத்து')).intent, 'stop');
+  assert.equal(parseOptOutWebhook(incoming('Start')).intent, 'start');
+});
+
+test('ordinary chat, our own messages, groups and other events are ignored', () => {
+  assert.equal(parseOptOutWebhook(incoming('when should I stop spraying?')), null);
+  assert.equal(parseOptOutWebhook(incoming('cancel')), null);
+  assert.equal(parseOptOutWebhook(incoming('STOP', { fromMe: true })), null);
+  assert.equal(parseOptOutWebhook(incoming('STOP', { cleanedSenderPn: undefined, remoteJid: '12345@g.us' })), null);
+  assert.equal(parseOptOutWebhook({ ...incoming('STOP'), event: 'messages.update' }), null);
+  assert.equal(parseOptOutWebhook(null), null);
+});
+
+test('the sender number is found from senderPn or remoteJid when cleanedSenderPn is missing', () => {
+  const viaJid = incoming('STOP', { cleanedSenderPn: undefined, senderLid: '5@lid', remoteJid: '918778613372@s.whatsapp.net' });
+  assert.equal(parseOptOutWebhook(viaJid).phone, '8778613372');
+  const array = { event: 'messages.upsert', data: { messages: [{ key: { remoteJid: '919876543210@s.whatsapp.net' }, message: { conversation: 'STOP' } }] } };
+  assert.equal(parseOptOutWebhook(array).phone, '9876543210');
 });

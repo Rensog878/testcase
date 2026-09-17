@@ -194,3 +194,29 @@ test('a cancelled broadcast sends nothing further', async () => {
   await call('POST', `/api/advisory/broadcasts/${created.data.data.id}/process`);
   assert.equal(sent.length, 0);
 });
+
+test('a STOP reply over the webhook unsubscribes every sign-up with that number, once, and START restores it', async () => {
+  process.env.WASENDER_WEBHOOK_SECRET = 'hook-a, hook-b';
+  const hook = (body, signature = 'hook-b') => realFetch(`${base}/api/whatsapp/webhook`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Webhook-Signature': signature }, body: JSON.stringify(body),
+  }).then(async (r) => ({ status: r.status, data: await r.json() }));
+  const msg = (id, text, from = '919876500001') => ({ event: 'messages.received', data: { messages: { key: { id, fromMe: false, cleanedSenderPn: from }, messageBody: text } } });
+
+  assert.equal((await hook(msg('1', 'STOP'), 'wrong')).status, 401);
+  assert.equal(subscribers[0].status, undefined);
+
+  const stop = await hook(msg('1', 'STOP'));
+  assert.equal(stop.data.handled, true);
+  assert.deepEqual(subscribers.filter((s) => s.phone === '9876500001').map((s) => s.status), ['Unsubscribed', 'Unsubscribed']);
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].text, /unsubscribed/);
+
+  assert.equal((await hook(msg('1', 'STOP'))).data.duplicate, true);
+  assert.equal((await hook(msg('2', 'hello'))).data.handled, false);
+  assert.equal((await hook(msg('3', 'START', '919999999999'))).data.handled, false);
+
+  assert.equal((await hook(msg('4', 'START'))).data.handled, true);
+  assert.equal(subscribers[0].status, 'Active');
+  delete process.env.WASENDER_WEBHOOK_SECRET;
+});

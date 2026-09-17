@@ -13,7 +13,7 @@ import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
 import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
-import { selectRecipients, renderAdvisory, parseBroadcastRequest, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
+import { selectRecipients, renderAdvisory, parseBroadcastRequest, parseOptOutWebhook, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
@@ -1749,6 +1749,48 @@ function broadcastSummary(broadcast) {
   const { recipients, ...rest } = broadcast;
   return recipients ? { ...rest, counts: broadcastCounts(recipients) } : rest;
 }
+
+// WaSender calls this for incoming WhatsApp messages. A farmer replying STOP
+// is unsubscribed from advisories on every sign-up with that number; START
+// brings them back. Set the webhook URL to https://<site>/api/whatsapp/webhook
+// on each WaSender session, and put its Webhook Secret in
+// WASENDER_WEBHOOK_SECRET (comma-separated when the sessions differ).
+app.post('/api/whatsapp/webhook', async (req, res) => {
+  try {
+    const secrets = String(process.env.WASENDER_WEBHOOK_SECRET || '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (!secrets.length) return res.status(503).json({ success: false, message: 'Webhook is not configured.' });
+    const signature = String(req.headers['x-webhook-signature'] || '');
+    if (!secrets.some((secret) => safeEqual(signature, secret))) {
+      return res.status(401).json({ success: false, message: 'Invalid signature.' });
+    }
+
+    const reply = parseOptOutWebhook(req.body);
+    if (!reply) return res.json({ success: true, handled: false });
+
+    // WaSender may deliver the same event more than once.
+    if (reply.id) {
+      const seenKey = `wa-webhook:${reply.id}`;
+      if (await db.kvGet(seenKey)) return res.json({ success: true, handled: false, duplicate: true });
+      await db.kvSet(seenKey, { at: Date.now() }, 2 * 24 * HOUR_MS);
+    }
+
+    const records = (await db.getAdvisorySubscribers()).filter((s) => s.phone === reply.phone);
+    const status = reply.intent === 'stop' ? 'Unsubscribed' : 'Active';
+    // START only re-activates farmers who once subscribed; it never signs up a stranger.
+    if (!records.length || records.every((s) => (s.status || 'Active') === status)) {
+      return res.json({ success: true, handled: false });
+    }
+    await db.setAdvisoryStatusByPhone(reply.phone, status);
+    res.json({ success: true, handled: true, status });
+
+    const confirmation = status === 'Unsubscribed'
+      ? 'You have been unsubscribed from Sathyam Bio crop advisories. Reply START anytime to get them again.'
+      : 'Welcome back! You will receive Sathyam Bio crop advisories again. Reply STOP to unsubscribe.';
+    sendWhatsAppText(reply.phone, confirmation).catch((err) => console.warn('⚠️ Opt-out confirmation not sent:', err.message));
+  } catch (err) {
+    sendError(res, err, 'WhatsApp webhook');
+  }
+});
 
 app.get('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
   try {

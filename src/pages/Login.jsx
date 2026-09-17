@@ -45,7 +45,6 @@ export default function Login() {
       const user = await login(mobile.trim(), password)
       // A farmer account belongs on the storefront, where it is now signed in.
       if (user.role === 'farmer') {
-        toast.success(`Welcome back, ${user.name}! Farmers shop and sign in on the store. 🌿`)
         celebrateSignIn(user)
         navigate('/', { replace: true })
         return

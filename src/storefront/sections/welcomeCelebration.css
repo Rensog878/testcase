@@ -257,6 +257,7 @@
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -.01em;
+  text-wrap: balance;
 }
 
 .sbw-word {
@@ -284,6 +285,7 @@
 .sbw-sub {
   margin: 0 auto 20px;
   max-width: 30ch;
+  text-wrap: balance;
   font-size: 14px;
   line-height: 1.5;
   color: var(--sbw-soft);
@@ -351,6 +353,15 @@
   animation: sbw-fade-out .5s ease-in both;
 }
 
+/* Indian-script titles are much longer than English: smaller on phones so
+   they fit in two lines. */
+@media (max-width: 768px) {
+  .sbw:not([lang="en"]) .sbw-title {
+    font-size: clamp(20px, 6vw, 26px);
+    line-height: 1.3;
+  }
+}
+
 /* ---- tablet & desktop ---- */
 @media (min-width: 769px) {
   .sbw-card {
@@ -372,6 +383,11 @@
 
   .sbw-title {
     font-size: 36px;
+  }
+
+  .sbw:not([lang="en"]) .sbw-title {
+    font-size: 28px;
+    line-height: 1.3;
   }
 
   .sbw-sub {

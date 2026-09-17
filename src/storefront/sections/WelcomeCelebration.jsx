@@ -83,7 +83,7 @@ export default function WelcomeCelebration() {
   return createPortal(
     <div
       key={welcome.key}
-      className={`sbw notranslate${leaving ? ' is-leaving' : ''}`}
+      lang={lang} className={`sbw notranslate${leaving ? ' is-leaving' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="sbwTitle"

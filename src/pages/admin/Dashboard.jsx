@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in admin-overview">
       <div className="admin-hero">
         <div>
           <div className="eyebrow">Executive overview</div>
@@ -118,15 +118,15 @@ export default function AdminDashboard() {
 
       <div className="card">
         <div className="card-header"><div className="card-title">Quick Actions</div></div>
-        <div className="grid grid-3" style={{ gap: '12px' }}>
+        <div className="quick-actions">
           {quickLinks.map(q => (
-            <button key={q.to} onClick={() => navigate(q.to)} style={{ background: 'rgba(255,255,255,0.6)', border: '1.5px solid var(--surface-border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand-600)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--surface-border-subtle)'}
-            >
-              <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '8px' }}>{q.icon}</span>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '4px' }}>{q.label}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{q.sub}</div>
+            <button key={q.to} type="button" className="quick-action" onClick={() => navigate(q.to)}>
+              <span className="quick-action-icon" aria-hidden="true">{q.icon}</span>
+              <span className="quick-action-text">
+                <span className="quick-action-label">{q.label}</span>
+                <span className="quick-action-sub">{q.sub}</span>
+              </span>
+              <span className="quick-action-arrow" aria-hidden="true">›</span>
             </button>
           ))}
         </div>

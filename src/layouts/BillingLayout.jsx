@@ -25,7 +25,7 @@ export default function BillingLayout() {
           </div>
           <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <LanguageSwitcher />
-            <span className="badge badge-teal">BILLING</span>
+            <span className="badge badge-teal topbar-role">BILLING</span>
           </div>
         </header>
         <main className="page-content"><Outlet /></main>

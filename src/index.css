@@ -3864,8 +3864,27 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   }
 }
 
-/* Language switcher: font-size moved out of the inline style so the
-   touch-device 16px rule can win (inline styles beat any selector). */
+/* Language switcher: all of it moved out of inline styles so the
+   touch-device 16px rule and the staff topbar can restyle it. */
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--dark-800);
+  border: 1px solid var(--surface-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+}
+.lang-switcher-icon { flex: none; color: var(--brand-400); }
+.lang-switcher .lang-switcher-select {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  padding-right: 4px;
+}
 .lang-switcher-select { font-size: 0.82rem; }
 
 @media (hover: none) and (pointer: coarse) {
@@ -5220,7 +5239,10 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   display: none;
 }
 
-@media (min-width: 1024px) {
+/* 1025, not 1024: at exactly 1024 the rail's 16 items overran the 12 fixed
+   columns by 68px; 1024 keeps the tablet swipe rail. Desktop overrides this
+   again in the refinement layer (.all-products-page). */
+@media (min-width: 1025px) {
   .categories-circular-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -8738,6 +8760,30 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .category-circle-lab
   line-height: var(--script-leading);
 }
 
+/* Shop rails on phone/tablet: single Indian-language words ("தெளிப்பான்கள்",
+   "மக்காச்சோளம்") are wider than the 76-78px label, so category labels were
+   cut mid-glyph and crop/pest labels spilled over their neighbours. Break
+   inside the word and allow a third line (desktop does the same). */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(.category-circle-label, .crop-circle-label, .pest-circle-label) {
+  overflow-wrap: anywhere;
+}
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .category-circle-label {
+  -webkit-line-clamp: 3;
+}
+/* /categories: the side rail labels ("பூஞ்சைக்கொல்லிகள்" needs 143px of a 66px
+   tab) were cut mid-glyph, and the banner title ran out of its card over the
+   category image on phones. */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .rail-tab-label {
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 3;
+}
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .subcat-banner-content {
+  min-width: 0;
+}
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .subcat-banner-title {
+  overflow-wrap: anywhere;
+}
+
 /* Menu sheet headings: capitals and letter-spacing suit English, but spacing
    out Indian-language letters pulls their joined forms apart. */
 html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
@@ -8838,7 +8884,9 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    background: #f4f5f2;
+    background:
+      radial-gradient(1100px 520px at 100% -8%, rgba(11, 122, 75, 0.07), transparent 62%),
+      #f2f4f0;
   }
 
   /* Floating rail: detached from the viewport's top/left edges with a
@@ -8860,44 +8908,87 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     background: transparent;
   }
 
-  /* The content column floats too, inset from the right/bottom edges (the
-     left edge is already the sidebar's own gap, via .main-content's
-     margin-left above) with rounded corners and a shadow, so it reads as
-     its own floating page rather than a bare strip run to the frame. */
+  /* The page body is NOT one big white card any more: that put every card
+     inside a second card. The column is transparent and each card floats
+     on the canvas by itself, lined up with the topbar's edges. */
   .page-content,
-  .employee-workspace .page-content {
+  .employee-workspace .page-content,
+  .billing-workspace .page-content {
     width: auto;
     max-width: none;
-    margin: var(--space-4) var(--space-4) var(--space-4) 0;
-    padding: var(--space-8);
-    background: #ffffff;
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
+    margin: 0 var(--space-4) var(--space-4) 0;
+    padding: var(--space-6) 0 var(--space-8);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
-  /* The topbar floats the same way directly above it, with the same gap
-     used for the sticky offset, so scrolling keeps it clear of the frame
-     instead of snapping flush to the very top. */
+  /* Frosted floating topbar, sticky with the same 16px gap as the sidebar. */
   .topbar {
     top: var(--space-4);
-    height: 64px;
-    padding: 0 var(--space-8);
-    margin: 0 var(--space-4) 0 0;
-    background: #ffffff;
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
+    height: 68px;
+    padding: 0 var(--space-4) 0 var(--space-6);
+    margin: var(--space-4) var(--space-4) 0 0;
+    background: rgba(255, 255, 255, 0.84);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 14px 34px -16px rgba(20, 35, 28, 0.2);
+  }
+
+  /* Scrolled cards must not show in the 16px strip above the sticky bar. */
+  .topbar::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    bottom: 100%;
+    height: calc(var(--space-4) + 2px);
+    background: #f2f4f0;
+    pointer-events: none;
   }
 
   .employee-workspace .topbar {
-    background: #ffffff;
-    /* Same specificity as the unlayered rule above (employee-workspace
-       lines), so this has to restate the border to win the bottom edge
-       back from its border-bottom: it would otherwise square off just
-       that one side of an otherwise fully rounded, floating topbar. */
-    border: 1px solid var(--surface-border);
+    background: rgba(255, 255, 255, 0.84);
+    /* Same specificity as the unlayered employee-workspace rule, so the
+       border is restated to win back its square bottom edge. */
+    border: 1px solid rgba(20, 35, 28, 0.07);
   }
+
+  .topbar-heading { min-width: 0; }
+
+  .topbar-title {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 1.1875rem;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  .topbar-subtitle {
+    margin-top: 2px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .topbar .lang-switcher {
+    height: 38px;
+    padding: 0 var(--space-3);
+    background: #ffffff;
+    border: 1px solid var(--surface-border);
+    border-radius: 999px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .topbar .lang-switcher:hover {
+    border-color: #d0d4cd;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .topbar .lang-switcher-icon { color: var(--brand-600); }
 
   /* ---- sidebar: quiet surface, no motion, real selected state ----------- */
   .sidebar-logo {
@@ -8992,10 +9083,9 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     box-shadow: none;
   }
 
-  /* Phase 3: a hovered card is "border #D0D4CD + shadow-sm", not shadow-md. */
+  /* A hovered card keeps its floating shadow; only the border firms up. */
   .card:hover {
-    border-color: #d0d4cd;
-    box-shadow: var(--shadow-sm);
+    border-color: rgba(20, 35, 28, 0.12);
   }
 
   .form-input:focus,
@@ -9384,30 +9474,36 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   }
 
   /* ---- cards ------------------------------------------------------------
-     One surface: white, 1px border, radius 12, no resting shadow. The >=769
-     PRIMITIVES layer set radius 24 / padding 32 / shadow-md and lifted every
-     .card on hover, including the ones that are not interactive. */
+     One surface: white, 1px border, radius 16 and a soft resting shadow, so
+     each card floats on the staff canvas (the page body is no longer a card
+     itself). No hover lift on cards that are not interactive. */
   .card {
     background: #ffffff;
-    border: 1px solid var(--surface-border);
-    border-radius: 12px;
-    padding: var(--space-5);
-    box-shadow: none;
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 16px;
+    padding: var(--space-6);
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 24px -12px rgba(20, 35, 28, 0.12);
   }
   .card:hover {
     transform: none;
   }
   .card-header {
     margin-bottom: var(--space-4);
-    padding-bottom: var(--space-3);
-    border-bottom-color: var(--surface-border);
+    padding-bottom: var(--space-4);
+    border-bottom-color: #eef0ec;
+  }
+  .card-title {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
   }
   .stat-card {
     background: #ffffff;
-    border: 1px solid var(--surface-border);
-    border-radius: 12px;
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 16px;
     padding: var(--space-5);
-    box-shadow: none;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 24px -12px rgba(20, 35, 28, 0.12);
   }
 
   /* ---- tables -----------------------------------------------------------
@@ -10908,56 +11004,72 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   }
 
   .stat-card {
-    padding: var(--space-6);
-    background: var(--surface-card);
-    border: 1px solid var(--surface-border);
-    border-radius: 12px;
-    box-shadow: none;
+    padding: var(--space-5) var(--space-6);
   }
 
-  /* Section 8 retires hover elevation on non-interactive surfaces; a grid of
-     stat tiles lifting under the pointer was pure noise. */
+  /* No hover elevation on non-interactive tiles. */
   .stat-card:hover {
     transform: none;
-    box-shadow: none;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 24px -12px rgba(20, 35, 28, 0.12);
   }
 
-  /* The audit found `.stat-card.green` and `.stat-icon.green` rendering PINK
-     (index.css ~2029/~2049) — a "green" variant that is not green. */
-  .stat-card.green::before,
+  /* The pastel strip across the top of every tile read as dated; the tinted
+     icon tile already carries the colour. */
+  .stat-card::before {
+    display: none;
+  }
+
   .stat-icon.green {
-    background: var(--brand-600);
+    background: rgba(11, 122, 75, 0.10);
   }
 
   .stat-icon {
     width: 40px;
     height: 40px;
     border-radius: 12px;
+    font-size: 20px;
   }
 
   /* ---- the admin hero ---------------------------------------------------
-     Audit: a navy gradient panel, off-brand against a green product. Flat
-     surface, brand ink. */
+     A white floating panel with a faint brand wash instead of a flat grey
+     box inside another card. */
   .admin-hero {
-    padding: var(--space-8);
-    background: var(--surface-secondary);
-    border: 1px solid var(--surface-border);
-    border-radius: 16px;
-    box-shadow: none;
+    padding: var(--space-8) var(--space-8);
+    margin-bottom: var(--space-6);
+    background:
+      radial-gradient(520px 220px at 100% 0%, rgba(22, 164, 106, 0.12), transparent 70%),
+      linear-gradient(135deg, #ffffff 0%, #f7faf6 100%);
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 24px -12px rgba(20, 35, 28, 0.12);
     color: var(--text-primary);
+  }
+
+  .admin-hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 10px;
+    margin-bottom: var(--space-3);
+    border-radius: 999px;
+    background: var(--brand-50);
+    color: var(--brand-700);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
   }
 
   .admin-hero h1,
   .admin-hero h2 {
     font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 2rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
   }
 
-  /* The base rule's near-white paragraph color (for the old navy gradient)
-     was never re-pointed when this panel went flat and light above, so
-     "Welcome back, ..." rendered almost invisible on the new background. */
   .admin-hero p {
     color: var(--text-muted);
+    font-size: 0.9375rem;
   }
 
   /* ---- tables: stop the double container --------------------------------
@@ -10966,9 +11078,10 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
      One frame: the .table-wrap IS the container, and it scrolls internally
      rather than pushing the page sideways (9 files render it). */
   .table-wrap {
-    background: var(--surface-card);
-    border: 1px solid var(--surface-border);
-    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 24px -12px rgba(20, 35, 28, 0.12);
     overflow-x: auto;
     overscroll-behavior-x: contain;
   }
@@ -11016,7 +11129,7 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
      green, so the same action looked like two different products. */
   .employee-workspace .page-content,
   .billing-workspace .page-content {
-    padding: var(--space-8);
+    padding: var(--space-6) 0 var(--space-8);
   }
 
   .employee-stat {
@@ -11031,6 +11144,298 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   .pos-billing-layout {
     gap: var(--space-6);
   }
+}
+
+/* ==========================================================================
+   STAFF FLOATING UI — topbar chip, admin overview, phone/tablet shell
+   --------------------------------------------------------------------------
+   The desktop shell (frosted topbar, transparent page column, floating
+   cards) is edited in place in the PHASE 2/3 blocks and WAVE 2 above. This
+   section holds the classes that did not exist before (Quick Actions, role
+   chip) and the <=1024px staff shell, which the user asked to modernise too.
+   Everything here is scoped to staff markup (.app-layout, .topbar,
+   .admin-overview), so store and login pages are untouched.
+   ========================================================================== */
+/* Admin pages paint panels with inline var(--dark-800)/--dark-700, a grey
+   green that turned muddy on the light canvas. Retinted for staff only. */
+.app-layout {
+  --dark-800: #f5f7f4;
+  --dark-700: #e8ece7;
+}
+
+.stat-icon.red { background: rgba(220, 38, 38, 0.10); color: #b42318; }
+
+.topbar-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+}
+.topbar-role::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid rgba(20, 35, 28, 0.08);
+  border-radius: 14px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.quick-action:hover {
+  border-color: rgba(11, 122, 75, 0.35);
+  background: #fafcf9;
+  box-shadow: 0 8px 20px -12px rgba(11, 122, 75, 0.35);
+}
+.quick-action:focus-visible {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 2px;
+}
+.quick-action-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f1f5f0;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.quick-action-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.quick-action-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.quick-action-sub {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.quick-action-arrow {
+  flex: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text-disabled, #8d9a93);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+.quick-action:hover .quick-action-arrow {
+  color: var(--brand-600);
+  transform: translateX(2px);
+}
+@media (min-width: 560px) {
+  .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* The overview's KPI tile: label + value on the left, icon tile on the
+   right, footnote underneath. */
+.admin-overview .stat-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label icon" "value icon" "change change";
+  align-items: start;
+  column-gap: 12px;
+}
+.admin-overview .stat-icon { grid-area: icon; margin-bottom: 0; }
+.admin-overview .stat-label { grid-area: label; margin-top: 0; font-weight: 600; }
+.admin-overview .stat-value { grid-area: value; margin-top: 4px; line-height: 1.15; letter-spacing: -0.01em; }
+.admin-overview .stat-change {
+  grid-area: change;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef0ec;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+/* Day labels under an empty chart point at nothing. */
+.admin-overview .empty-state + .mini-graph-labels { display: none; }
+
+@media (min-width: 1025px) {
+  .card .table-wrap { box-shadow: none; }
+
+  .admin-overview .stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+  .admin-overview .stat-value { font-size: 1.875rem; }
+
+  /* Revenue is the headline number: a double-width brand tile, which also
+     turns 7 tiles into two full rows of 4. */
+  .admin-overview .stat-card.green {
+    grid-column: span 2;
+    background:
+      radial-gradient(360px 180px at 100% 0%, rgba(255, 255, 255, 0.14), transparent 70%),
+      linear-gradient(135deg, #0b7a4b 0%, #075437 100%);
+    border-color: transparent;
+    box-shadow: 0 14px 30px -16px rgba(7, 84, 55, 0.6);
+  }
+  .admin-overview .stat-card.green:hover {
+    box-shadow: 0 14px 30px -16px rgba(7, 84, 55, 0.6);
+  }
+  .admin-overview .stat-card.green .stat-value { color: #ffffff; font-size: 2.25rem; }
+  .admin-overview .stat-card.green .stat-label { color: rgba(255, 255, 255, 0.82); }
+  .admin-overview .stat-card.green .stat-change { color: rgba(255, 255, 255, 0.78); border-top-color: rgba(255, 255, 255, 0.16); }
+  .admin-overview .stat-card.green .stat-icon { background: rgba(255, 255, 255, 0.16); }
+
+  .admin-overview .dashboard-insights,
+  .admin-overview .dashboard-ops-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--space-5);
+    margin: 0 0 var(--space-5);
+  }
+  .admin-overview .executive-panel { min-height: 0; }
+  .admin-overview .empty-state { padding: var(--space-8) var(--space-4); }
+  .admin-overview .quick-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+}
+
+/* ---- phone + tablet staff shell (<=1024px) --------------------------------
+   Same language as desktop, sized for touch: a floating frosted topbar,
+   a soft canvas, compact floating cards. */
+@media (max-width: 1024px) {
+  body:has(.app-layout),
+  .app-layout { background: #f2f4f0; }
+
+  .app-layout .topbar {
+    top: 10px;
+    height: 58px;
+    margin: 10px 12px 0;
+    padding: 0 10px 0 6px;
+    background: rgba(255, 255, 255, 0.86);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 10px 24px -14px rgba(20, 35, 28, 0.22);
+  }
+  .app-layout .topbar::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    right: -14px;
+    bottom: 100%;
+    height: 12px;
+    background: #f2f4f0;
+    pointer-events: none;
+  }
+  .app-layout .topbar-left { gap: 6px; min-width: 0; flex: 1; }
+  .app-layout .topbar-heading { min-width: 0; }
+  .app-layout .topbar-title {
+    font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .app-layout .topbar-right { gap: 8px; flex: none; }
+  .app-layout .hamburger-btn { width: 40px; height: 40px; border-radius: 12px; }
+  .app-layout .topbar .lang-switcher {
+    height: 36px;
+    padding: 0 10px;
+    background: #ffffff;
+    border: 1px solid #e3e5df;
+    border-radius: 999px;
+  }
+  .app-layout .topbar-role { padding: 4px 9px; }
+
+  .app-layout .page-content { padding: 16px 12px 28px; }
+
+  .app-layout .card {
+    padding: 16px;
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 20px -14px rgba(20, 35, 28, 0.16);
+  }
+  .app-layout .card-header { margin-bottom: 12px; padding-bottom: 12px; border-bottom-color: #eef0ec; }
+  .app-layout .card-title { font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif; font-weight: 600; }
+
+  .app-layout .stat-card {
+    padding: 14px;
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 20px -14px rgba(20, 35, 28, 0.16);
+  }
+  .app-layout .stat-card::before { display: none; }
+  .app-layout .stat-card:hover { transform: none; }
+  .app-layout .stat-icon { width: 36px; height: 36px; border-radius: 10px; font-size: 18px; margin-bottom: 10px; }
+  .app-layout .stat-icon.green { background: rgba(11, 122, 75, 0.10); }
+  .app-layout .stat-value { font-size: 1.35rem; }
+
+  .admin-overview .stat-label { font-size: 0.75rem; }
+  .admin-overview .stat-change { font-size: 0.7rem; margin-top: 10px; padding-top: 8px; }
+  .admin-overview .stat-card.green {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #0b7a4b 0%, #075437 100%);
+    border-color: transparent;
+  }
+  .admin-overview .stat-card.green .stat-value { color: #ffffff; font-size: 1.6rem; }
+  .admin-overview .stat-card.green .stat-label { color: rgba(255, 255, 255, 0.82); }
+  .admin-overview .stat-card.green .stat-change { color: rgba(255, 255, 255, 0.78); border-top-color: rgba(255, 255, 255, 0.16); }
+  .admin-overview .stat-card.green .stat-icon { background: rgba(255, 255, 255, 0.16); }
+
+  .admin-overview .admin-hero {
+    padding: 20px;
+    margin-bottom: 16px;
+    background:
+      radial-gradient(320px 160px at 100% 0%, rgba(22, 164, 106, 0.12), transparent 70%),
+      #ffffff;
+    border: 1px solid rgba(20, 35, 28, 0.07);
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 20px -14px rgba(20, 35, 28, 0.16);
+    color: var(--text-primary);
+    gap: 12px;
+  }
+  .admin-overview .admin-hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: #e7f2ec;
+    color: #075437;
+    font-size: 0.625rem;
+  }
+  .admin-overview .admin-hero h1 { font-family: 'Outfit', var(--script-font, system-ui), system-ui, sans-serif; font-size: 1.5rem; color: var(--text-primary); }
+  .admin-overview .admin-hero p { color: var(--text-muted); font-size: 0.875rem; }
+
+  .admin-overview .dashboard-insights,
+  .admin-overview .dashboard-ops-grid { gap: 16px; margin: 16px 0; }
+  .admin-overview .executive-panel { min-height: 0; }
+  .admin-overview .empty-state { padding: 20px 8px; }
+
+  .app-layout .table-wrap { border-radius: 14px; }
+}
+
+@media (max-width: 480px) {
+  .app-layout .topbar-role { display: none; }
+  .app-layout .topbar .lang-switcher { padding: 0 8px; }
 }
 
 /* =========================================

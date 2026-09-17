@@ -22,7 +22,7 @@ export default function DeliveryLayout() {
           </div>
           <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <LanguageSwitcher />
-            <span className="badge badge-orange">DELIVERY</span>
+            <span className="badge badge-orange topbar-role">DELIVERY</span>
           </div>
         </header>
         <main className="page-content"><Outlet /></main>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { Menu } from 'lucide-react'
@@ -44,6 +44,9 @@ const ADMIN_NAV = [
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { pathname } = useLocation()
+  const links = ADMIN_NAV.flatMap(section => section.links)
+  const current = links.find(l => l.to === pathname) || links.find(l => !l.end && pathname.startsWith(`${l.to}/`))
   return (
     <div className="app-layout">
       <Sidebar items={ADMIN_NAV} roleName="Admin" roleEmoji="🛡️" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -51,14 +54,14 @@ export default function AdminLayout() {
         <header className="topbar">
           <div className="topbar-left">
             <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu"><Menu size={20} /></button>
-            <div>
-              <div className="topbar-title">Dashboard</div>
-              <div className="topbar-subtitle">Sathyam Bio Enterprise Management</div>
+            <div className="topbar-heading">
+              <div className="topbar-title">{current ? current.label : 'Dashboard'}</div>
+              <div className="topbar-subtitle">Admin · Sathyam Bio Enterprise Management</div>
             </div>
           </div>
-          <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="topbar-right">
             <LanguageSwitcher />
-            <span className="badge badge-red" style={{ fontSize: '0.7rem' }}>ADMIN</span>
+            <span className="badge badge-red topbar-role">ADMIN</span>
           </div>
         </header>
         <main className="page-content"><Outlet /></main>

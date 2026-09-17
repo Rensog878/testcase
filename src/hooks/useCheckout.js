@@ -44,6 +44,9 @@ const BasketContext = createContext(null)
 const StateContext = createContext(null)
 
 // Stable functions: add to the basket, open the pop-up, sign in.
+// Pages a farmer stays on after signing in (see afterSignIn).
+const STAY_AFTER_SIGN_IN = /^\/(product\/|orders|wishlist|blog\/)/
+
 export const useCheckoutActions = () => useContext(ActionsContext)
 // { cart, cartReady, count, totals }
 export const useBasket = () => useContext(BasketContext)
@@ -365,20 +368,32 @@ export function CheckoutProvider({ enabled, children }) {
 
     const afterSignIn = async signedInUser => {
       const resume = resumeRef.current
-      // Staff roles each have their own portal; farmers go shopping (below).
+      // Staff roles each have their own portal.
       const home = STAFF_HOME[signedInUser?.role]
-      closeSignIn({ keepHash: Boolean(home) })
-      // Anything added as a guest joins this customer's basket.
-      const items = await loadCart(signedInUser)
       if (home) {
+        closeSignIn({ keepHash: true })
+        await loadCart(signedInUser)
         leaveSignInFor(home)
         return
       }
+      // A farmer who signed in in the middle of something carries on with it:
+      // finishing a checkout, the basket filled as a guest, or the page being
+      // read (a product, orders, wishlist, an article). Otherwise they go
+      // shopping, and the sign-in card's history entry becomes that page.
+      const guestItems = readGuestCart().length
+      const midTask = resume || Boolean(live.current.step) || guestItems > 0
+      if (midTask || STAY_AFTER_SIGN_IN.test(live.current.location.pathname)) {
+        closeSignIn()
+        if (!midTask) celebrateSignIn(signedInUser)
+        // Anything added as a guest joins this farmer's basket.
+        const items = await loadCart(signedInUser)
+        if (resume && items.length) showStep('address')
+        else if (guestItems && !live.current.step) showStep('basket')
+        return
+      }
       celebrateSignIn(signedInUser)
-      // Signing in to finish a checkout carries on with it; otherwise the
-      // farmer goes straight to shopping.
-      if (resume && items.length) showStep('address')
-      else if (!live.current.step) leaveSignInFor(farmerLandingPath())
+      leaveSignInFor(farmerLandingPath())
+      loadCart(signedInUser)
     }
 
     // ---- delivery details ----

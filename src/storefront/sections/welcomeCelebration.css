@@ -17,6 +17,9 @@
   font-family: 'Plus Jakarta Sans', 'Outfit', var(--script-font, system-ui), sans-serif;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
+  /* the page behind does not scroll under it */
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .sbw-backdrop {

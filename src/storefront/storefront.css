@@ -8466,16 +8466,23 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     gap: 28px;
     min-height: 38px;
     padding-inline: calc((100% - min(100%, 1320px)) / 2 + var(--sb-gutter));
-    /* Liquid-glass: one flat translucent tint (no multi-stop gradient, which
-       read as a patchy seam) plus a single soft sheen top-left, over
-       whatever scrolls under the strip - matches the frosted header-main
-       card below it instead of fighting it with a second, busier gradient. */
+    /* Solid brand green, derived from --primary-dark so it tracks the token
+       instead of drifting from it.
+
+       This strip is position: relative, not sticky - the page never scrolls
+       behind it - so the old translucent "liquid glass" tint had nothing to
+       blur. All it did was composite rgba(8,40,28,.82) against the light page
+       into rgb(52,79,68): a near-grey with roughly a third of the brand
+       green's chroma, which is why it read as muddy next to the saturated
+       logo tile and Search button in the header directly below.
+
+       Still one flat tint plus the single soft sheen top-left - a multi-stop
+       gradient was tried here before and read as a patchy seam. */
     background:
       radial-gradient(130% 220% at 18% -80%, rgba(255, 255, 255, 0.10), transparent 55%),
-      rgba(8, 40, 28, 0.82);
-    -webkit-backdrop-filter: saturate(1.5) blur(18px);
-    backdrop-filter: saturate(1.5) blur(18px);
-    color: rgba(255, 255, 255, 0.72);
+      linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)),
+      var(--primary-dark);
+    color: rgba(255, 255, 255, 0.78);
     font-size: 0.75rem;
     font-weight: 500;
     line-height: 1;
@@ -8510,17 +8517,25 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     padding: 0 13px;
     border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    /* Top-lit fill plus a 1px inner highlight: the pill catches light from
+       above like the frosted header card does, instead of sitting flat. */
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.06));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 1px 2px rgba(3, 26, 17, 0.26);
     color: #ffffff;
     font-size: inherit;
     font-weight: 600;
     letter-spacing: 0.01em;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-link:hover {
     background: #ffffff;
     border-color: #ffffff;
     color: #0b4630;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 2px 10px rgba(3, 26, 17, 0.3);
   }
   /* Only the time-bound promos scroll. The strip fades at both ends rather
      than slicing text off, and still pauses on hover (base rule). */
@@ -8580,9 +8595,16 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     display: inline-flex;
     align-items: center;
     padding-left: 20px;
-    border-left: 1px solid rgba(255, 255, 255, 0.16);
+    border-left: 0;
     border-radius: 0;
-    background: none;
+    /* A hairline that fades out at both ends rather than a hard full-height
+       rule: it reads as light catching an edge, not a table border. */
+    background: linear-gradient(
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.22) 28%,
+      rgba(255, 255, 255, 0.22) 72%,
+      rgba(255, 255, 255, 0)
+    ) left center / 1px 100% no-repeat;
     color: inherit;
     font-size: inherit;
   }
@@ -8603,7 +8625,14 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     min-width: 0;
     overflow: hidden;
     padding-left: 20px;
-    border-left: 1px solid rgba(255, 255, 255, 0.16);
+    border-left: 0;
+    /* Same fading hairline as .topbar-badge. */
+    background: linear-gradient(
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.22) 28%,
+      rgba(255, 255, 255, 0.22) 72%,
+      rgba(255, 255, 255, 0)
+    ) left center / 1px 100% no-repeat;
     line-height: 14px;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -10,11 +10,11 @@ import { cmsText, cmsTickerLines } from '../../hooks/useCmsSettings'
 export const TICKER_ITEMS = (
   <>
     <span className="ticker-item"><i className="fa-solid fa-fire" style={{ color: '#C77D18' }}></i> FLAT 15% OFF on first order — Use code <strong>FARM15</strong></span>
-    <span className="ticker-item"><i className="fa-solid fa-truck-fast" style={{ color: '#3FBE86' }}></i> Free express delivery on orders above ₹999 across all 28 states</span>
+    <span className="ticker-item ticker-item--evergreen"><i className="fa-solid fa-truck-fast" style={{ color: '#3FBE86' }}></i> Free express delivery on orders above ₹999 across all 28 states</span>
     <span className="ticker-item"><i className="fa-solid fa-leaf" style={{ color: '#8FD9B6' }}></i> BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season</span>
     <span className="ticker-item"><i className="fa-brands fa-whatsapp" style={{ color: '#25d366' }}></i> WhatsApp us at 9000-425-999 for instant crop advisory in your language</span>
     <span className="ticker-item"><i className="fa-solid fa-award" style={{ color: '#C77D18' }}></i> Sathyam Bio — Winner of ICAR Best AgriTech 2025 Award</span>
-    <span className="ticker-item"><i className="fa-solid fa-phone-volume" style={{ color: '#3FBE86' }}></i> Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</span>
+    <span className="ticker-item ticker-item--evergreen"><i className="fa-solid fa-phone-volume" style={{ color: '#3FBE86' }}></i> Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</span>
   </>
 )
 
@@ -47,22 +47,24 @@ export const TickerBar = memo(function TickerBar({ cms }) {
 
 export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
 
-export const Topbar = memo(function Topbar({ t, user, appliedLang, cms }) {
+// The utility strip. It is `display: none` below 1025px (storefront.css), so
+// it is a desktop-only surface and its contents can be edited freely without
+// touching how phones or tablets render.
+//
+// The signed-in greeting that used to sit here is gone: the account control in
+// the row below already shows the same name and crop, a few hundred pixels to
+// the right. The phone number and the delivery promise are the two evergreen
+// facts, so they hold still on the right instead of scrolling past in the
+// marquee (their duplicate ticker items are hidden at >=1025px).
+export const Topbar = memo(function Topbar({ t, appliedLang, cms }) {
   return (
     <div className="topbar">
       <div className="container topbar-content">
         <div className="topbar-left-links">
           <a href="#catalog" className="topbar-link">Sell on Sathyam Bio</a>
-          <span
-            className="topbar-badge"
-            id="topbarUserGreeting"
-            style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
-          >
-            {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
-          </span>
-          <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>{cmsText(cms, 'phone', '1800-425-9999')}</strong></span>
         </div>
         <div className="topbar-right-info">
+          <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>{cmsText(cms, 'phone', '1800-425-9999')}</strong></span>
           <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> <span data-i18n="topbar_shipping">{t('topbar_shipping')}</span></span>
           <div className="lang-selector-wrapper">
             <i className="fa-solid fa-globe"></i>
@@ -74,7 +76,7 @@ export const Topbar = memo(function Topbar({ t, user, appliedLang, cms }) {
   )
 })
 
-export const Header = memo(function Header({ t, user, appliedLang, cartCount, cartTotal, searchText, headerCategories }) {
+export const Header = memo(function Header({ t, user, appliedLang, cartCount, cartTotal, searchText }) {
   const { setFilter, scrollToCatalog, handleAccountClick, handleBasketClick, goTo } = useStore()
 
   const onSearchKey = event => {
@@ -98,18 +100,6 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
         </a>
 
         <div className="header-search">
-          <div className="search-category-dropdown">
-            <select
-              id="searchCategorySelect"
-              defaultValue="All"
-              onChange={event => {
-                setFilter('category', event.target.value)
-                scrollToCatalog()
-              }}
-            >
-              {headerCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
-          </div>
           <input
             type="text"
             id="headerSearchInput"
@@ -129,13 +119,6 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
         </div>
 
         <div className="header-actions">
-          <div className="action-item lang-item">
-            <i className="fa-solid fa-language action-icon"></i>
-            <div>
-              <span className="action-sub" data-i18n="lang_label">{t('lang_label')}</span>
-              <LanguageSelect id="langSelectHeader" className="header-lang-dropdown" appliedLang={appliedLang} />
-            </div>
-          </div>
 
           <div className="action-item action-track" onClick={() => goTo('/orders')} role="button" tabIndex={0}>
             <i className="fa-solid fa-truck-ramp-box action-icon"></i>
@@ -145,7 +128,11 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
             </div>
           </div>
 
-          <div className="action-item action-wishlist" onClick={() => showToast('Wishlist is coming soon.', 'info')}>
+          {/* A real link, as on every other store page (Navigation.jsx). The
+              inner markup is unchanged so tablets render exactly as before;
+              the hard-coded "0" badge is not live data and is hidden at
+              >=1025px. */}
+          <Link to="/wishlist" className="action-item action-wishlist">
             <div className="action-icon">
               <i className="fa-regular fa-heart"></i>
               <span className="cart-badge" style={{ background: 'var(--accent-amber)' }}>0</span>
@@ -154,7 +141,7 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
               <span className="action-sub">Saved</span>
               <span className="action-title">Wishlist</span>
             </div>
-          </div>
+          </Link>
 
           {/* Phones and tablets, where the Language badge above is hidden. */}
           <LanguageQuickSwitch appliedLang={appliedLang} t={t} />
@@ -272,6 +259,18 @@ export const NavBar = memo(function NavBar({ t }) {
                 </ul>
                 <a className="nav-mega-all" href="#catalog" onClick={close}>See the full catalogue <i className="fa-solid fa-arrow-right"></i></a>
               </div>
+              {/* At >=1025px the bar keeps only the two mega-menu triggers, so
+                  the three plain links it drops land here. The panel never
+                  opens below 1025px (storefront.css tablet guard), so this
+                  column is desktop-only by construction. */}
+              <div className="nav-mega-col nav-mega-col--explore">
+                <p className="nav-mega-head">Explore</p>
+                <ul>
+                  <li><a href="#catalog" onClick={close}><i className="fa-solid fa-store" aria-hidden="true"></i> <span data-i18n="nav_all_products">{t('nav_all_products')}</span></a></li>
+                  <li><a href="#brandsSection" onClick={close}><i className="fa-solid fa-award" aria-hidden="true"></i> Brands</a></li>
+                  <li><Link to="/blog" onClick={close}><i className="fa-solid fa-book-open" aria-hidden="true"></i> Blogs</Link></li>
+                </ul>
+              </div>
             </div>
           ))}
 
@@ -298,7 +297,7 @@ export const NavBar = memo(function NavBar({ t }) {
         </ul>
 
         <div className="nav-actions">
-          <button className="btn btn-gold nav-scan-btn" data-modal-target="photoScannerModal">
+          <button className="btn btn-gold nav-scan-btn" data-modal-target="photoScannerModal" title={t('nav_ai_scanner')}>
             <i className="fa-solid fa-camera-retro"></i> <span data-i18n="nav_ai_scanner">{t('nav_ai_scanner')}</span>
           </button>
         </div>

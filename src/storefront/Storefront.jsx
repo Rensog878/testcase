@@ -37,14 +37,6 @@ import './storefront.css'
 
 const PAGE_TITLE = "Sathyam Bio - India's Largest Online Agro Pesticides & Crop Protection Store"
 const DEFAULT_FILTERS = { crop: 'all', disease: 'all', category: 'All', search: '' }
-const HEADER_CATEGORIES = [
-  ['All', 'All Categories'],
-  ['Fungicide', 'Fungicides'],
-  ['Insecticide', 'Insecticides'],
-  ['Herbicide', 'Herbicides'],
-  ['Bio-Stimulant', 'Bio-Stimulants'],
-  ['Nematicide', 'Nematicides'],
-]
 
 function readLocalCms() {
   try { return JSON.parse(localStorage.getItem('sathya_cms') || '{}') } catch { return {} }
@@ -326,17 +318,21 @@ export default function Storefront() {
 
   const t = useCallback(key => translationFor(appliedLang, key) || key, [appliedLang])
 
-  const headerCategories = catalogOptions
-    ? catalogOptions.categories.map(value => [value, value === 'All' ? 'All Categories' : value])
-    : HEADER_CATEGORIES
-
   return (
     <StoreContext.Provider value={actions}>
       <div className="sb-home" id="top">
-        <TickerBar cms={cms} />
-        <Topbar t={t} user={user} appliedLang={appliedLang} cms={cms} />
-        <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} headerCategories={headerCategories} />
-        <NavBar t={t} />
+        {/* Two shells, so the four chrome rows can collapse into two at
+            >=1025px. Both are `display: contents` below that, which generates
+            no box at all - phones and tablets lay out exactly as if these
+            wrappers were not here. */}
+        <div className="sb-utility-shell">
+          <TickerBar cms={cms} />
+          <Topbar t={t} appliedLang={appliedLang} cms={cms} />
+        </div>
+        <div className="sb-header-shell">
+          <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} />
+          <NavBar t={t} />
+        </div>
         <Hero t={t} cms={cms} />
         <DealBanner />
         <TrustStrip t={t} />

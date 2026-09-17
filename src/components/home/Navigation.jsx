@@ -25,7 +25,6 @@ export default function Navigation() {
   const navigate = useNavigate()
 
   const [searchText, setSearchText] = useState('')
-  const [searchCategory, setSearchCategory] = useState('All')
   const [openMenu, setOpenMenu] = useState(null)
 
   const goProducts = params => {
@@ -33,7 +32,7 @@ export default function Navigation() {
     const s = qs.toString()
     navigate(s ? `/products?${s}` : '/products')
   }
-  const runSearch = () => goProducts({ search: searchText, category: searchCategory !== 'All' ? searchCategory : '' })
+  const runSearch = () => goProducts({ search: searchText })
 
   const close = () => setOpenMenu(null)
   const megaItem = (id, icon, label, panel) => (
@@ -98,11 +97,6 @@ export default function Navigation() {
           </Link>
 
           <div className="header-search">
-            <div className="search-category-dropdown">
-              <select value={searchCategory} onChange={event => setSearchCategory(event.target.value)} aria-label="Search category">
-                {CATEGORIES.map(value => <option key={value} value={value}>{value === 'All' ? 'All Categories' : `${value}s`}</option>)}
-              </select>
-            </div>
             <input
               type="text"
               placeholder="Search by crop, disease or chemical"
@@ -115,16 +109,6 @@ export default function Navigation() {
           </div>
 
           <div className="header-actions">
-            <div className="action-item lang-item">
-              <i className="fa-solid fa-language action-icon"></i>
-              <div>
-                <span className="action-sub">Language</span>
-                <select className="header-lang-dropdown" value={lang} onChange={event => setLang(event.target.value)} aria-label="Language">
-                  {languages.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
-                </select>
-              </div>
-            </div>
-
             <Link to="/orders" className="action-item action-track">
               <i className="fa-solid fa-truck-ramp-box action-icon"></i>
               <div><span className="action-sub">Track</span><span className="action-title">Order Status</span></div>

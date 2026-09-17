@@ -7807,27 +7807,28 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab-label {
     display: none;
   }
-  /* Floating card instead of a flush bottom sheet: the overlay keeps the
-     card off every edge. */
+  /* A true floating card, centered clear of every edge - not a bottom sheet
+     docked to the screen's edge and not pinned to a corner. */
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.modal-overlay {
-    align-items: flex-end;
-    padding: 14px;
-    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    align-items: center;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal .modal-card.enq-card {
     width: 100%;
-    max-width: 100%;
-    max-height: 88vh;
-    max-height: 88dvh;
-    border-radius: 26px;
+    max-width: 400px;
+    max-height: 86vh;
+    max-height: 86dvh;
+    margin: auto;
+    border-radius: 24px;
     padding: 20px 18px 0;
     box-shadow: 0 24px 60px rgba(6, 34, 22, 0.35);
-    transform: translateY(24px) scale(0.97);
+    transform: scale(0.94);
     opacity: 0;
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.active .modal-card.enq-card {
-    transform: translateY(0) scale(1);
+    transform: scale(1);
     opacity: 1;
   }
 }

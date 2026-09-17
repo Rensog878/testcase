@@ -11,6 +11,12 @@ export function celebrateSignIn(user) {
   window.dispatchEvent(new CustomEvent(WELCOME_EVENT, { detail }))
 }
 
+// Where a farmer lands after signing in: the Shop tab of the phone bottom nav
+// (MobileBottomNav, shown up to 768px), otherwise the categories page.
+export function farmerLandingPath() {
+  return window.matchMedia('(max-width: 768px)').matches ? '/categories?ct=Brands' : '/categories'
+}
+
 export function takePendingWelcome() {
   try {
     const raw = sessionStorage.getItem(WELCOME_KEY)

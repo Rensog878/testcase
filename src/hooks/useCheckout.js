@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { showToast } from '../storefront/toast'
-import { celebrateSignIn } from '../storefront/welcome'
+import { celebrateSignIn, farmerLandingPath } from '../storefront/welcome'
 import useModalStates from '../storefront/useModalStates'
 import {
   AUTH_HASHES, CHECKOUT_STEPS, CONTACT_FIELDS, GUEST_CART_KEY, STAFF_HOME, STEP_HASH,
@@ -365,7 +365,7 @@ export function CheckoutProvider({ enabled, children }) {
 
     const afterSignIn = async signedInUser => {
       const resume = resumeRef.current
-      // Staff roles each have their own portal; customers stay where they are.
+      // Staff roles each have their own portal; farmers go shopping (below).
       const home = STAFF_HOME[signedInUser?.role]
       closeSignIn({ keepHash: Boolean(home) })
       // Anything added as a guest joins this customer's basket.
@@ -375,7 +375,10 @@ export function CheckoutProvider({ enabled, children }) {
         return
       }
       celebrateSignIn(signedInUser)
+      // Signing in to finish a checkout carries on with it; otherwise the
+      // farmer goes straight to shopping.
       if (resume && items.length) showStep('address')
+      else if (!live.current.step) leaveSignInFor(farmerLandingPath())
     }
 
     // ---- delivery details ----

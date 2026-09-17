@@ -4,7 +4,7 @@ import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { toast } from 'sonner'
-import { celebrateSignIn } from '../storefront/welcome'
+import { celebrateSignIn, farmerLandingPath } from '../storefront/welcome'
 import { Check, Eye, EyeOff, LogIn } from 'lucide-react'
 
 // Staff sign-in (/login, and /admin when signed out). Farmers sign in on the
@@ -46,7 +46,7 @@ export default function Login() {
       // A farmer account belongs on the storefront, where it is now signed in.
       if (user.role === 'farmer') {
         celebrateSignIn(user)
-        navigate('/', { replace: true })
+        navigate(farmerLandingPath(), { replace: true })
         return
       }
       // Right password, wrong role: do not leave that account signed in.

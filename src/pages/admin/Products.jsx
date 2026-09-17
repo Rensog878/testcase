@@ -7,6 +7,15 @@ import {
   IndianRupee, Sprout, Package, Image as ImageIcon, Info
 } from 'lucide-react'
 
+const PFORM_SECTIONS = [
+  { id: 'pform-basic', label: 'Basic details', hint: 'Title, category, badge' },
+  { id: 'pform-pricing', label: 'Pricing & stock', hint: 'Price, MRP, quantity' },
+  { id: 'pform-targeting', label: 'Crops & packs', hint: 'Crops, pests, sizes' },
+  { id: 'pform-media', label: 'Photos & copy', hint: 'Gallery, description' },
+  { id: 'pform-visibility', label: 'Visibility', hint: 'Audience, online' },
+  { id: 'pform-advanced', label: 'Advanced', hint: 'Usage, related, reviews' },
+]
+
 const DEFAULT_CATEGORIES = ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant', 'Seeds', 'Equipments', 'Animal Husbandry']
 
 // Tells open storefront tabs (src/storefront/Storefront.jsx listens on the same channel) to reload products.
@@ -90,6 +99,42 @@ export default function AdminProducts() {
     setForm(current => ({ ...current, images: [current.images, ...encodedPhotos].filter(Boolean).join('\n') }))
     event.target.value = ''
   }
+
+  // Display-only helpers for the product form (section rail, required meter,
+  // discount readout, photo previews). They read form state; saving is unchanged.
+  const [activeSection, setActiveSection] = useState(PFORM_SECTIONS[0].id)
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    if (el.tagName === 'DETAILS') el.open = true
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setActiveSection(id)
+  }
+  const handleFormScroll = (event) => {
+    const body = event.currentTarget
+    const top = body.getBoundingClientRect().top + 24
+    let current = PFORM_SECTIONS[0].id
+    for (const s of PFORM_SECTIONS) {
+      const el = document.getElementById(s.id)
+      if (el && el.getBoundingClientRect().top <= top) current = s.id
+    }
+    if (body.scrollTop + body.clientHeight >= body.scrollHeight - 2) current = PFORM_SECTIONS[PFORM_SECTIONS.length - 1].id
+    if (current !== activeSection) setActiveSection(current)
+  }
+  const removeListItem = (field, item) => {
+    setForm(current => ({ ...current, [field]: current[field].split(',').map(s => s.trim()).filter(s => s && s !== item).join(', ') }))
+  }
+  const photoList = (form.images || '').split(/\n|,/).map(value => value.trim()).filter(Boolean)
+  const requiredChecks = [
+    { label: 'Product title', done: Boolean(String(form.name).trim()) },
+    { label: 'Selling price', done: form.price !== '' },
+    { label: 'Stock quantity', done: form.stock !== '' },
+    { label: 'At least one photo', done: photoList.length > 0 },
+  ]
+  const requiredDone = requiredChecks.filter(c => c.done).length
+  const discountPercent = Number(form.mrp) > Number(form.price) && Number(form.price) > 0
+    ? Math.round((1 - Number(form.price) / Number(form.mrp)) * 100)
+    : 0
 
   const fetchProducts = async () => {
     setLoading(true)
@@ -552,26 +597,65 @@ export default function AdminProducts() {
         }}>
           <div className="pform-shell">
             <div className="pform-header">
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <div className="pform-header-main">
                 <span className="pform-header-icon">{isEditing ? <Edit2 size={17} /> : <Plus size={18} />}</span>
                 <div>
                   <h2>{isEditing ? 'Edit Product' : 'Add New Product'}</h2>
                   <p>{isEditing ? 'Update catalog details — changes go live immediately.' : 'Fields marked * are required. Everything else can be filled in later.'}</p>
                 </div>
               </div>
+              <span className={`pform-status ${form.online ? '' : 'offline'}`}>
+                <i aria-hidden="true" />{form.online ? 'Online on store' : 'Billing only'}
+              </span>
               <button type="button" className="pform-close" onClick={() => setModalOpen(false)} aria-label="Close">
                 <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleSave} id="product-form">
-              <div className="pform-body">
+              <div className="pform-frame">
+                {/* Section rail: desktop only (hidden by CSS below 1025px) */}
+                <nav className="pform-rail" aria-label="Form sections">
+                  {PFORM_SECTIONS.map((s, index) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className={activeSection === s.id ? 'active' : ''}
+                      onClick={() => scrollToSection(s.id)}
+                    >
+                      <span className="pform-rail-num">{index + 1}</span>
+                      <span className="pform-rail-text">
+                        <strong>{s.label}</strong>
+                        <small>{s.hint}</small>
+                      </span>
+                    </button>
+                  ))}
+                  <div className="pform-rail-progress">
+                    <div className="pform-rail-progress-head">
+                      <span>Required</span>
+                      <strong>{requiredDone}/{requiredChecks.length}</strong>
+                    </div>
+                    <div className="pform-meter"><i style={{ width: `${(requiredDone / requiredChecks.length) * 100}%` }} /></div>
+                    <ul>
+                      {requiredChecks.map(c => (
+                        <li key={c.label} className={c.done ? 'done' : ''}>
+                          <Check size={12} aria-hidden="true" />{c.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </nav>
+
+              <div className="pform-body" onScroll={handleFormScroll}>
 
                 {/* BASIC DETAILS */}
-                <section className="pform-section">
+                <section className="pform-section" id="pform-basic">
                   <div className="pform-section-head">
                     <span className="pform-section-icon"><Tag size={15} /></span>
-                    <div><h3>Basic Details</h3></div>
+                    <div>
+                      <h3>Basic Details</h3>
+                      <span className="pform-section-sub">Name, category and the badge shoppers see on the card</span>
+                    </div>
                   </div>
                   <div className="pform-field">
                     <label>Product Title *</label>
@@ -590,7 +674,7 @@ export default function AdminProducts() {
                       </select>
                       <div className="pform-adder">
                         <input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category" />
-                        <button type="button" onClick={() => addFormOption('category', newCategory, setNewCategory)}>Add</button>
+                        <button type="button" onClick={() => addFormOption('category', newCategory, setNewCategory)}><Plus size={14} className="pform-adder-icon" />Add</button>
                       </div>
                     </div>
                     <div>
@@ -603,37 +687,58 @@ export default function AdminProducts() {
                         <option value="Expert Choice">Expert Choice</option>
                         <option value="New Launch">New Launch</option>
                       </select>
+                      <p className="pform-hint pform-badge-preview">
+                        Card preview: {form.badge ? <span className="pform-chip">{form.badge}</span> : <em>no badge</em>}
+                      </p>
                     </div>
                   </div>
                 </section>
 
                 {/* PRICING & STOCK */}
-                <section className="pform-section">
+                <section className="pform-section" id="pform-pricing">
                   <div className="pform-section-head">
                     <span className="pform-section-icon"><IndianRupee size={15} /></span>
-                    <div><h3>Pricing &amp; Stock</h3></div>
+                    <div>
+                      <h3>Pricing &amp; Stock</h3>
+                      <span className="pform-section-sub">MRP above the selling price shows a discount on the store</span>
+                    </div>
                   </div>
                   <div className="pform-grid-3">
                     <div className="pform-field">
                       <label>Selling Price (₹) *</label>
-                      <input type="number" required placeholder="680" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+                      <div className="pform-affix">
+                        <span className="pform-affix-pre" aria-hidden="true">₹</span>
+                        <input type="number" required placeholder="680" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+                      </div>
                     </div>
                     <div className="pform-field">
                       <label>MRP (₹)</label>
-                      <input type="number" placeholder="850" value={form.mrp} onChange={e => setForm({ ...form, mrp: e.target.value })} />
+                      <div className="pform-affix">
+                        <span className="pform-affix-pre" aria-hidden="true">₹</span>
+                        <input type="number" placeholder="850" value={form.mrp} onChange={e => setForm({ ...form, mrp: e.target.value })} />
+                      </div>
+                      <p className={`pform-hint pform-discount ${discountPercent > 0 ? 'on' : ''}`}>
+                        {discountPercent > 0 ? `${discountPercent}% off shown to shoppers` : 'No discount shown'}
+                      </p>
                     </div>
                     <div className="pform-field">
                       <label>Stock Qty *</label>
-                      <input type="number" required placeholder="100" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} />
+                      <div className="pform-affix">
+                        <input type="number" required placeholder="100" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} />
+                        <span className="pform-affix-post" aria-hidden="true">units</span>
+                      </div>
                     </div>
                   </div>
                 </section>
 
                 {/* CROP, PEST & PACK TARGETING */}
-                <section className="pform-section">
+                <section className="pform-section" id="pform-targeting">
                   <div className="pform-section-head">
                     <span className="pform-section-icon"><Sprout size={15} /></span>
-                    <div><h3>Crop, Pest &amp; Pack Targeting</h3></div>
+                    <div>
+                      <h3>Crop, Pest &amp; Pack Targeting</h3>
+                      <span className="pform-section-sub">Drives the store's crop, pest and pack-size filters</span>
+                    </div>
                   </div>
 
                   <div className="pform-field">
@@ -645,12 +750,12 @@ export default function AdminProducts() {
                     />
                     {form.crops.trim() && (
                       <div className="pform-chips">
-                        {form.crops.split(',').map(s => s.trim()).filter(Boolean).map(c => <span key={c} className="pform-chip">{c}</span>)}
+                        {form.crops.split(',').map(s => s.trim()).filter(Boolean).map(c => <span key={c} className="pform-chip">{c}<button type="button" className="pform-chip-x" onClick={() => removeListItem('crops', c)} aria-label={`Remove ${c}`}><X size={11} /></button></span>)}
                       </div>
                     )}
                     <div className="pform-adder">
                       <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add a custom crop" />
-                      <button type="button" onClick={() => addFormOption('crops', newCrop, setNewCrop)}>Add crop</button>
+                      <button type="button" onClick={() => addFormOption('crops', newCrop, setNewCrop)}><Plus size={14} className="pform-adder-icon" />Add crop</button>
                     </div>
                   </div>
 
@@ -663,7 +768,7 @@ export default function AdminProducts() {
                     />
                     {form.diseases.trim() && (
                       <div className="pform-chips">
-                        {form.diseases.split(',').map(s => s.trim()).filter(Boolean).map(d => <span key={d} className="pform-chip">{d}</span>)}
+                        {form.diseases.split(',').map(s => s.trim()).filter(Boolean).map(d => <span key={d} className="pform-chip">{d}<button type="button" className="pform-chip-x" onClick={() => removeListItem('diseases', d)} aria-label={`Remove ${d}`}><X size={11} /></button></span>)}
                       </div>
                     )}
                     <p className="pform-hint">Powers the storefront's "Shop by Pest &amp; Disease" filters — a product only shows up there once it's tagged with the disease it treats.</p>
@@ -673,7 +778,7 @@ export default function AdminProducts() {
                         {catalogOptions.diseases.map(d => <option key={d} value={d}>{d}</option>)}
                       </select>
                       <input value={newDisease} onChange={e => setNewDisease(e.target.value)} placeholder="Add a new pest / disease" />
-                      <button type="button" onClick={() => addFormOption('diseases', newDisease, setNewDisease)}>Add disease</button>
+                      <button type="button" onClick={() => addFormOption('diseases', newDisease, setNewDisease)}><Plus size={14} className="pform-adder-icon" />Add disease</button>
                     </div>
                   </div>
 
@@ -686,7 +791,7 @@ export default function AdminProducts() {
                     />
                     {form.packSizes.trim() && (
                       <div className="pform-chips">
-                        {form.packSizes.split(',').map(s => s.trim()).filter(Boolean).map(p => <span key={p} className="pform-chip">{p}</span>)}
+                        {form.packSizes.split(',').map(s => s.trim()).filter(Boolean).map(p => <span key={p} className="pform-chip">{p}<button type="button" className="pform-chip-x" onClick={() => removeListItem('packSizes', p)} aria-label={`Remove ${p}`}><X size={11} /></button></span>)}
                       </div>
                     )}
                     <div className="pform-adder">
@@ -695,20 +800,33 @@ export default function AdminProducts() {
                         {catalogOptions.storageBatches.map(batch => <option key={batch} value={batch}>{batch}</option>)}
                       </select>
                       <input value={newStorageBatch} onChange={e => setNewStorageBatch(e.target.value)} placeholder="New pack size" />
-                      <button type="button" onClick={() => addFormOption('packSizes', newStorageBatch, setNewStorageBatch)}>Add pack size</button>
+                      <button type="button" onClick={() => addFormOption('packSizes', newStorageBatch, setNewStorageBatch)}><Plus size={14} className="pform-adder-icon" />Add pack size</button>
                     </div>
                   </div>
                 </section>
 
                 {/* PHOTOS & DESCRIPTION */}
-                <section className="pform-section">
+                <section className="pform-section" id="pform-media">
                   <div className="pform-section-head">
                     <span className="pform-section-icon"><ImageIcon size={15} /></span>
-                    <div><h3>Photos &amp; Description</h3></div>
+                    <div>
+                      <h3>Photos &amp; Description</h3>
+                      <span className="pform-section-sub">The first photo is the card image; the rest fill the detail gallery</span>
+                    </div>
                   </div>
                   <div className="pform-field">
                     <label>Product Photos * <em>(one URL or asset path per line)</em></label>
                     <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} />
+                    {photoList.length > 0 && (
+                      <div className="pform-thumbs">
+                        {photoList.map((src, index) => (
+                          <figure key={`${index}-${src.slice(0, 40)}`}>
+                            <img src={src} alt="" onError={e => { e.currentTarget.style.visibility = 'hidden' }} />
+                            {index === 0 && <figcaption>Cover</figcaption>}
+                          </figure>
+                        ))}
+                      </div>
+                    )}
                     <textarea rows="2" required value={form.images} onChange={e => setForm({ ...form, images: e.target.value })} placeholder="/assets/product-front.jpg&#10;/assets/product-label.jpg" />
                     <p className="pform-hint">Use at least one photo. Select multiple files or add URLs/asset paths for the detail-page gallery and hover zoom.</p>
                   </div>
@@ -724,10 +842,13 @@ export default function AdminProducts() {
                 </section>
 
                 {/* TARGETING & VISIBILITY */}
-                <section className="pform-section">
+                <section className="pform-section" id="pform-visibility">
                   <div className="pform-section-head">
                     <span className="pform-section-icon"><User size={15} /></span>
-                    <div><h3>Targeting &amp; Visibility</h3></div>
+                    <div>
+                      <h3>Targeting &amp; Visibility</h3>
+                      <span className="pform-section-sub">Who sees it first, and whether it is sold online</span>
+                    </div>
                   </div>
                   <div className="pform-field">
                     <label>Assign to user <em>(personalizes their catalog &amp; prioritizes it on their store page)</em></label>
@@ -773,9 +894,10 @@ export default function AdminProducts() {
                 </section>
 
                 {/* ADVANCED / OPTIONAL DETAILS */}
-                <details className="pform-advanced">
+                <details className="pform-advanced" id="pform-advanced">
                   <summary>
-                    <Info size={15} /> Advanced details
+                    <span className="pform-section-icon pform-advanced-tile"><Info size={15} /></span>
+                    <Info size={15} className="pform-advanced-info" /> Advanced details
                     <span>Ingredient, dosage, usage guidance, related content, reviews</span>
                   </summary>
                   <div className="pform-advanced-body">
@@ -825,8 +947,14 @@ export default function AdminProducts() {
                   </div>
                 </details>
               </div>
+              </div>
 
               <div className="pform-footer">
+                <span className="pform-footer-note">
+                  {requiredDone === requiredChecks.length
+                    ? <><Check size={14} aria-hidden="true" /> Ready to publish</>
+                    : <>{requiredChecks.length - requiredDone} required {requiredChecks.length - requiredDone === 1 ? 'field' : 'fields'} left</>}
+                </span>
                 <button type="button" className="btn btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">
                   {isEditing ? 'Save Product Changes' : 'Save & Publish to Store'}

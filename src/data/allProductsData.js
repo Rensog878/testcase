@@ -27,13 +27,13 @@ export const CROPS_LIST = [
   { id: 'chilli', name: 'Green Chilli', cropCode: 'Chilli', image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=240&auto=format&fit=crop&q=80', popularIssues: 'Thrips, Mites, Fruit Rot, Dieback' },
   { id: 'tomato', name: 'Tomato', cropCode: 'Tomato', image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=240&auto=format&fit=crop&q=80', popularIssues: 'Early/Late Blight, Pinworm, Leaf Miner' },
   { id: 'paddy', name: 'Paddy', cropCode: 'Paddy', image: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=240&auto=format&fit=crop&q=80', popularIssues: 'Blast, Brown Plant Hopper, Stem Borer' },
-  { id: 'cotton', name: 'Cotton', cropCode: 'Cotton', image: 'https://images.unsplash.com/photo-1605001011156-cbf0b0f67a35?w=240&auto=format&fit=crop&q=80', popularIssues: 'Whitefly, Pink Bollworm, Jassids' },
+  { id: 'cotton', name: 'Cotton', cropCode: 'Cotton', image: 'https://images.unsplash.com/photo-1634337781106-4c6a12b820a1?w=240&auto=format&fit=crop&q=80', popularIssues: 'Whitefly, Pink Bollworm, Jassids' },
   { id: 'brinjal', name: 'Brinjal', cropCode: 'Brinjal', image: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=240&auto=format&fit=crop&q=80', popularIssues: 'Shoot & Fruit Borer, Little Leaf' },
   { id: 'beans', name: 'Beans', cropCode: 'Beans', image: 'https://images.unsplash.com/photo-1551893478-d726eaf0442c?w=240&auto=format&fit=crop&q=80', popularIssues: 'Pod Borer, Rust, Yellow Mosaic' },
   { id: 'bitter-gourd', name: 'Bitter gourd', cropCode: 'Bitter gourd', image: 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=240&auto=format&fit=crop&q=80', popularIssues: 'Fruit Fly, Downy Mildew, Powdery Mildew' },
   { id: 'marigold', name: 'Marigold', cropCode: 'Marigold', image: 'https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?w=240&auto=format&fit=crop&q=80', popularIssues: 'Botrytis Blight, Red Spider Mite' },
-  { id: 'sugarcane', name: 'Sugarcane', cropCode: 'Sugarcane', image: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=240&auto=format&fit=crop&q=80', popularIssues: 'Early Shoot Borer, Red Rot' },
-  { id: 'maize', name: 'Maize / Corn', cropCode: 'Maize', image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=240&auto=format&fit=crop&q=80', popularIssues: 'Fall Armyworm, Stem Borer' },
+  { id: 'sugarcane', name: 'Sugarcane', cropCode: 'Sugarcane', image: 'https://images.unsplash.com/photo-1719424668314-a0def541377b?w=240&auto=format&fit=crop&q=80', popularIssues: 'Early Shoot Borer, Red Rot' },
+  { id: 'maize', name: 'Maize / Corn', cropCode: 'Maize', image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=240&auto=format&fit=crop&q=80', popularIssues: 'Fall Armyworm, Stem Borer' },
   { id: 'wheat', name: 'Wheat', cropCode: 'Wheat', image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=240&auto=format&fit=crop&q=80', popularIssues: 'Yellow Rust, Karnal Bunt' },
   { id: 'potato', name: 'Potato', cropCode: 'Potato', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=240&auto=format&fit=crop&q=80', popularIssues: 'Late Blight, Black Scurf, Tuber Moth' }
 ];

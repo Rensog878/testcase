@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../StoreContext'
 
 const CATEGORY_CARDS = [
-  { value: 'Fungicide', image: 'photo-1585314062340-f1a5a7c9328d', alt: 'Bio Fungicides Spraying', tag: 'Crop Disease Defense', title: 'Fungicides', desc: 'Cure Blast, Blight, Powdery Mildew & Rust' },
+  { value: 'Fungicide', image: 'photo-1627920769541-daa658ed6b59', alt: 'Bio Fungicides Spraying', tag: 'Crop Disease Defense', title: 'Fungicides', desc: 'Cure Blast, Blight, Powdery Mildew & Rust' },
   { value: 'Insecticide', image: 'photo-1628352081506-83c43123ed6d', alt: 'Insect Pest Control', tag: 'Pest Protection', title: 'Insecticides', desc: 'Control Whitefly, Bollworm, Aphids & Borer' },
   { value: 'Bio-Stimulant', image: 'photo-1523348837708-15d4a09cfac2', alt: 'Bio Stimulant Crop Growth', tag: 'Yield Booster', title: 'Bio-Stimulants', desc: 'Root Vigor, Flowering & Fruit Mass Booster' },
   { value: 'Herbicide', image: 'photo-1500937386664-56d1dfef3854', alt: 'Weed Free Agricultural Field', tag: 'Weed Elimination', title: 'Herbicides', desc: 'Selective Pre & Post Emergence Weed Control' },
@@ -13,11 +13,11 @@ const CATEGORY_CARDS = [
 
 const CROP_CARDS = [
   { value: 'Paddy/Rice', image: 'photo-1530507629858-e4977d30e9e0', alt: 'Paddy Rice Field', tag: 'Blast Defense', title: 'Paddy / Rice' },
-  { value: 'Cotton', image: 'photo-1605001011156-cbf0b0f67a35', alt: 'Cotton Crop Field', tag: 'Whitefly Shield', title: 'Cotton' },
+  { value: 'Cotton', image: 'photo-1634337781106-4c6a12b820a1', alt: 'Cotton Crop Field', tag: 'Whitefly Shield', title: 'Cotton' },
   { value: 'Tomato', image: 'photo-1592924357228-91a4daadcfea', alt: 'Tomato Farm Harvest', tag: 'Blight Care', title: 'Tomato' },
   { value: 'Wheat', image: 'photo-1574323347407-f5e1ad6d020b', alt: 'Golden Wheat Field', tag: 'Rust Control', title: 'Wheat' },
-  { value: 'Sugarcane', image: 'photo-1595855759920-86582396756a', alt: 'Sugarcane Plantation', tag: 'Borer Solution', title: 'Sugarcane' },
-  { value: 'Corn', image: 'photo-1601593346740-925612772716', alt: 'Corn Maize Field', tag: 'Armyworm Defense', title: 'Corn / Maize' },
+  { value: 'Sugarcane', image: 'photo-1719424668314-a0def541377b', alt: 'Sugarcane Plantation', tag: 'Borer Solution', title: 'Sugarcane' },
+  { value: 'Corn', image: 'photo-1551754655-cd27e38d2076', alt: 'Corn Maize Field', tag: 'Armyworm Defense', title: 'Corn / Maize' },
   { value: 'Grapes', image: 'photo-1560493676-04071c5f467b', alt: 'Grape Vineyard', tag: 'Mildew Protect', title: 'Grapes' },
   { value: 'Potato', image: 'photo-1518977676601-b53f82aba655', alt: 'Potato Crop Harvest', tag: 'Tuber Guard', title: 'Potato' },
 ]

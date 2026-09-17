@@ -29,7 +29,7 @@ export function userInputError(err) {
   if (err?.code === 'PHONE_TAKEN' || err?.code === 11000) {
     return new HttpError(409, 'This mobile number is already registered. Please sign in instead.', { alreadyRegistered: true });
   }
-  if (err?.code === 'WEAK_PASSWORD' || err?.code === 'INVALID_ROLE' || err?.code === 'INVALID_ADDRESS') {
+  if (err?.code === 'WEAK_PASSWORD' || err?.code === 'INVALID_ROLE' || err?.code === 'INVALID_ADDRESS' || err?.code === 'INVALID_PROFILE') {
     return new HttpError(400, err.message);
   }
   return err;

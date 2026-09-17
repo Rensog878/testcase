@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { toast } from 'sonner'
 import PasswordChecklist from '../components/PasswordChecklist'
 import { isPasswordValid, passwordPlaceholder } from '../utils/passwordRules'
 import { ResendAnnouncer, resendLabel, useResendCountdown } from '../shared/useResendCountdown'
+import { CROP_CHOICES, DEFAULT_PROFILE_FIELDS, normalizeProfileFields, validateProfileValues } from '../shared/profileFieldRules'
+
+// Name, mobile number and password are always asked; the other questions come
+// from Admin → Profile Form Builder, in its order.
+const ACCOUNT_FIELD_IDS = ['name', 'phone']
 
 export default function Register() {
   const navigate = useNavigate()
@@ -13,12 +19,38 @@ export default function Register() {
   const [stage, setStage] = useState('form') // 'form' | 'otp'
   const [otp, setOtp] = useState('')
   const resend = useResendCountdown()
-  const [form, setForm] = useState({
-    name: '', email: '', phone: '', password: '', confirmPassword: '',
-    crop: 'Paddy / Rice', acreage: 3, village: '', district: '', state: 'Tamil Nadu'
-  })
+  const [form, setForm] = useState({ name: '', phone: '', password: '', confirmPassword: '' })
+  const [profileForm, setProfileForm] = useState(() => normalizeProfileFields(DEFAULT_PROFILE_FIELDS))
+  const [answers, setAnswers] = useState({ crop: 'Paddy / Rice', acreage: '3' })
+  const [answerErrors, setAnswerErrors] = useState({})
+
+  useEffect(() => {
+    axios.get('/api/profile-fields')
+      .then(({ data }) => { if (Array.isArray(data?.data)) setProfileForm(normalizeProfileFields(data.data)) })
+      .catch(() => {})
+  }, [])
+
+  const questions = profileForm.filter(field => !ACCOUNT_FIELD_IDS.includes(field.id))
+  const titleOf = id => profileForm.find(field => field.id === id)?.title
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+  const setAnswer = field => e => {
+    const value = field.type === 'tel' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value
+    setAnswers(current => ({ ...current, [field.id]: value }))
+    setAnswerErrors(current => {
+      if (!current[field.id]) return current
+      const next = { ...current }
+      delete next[field.id]
+      return next
+    })
+  }
+
+  // The builder's answers, checked as the server will check them.
+  const checkAnswers = () => {
+    const { values, errors } = validateProfileValues(profileForm, answers, { only: questions.map(field => field.id) })
+    setAnswerErrors(errors)
+    return { values, firstError: Object.values(errors)[0] }
+  }
 
   // Phone accepts digits only, filtered as the user types.
   const setPhone = e => {
@@ -40,7 +72,7 @@ export default function Register() {
   }
   const nameError = () => {
     if (!form.name.trim()) return ''
-    return form.name.replace(/[^A-Za-zÀ-ɏ]/g, '').length < 2 ? 'Please enter your name, not a number.' : ''
+    return (form.name.match(/\p{L}/gu) || []).length < 2 ? 'Please enter your name, not a number.' : ''
   }
 
   const FieldError = ({ message }) => message
@@ -52,6 +84,8 @@ export default function Register() {
     if (!isPasswordValid(form.password, { phone: form.phone.trim() })) { toast.error('Your password does not meet all the rules listed under it'); return }
     if (form.password !== form.confirmPassword) { toast.error('Passwords do not match'); return }
     if (!/^\d{10}$/.test(form.phone.trim())) { toast.error('Enter a valid 10-digit WhatsApp number'); return }
+    const { firstError } = checkAnswers()
+    if (firstError) { toast.error(firstError); return }
 
     setLoading(true)
     try {
@@ -101,11 +135,11 @@ export default function Register() {
     setLoading(true)
     try {
       await verifyRegistrationOtp(form.phone.trim(), otp.trim())
-      await register({ ...form, role: 'farmer' })
+      await register({ ...checkAnswers().values, name: form.name, phone: form.phone.trim(), password: form.password, role: 'farmer' })
       toast.success('Registration successful! Welcome to Sathyam Bio 🌿')
       navigate('/', { replace: true })
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Registration failed')
+      toast.error(err?.response?.data?.message || err?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -138,7 +172,7 @@ export default function Register() {
             <form onSubmit={handleSendOtp}>
               <div className="form-grid-2col">
                 <div className="form-group">
-                  <label className="form-label">Full Name *</label>
+                  <label className="form-label">{titleOf('name')} *</label>
                   <input className="form-input" placeholder="Your name" value={form.name} onChange={set('name')} required />
                   <FieldError message={nameError()} />
                 </div>
@@ -157,43 +191,16 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Email Address *</label>
-                <input className="form-input" type="email" placeholder="your@email.com" value={form.email} onChange={set('email')} required />
-              </div>
-
               <div className="form-grid-2col">
-                <div className="form-group">
-                  <label className="form-label">Village / Town</label>
-                  <input className="form-input" placeholder="Village name" value={form.village} onChange={set('village')} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">District</label>
-                  <input className="form-input" placeholder="District" value={form.district} onChange={set('district')} />
-                </div>
+                {questions.map(field => (
+                  <div className="form-group" key={field.id} style={field.type === 'textarea' ? { gridColumn: '1 / -1' } : undefined}>
+                    <label className="form-label" htmlFor={`register-${field.id}`}>{field.title}{field.required ? ' *' : ''}</label>
+                    <AnswerInput field={field} value={answers[field.id] ?? ''} onChange={setAnswer(field)} />
+                    <FieldError message={answerErrors[field.id]} />
+                  </div>
+                ))}
               </div>
 
-              <div className="form-grid-2col">
-                <div className="form-group">
-                  <label className="form-label">Primary Crop *</label>
-                  <select className="form-select" value={form.crop} onChange={set('crop')}>
-                    {['Paddy / Rice', 'Cotton', 'Tomato', 'Wheat', 'Sugarcane', 'Corn / Maize', 'Citrus / Fruits', 'Grapes / Fruits', 'Potato', 'All Crops'].map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Farm Size (Acres)</label>
-                  <input className="form-input" type="number" placeholder="e.g. 5" value={form.acreage} onChange={set('acreage')} min="0.5" step="0.5" />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">State</label>
-                <select className="form-select" value={form.state} onChange={set('state')}>
-                  {['Tamil Nadu','Karnataka','Andhra Pradesh','Telangana','Kerala','Maharashtra','Gujarat','Punjab','Haryana','Rajasthan','Uttar Pradesh','Madhya Pradesh','Bihar','West Bengal','Odisha'].map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
 
               <div className="form-grid-2col">
                 <div className="form-group">
@@ -264,4 +271,22 @@ export default function Register() {
       </div>
     </div>
   )
+}
+
+// One builder question in this page's form styles.
+function AnswerInput({ field, value, onChange }) {
+  const common = { id: `register-${field.id}`, value, onChange, 'aria-required': field.required || undefined }
+  if (field.type === 'select') {
+    const choices = field.id === 'crop' ? CROP_CHOICES : field.options
+    return (
+      <select className="form-select" {...common}>
+        {field.id !== 'crop' && <option value="">Choose...</option>}
+        {choices.map(choice => <option key={choice} value={choice}>{choice}</option>)}
+      </select>
+    )
+  }
+  if (field.type === 'textarea') return <textarea className="form-input" rows={3} maxLength={500} {...common} />
+  if (field.type === 'number') return <input className="form-input" inputMode={field.id === 'acreage' ? 'numeric' : 'decimal'} maxLength={12} {...common} />
+  if (field.type === 'tel') return <input className="form-input" type="tel" inputMode="numeric" maxLength={10} {...common} />
+  return <input className="form-input" type={field.type} maxLength={field.type === 'email' ? 120 : 80} {...common} />
 }

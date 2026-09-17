@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { hashPassword, isPasswordHash, passwordProblems, weakPasswordMessage } from './security.js';
 import { matchesCrop, matchesCategory, matchesDisease } from '../src/utils/catalogUtils.js';
+import { DEFAULT_PROFILE_FIELDS, normalizeProfileFields, splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
 
@@ -223,16 +224,6 @@ const DEFAULT_CATALOG_OPTIONS = {
     diseases: ['Blast', 'Blight', 'Rust', 'Aphids', 'Whitefly', 'Downy Mildew', 'Leaf Miner', 'Pinworm', 'Leaf hopper', 'Thrips', 'Mites', 'Stem Borer', 'Weeds']
 };
 
-const DEFAULT_PROFILE_FIELDS = [
-  { id: 'name', title: 'Full name', type: 'text', required: true, editable: true },
-  { id: 'email', title: 'Email address', type: 'email', required: false, editable: true },
-  { id: 'phone', title: 'Mobile number', type: 'tel', required: true, editable: false },
-  { id: 'village', title: 'Village / town', type: 'text', required: false, editable: true },
-  { id: 'district', title: 'District', type: 'text', required: false, editable: true },
-  { id: 'state', title: 'State', type: 'text', required: false, editable: true },
-  { id: 'crop', title: 'Primary crop', type: 'text', required: false, editable: true },
-  { id: 'acreage', title: 'Farm size (acres)', type: 'number', required: false, editable: true }
-  ];
 
 const INITIAL_CMS = {
     heroTitle: 'SATHYAM BIO-PESTICIDES & CROP CARE',
@@ -791,23 +782,13 @@ class DatabaseManager {
   async getProfileFields() {
         await connectDB();
         const settings = await Settings.findById('global').lean();
-        return (settings && settings.profileFields) || DEFAULT_PROFILE_FIELDS;
+        // Normalised on every read, so a form saved by an older version still renders.
+        return normalizeProfileFields((settings && settings.profileFields) || DEFAULT_PROFILE_FIELDS);
   }
 
   async saveProfileFields(fields) {
         await connectDB();
-        const cleaned = (fields || [])
-          .map((field, index) => ({
-                    id: field.id || `profile-field-${Date.now()}-${index}`,
-                    title: String(field.title || '').trim(),
-                    type: ['text', 'email', 'tel', 'number', 'date', 'textarea', 'select'].includes(field.type)
-                      ? field.type
-                                : 'text',
-                    required: field.required === true,
-                    editable: field.editable !== false,
-                    options: Array.isArray(field.options) ? field.options.map(String).filter(Boolean) : []
-          }))
-          .filter(field => field.title);
+        const cleaned = normalizeProfileFields(fields);
 
       await Settings.findByIdAndUpdate('global', { $set: { profileFields: cleaned } }, { upsert: true });
         return cleaned;
@@ -819,20 +800,20 @@ class DatabaseManager {
         if (!user) return null;
 
       const fields = await this.getProfileFields();
-        const editableFields = new Set(fields.filter(field => field.editable).map(field => field.id));
-        const allowed = {};
-        // Even if an admin configures a profile field with one of these ids, a
-        // user must never be able to change them from their own profile.
-        const reserved = new Set(['id', '_id', 'password', 'role', 'status', 'phone', 'createdBy', 'createdAt']);
-        for (const [key, value] of Object.entries(profileUpdates || {})) {
-                if (editableFields.has(key) && !reserved.has(key)) allowed[key] = value;
-        }
+        // Only fields the admin left editable; the mobile number never is.
+        const editable = fields.filter(field => field.editable && field.id !== 'phone').map(field => field.id);
+        const { values, errors } = validateProfileValues(fields, profileUpdates, { only: editable, partial: true });
+        const firstProblem = Object.values(errors)[0];
+        if (firstProblem) throw inputError('INVALID_PROFILE', firstProblem);
 
-      const existingProfile = (user.toObject().profile) || {};
-        const mergedProfile = { ...existingProfile, ...allowed };
+      // Built-in answers live on the user (read by orders, advisories...);
+        // answers to fields an admin added live under profile.
+        const { core, profile } = splitProfileValues(values);
+        if (core.acreage === null) core.acreage = 0;
+        const existingProfile = (user.toObject().profile) || {};
 
-      user.set(allowed);
-        user.set('profile', mergedProfile);
+      user.set(core);
+        user.set('profile', { ...existingProfile, ...profile });
         user.set('updatedAt', new Date().toISOString());
         await user.save();
 
@@ -935,6 +916,7 @@ class DatabaseManager {
                 createdAt: new Date().toISOString(),
                 lastLogin: null
         };
+        if (userData.profile && typeof userData.profile === 'object') newUser.profile = userData.profile;
 
       const created = await User.create(newUser);
         return serializeUser(created.toObject());

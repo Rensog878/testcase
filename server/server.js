@@ -13,6 +13,7 @@ import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
 import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
+import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { selectRecipients, renderAdvisory, parseBroadcastRequest, parseOptOutWebhook, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
@@ -57,10 +58,6 @@ app.use('/api/users', requireAuth('admin'), (req, res, next) => {
 
 function cleanText(value, maxLength) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
-}
-
-function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
 }
 
 // ============================================================
@@ -626,7 +623,6 @@ app.post('/api/auth/register', async (req, res) => {
     const phone = normalizePhone(req.body?.phone);
     const password = req.body?.password;
     const name = cleanText(req.body?.name, 80);
-    const email = cleanText(req.body?.email, 120).toLowerCase();
 
     const passwordIssues = passwordProblems(password, { role: 'farmer', phone });
     if (passwordIssues.length) {
@@ -641,9 +637,18 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please enter your name.' });
     }
 
-    if (email && !isValidEmail(email)) {
-      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    // Everything else a farmer is asked comes from the admin's Profile Form
+    // Builder: required answers, types and choices are checked here as well.
+    const profileFields = await db.getProfileFields();
+    const { values: answers, errors: fieldErrors } = validateProfileValues(
+      profileFields,
+      { ...req.body, name },
+      { only: profileFields.map(field => field.id).filter(id => id !== 'phone') },
+    );
+    if (Object.keys(fieldErrors).length) {
+      return res.status(400).json({ success: false, message: Object.values(fieldErrors)[0], fieldErrors });
     }
+    const { core, profile } = splitProfileValues(answers);
 
     if (!phone) {
       return res.status(400).json({ success: false, message: 'A valid mobile number is required.' });
@@ -679,15 +684,11 @@ app.post('/api/auth/register', async (req, res) => {
     await db.kvDelete(verifiedKey(phone));
 
     const user = await db.createUser({
-      name,
+      ...core,
+      name: core.name || name,
       phone,
-      email,
       password,
-      crop: cleanText(req.body?.crop, 60),
-      acreage: req.body?.acreage,
-      village: cleanText(req.body?.village, 80),
-      district: cleanText(req.body?.district, 80),
-      state: cleanText(req.body?.state, 80),
+      profile,
       role: 'farmer',
       createdBy: 'self-registered',
     });
@@ -751,7 +752,7 @@ app.put('/api/profile', requireAuth(), async (req, res) => {
 
     res.json({ success: true, data: toSafeUser(updated) });
   } catch (err) {
-    sendError(res, err, 'Update profile');
+    sendError(res, userInputError(err), 'Update profile');
   }
 });
 

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import PasswordChecklist from '../../components/PasswordChecklist'
 import { generateStrongPassword, isPasswordValid, passwordPlaceholder } from '../../utils/passwordRules'
+import { normalizeProfileFields, profileValueOf } from '../../shared/profileFieldRules'
 
 const ROLES = [
   { key: 'all', label: 'All Roles' },
@@ -65,7 +66,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers()
-    axios.get('/api/profile-fields').then(({ data }) => setProfileFields(data.data || [])).catch(() => {})
+    axios.get('/api/profile-fields').then(({ data }) => setProfileFields(normalizeProfileFields(data.data))).catch(() => {})
   }, [roleFilter, sortBy])
 
   const fetchUsers = async () => {
@@ -649,7 +650,7 @@ export default function AdminUsers() {
             </div>
 
             {viewOnly && <div className="admin-customer-profile-summary">
-              {profileFields.map(field => <div key={field.id}><span>{field.title}</span><strong>{selectedUser.profile?.[field.id] ?? selectedUser[field.id] ?? 'Not provided'}</strong></div>)}
+              {profileFields.map(field => <div key={field.id}><span>{field.title}</span><strong>{String(profileValueOf(selectedUser, field)) || 'Not provided'}</strong></div>)}
             </div>}
 
             <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

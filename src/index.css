@@ -1369,6 +1369,12 @@ h6 { font-size: 1rem; }
 .profile-checkbox input { accent-color: var(--brand-600); }
 .icon-action { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm); color: var(--text-secondary); }
 .icon-action.danger { color: var(--red); background: rgba(239, 109, 109, 0.08); }
+.profile-field-move { display: flex; flex-direction: column; gap: 2px; }
+.profile-field-move .icon-action { width: 26px; height: 18px; }
+.profile-field-row .icon-action:disabled { opacity: 0.35; cursor: not-allowed; }
+.profile-field-row select:disabled, .profile-checkbox input:disabled { cursor: not-allowed; }
+.profile-field-row select:disabled { background: var(--surface-secondary); color: var(--text-muted); }
+.profile-field-options { grid-column: 2 / -1; }
 .profile-field-guidance { margin-top: 18px; }
 .profile-field-guidance p { margin-top: 6px; color: var(--text-secondary); }
 

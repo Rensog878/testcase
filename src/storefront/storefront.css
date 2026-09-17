@@ -6615,6 +6615,18 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-act
 :is(body.sb-home-active .sb-home, .sb-portal) #authModal .auth-control-icon {
   font-size: 0.9rem;
 }
+/* A longer answer from the Profile Form Builder: grows with its text, icon at the first line. */
+:is(body.sb-home-active .sb-home, .sb-portal) #authModal .auth-control--textarea .auth-input {
+  height: auto;
+  min-height: 96px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  line-height: 1.4;
+  resize: vertical;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) #authModal .auth-control--textarea .auth-control-icon {
+  top: 23px;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) #authModal .auth-icon-btn {
   top: 1px;
   right: 1px;

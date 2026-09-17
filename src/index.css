@@ -8938,8 +8938,10 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 14px 34px -16px rgba(20, 35, 28, 0.2);
   }
 
-  /* Scrolled cards must not show in the 16px strip above the sticky bar. */
-  .topbar::before {
+  /* Scrolled cards must not show in the 16px strip above the sticky bar.
+     header.topbar = the staff bar only; the store's div.topbar (utility
+     strip) got this 1284px layer too and scrolled every store page 2px. */
+  header.topbar::before {
     content: '';
     position: absolute;
     left: -2px;

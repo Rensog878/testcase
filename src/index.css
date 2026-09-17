@@ -2349,6 +2349,9 @@ h6 { font-size: 1rem; }
    ========================================= */
 
 .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--surface-border-subtle); }
+/* /admin/orders cells (were inline styles, so desktop could not widen them). */
+.table-wrap td.order-address-cell { max-width: 220px; font-size: 0.78rem; }
+.table-wrap td.order-items-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 table { width: 100%; border-collapse: collapse; }
 thead { background: rgba(94,99,255,0.04); }
@@ -11837,13 +11840,23 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     width: 100%;
   }
 
-  /* NOT FIXED HERE: the audit's /admin/subscribers and /admin/chat finding
-     (dates and names wrapping to two lines at 1280). The intended rule was a
-     nowrap on date/id/amount columns, but those cells carry NO class at all —
-     `col-date`, `col-id`, `col-amount` and `col-count` match 0 .jsx files, and
-     both tables render bare <td>/<th>. A positional rule (nth-child) would
-     break the moment a column is added or reordered, so this needs a class in
-     the markup: recorded for the deferred JSX pass rather than guessed at. */
+  /* /admin/orders at 1280: the address wrapped to 8 lines in 140px while the
+     item names were cut to "Sathyam Bio BlastSh...". Wider address, and item
+     names wrap instead of being cut. */
+  .table-wrap td.order-address-cell {
+    min-width: 220px;
+    max-width: 260px;
+  }
+  .table-wrap td.order-items-cell {
+    min-width: 200px;
+    max-width: 260px;
+    white-space: normal;
+    overflow: visible;
+  }
+
+  /* /admin/subscribers and /admin/chat: dates and ids no longer wrap at 1280
+     with the current tables (re-checked with real data, 2026-09-17), so no
+     nowrap column classes are needed. */
 
   /* ---- filters and search ----------------------------------------------
      Audit: /admin/blogs and /admin/videos use an unstyled native search box
@@ -11854,6 +11867,12 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   .users-filter-bar .form-input {
     min-height: 40px;
     border-radius: 8px;
+  }
+  /* A native select is as wide as its longest option: /admin/products' "Filter"
+     lists every farmer by name (315px), which pushed the refresh button onto
+     a row of its own at 1280. The open list still shows full names. */
+  .filter-bar > .filter-select {
+    max-width: 220px;
   }
 
   .admin-users-page .users-filter-bar {

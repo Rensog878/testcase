@@ -233,27 +233,27 @@ export default function AdminUsers() {
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', margin: '20px 0' }}>
-        <div className="stat-card" style={{ background: 'var(--dark-800)', padding: '20px', borderRadius: '12px', border: '1px solid var(--dark-700)' }}>
+        <div className="stat-card">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Database Users</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>{users.length}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--brand-400)', marginTop: '4px' }}>Across all system portals</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '6px' }}>{users.length}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--brand-600)', marginTop: '4px' }}>Across all system portals</div>
         </div>
 
-        <div className="stat-card" style={{ background: 'var(--dark-800)', padding: '20px', borderRadius: '12px', border: '1px solid var(--dark-700)' }}>
+        <div className="stat-card">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Registered Farmers</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--brand-400)', marginTop: '6px' }}>{farmersCount}</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--brand-600)', marginTop: '6px' }}>{farmersCount}</div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>E-Commerce buyers & advisory</div>
         </div>
 
-        <div className="stat-card" style={{ background: 'var(--dark-800)', padding: '20px', borderRadius: '12px', border: '1px solid var(--dark-700)' }}>
+        <div className="stat-card">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Staff & Logistics</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#60a5fa', marginTop: '6px' }}>{staffCount}</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#2563eb', marginTop: '6px' }}>{staffCount}</div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>QC, Delivery & Billing</div>
         </div>
 
-        <div className="stat-card" style={{ background: 'var(--dark-800)', padding: '20px', borderRadius: '12px', border: '1px solid var(--dark-700)' }}>
+        <div className="stat-card">
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Active Accounts</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#4ade80', marginTop: '6px' }}>{activeCount}</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#15803d', marginTop: '6px' }}>{activeCount}</div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Can log into Sathyam Bio</div>
         </div>
       </div>

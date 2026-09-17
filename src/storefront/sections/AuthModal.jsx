@@ -417,7 +417,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const { afterSignIn } = useStore()
   const { login, setSession } = useAuth()
 
-  const [view, setView] = useState('login')
+  const [view, setView] = useState('register')
   const [registerStep, setRegisterStep] = useState(1)
   const [fields, setFields] = useState(INITIAL_FIELDS)
   const [status, setStatus] = useState({}) // field id -> 'invalid' | 'valid'
@@ -440,7 +440,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const pending = useRef(null) // the sign-up waiting for its WhatsApp code
   const verifying = useRef(false)
   const focusNext = useRef(null)
-  const shellKey = useRef('login:1')
+  const shellKey = useRef('register:1')
 
   // ---- field state ----
   const setField = (id, value) => {
@@ -1024,8 +1024,8 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
         <div className="auth-topbar">
           <div id="authTabsBar" className="auth-tabs" role="tablist" data-active={view === 'login' ? 'login' : 'register'} hidden={!tabbed}>
+            <button type="button" id="authTabRegister" className="auth-tab" role="tab" aria-selected={view !== 'login'} aria-controls="storefrontRegisterForm" tabIndex={view !== 'login' ? 0 : -1} onClick={() => switchAuthTab('register')} onKeyDown={onTabKey}>Register</button>
             <button type="button" id="authTabLogin" className="auth-tab" role="tab" aria-selected={view === 'login'} aria-controls="storefrontLoginForm" tabIndex={view === 'login' ? 0 : -1} onClick={() => switchAuthTab('login')} onKeyDown={onTabKey}>Sign In</button>
-            <button type="button" id="authTabRegister" className="auth-tab" role="tab" aria-selected={view !== 'login'} aria-controls="storefrontRegisterForm" tabIndex={view !== 'login' ? 0 : -1} onClick={() => switchAuthTab('register')} onKeyDown={onTabKey}>New Farmer</button>
           </div>
           <button type="button" id="authBackBtn" className="auth-back" onClick={authBack} hidden={tabbed}>
             <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>

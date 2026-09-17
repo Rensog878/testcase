@@ -5087,7 +5087,7 @@ body.sb-home-active {
   box-shadow: 0 1px 2px rgba(20, 35, 28, 0.08), 0 4px 12px rgba(6, 63, 42, 0.1);
   transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-tabs[data-active="register"]::before {
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-tabs[data-active="login"]::before {
   transform: translateX(100%);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-tab {

@@ -7796,22 +7796,36 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab-label {
     display: none;
   }
+  /* Floating glass card instead of a flush bottom sheet: the overlay keeps
+     the card off every edge and blurs the page behind it so the card's own
+     translucency has something to show through. */
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.modal-overlay {
     align-items: flex-end;
-    padding: 0;
+    padding: 14px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    background: rgba(10, 20, 16, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal .modal-card.enq-card {
     width: 100%;
     max-width: 100%;
-    max-height: 92vh;
-    max-height: 92dvh;
-    border-radius: 24px 24px 0 0;
+    max-height: 88vh;
+    max-height: 88dvh;
+    border-radius: 26px;
     padding: 20px 18px 0;
-    transform: translateY(100%);
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 24px 60px rgba(6, 34, 22, 0.35), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+    transform: translateY(24px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.active .modal-card.enq-card {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    opacity: 1;
   }
 }
 

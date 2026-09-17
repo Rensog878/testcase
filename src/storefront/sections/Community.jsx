@@ -1,5 +1,7 @@
 import { memo, useState } from 'react'
+import axios from 'axios'
 import { cmsText } from '../../hooks/useCmsSettings'
+import { showToast } from '../toast'
 
 const TESTIMONIALS = [
   {
@@ -50,8 +52,30 @@ export const Testimonials = memo(function Testimonials() {
   )
 })
 
+const CROP_OPTIONS = ['Paddy / Rice Farmer', 'Cotton Farmer', 'Horticulture / Vegetables', 'Sugarcane Farmer', 'Mixed Crop Farmer']
+
 export const Newsletter = memo(function Newsletter({ cms }) {
   const [subscribed, setSubscribed] = useState(false)
+  const [phone, setPhone] = useState('')
+  const [crop, setCrop] = useState(CROP_OPTIONS[0])
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async event => {
+    event.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const { data } = await axios.post('/api/advisory/subscribe', { phone, crop })
+      if (!data.success) throw new Error(data.message || 'Could not subscribe')
+      setSubscribed(true)
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Could not subscribe. Please try again.'
+      showToast(message, 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <section className="newsletter-section">
       <div className="container">
@@ -67,26 +91,27 @@ export const Newsletter = memo(function Newsletter({ cms }) {
                 : <>Get Weekly Crop &amp; Pesticide<br />Recommendations</>}
             </h2>
             <p className="newsletter-desc">{cmsText(cms, 'advisoryDesc', 'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.')}</p>
-            <form
-              className="newsletter-form"
-              onSubmit={event => {
-                event.preventDefault()
-                setSubscribed(true)
-              }}
-            >
+            <form className="newsletter-form" onSubmit={handleSubmit}>
               {subscribed ? (
                 <div style={{ padding: '12px', color: '#0B7A4B', fontWeight: 600 }}>Thank you! Your advisory subscription is confirmed.</div>
               ) : (
                 <>
-                  <input type="tel" placeholder="Enter your WhatsApp Number" className="newsletter-input" required />
-                  <select className="newsletter-select">
-                    <option>Paddy / Rice Farmer</option>
-                    <option>Cotton Farmer</option>
-                    <option>Horticulture / Vegetables</option>
-                    <option>Sugarcane Farmer</option>
-                    <option>Mixed Crop Farmer</option>
+                  <input
+                    type="tel"
+                    placeholder="Enter your WhatsApp Number"
+                    className="newsletter-input"
+                    value={phone}
+                    onChange={event => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))}
+                    inputMode="numeric"
+                    maxLength={10}
+                    required
+                  />
+                  <select className="newsletter-select" value={crop} onChange={event => setCrop(event.target.value)}>
+                    {CROP_OPTIONS.map(option => <option key={option}>{option}</option>)}
                   </select>
-                  <button type="submit" className="newsletter-btn"><i className="fa-brands fa-whatsapp"></i> Subscribe Free</button>
+                  <button type="submit" className="newsletter-btn" disabled={submitting}>
+                    <i className="fa-brands fa-whatsapp"></i> {submitting ? 'Subscribing…' : 'Subscribe Free'}
+                  </button>
                 </>
               )}
             </form>

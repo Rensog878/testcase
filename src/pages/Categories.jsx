@@ -67,7 +67,7 @@ export default function Categories() {
 
   // Live catalog: the same MongoDB-backed product list every other store
   // page uses, filtered client-side per rail category below.
-  const { products: dbProducts } = useCatalogProducts({ onlineOnly: true })
+  const { products: dbProducts, loading: productsLoading } = useCatalogProducts({ onlineOnly: true })
 
   // Phones: a full-screen view, so the document behind it does not scroll
   // (index.css, html.sb-fullscreen-page). Set before paint, removed on leaving.
@@ -80,10 +80,22 @@ export default function Categories() {
 
   // The pane's sections: every category, each holding its live products,
   // narrowed by the search (matches the category name or a product name).
+  //
+  // While the catalog is still loading, dbProducts is [] like a genuine
+  // "nothing matches" result, which used to render the "No subcategories
+  // found" empty state - with its "Clear Search" button - for the several
+  // seconds a cold serverless function + database connection can take on the
+  // deployed site, before the real tiles popped in. A loading section (6
+  // skeleton tiles per category) replaces that false negative.
   const sections = useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
     return CATEGORIES_DATA.map(cat => {
       const catMatches = !q || cat.name.toLowerCase().includes(q)
+      if (productsLoading) {
+        if (!catMatches) return { cat, subMenus: [], total: 0, loading: true }
+        const items = Array.from({ length: 6 }, (_, i) => ({ handle: `skeleton-${i}`, skeleton: true }))
+        return { cat, subMenus: [{ name: cat.name, items }], total: 0, loading: true }
+      }
       const items = dbProducts
         .filter(p => matchesCategory(p.category, cat.handle))
         .filter(p => catMatches || p.name.toLowerCase().includes(q))
@@ -91,7 +103,7 @@ export default function Categories() {
       const subMenus = items.length ? [{ name: cat.name, items }] : []
       return { cat, subMenus, total: items.length }
     }).filter(section => section.subMenus.length > 0)
-  }, [searchQuery, dbProducts])
+  }, [searchQuery, dbProducts, productsLoading])
 
   const sectionsRef = useRef(sections)
   sectionsRef.current = sections
@@ -305,8 +317,9 @@ export default function Categories() {
             ref={paneRef}
             onScroll={handlePaneScroll}
           >
-            {/* If search active and no results */}
-            {sections.length === 0 && (
+            {/* If search active and no results (never while the catalog
+                itself is still loading - see the sections comment above). */}
+            {sections.length === 0 && !productsLoading && (
               <div className="no-subcat-results">
                 <p>No subcategories found matching <strong>"{searchQuery}"</strong></p>
                 <button
@@ -319,7 +332,7 @@ export default function Categories() {
               </div>
             )}
 
-            {sections.map(({ cat, subMenus, total }) => (
+            {sections.map(({ cat, subMenus, total, loading: sectionLoading }) => (
               <div
                 key={cat.id || cat.handle}
                 ref={el => { sectionEls.current[cat.handle] = el }}
@@ -338,7 +351,9 @@ export default function Categories() {
                     </h2>
                     <p className="subcat-banner-desc">
                       {/* One text node, so the page translator sees the whole sentence. */}
-                      {`Explore ${total} verified agricultural ${cat.name.toLowerCase()} & field formulations.`}
+                      {sectionLoading
+                        ? `Loading verified agricultural ${cat.name.toLowerCase()} & field formulations…`
+                        : `Explore ${total} verified agricultural ${cat.name.toLowerCase()} & field formulations.`}
                     </p>
                   </div>
                   <div className="subcat-banner-image">
@@ -360,14 +375,21 @@ export default function Categories() {
                           {sub.name}
                         </h3>
                         <div className="subcat-group-line" />
-                        <span className="subcat-group-count">
-                          {sub.items.length} items
-                        </span>
+                        {!sectionLoading && (
+                          <span className="subcat-group-count">
+                            {sub.items.length} items
+                          </span>
+                        )}
                       </div>
 
                       {/* 3-COLUMN GRID OF CIRCULAR TILES (Mobile UI) */}
                       <div className="subcat-circles-grid">
-                        {sub.items.map((item, iIdx) => (
+                        {sub.items.map((item, iIdx) => item.skeleton ? (
+                          <div key={item.handle + iIdx} className="subcat-circle-card subcat-circle-skeleton" aria-hidden="true">
+                            <div className="subcat-circle-img-wrap sb-shimmer" />
+                            <span className="subcat-circle-title-skeleton sb-shimmer" />
+                          </div>
+                        ) : (
                           <Link
                             key={item.handle + iIdx}
                             to={`/product/${encodeURIComponent(item.handle)}`}

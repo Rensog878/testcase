@@ -4531,6 +4531,34 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   font-weight: 700;
 }
 
+/* Loading placeholder for a category's product tiles (Categories.jsx): shown
+   while the catalog fetch is in flight, instead of a "No subcategories
+   found" empty state flashing before the real tiles pop in. */
+.sb-shimmer {
+  background: linear-gradient(90deg, #eef1f4 25%, #f7f8fa 50%, #eef1f4 75%);
+  background-size: 200% 100%;
+  animation: sb-shimmer-sweep 1.2s linear infinite;
+}
+@keyframes sb-shimmer-sweep {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+.subcat-circle-skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+.subcat-circle-skeleton .subcat-circle-img-wrap {
+  border-color: transparent;
+  box-shadow: none;
+}
+.subcat-circle-title-skeleton {
+  display: block;
+  width: 70%;
+  height: 10px;
+  margin: 8px auto 0;
+  border-radius: 4px;
+}
+
 /* No results search empty state */
 .no-subcat-results {
   text-align: center;
@@ -6722,6 +6750,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 
 @media (prefers-reduced-motion: reduce) {
   .sb-chrome-ticker-track {
+    animation: none;
+  }
+  .sb-shimmer {
     animation: none;
   }
 }

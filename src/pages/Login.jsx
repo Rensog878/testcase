@@ -4,6 +4,7 @@ import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { toast } from 'sonner'
+import { celebrateSignIn } from '../storefront/welcome'
 import { Check, Eye, EyeOff, LogIn } from 'lucide-react'
 
 // Staff sign-in (/login, and /admin when signed out). Farmers sign in on the
@@ -45,6 +46,7 @@ export default function Login() {
       // A farmer account belongs on the storefront, where it is now signed in.
       if (user.role === 'farmer') {
         toast.success(`Welcome back, ${user.name}! Farmers shop and sign in on the store. 🌿`)
+        celebrateSignIn(user)
         navigate('/', { replace: true })
         return
       }

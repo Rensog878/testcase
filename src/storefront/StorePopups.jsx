@@ -8,6 +8,7 @@ import { setBodyFlag } from './bodyFlags'
 import AuthModal from './sections/AuthModal'
 import CheckoutSheet from './sections/CheckoutSheet'
 import EnquirySheet from './sections/EnquirySheet'
+import WelcomeCelebration from './sections/WelcomeCelebration'
 import './storefront.css'
 
 // The popups every store page shares, drawn once in App.jsx so they open over
@@ -129,6 +130,7 @@ export default function StorePopups() {
         <CheckoutSheet />
         <AuthModal t={t} state={authState} user={user} notice={checkout.authNotice} loginRequest={checkout.loginRequest} />
         <EnquirySheet />
+        <WelcomeCelebration />
       </div>
     </StoreContext.Provider>
   )

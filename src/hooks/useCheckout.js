@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { showToast } from '../storefront/toast'
+import { celebrateSignIn } from '../storefront/welcome'
 import useModalStates from '../storefront/useModalStates'
 import {
   AUTH_HASHES, CHECKOUT_STEPS, CONTACT_FIELDS, GUEST_CART_KEY, STAFF_HOME, STEP_HASH,
@@ -373,6 +374,7 @@ export function CheckoutProvider({ enabled, children }) {
         leaveSignInFor(home)
         return
       }
+      celebrateSignIn(signedInUser)
       if (resume && items.length) showStep('address')
     }
 

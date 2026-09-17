@@ -3821,12 +3821,16 @@ body.sb-home-active {
      before the slide starts (openModal), and the shadow is small - a 40px blur
      on a full-width moving sheet was expensive to paint and invisible against
      the dimmed backdrop anyway. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay {
+  /* The enquiry sheet is deliberately not one of these bottom sheets - it is a
+     floating centred card (see "ENQUIRY SHEET" below), and it cannot be swiped
+     down to close, so it also skips the grab handle. :where() carries no
+     specificity, so excluding it leaves every other modal's cascade untouched. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay:where(:not(#enquiryModal)) {
     align-items: flex-end !important;
     padding: 0 !important;
     transition: opacity 0.2s ease, visibility 0.2s ease;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card:where(:not(.enq-card)) {
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 22px 22px 0 0 !important;
@@ -3837,11 +3841,11 @@ body.sb-home-active {
     transition: transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) !important;
     overscroll-behavior: contain;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay.active .modal-card {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay.active .modal-card:where(:not(.enq-card)) {
     transform: translateY(0) !important;
   }
   /* Grab handle: signals the sheet can be swiped down to close. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card::before {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card:where(:not(.enq-card))::before {
     content: '';
     position: absolute;
     top: 8px;
@@ -7807,8 +7811,16 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab-label {
     display: none;
   }
-  /* A true floating card, centered clear of every edge - not a bottom sheet
-     docked to the screen's edge and not pinned to a corner. */
+  /* A true floating card, centred clear of every edge - not a bottom sheet
+     docked to the screen's edge and not pinned to a corner.
+     --auth-pad has to match the card's own horizontal padding: the sticky
+     Send button (.auth-actions) bleeds itself out by -1 * --auth-pad to span
+     the card, so a mismatch hangs it over both edges. */
+  :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal {
+    --auth-pad: 18px;
+    --auth-pad-top: 44px;
+    --auth-pad-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.modal-overlay {
     align-items: center;
     padding: 16px;
@@ -7821,7 +7833,8 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     max-height: 86dvh;
     margin: auto;
     border-radius: 24px;
-    padding: 20px 18px 0;
+    /* 44px of head room clears the absolutely positioned close button. */
+    padding: var(--auth-pad-top) var(--auth-pad) 0;
     box-shadow: 0 24px 60px rgba(6, 34, 22, 0.35);
     transform: scale(0.94);
     opacity: 0;
@@ -7830,6 +7843,11 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.active .modal-card.enq-card {
     transform: scale(1);
     opacity: 1;
+  }
+  /* The sticky Send button must reach the card's bottom edge. Any padding
+     below it leaves a strip the scrolling fields show through. */
+  :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal .enq-card form.auth-form {
+    padding-bottom: 0;
   }
 }
 

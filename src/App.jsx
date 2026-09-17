@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import { CmsProvider } from './context/CmsContext'
 import { CheckoutProvider } from './hooks/useCheckout'
 import { STAFF_HOME } from './hooks/checkoutRules'
 import PrivateRoute from './components/PrivateRoute'
@@ -97,6 +98,7 @@ export default function App() {
   // Every store page adds to the same basket and opens the same floating
   // checkout and sign-in card, drawn once here over whichever page is open.
   return (
+    <CmsProvider>
     <CheckoutProvider enabled={storePage}>
       <StoreTop />
       <Routes>
@@ -170,5 +172,6 @@ export default function App() {
       <StoreBottom />
       <StoreTranslation />
     </CheckoutProvider>
+    </CmsProvider>
   )
 }

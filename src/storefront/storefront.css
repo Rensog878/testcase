@@ -4591,11 +4591,17 @@ body.sb-home-active {
   color: var(--text-muted);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-header .cart-close-btn {
+  flex: none;
+  box-sizing: border-box;
   width: 38px;
   height: 38px;
   min-width: 38px;
   min-height: 38px;
+  max-width: 38px;
+  max-height: 38px;
+  aspect-ratio: 1 / 1;
   padding: 0;
+  border: none;
   border-radius: 50%;
   background: #F4F3EF;
   color: #5A6B63;
@@ -6916,11 +6922,16 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 .sb-portal #checkoutSheet .co-icon-btn,
 .sb-portal #checkoutSheet .cart-header .cart-close-btn {
   flex: none;
+  box-sizing: border-box;
   width: 40px;
   height: 40px;
   min-width: 40px;
   min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  aspect-ratio: 1 / 1;
   padding: 0;
+  border: none;
   border-radius: 50%;
   background: #F4F3EF;
   color: #5A6B63;
@@ -8434,13 +8445,35 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     display: flex;
     align-items: center;
     gap: 28px;
-    min-height: 36px;
+    min-height: 38px;
     padding-inline: calc((100% - min(100%, 1320px)) / 2 + var(--sb-gutter));
-    background: #0b3827;
+    /* Liquid-glass: one flat translucent tint (no multi-stop gradient, which
+       read as a patchy seam) plus a single soft sheen top-left, over
+       whatever scrolls under the strip - matches the frosted header-main
+       card below it instead of fighting it with a second, busier gradient. */
+    background:
+      radial-gradient(130% 220% at 18% -80%, rgba(255, 255, 255, 0.10), transparent 55%),
+      rgba(8, 40, 28, 0.82);
+    -webkit-backdrop-filter: saturate(1.5) blur(18px);
+    backdrop-filter: saturate(1.5) blur(18px);
     color: rgba(255, 255, 255, 0.72);
     font-size: 0.75rem;
     font-weight: 500;
     line-height: 1;
+    position: relative;
+    /* A hairline seam plus a soft glow under it - the same "floating card"
+       language as the header/navbar below, so the whole chrome reads as one
+       premium unit instead of a plain flat strip capping it. */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 1px 12px rgba(6, 30, 20, 0.16);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(111, 211, 164, 0.55), transparent);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell :is(.topbar, .topbar-content) {
     display: contents;
@@ -8449,13 +8482,26 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     order: 1;
     flex: none;
   }
+  /* The one actual call-to-action on the strip reads as a small pill, not
+     plain text at the same weight as the informational items beside it. */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-link {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 13px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
     font-size: inherit;
     font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-link:hover {
-    color: #9fe3c2;
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #0b4630;
   }
   /* Only the time-bound promos scroll. The strip fades at both ends rather
      than slicing text off, and still pauses on hover (base rule). */
@@ -8506,9 +8552,16 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     min-width: 0;
     gap: 20px;
   }
+  /* A plain accent-colored glyph reads cleaner at this size than a chip -
+     14 CSS custom properties of icon circle didn't leave room to actually
+     look like a chip, just a smudge, so a divider between items carries the
+     separation instead. */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-badge {
     flex: none;
-    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    padding-left: 20px;
+    border-left: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 0;
     background: none;
     color: inherit;
@@ -8520,35 +8573,41 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     letter-spacing: 0.02em;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell :is(.topbar-badge, .topbar-shipping-note) > i {
-    margin-right: 6px;
-    color: #6fd3a4;
+    margin-right: 7px;
+    color: #7fe0b3;
+    font-size: 0.72rem;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-shipping-note {
+    display: inline-flex;
+    align-items: center;
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
     padding-left: 20px;
-    border-left: 1px solid rgba(255, 255, 255, 0.14);
+    border-left: 1px solid rgba(255, 255, 255, 0.16);
     line-height: 14px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper {
     flex: none;
-    height: 26px;
+    height: 27px;
     gap: 6px;
-    padding: 0 10px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.07);
     color: #ffffff;
-    transition: background-color 0.15s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(111, 211, 164, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 3px rgba(111, 211, 164, 0.12);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper > i {
-    color: #6fd3a4;
+    color: #7fe0b3;
     font-size: 0.8rem;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-select {

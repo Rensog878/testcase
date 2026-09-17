@@ -1,14 +1,15 @@
-import useCmsSettings, { cmsTickerLines } from '../../hooks/useCmsSettings'
+import { useCms, cmsTickerLines } from '../../context/CmsContext'
 
 // Phones: the storefront's scrolling offers ticker, drawn once above every
 // store page (StoreTopChrome). The same wording as the storefront, so the
 // language packs translate it. Styles: index.css, "SHARED TOP HEADER".
 //
 // This is a separate element from the desktop ticker (sections/Header.jsx
-// TickerBar), not a CSS-hidden copy of it, so it needs its own live CMS read
-// (useCmsSettings already carries the BroadcastChannel + visibility refresh
-// that makes an admin's publish appear here too) - see tickerItemsFor there
-// for the same admin-override-replaces-all-six-promos behaviour.
+// TickerBar), not a CSS-hidden copy of it, but it now reads the same shared
+// CmsContext instance as everything else (see src/context/CmsContext.jsx),
+// so it can never drift out of sync with the desktop ticker - see
+// tickerItemsFor there for the same admin-override-replaces-all-six-promos
+// behaviour.
 const ITEMS = [
   ['fa-solid fa-fire', '#fbbf24', <>FLAT 15% OFF on first order — Use code <strong>FARM15</strong></>],
   ['fa-solid fa-truck-fast', '#34d399', 'Free express delivery on orders above ₹999 across all 28 states'],
@@ -25,7 +26,7 @@ const renderItems = (items, copy) => items.map(([icon, color, text], index) => (
 ))
 
 export default function StoreTicker() {
-  const { cms } = useCmsSettings()
+  const { cms } = useCms()
   const adminLines = cmsTickerLines(cms)
   const items = adminLines.length
     ? adminLines.map(line => ['fa-solid fa-bullhorn', '#fbbf24', line])

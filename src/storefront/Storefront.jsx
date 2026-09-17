@@ -8,7 +8,7 @@ import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
 import { StoreContext } from './StoreContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
-import useCmsSettings from '../hooks/useCmsSettings'
+import { useCms } from '../context/CmsContext'
 import { TEXT_PACKS, isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { showToast } from './toast'
 import { setBodyFlag } from './bodyFlags'
@@ -108,7 +108,7 @@ export default function Storefront() {
   // Site content the admin edits in the CMS. The hook keeps it live: it
   // re-reads on a BroadcastChannel ping when an admin publishes, and when this
   // tab becomes visible again (same pattern as useCatalogProducts).
-  const { cms } = useCmsSettings()
+  const { cms } = useCms()
 
   const productsRef = useRef(products)
   productsRef.current = products

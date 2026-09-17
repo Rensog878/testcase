@@ -707,9 +707,16 @@ window.SB_LANG_STAFF_KN = {
     "by": "ರಚಿಸಿದವರು:",
     "system": "ಸಿಸ್ಟಮ್",
     "self-registered": "ಸ್ವಯಂ ನೋಂದಣಿ",
-    "In Progress": "ಪ್ರಗತಿಯಲ್ಲಿದೆ"
+    "In Progress": "ಪ್ರಗತಿಯಲ್ಲಿದೆ",
+    "Delivery": "ಡೆಲಿವರಿ",
+    "Farmer": "ರೈತ"
   },
   patterns: [
+    [/^Top ([\d,]+) districts$/, "ಉನ್ನತ $1 ಜಿಲ್ಲೆಗಳು"],
+    [/^Advisory sent to ([\d,]+) farmers$/, "$1 ರೈತರಿಗೆ ಸಲಹೆ ಕಳುಹಿಸಲಾಗಿದೆ"],
+    [/^User credentials created for (.+)$/, "$1 ಅವರಿಗೆ ಬಳಕೆದಾರ ವಿವರಗಳನ್ನು ರಚಿಸಲಾಗಿದೆ"],
+    [/^This is not an? (.+) account$/, "ಇದು $1 ಖಾತೆ ಅಲ್ಲ"],
+    [/^Sign In as (.+)$/, "$1 ಆಗಿ ಲಾಗಿನ್ ಆಗಿ"],
     [/^([\d,]+) paid orders$/, "$1 ಪಾವತಿಸಿದ ಆರ್ಡರ್‌ಗಳು"],
     [/^([\d,]+) paid, ([\d,]+) cancelled$/, "$1 ಪಾವತಿಸಲಾಗಿದೆ, $2 ರದ್ದು"],
     [/^([\d,]+) cancelled orders$/, "$1 ರದ್ದಾದ ಆರ್ಡರ್‌ಗಳು"],

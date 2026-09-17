@@ -707,9 +707,16 @@ window.SB_LANG_STAFF_TE = {
     "by": "సృష్టించినవారు:",
     "system": "సిస్టమ్",
     "self-registered": "స్వీయ నమోదు",
-    "In Progress": "పురోగతిలో ఉంది"
+    "In Progress": "పురోగతిలో ఉంది",
+    "Delivery": "డెలివరీ",
+    "Farmer": "రైతు"
   },
   patterns: [
+    [/^Top ([\d,]+) districts$/, "అగ్ర $1 జిల్లాలు"],
+    [/^Advisory sent to ([\d,]+) farmers$/, "$1 రైతులకు సలహా పంపబడింది"],
+    [/^User credentials created for (.+)$/, "$1 కోసం వినియోగదారు వివరాలు సృష్టించబడ్డాయి"],
+    [/^This is not an? (.+) account$/, "ఇది $1 ఖాతా కాదు"],
+    [/^Sign In as (.+)$/, "$1 గా లాగిన్ అవ్వండి"],
     [/^([\d,]+) paid orders$/, "$1 చెల్లించిన ఆర్డర్లు"],
     [/^([\d,]+) paid, ([\d,]+) cancelled$/, "$1 చెల్లించినవి, $2 రద్దు"],
     [/^([\d,]+) cancelled orders$/, "$1 రద్దైన ఆర్డర్లు"],

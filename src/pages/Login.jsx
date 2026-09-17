@@ -151,7 +151,7 @@ export default function Login() {
             </div>
 
             <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading} style={{ marginTop: '8px' }}>
-              {loading ? <><div className="spinner" /> Signing in...</> : <><LogIn size={18} /> Sign In as {roleInfo?.label}</>}
+              {loading ? <><div className="spinner" /> Signing in...</> : <><LogIn size={18} /> {`Sign In as ${roleInfo?.label}`}</>}
             </button>
           </form>
 

@@ -708,9 +708,16 @@ window.SB_LANG_STAFF_TA = {
     "by": "உருவாக்கியவர்:",
     "system": "அமைப்பு",
     "self-registered": "சுயப் பதிவு",
-    "In Progress": "நடைபெறுகிறது"
+    "In Progress": "நடைபெறுகிறது",
+    "Delivery": "டெலிவரி",
+    "Farmer": "விவசாயி"
   },
   patterns: [
+    [/^Top ([\d,]+) districts$/, "முதன்மை $1 மாவட்டங்கள்"],
+    [/^Advisory sent to ([\d,]+) farmers$/, "$1 விவசாயிகளுக்கு ஆலோசனை அனுப்பப்பட்டது"],
+    [/^User credentials created for (.+)$/, "$1-க்கான பயனர் விவரங்கள் உருவாக்கப்பட்டன"],
+    [/^This is not an? (.+) account$/, "இது $1 கணக்கு அல்ல"],
+    [/^Sign In as (.+)$/, "$1 ஆக உள்நுழை"],
     [/^([\d,]+) paid orders$/, "$1 பணம் செலுத்திய ஆர்டர்கள்"],
     [/^([\d,]+) paid, ([\d,]+) cancelled$/, "$1 பணம் செலுத்தியவை, $2 ரத்து"],
     [/^([\d,]+) cancelled orders$/, "$1 ரத்தான ஆர்டர்கள்"],

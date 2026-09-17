@@ -707,9 +707,16 @@ window.SB_LANG_STAFF_HI = {
     "by": "द्वारा:",
     "system": "सिस्टम",
     "self-registered": "स्व-पंजीकृत",
-    "In Progress": "प्रगति में"
+    "In Progress": "प्रगति में",
+    "Delivery": "डिलीवरी",
+    "Farmer": "किसान"
   },
   patterns: [
+    [/^Top ([\d,]+) districts$/, "शीर्ष $1 ज़िले"],
+    [/^Advisory sent to ([\d,]+) farmers$/, "$1 किसानों को सलाह भेजी गई"],
+    [/^User credentials created for (.+)$/, "$1 के लिए उपयोगकर्ता विवरण बनाए गए"],
+    [/^This is not an? (.+) account$/, "यह $1 खाता नहीं है"],
+    [/^Sign In as (.+)$/, "$1 के रूप में लॉगिन करें"],
     [/^([\d,]+) paid orders$/, "$1 भुगतान किए ऑर्डर"],
     [/^([\d,]+) paid, ([\d,]+) cancelled$/, "$1 भुगतान, $2 रद्द"],
     [/^([\d,]+) cancelled orders$/, "$1 रद्द ऑर्डर"],

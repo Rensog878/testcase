@@ -316,7 +316,7 @@ export default function AdminAnalytics() {
               <div className="card">
                 <div className="card-header">
                   <div className="card-title">🗺 Regional Sales</div>
-                  <span className="badge badge-yellow">Top {regions.length} districts</span>
+                  <span className="badge badge-yellow">{`Top ${regions.length} districts`}</span>
                 </div>
                 {regions.length === 0
                   ? <div className="chart-empty">No regional data — orders may be missing a district field</div>

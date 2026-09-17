@@ -60,32 +60,39 @@ export default function Navigation() {
 
   return (
     <div className="sb-portal">
-      <TickerBar />
+      {/* Two shells, so the four chrome rows can collapse into two at
+          >=1025px, exactly like the home page (Storefront.jsx) - same
+          classes, same storefront.css rules, so this header renders
+          pixel-identical to it. Both are `display: contents` below that. */}
+      <div className="sb-utility-shell">
+        <TickerBar />
 
-      <div className="topbar">
-        <div className="container topbar-content">
-          <div className="topbar-left-links">
-            <Link to="/products" className="topbar-link">Sell on Sathyam Bio</Link>
-            <span
-              className="topbar-badge"
-              style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
-            >
-              {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
-            </span>
-            <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>1800-425-9999</strong></span>
-          </div>
-          <div className="topbar-right-info">
-            <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> FREE Shipping on Agro Orders over ₹999</span>
-            <div className="lang-selector-wrapper">
-              <i className="fa-solid fa-globe"></i>
-              <select className="lang-select" value={lang} onChange={event => setLang(event.target.value)} aria-label="Language">
-                {languages.map(l => <option key={l.code} value={l.code}>{l.code === 'en' ? l.native : `${l.native} (${l.label})`}</option>)}
-              </select>
+        <div className="topbar">
+          <div className="container topbar-content">
+            <div className="topbar-left-links">
+              <Link to="/products" className="topbar-link">Sell on Sathyam Bio</Link>
+              <span
+                className="topbar-badge"
+                style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
+              >
+                {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
+              </span>
+              <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>1800-425-9999</strong></span>
+            </div>
+            <div className="topbar-right-info">
+              <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> FREE Shipping on Agro Orders over ₹999</span>
+              <div className="lang-selector-wrapper">
+                <i className="fa-solid fa-globe"></i>
+                <select className="lang-select" value={lang} onChange={event => setLang(event.target.value)} aria-label="Language">
+                  {languages.map(l => <option key={l.code} value={l.code}>{l.code === 'en' ? l.native : `${l.native} (${l.label})`}</option>)}
+                </select>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+      <div className="sb-header-shell">
       <header className="header-main">
         <div className="container header-grid">
           <Link to="/" className="logo-box">
@@ -105,7 +112,7 @@ export default function Navigation() {
               onChange={event => setSearchText(event.target.value)}
               onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); runSearch() } }}
             />
-            <button type="button" aria-label="Search" onClick={runSearch}><i className="fa-solid fa-magnifying-glass"></i> <span>Search</span></button>
+            <button type="button" id="headerSearchBtn" aria-label="Search" onClick={runSearch}><i className="fa-solid fa-magnifying-glass"></i> <span>Search</span></button>
           </div>
 
           <div className="header-actions">
@@ -198,6 +205,7 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
+      </div>
     </div>
   )
 }

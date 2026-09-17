@@ -51,7 +51,21 @@ export default memo(function EnquirySheet() {
     if (!open) return undefined
     const root = document.documentElement
     root.classList.add('sb-scroll-lock')
-    document.getElementById('enqName')?.focus({ preventScroll: true })
+
+    // Autofocus waits for the sheet's own open transition to finish instead
+    // of firing on the same frame the class toggles: focusing the input
+    // immediately pops the mobile keyboard while the card is still sliding
+    // in, and the keyboard's viewport resize fights that transform
+    // transition - that's what reads as a laggy open on phones.
+    const card = cardRef.current
+    const focusName = () => document.getElementById('enqName')?.focus({ preventScroll: true })
+    const onTransitionEnd = event => {
+      if (event.target !== card || event.propertyName !== 'transform') return
+      clearTimeout(fallback)
+      focusName()
+    }
+    card?.addEventListener('transitionend', onTransitionEnd)
+    const fallback = setTimeout(focusName, 350)
 
     const onKey = event => {
       if (event.key === 'Escape') {
@@ -79,6 +93,8 @@ export default memo(function EnquirySheet() {
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
+      card?.removeEventListener('transitionend', onTransitionEnd)
+      clearTimeout(fallback)
       root.classList.remove('sb-scroll-lock')
     }
   }, [open])

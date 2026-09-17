@@ -2418,8 +2418,13 @@ body.sb-home-active {
   position: absolute;
   top: 14px;
   right: 14px;
+  box-sizing: border-box;
   width: 38px;
   height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  aspect-ratio: 1 / 1;
   background: #14231C;
   color: #ffffff;
   border: 2px solid #ffffff;
@@ -2452,6 +2457,19 @@ body.sb-home-active {
   :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+  }
+}
+
+/* Desktop only: every form popup (sign-in, enquiry, checkout, etc.) scrolls
+   via .modal-card { overflow-y: auto }, which on a mouse-driven desktop
+   painted a visible track/thumb down the card's right edge. Scrolling still
+   works; only the always-on browser scrollbar chrome is suppressed. */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
+    scrollbar-width: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -3288,8 +3306,13 @@ body.sb-home-active {
   :is(body.sb-home-active .sb-home, .sb-portal) .mobile-filter-drawer-close {
     background: #F4F3EF;
     border: none;
+    box-sizing: border-box;
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     font-size: 1.3rem;
     line-height: 1;
@@ -8542,16 +8565,20 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     margin: 12px auto 0;
     /* -1px pays for the border, so the content box still lands on the grid. */
     padding: 0 calc(var(--sb-card-pad) - 1px);
-    border: 1px solid rgba(22, 36, 29, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.84);
-    -webkit-backdrop-filter: saturate(1.6) blur(20px);
-    backdrop-filter: saturate(1.6) blur(20px);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72)),
+      rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: saturate(1.8) blur(28px);
+    backdrop-filter: saturate(1.8) blur(28px);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 0 0 1px rgba(22, 36, 29, 0.04),
       0 1px 2px rgba(22, 36, 29, 0.04),
-      0 12px 32px -12px rgba(22, 36, 29, 0.18);
+      0 16px 40px -14px rgba(22, 36, 29, 0.22);
     color: var(--sb-ink);
+    transition: box-shadow 0.2s ease;
   }
   /* Flatten Header and NavBar into the bar's one flex row. The mega panel
      then anchors to the bar itself (the nearest positioned box). Every
@@ -8661,10 +8688,17 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     right: 0;
     max-height: calc(100vh - 140px);
     padding: 0;
-    border: 1px solid rgba(22, 36, 29, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 18px;
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(22, 36, 29, 0.04), 0 24px 48px -16px rgba(22, 36, 29, 0.22);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.8)),
+      rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: saturate(1.8) blur(28px);
+    backdrop-filter: saturate(1.8) blur(28px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 1px 2px rgba(22, 36, 29, 0.04),
+      0 24px 48px -16px rgba(22, 36, 29, 0.22);
     color: var(--sb-ink);
     font-size: 0.875rem;
   }

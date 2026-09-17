@@ -3,12 +3,9 @@ import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
 import { ADDRESS_LABELS, CHECKOUT_STEPS, STATES } from '../../hooks/checkoutRules'
 import { productImage, rupees, useFallbackImage } from '../data'
 import useSwipeToDismiss from '../useSwipeToDismiss'
-import ComingSoon from '../../components/ComingSoon'
 
-// Payment Gateway Integration is Phase 2 work — not part of this
-// presentation build. The basket (Phase 1 "Shopping Cart") still works;
-// past that, "Continue to payment" shows Coming Soon instead of the real
-// address/payment/order-confirmation steps (kept below, commented out).
+// Checkout is open for Cash on Delivery only. Online payment (Razorpay) is
+// Phase 2 work: its payment option is kept below, commented out.
 
 // The floating checkout: Basket → Delivery details → Payment → Order
 // confirmed, in one popup over whichever store page the customer is on
@@ -112,7 +109,6 @@ function BasketStep({ cart, cartReady, actions }) {
   )
 }
 
-/*
 function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
   return (
     <div className="co-form">
@@ -226,9 +222,10 @@ function PaymentStep({ checkout, actions }) {
   const f = draft.fields
   const phone = String(f.customerPhone || '').replace(/\D/g, '').slice(-10)
   const address = [f.doorNo, f.street, f.area, f.taluk, f.district, f.state, f.pincode].filter(Boolean).join(', ')
+  const chosen = 'cod' // Phase 2: draft.payment, once online payment is offered again
   const option = (value, icon, title, sub) => (
-    <label className={`co-card co-pay${draft.payment === value ? ' is-selected' : ''}`}>
-      <input type="radio" name="coPayment" value={value} checked={draft.payment === value} disabled={busy} onChange={() => actions.setPayment(value)} />
+    <label className={`co-card co-pay${chosen === value ? ' is-selected' : ''}`}>
+      <input type="radio" name="coPayment" value={value} checked={chosen === value} disabled={busy} onChange={() => actions.setPayment(value)} />
       <span className="co-card-mark" aria-hidden="true"></span>
       <span className="co-card-body">
         <span className="co-card-title">{title}</span>
@@ -266,11 +263,11 @@ function PaymentStep({ checkout, actions }) {
         <h3 id="coPayTitle" className="co-sr">Choose payment</h3>
         <div className="co-cards" role="radiogroup" aria-labelledby="coPayTitle">
           {option('cod', 'fa-money-bill-wave', 'Cash on Delivery', 'Pay when your order arrives')}
-          {option('online', 'fa-shield-halved', 'Pay online (UPI / Card)', 'UPI, cards and net banking via Razorpay')}
+          {/* Phase 2: {option('online', 'fa-shield-halved', 'Pay online (UPI / Card)', 'UPI, cards and net banking via Razorpay')} */}
         </div>
         <p className="co-note">
           <i className="fa-solid fa-lock" aria-hidden="true"></i>
-          <span>Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser.</span>
+          <span>Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser.</span>
         </p>
       </section>
     </>
@@ -299,7 +296,6 @@ function DoneStep({ order }) {
     </div>
   )
 }
-*/
 
 function SheetFooter({ step, checkout, actions }) {
   const { cart, totals, busy, draft } = checkout
@@ -317,12 +313,11 @@ function SheetFooter({ step, checkout, actions }) {
           <span><i className="fa-solid fa-lock" aria-hidden="true"></i> Checkout</span>
           <span className="cart-checkout-amount">{rupees(totals.total)}</span>
         </button>
-        <p className="cart-secure-note"><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> Secure payment · UPI, cards or cash on delivery</p>
+        <p className="cart-secure-note"><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> Cash on delivery · pay when your order arrives</p>
       </div>
     )
   }
 
-  /*
   if (step === 'done') {
     return (
       <div className="cart-footer co-foot">
@@ -335,7 +330,7 @@ function SheetFooter({ step, checkout, actions }) {
   }
 
   const paying = step === 'payment'
-  const online = draft.payment === 'online'
+  const online = false // Cash on Delivery only until online payment returns (Phase 2)
   let label
   if (busy) label = <Spinner label={BUSY_TEXT[busy]} />
   else if (!paying) label = <><span>Continue to payment</span><i className="fa-solid fa-arrow-right" aria-hidden="true"></i></>
@@ -361,16 +356,6 @@ function SheetFooter({ step, checkout, actions }) {
         onClick={paying ? actions.placeOrder : actions.continueToPayment}
       >
         {label}
-      </button>
-    </div>
-  )
-  */
-
-  // Address/payment/order-confirmation footer replaced with a simple way back to the basket.
-  return (
-    <div className="cart-footer co-foot">
-      <button type="button" className="btn btn-outline co-secondary" onClick={actions.back}>
-        <i className="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to basket
       </button>
     </div>
   )
@@ -441,7 +426,9 @@ export default function CheckoutSheet() {
         <div ref={bodyRef} className="co-body">
           <div key={current} className={`co-step co-step--${current}${current === 'basket' && !cart.length ? ' is-empty' : ''}`} data-direction={direction}>
             {current === 'basket' && <BasketStep cart={cart} cartReady={cartReady} actions={actions} />}
-            {current !== 'basket' && <ComingSoon title="Checkout — coming soon" message="Online payment and order placement will be available here in the next phase." />}
+            {current === 'address' && <AddressStep checkout={checkout} actions={actions} />}
+            {current === 'payment' && <PaymentStep checkout={checkout} actions={actions} />}
+            {current === 'done' && <DoneStep order={checkout.order} />}
           </div>
         </div>
 

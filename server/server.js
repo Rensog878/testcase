@@ -1720,6 +1720,51 @@ app.get('/api/advisory/subscribers', requireAuth('admin'), async (req, res) => {
 });
 
 // ============================================================
+// FARMER ENQUIRIES
+// ============================================================
+
+app.post('/api/enquiries', async (req, res) => {
+  try {
+    const wait = await rateLimit(`enquiry-ip:${clientIp(req)}`, 10, HOUR_MS);
+    if (wait) return tooManyRequests(res, wait, 'Too many requests. Please try again later.');
+
+    const name = cleanText(req.body?.name, 80);
+    const phone = normalizePhone(req.body?.phone);
+    const location = cleanText(req.body?.location, 80);
+
+    if (!name || !phone || !location) {
+      return res.status(400).json({ success: false, message: 'Name, mobile number and location are required.' });
+    }
+
+    const enquiry = {
+      id: newId('ENQ'),
+      name,
+      phone,
+      location,
+      crop: cleanText(req.body?.crop, 60),
+      type: cleanText(req.body?.type, 30) || 'Other',
+      message: cleanText(req.body?.message, 1000),
+      status: 'New',
+      createdAt: new Date().toISOString(),
+    };
+
+    const created = await db.addFarmerEnquiry(enquiry);
+    res.json({ success: true, message: 'Your enquiry has been received.', data: created });
+  } catch (err) {
+    sendError(res, err, 'Farmer enquiry');
+  }
+});
+
+app.get('/api/enquiries', requireAuth('admin'), async (req, res) => {
+  try {
+    const data = await db.getFarmerEnquiries();
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Farmer enquiries');
+  }
+});
+
+// ============================================================
 // INVENTORY / STAFF TASKS
 // ============================================================
 

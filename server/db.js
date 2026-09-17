@@ -71,6 +71,7 @@ const advisorySubscriberSchema = new mongoose.Schema({ _id: String }, permissive
 const inventoryItemSchema = new mongoose.Schema({ _id: String }, permissive);
 const staffTaskSchema = new mongoose.Schema({ _id: String }, permissive);
 const ticketSchema = new mongoose.Schema({ _id: String }, permissive);
+const farmerEnquirySchema = new mongoose.Schema({ _id: String }, permissive);
 const chatRecordSchema = new mongoose.Schema({ _id: String }, permissive);
 // One cart per user: _id is the user's id.
 const cartSchema = new mongoose.Schema({ _id: String }, permissive);
@@ -109,6 +110,7 @@ const AdvisorySubscriber =
 const InventoryItem = mongoose.models.InventoryItem || mongoose.model('InventoryItem', inventoryItemSchema);
 const StaffTask = mongoose.models.StaffTask || mongoose.model('StaffTask', staffTaskSchema);
 const Ticket = mongoose.models.Ticket || mongoose.model('Ticket', ticketSchema);
+const FarmerEnquiry = mongoose.models.FarmerEnquiry || mongoose.model('FarmerEnquiry', farmerEnquirySchema);
 const ChatRecord = mongoose.models.ChatRecord || mongoose.model('ChatRecord', chatRecordSchema);
 const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
 const WishlistItem = mongoose.models.WishlistItem || mongoose.model('WishlistItem', wishlistItemSchema);
@@ -1512,6 +1514,20 @@ class DatabaseManager {
         await connectDB();
         const doc = { ...sub, _id: sub.id };
         const created = await AdvisorySubscriber.create(doc);
+        return serialize(created.toObject());
+  }
+
+  async getFarmerEnquiries() {
+        await connectDB();
+        const enquiries = (await FarmerEnquiry.find({}).lean()).map(serialize);
+        enquiries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return enquiries;
+  }
+
+  async addFarmerEnquiry(enquiry) {
+        await connectDB();
+        const doc = { ...enquiry, _id: enquiry.id };
+        const created = await FarmerEnquiry.create(doc);
         return serialize(created.toObject());
   }
 

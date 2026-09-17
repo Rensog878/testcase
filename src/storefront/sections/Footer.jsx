@@ -68,6 +68,7 @@ export default memo(function Footer({ t, cms }) {
             <span>Privacy Policy</span>
             <span>Terms of Sale</span>
             <span>Refund Policy</span>
+            <span style={{ opacity: 0.75 }}>Designed by cupnsaucer</span>
           </div>
         </div>
       </div>

@@ -28,6 +28,7 @@ const ADMIN_NAV = [
       { to: '/admin/profile-fields', icon: '🧾', label: 'Profile Form Builder' },
       { to: '/admin/orders',       icon: '📦', label: 'Order Management' },
       { to: '/admin/subscribers',  icon: '📩', label: 'Advisory Subscribers' },
+      { to: '/admin/enquiries',    icon: '📝', label: 'Farmer Enquiries' },
       { to: '/admin/employees',    icon: '👥', label: 'Employees' },
     ]
   },

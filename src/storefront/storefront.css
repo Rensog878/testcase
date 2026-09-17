@@ -7664,6 +7664,134 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   }
 }
 
+/* ====================================
+   ENQUIRY SHEET (Farmer Enquiry Form)
+   A floating FAB + a premium sheet that reuses .modal-overlay/.modal-card
+   and the auth-* field styles. Same on phone and desktop; the FAB's
+   position and label are the only things that differ by width, so it
+   never overlaps the mobile bottom nav pill (bottom: ~12-74px there).
+   ==================================== */
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-fab {
+  position: fixed;
+  left: 20px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 20px 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary-dark);
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  box-shadow: 0 10px 28px rgba(20, 83, 45, 0.4);
+  cursor: pointer;
+  z-index: 1200;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-fab i {
+  font-size: 1.15rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(20, 83, 45, 0.5);
+}
+
+:is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal {
+  --auth-pad: 32px;
+  --auth-pad-top: 28px;
+  --auth-pad-bottom: 32px;
+  --auth-radius: 14px;
+  --auth-line: #7d8f86;
+  --auth-line-strong: #5f7169;
+  --auth-line-soft: #d3ddd8;
+  --auth-tint: #f1f6f3;
+  --auth-ink: #14231C;
+  --auth-muted: #5A6B63;
+  --auth-quiet: #6B7A73;
+  --auth-green: #096540;
+  --auth-green-deep: #063F2A;
+  --auth-error: #b91c1c;
+  --auth-ring: 0 0 0 4px rgba(11, 122, 75, 0.2);
+  --auth-focus: 3px solid rgba(9, 101, 64, 0.55);
+}
+
+:is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal .modal-card.enq-card {
+  max-width: 460px;
+  padding: 28px 26px 0;
+  border-radius: 24px;
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-head {
+  text-align: center;
+  margin-bottom: 6px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: rgba(9, 101, 64, 0.1);
+  color: var(--primary-dark);
+  font-size: 1.3rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-textarea {
+  resize: vertical;
+  min-height: 84px;
+  padding-top: 12px;
+  font-family: inherit;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-card form.auth-form {
+  padding-bottom: 26px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-done {
+  text-align: center;
+  padding: 12px 0 30px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .enq-done-icon {
+  display: inline-flex;
+  font-size: 2.6rem;
+  color: #16A46A;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab {
+    left: 16px;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    height: 48px;
+    padding: 0;
+    width: 48px;
+    justify-content: center;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab-label {
+    display: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal .modal-card.enq-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 18px 0;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal.active .modal-card.enq-card {
+    transform: translateY(0);
+  }
+}
+
 /* ==========================================================================
    DESKTOP 2026 — THE AUTHORITATIVE LAYER (>=769px / >=1025px)
    --------------------------------------------------------------------------

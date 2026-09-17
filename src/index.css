@@ -426,6 +426,7 @@ body {
 .public-footer-grid h4 { font-family: 'Outfit', var(--script-font, sans-serif), sans-serif; font-size: 0.95rem; font-weight: 700; line-height: 1.4; color: #fbbf24; }
 .public-footer-grid p, .public-footer-grid li { color: #d1fae5; font-size: 0.85rem; }
 .public-footer-bottom, .public-footer-bottom p, .public-footer-bottom a { color: #a7f3d0; font-size: 0.8rem; }
+.public-footer-credit { opacity: 0.75; }
 .public-payment-strip { font-size: 0.78rem; }
 
 @media (max-width: 1024px) {

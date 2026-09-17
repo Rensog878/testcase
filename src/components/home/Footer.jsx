@@ -99,6 +99,7 @@ export default function Footer() {
           <a href="#">Privacy Policy</a>
           <a href="#">Terms of Sale</a>
           <a href="#">Refund Policy</a>
+          <span className="public-footer-credit">Designed by cupnsaucer</span>
         </div>
 
         <SocialLinks className="public-footer-bottom-social" />

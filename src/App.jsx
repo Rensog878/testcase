@@ -33,6 +33,7 @@ import AdminCMS       from './pages/admin/CMS'
 import AdminProducts  from './pages/admin/Products'
 import AdminOrders    from './pages/admin/Orders'
 import AdminSubscribers from './pages/admin/Subscribers'
+import AdminEnquiries from './pages/admin/Enquiries'
 import AdminAnalytics from './pages/admin/Analytics'
 import AdminUsers     from './pages/admin/Users'
 import AdminProfileFields from './pages/admin/ProfileFields'
@@ -135,6 +136,7 @@ export default function App() {
           <Route path="products"   element={<AdminProducts />} />
           <Route path="orders"     element={<AdminOrders />} />
           <Route path="subscribers" element={<AdminSubscribers />} />
+          <Route path="enquiries"  element={<AdminEnquiries />} />
           <Route path="analytics"  element={<AdminAnalytics />} />
           <Route path="employees"  element={<Employees />} />
           <Route path="support-tickets" element={<SupportTickets />} />

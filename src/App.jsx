@@ -88,9 +88,9 @@ function StoreBottom() {
   return STORE_PAGES.test(pathname) ? <MobileBottomNav /> : null
 }
 
-// Store pages in the chosen language; staff portals in English.
+// Every page in the chosen language; staff portals add the staff phrases.
 function StoreTranslation() {
-  return <PageTranslator enabled={useStorePage()} />
+  return <PageTranslator staff={!useStorePage()} />
 }
 
 export default function App() {

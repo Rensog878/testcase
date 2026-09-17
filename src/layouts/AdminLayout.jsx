@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import { Menu } from 'lucide-react'
 
 const ADMIN_NAV = [
@@ -59,6 +60,7 @@ export default function AdminLayout() {
             </div>
           </div>
           <div className="topbar-right">
+            <LanguageSwitcher />
             <span className="badge badge-red topbar-role">ADMIN</span>
           </div>
         </header>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { toast } from 'sonner'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import { celebrateSignIn, farmerLandingPath } from '../storefront/welcome'
 import { Check, Eye, EyeOff, LogIn } from 'lucide-react'
 
@@ -68,7 +69,7 @@ export default function Login() {
       {/* Login Form — centered, no side panel */}
       <div className="login-left">
         <div className="login-card animate-slide-up">
-          {/* Logo */}
+          {/* Logo & Lang Switcher */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div className="login-logo" style={{ marginBottom: 0 }}>
               <div className="login-logo-icon">🌿</div>
@@ -77,6 +78,7 @@ export default function Login() {
                 <div className="tagline">Agricultural ERP &amp; E-Commerce Platform</div>
               </div>
             </div>
+            <LanguageSwitcher />
           </div>
 
           <span className="login-eyebrow">Staff &amp; Admin Portal</span>

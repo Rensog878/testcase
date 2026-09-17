@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import { Menu } from 'lucide-react'
 
 const DEL_NAV = [{ title: 'DELIVERIES', links: [{ to: '/delivery', end: true, icon: '🚚', label: 'My Deliveries' }] }]
@@ -20,6 +21,7 @@ export default function DeliveryLayout() {
             </div>
           </div>
           <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <LanguageSwitcher />
             <span className="badge badge-orange topbar-role">DELIVERY</span>
           </div>
         </header>

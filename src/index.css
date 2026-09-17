@@ -8797,6 +8797,23 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .subcat-banner-title
   overflow-wrap: anywhere;
 }
 
+/* Staff portals in Indian languages. Sidebar links: "உதவி கோரிக்கைகள்" plus
+   its "new" badge pushed the badge out of the link. Stat labels and headings:
+   a single long word spilled out of its card on 360px phones. Buttons: the
+   CMS "Publish All Changes" button was wider than the phone and ran off the
+   left edge, because .btn never wraps. */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(.sidebar-link, .stat-label, .card h3, .page-content h3) {
+  overflow-wrap: anywhere;
+}
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .sidebar-link .nav-badge {
+  flex-shrink: 0;
+}
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .page-content .btn {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
 /* Menu sheet headings: capitals and letter-spacing suit English, but spacing
    out Indian-language letters pulls their joined forms apart. */
 html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {

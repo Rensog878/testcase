@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import { Bell, Menu, Search } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -37,6 +38,7 @@ export default function EmployeeLayout() {
           <div className="topbar-right employee-header-actions">
             <button className="employee-icon-button" title="Search workspace"><Search size={18} /></button>
             <button className="employee-icon-button employee-notification" title="Notifications"><Bell size={18} /><span>3</span></button>
+            <LanguageSwitcher />
             <span className="employee-user-chip"><span className="employee-avatar">MK</span><span><strong>{user?.name || 'Muthuvel K'}</strong><small>Operations</small></span></span>
           </div>
         </header>

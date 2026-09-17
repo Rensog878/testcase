@@ -35,23 +35,30 @@ export default function Navigation() {
   const runSearch = () => goProducts({ search: searchText })
 
   const close = () => setOpenMenu(null)
-  const megaItem = (id, icon, label, panel) => (
+  // `fallbackTo` is where the trigger itself navigates. The mega panel opens
+  // on hover/focus for desktop pointers, so a click is only ever the second
+  // step of that (panel already open, navigating on is fine) - except
+  // between 769-1024px (tablet, and "desktop site" mode on phones), where
+  // storefront.css force-hides the panel and there's no hover. Without a
+  // real href here, the trigger was a dead button with no way to reach the
+  // category/crop pages at all in that range.
+  const megaItem = (id, icon, label, fallbackTo, panel) => (
     <li
       className={`nav-mega${openMenu === id ? ' is-open' : ''}`}
       onMouseEnter={() => setOpenMenu(id)}
       onMouseLeave={close}
     >
-      <button
-        type="button"
+      <Link
+        to={fallbackTo}
         className="nav-mega-trigger"
         aria-expanded={openMenu === id}
         aria-haspopup="true"
         onFocus={() => setOpenMenu(id)}
-        onClick={() => setOpenMenu(current => (current === id ? null : id))}
+        onClick={close}
       >
         <i className={`fa-solid ${icon}`}></i> <span>{label}</span>
         <i className="fa-solid fa-chevron-down nav-mega-caret" aria-hidden="true"></i>
-      </button>
+      </Link>
       <div className="nav-mega-panel" role="group" aria-label={label} hidden={openMenu !== id}>
         {panel}
       </div>
@@ -153,7 +160,7 @@ export default function Navigation() {
           <ul className="nav-links">
             <li><Link to="/products"><i className="fa-solid fa-store"></i> <span>All Products</span></Link></li>
 
-            {megaItem('cat', 'fa-layer-group', 'Categories', (
+            {megaItem('cat', 'fa-layer-group', 'Categories', '/categories', (
               <div className="nav-mega-cols">
                 <div className="nav-mega-col">
                   <p className="nav-mega-head">Shop by category</p>
@@ -176,7 +183,7 @@ export default function Navigation() {
               </div>
             ))}
 
-            {megaItem('crop', 'fa-wheat-awn', 'Shop by Crop', (
+            {megaItem('crop', 'fa-wheat-awn', 'Shop by Crop', '/crops', (
               <div className="nav-mega-cols">
                 <div className="nav-mega-col nav-mega-col--wide">
                   <p className="nav-mega-head">Pick your crop</p>

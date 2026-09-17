@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { SOCIAL_LINKS } from '../../shared/socialLinks'
 import { useStore } from '../StoreContext'
 import FooterColumn from '../../components/FooterColumn'
 import { cmsText } from '../../hooks/useCmsSettings'
@@ -23,10 +24,9 @@ export default memo(function Footer({ t, cms }) {
               <span className="footer-brand-more">Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.</span>
             </p>
             <div style={{ display: 'flex', gap: '12px', fontSize: '1.2rem' }}>
-              <a href="#" style={{ color: 'white' }} aria-label="WhatsApp"><i className="fa-brands fa-whatsapp"></i></a>
-              <a href="#" style={{ color: 'white' }} aria-label="Facebook"><i className="fa-brands fa-facebook"></i></a>
-              <a href="#" style={{ color: 'white' }} aria-label="YouTube"><i className="fa-brands fa-youtube"></i></a>
-              <a href="#" style={{ color: 'white' }} aria-label="Instagram"><i className="fa-brands fa-instagram"></i></a>
+              {SOCIAL_LINKS.map(({ name, href, fa }) => (
+                <a key={name} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'white' }} aria-label={`Sathyam Bio on ${name} (opens in a new tab)`}><i className={fa} aria-hidden="true"></i></a>
+              ))}
             </div>
           </div>
 

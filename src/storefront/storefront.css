@@ -9859,3 +9859,31 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr);
   }
 }
+
+/* ==========================================================================
+   MEGA PANEL: the nav-bar hover underline must not reach inside it
+   --------------------------------------------------------------------------
+   `.nav-links a` (storefront.css:719/726 and 8296) decorates EVERY anchor in
+   the nav list, and the mega panel lives inside `.nav-links > li`. So each
+   anchor in an open panel picked up both nav-bar decorations on hover: the
+   `border-bottom: 3px solid` and the absolutely positioned `::after` glow bar
+   at `bottom: 10px`, drawn across the element's full width. On the two "see
+   everything" links that is the second and third green line under the text;
+   on the Explore column (All Products / Brands / Blogs) it is why those rows
+   behave differently from the `<button>` rows beside them, which the nav rule
+   cannot match.
+
+   Panel items are menu rows, not nav-bar tabs: they keep the panel's own tint
+   pill (and, for the CTA links, the text underline above). The base rules stay
+   untouched -- they are also the phone nav's -- so this cancels them at >=1025
+   only, which is the only width where the panel can open.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-links .nav-mega-panel .nav-mega-col a::after {
+    content: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-links .nav-mega-panel .nav-mega-col a:hover,
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-links .nav-mega-panel .nav-mega-col a.active {
+    border-bottom: 0;
+  }
+}

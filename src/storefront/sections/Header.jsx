@@ -38,9 +38,34 @@ function tickerItemsFor(cms) {
 export const TickerBar = memo(function TickerBar({ cms }) {
   // The items are drawn twice so the scroll (translateX -50%) loops seamlessly.
   const items = tickerItemsFor(cms)
+  const wrapRef = useRef(null)
+  const copyRef = useRef(null)
+  // Motion only when the promos actually overrun the strip. On the desktop
+  // header the marquee now has a full row, so a single CMS line fits with room
+  // to spare; scrolling it anyway meant the same sentence crawling past twice
+  // at once. Below 1025px nothing reads this flag - the styles it switches on
+  // are desktop-only - so the phone marquee is untouched.
+  const [fits, setFits] = useState(false)
+  useEffect(() => {
+    const wrap = wrapRef.current
+    const copy = copyRef.current
+    if (!wrap || !copy || typeof ResizeObserver === 'undefined') return undefined
+    // Measured on the first copy, never on the track: the second copy is the
+    // one the fitted layout hides, so measuring the track would flip the
+    // answer the moment it acted on it.
+    const measure = () => setFits(copy.getBoundingClientRect().width <= wrap.clientWidth)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(wrap)
+    observer.observe(copy)
+    return () => observer.disconnect()
+  }, [items])
   return (
-    <div className="ticker-wrap">
-      <div className="ticker-track" id="tickerTrack">{items}{items}</div>
+    <div className={`ticker-wrap${fits ? ' ticker-wrap--fits' : ''}`} ref={wrapRef}>
+      <div className="ticker-track" id="tickerTrack">
+        <span className="ticker-copy" ref={copyRef}>{items}</span>
+        <span className="ticker-copy" aria-hidden="true">{items}</span>
+      </div>
     </div>
   )
 })

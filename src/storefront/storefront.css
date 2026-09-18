@@ -162,6 +162,15 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* Each of the two looping copies is one box, so the fitted (non-scrolling)
+   layout can hide the duplicate and the measurement in TickerBar has something
+   to measure. inline-flex keeps the items laid out exactly as they were when
+   they sat on the track directly. */
+:is(body.sb-home-active .sb-home, .sb-portal) .ticker-copy {
+  display: inline-flex;
+  align-items: center;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) .ticker-item {
   display: inline-block;
   padding: 0 48px;
@@ -9888,51 +9897,131 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   }
 }
 
-/* ==========================================================================
-   UTILITY STRIP: THE PROMO MARQUEE GETS ITS OWN ROW (>=1025px)
-   --------------------------------------------------------------------------
-   The strip collapsed ticker + topbar into one flex line, so the marquee only
-   got what the pinned facts left over. Measured at 1280-1920: the marquee
-   window was 393px and the 48px fades left 297px legible, while a CMS promo
-   line ("Free Delivery on orders above Rs999 | Use code KISAN20 for 20% off")
-   is 551px -- about half of it was readable at any moment, and a wider monitor
-   did not help because the strip's content is capped at 1320px.
 
-   The pinned facts are fixed-width (phone 288 + shipping 282 + language 209 =
-   819), so the only way to fit the promo without deleting one of them is to
-   stop sharing the line: the marquee takes a full-width row, the facts keep
-   their own row under it. Costs ~22px of chrome height, which is the trade
-   that was chosen over dropping the shipping promise.
+/* ==========================================================================
+   UTILITY STRIP, REBUILT (>=1025px): ANNOUNCEMENT ROW + FACTS ROW
+   --------------------------------------------------------------------------
+   The strip used to collapse the marquee and the pinned facts onto one line.
+   Measured at 1280-1920 the marquee window was 393px and its 48px fades left
+   297px legible, against a 551px CMS promo: half a sentence at a time, and a
+   wider monitor did not help because the strip caps its content at 1320px.
+
+   Structure now, on the assumption that a promo is an announcement and the
+   phone / shipping / language items are reference facts:
+     row 1  the promo, full width, centred and still when it fits, scrolling
+            only when the promos genuinely overrun the row (TickerBar sets
+            .ticker-wrap--fits; nothing below 1025px reads it)
+     row 2  the facts, spread across the same width instead of crammed into
+            the right corner, which is what the empty left half looked like
+            once the "Sell on Sathyam Bio" pill was removed
    ========================================================================== */
 @media (min-width: 1025px) {
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell {
     flex-wrap: wrap;
-    /* The 28px `gap` is a column gap between items on one line; as a row gap
-       it would open a hole between the two rows. */
+    /* `gap: 28px` is meant as a column gap; as a row gap it would open a hole
+       between the two rows. */
     row-gap: 0;
     min-height: 0;
   }
+
+  /* ---- row 1: the announcement ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap {
     order: 1;
-    /* Full row, and it no longer competes with the pinned facts for width. */
     flex: 1 0 100%;
-    min-height: 30px;
-    /* Separates the two rows the way the strip's own bottom hairline does,
-       instead of a hard rule. */
+    min-height: 32px;
+    justify-content: center;
+    /* Separates the rows the way the strip's own bottom hairline does, rather
+       than a hard rule across the full width. */
     background:
-      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent)
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14) 15%, rgba(255, 255, 255, 0.14) 85%, transparent)
       bottom left / 100% 1px no-repeat;
   }
+  /* Fitted: one copy, centred, no motion, no fades to read through. A promo
+     that fits should sit still and be read, not crawl past twice at once. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-track {
+    animation: none;
+    transform: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-copy + .ticker-copy {
+    display: none;
+  }
+  /* The leading dot is a separator between promos; with one promo centred it
+     is just a speck floating ahead of the sentence. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-copy > .ticker-item:first-child::before {
+    content: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-item {
+    padding-right: 0;
+  }
+
+  /* ---- row 2: the facts ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-left-links {
     order: 2;
-    min-height: 32px;
+    min-height: 30px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info {
     order: 3;
-    /* Home has nothing in the left slot now that the "Sell on Sathyam Bio"
-       pill is gone, so the facts are held to the right edge rather than
-       drifting to the middle of an otherwise empty row. */
+    /* Takes the rest of the row and spaces its own items across it: on home
+       that is the full width, on a store page it is whatever the phone and
+       welcome badges on the left leave. */
+    flex: 1 1 auto;
+    justify-content: space-between;
+    min-height: 30px;
+  }
+  /* The hairline before each fact reads as a divider between neighbours; the
+     first one has nothing to its left to divide from. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info > :first-child {
+    padding-left: 0;
+    background-image: none;
+  }
+}
+
+/* ---- utility strip, finish pass: announcement chip + quieter facts ------
+   Two rows of the same size, weight and colour read as two stacked lists.
+   The promo is the one thing on this strip that changes, so it gets the
+   emphasis: a centred glass chip, the same language as the pill on the
+   language control and the header card below it. The facts step back a size
+   and sit at the two ends -- contact left, controls right -- instead of
+   floating at even thirds across an otherwise empty row. */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap {
+    min-height: 34px;
+    letter-spacing: 0.012em;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-item {
+    padding: 3px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+  }
+  /* Only the promos rotate, so the facts read as the quieter layer. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell :is(.topbar-left-links, .topbar-right-info) {
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell :is(.topbar-badge, .topbar-shipping-note) strong {
+    color: #ffffff;
+  }
+  /* Contact at one end, controls at the other. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info {
+    justify-content: flex-start;
+    gap: 22px;
+  }
+  /* The language control is the one interactive thing on the row, so it holds
+     the right edge on every page. Anchoring the contact items instead only
+     worked on home: a store page keeps its phone badge in .topbar-left-links,
+     so the rule matched the shipping note there and the whole row bunched to
+     the left with the right half empty. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper {
     margin-left: auto;
-    min-height: 32px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper {
+    height: 25px;
   }
 }

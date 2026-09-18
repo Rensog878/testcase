@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../StoreContext'
+import { cmsText } from '../../hooks/useCmsSettings'
 
 const CATEGORY_CARDS = [
   { value: 'Fungicide', image: 'photo-1627920769541-daa658ed6b59', alt: 'Bio Fungicides Spraying', tag: 'Crop Disease Defense', title: 'Fungicides', desc: 'Cure Blast, Blight, Powdery Mildew & Rust' },
@@ -24,15 +25,17 @@ const CROP_CARDS = [
 
 const unsplash = (id, width) => `https://images.unsplash.com/${id}?w=${width}&q=80`
 
-export const CategoryGrid = memo(function CategoryGrid({ t }) {
+export const CategoryGrid = memo(function CategoryGrid({ t, cms }) {
   const { filterByCategory } = useStore()
+  const sectionTitle    = cmsText(cms, 'categoryGridTitle',    t('shop_by_category'))
+  const sectionSubtitle = cmsText(cms, 'categoryGridSubtitle', 'Explore crop protection chemicals, bio-stimulants, and soil nutrients')
   return (
     <section className="section" id="categoriesSection" style={{ padding: '40px 0', background: '#ffffff' }}>
       <div className="container">
         <div className="section-header-flex">
           <div>
-            <h2 className="section-title" data-i18n="shop_by_category">{t('shop_by_category')}</h2>
-            <p className="section-subtitle">Explore crop protection chemicals, bio-stimulants, and soil nutrients</p>
+            <h2 className="section-title" data-i18n="shop_by_category">{sectionTitle}</h2>
+            <p className="section-subtitle">{sectionSubtitle}</p>
           </div>
           <Link to="/categories" className="btn btn-outline">Shop All Categories <i className="fa-solid fa-arrow-right"></i></Link>
         </div>
@@ -54,15 +57,17 @@ export const CategoryGrid = memo(function CategoryGrid({ t }) {
   )
 })
 
-export const CropGrid = memo(function CropGrid() {
+export const CropGrid = memo(function CropGrid({ cms }) {
   const { filterByCrop } = useStore()
+  const cropTitle    = cmsText(cms, 'cropGridTitle',    'Shop by Crop')
+  const cropSubtitle = cmsText(cms, 'cropGridSubtitle', 'Select your crop to get customized pesticide & nutrient recommendations')
   return (
     <section className="section" id="cropSection" style={{ background: 'var(--bg-section)', padding: '40px 0' }}>
       <div className="container">
         <div className="section-header-flex">
           <div>
-            <h2 className="section-title">Shop by Crop</h2>
-            <p className="section-subtitle">Select your crop to get customized pesticide &amp; nutrient recommendations</p>
+            <h2 className="section-title">{cropTitle}</h2>
+            <p className="section-subtitle">{cropSubtitle}</p>
           </div>
         </div>
 

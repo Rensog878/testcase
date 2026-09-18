@@ -1,21 +1,23 @@
-import { Mail, Phone, MapPin, Facebook, Instagram } from 'lucide-react'
+import { Mail, Phone, MapPin, Facebook, Instagram, MessageCircle, Youtube } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FooterColumn from '../FooterColumn'
-import { SOCIAL_LINKS } from '../../shared/socialLinks'
+import { socialLinksFrom } from '../../shared/socialLinks'
+import { useCms } from '../../context/CmsContext'
 
 // The store pages' footer (Blog, product pages, and Shop and Categories on
 // wider screens). Phones get the home page footer's layout: brand on top, the
 // link groups as tap-to-open rows, a centred bottom row. Styles: index.css,
 // .public-site-footer.
 
-const ICONS = { Facebook, Instagram }
+const ICONS = { WhatsApp: MessageCircle, Facebook, YouTube: Youtube, Instagram }
 
 // Drawn in the brand block on phones and in the bottom row on wider screens;
 // the hidden copy is display: none, so each is announced once.
 function SocialLinks({ className }) {
+  const { cms } = useCms()
   return (
     <div className={`public-social-links ${className}`}>
-      {SOCIAL_LINKS.map(({ name, href }) => {
+      {socialLinksFrom(cms).map(({ name, href }) => {
         const Icon = ICONS[name]
         return (
           <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`Sathyam Bio on ${name} (opens in a new tab)`}>

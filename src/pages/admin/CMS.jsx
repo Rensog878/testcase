@@ -3,39 +3,355 @@ import axios from 'axios'
 import { toast } from 'sonner'
 
 const DEFAULT_CONTENT = {
-  heroTitle: 'Grow More. Protect Better. Farm Smarter.',
-  heroSubtitle: 'India\'s most trusted source for premium bio-pesticides, crop protection, and agro-inputs — trusted by 15,000+ farmers.',
+  // ── Hero ──────────────────────────────────────────────────────────────
+  heroBannerTag:     "India's #1 Bio-Pesticide Store",
+  heroBannerImage:   'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
+  heroTitle:         'Grow More. Protect Better. Farm Smarter.',
+  heroSubtitle:      "India's most trusted source for premium bio-pesticides, crop protection, and agro-inputs — trusted by 15,000+ farmers.",
+  heroShopBtnText:   'Shop Catalog',
+
+  // ── Deal Banner ───────────────────────────────────────────────────────
+  dealBannerTitle:   'Kharif Season Sale — Up to 30% Off Paddy & Cotton Essentials',
+  dealBannerSubtitle:'Limited stock. Ends midnight tonight. COD available.',
+
+  // ── Trust Strip ───────────────────────────────────────────────────────
+  trust1Title:  '100% Bio-Certified',
+  trust1Desc:   'Lab-Tested Original Bio-Formulations',
+  trust2Title:  'Same-Day Dispatch',
+  trust2Desc:   'Express Doorstep Delivery Across India',
+  trust3Title:  'Cash On Delivery',
+  trust3Desc:   'Pay After Delivery at Your Farm',
+  trust4Title:  'WhatsApp Advisory',
+  trust4Desc:   '24/7 Advisory from Senior Agronomists',
+
+  // ── Stats Strip ───────────────────────────────────────────────────────
+  stat1Number:   '15000',
+  stat1Label:    'Farmers Served',
+  stat1Sub:      'across 18 Indian states',
+  stat2Number:   '48',
+  stat2Label:    'Product Formulations',
+  stat2Sub:      '100% bio-certified lab tested',
+  stat3Number:   '95',
+  stat3Label:    '% Dispatch Rate',
+  stat3Sub:      'same-day orders fulfilled',
+  stat4Number:   '12',
+  stat4Label:    'Years of Expertise',
+  stat4Sub:      'trusted since 2013',
+
+  // ── Category & Crop Grids ─────────────────────────────────────────────
+  categoryGridTitle:    'Shop by Category',
+  categoryGridSubtitle: 'Explore crop protection chemicals, bio-stimulants, and soil nutrients',
+  cropGridTitle:        'Shop by Crop',
+  cropGridSubtitle:     'Select your crop to get customized pesticide & nutrient recommendations',
+
+  // ── Promo Ticker ──────────────────────────────────────────────────────
   banner: '🚜 Free Delivery on orders above ₹999 | Use code KISAN20 for 20% off first order',
-  advisoryTitle: 'Get Weekly Crop & Pesticide Recommendations',
-  advisoryDesc: 'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.',
-  phone: '+91-98450-12345',
-  address: '14, Kavundampalayam, Coimbatore – 641030, Tamil Nadu',
-  popupImage: '',
-  popupAudience: 'all',
-  popupBehavior: 'firstVisit',
-  certificationsTitle: 'Certifications & Recognitions',
+
+  // ── Advisory Newsletter ───────────────────────────────────────────────
+  advisoryTitle:  'Get Weekly Crop & Pesticide Recommendations',
+  advisoryDesc:   'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.',
+  advisoryImage:  'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=500&q=80',
+
+  // ── Certifications ────────────────────────────────────────────────────
+  certificationsTitle:    'Certifications & Recognitions',
   certificationsSubtitle: '',
-  certification1Image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=120&q=80',
-  certification1Label: 'ICAR Approved',
-  certification2Image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=120&q=80',
-  certification2Label: 'ISO 9001:2015',
-  certification3Image: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=120&q=80',
-  certification3Label: 'Organic India',
-  certification4Image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=120&q=80',
-  certification4Label: 'GreenTech 2025',
-  certification5Image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=120&q=80',
-  certification5Label: 'APEDA Member',
+  certification1Image:    'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=120&q=80',
+  certification1Label:    'ICAR Approved',
+  certification2Image:    'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=120&q=80',
+  certification2Label:    'ISO 9001:2015',
+  certification3Image:    'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=120&q=80',
+  certification3Label:    'Organic India',
+  certification4Image:    'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=120&q=80',
+  certification4Label:    'GreenTech 2025',
+  certification5Image:    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=120&q=80',
+  certification5Label:    'APEDA Member',
+
+  // ── Testimonials ──────────────────────────────────────────────────────
+  testimonialsTitle:    'Trusted by 15,000+ Indian Farmers',
+  testimonialsSubtitle: 'Real results from paddy, cotton, tomato, and fruit growers',
+  testimonial1Quote: '"Sathyam Bio BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!"',
+  testimonial1Name:  'K. Venkateswarlu',
+  testimonial1Place: 'Paddy Farmer, Guntur (AP)',
+  testimonial1Photo: 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=200&q=80',
+  testimonial2Quote: '"FlyKill Ultra controlled whitefly infestation in my cotton crop within 48 hours. Fast delivery and COD service."',
+  testimonial2Name:  'Ramesh Patil',
+  testimonial2Place: 'Cotton Grower, Yavatmal (MH)',
+  testimonial2Photo: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80',
+  testimonial3Quote: '"RootVigor Gold organic biostimulant increased white root mass and fruit size in my tomato farm by 30%."',
+  testimonial3Name:  'Subramaniam B.',
+  testimonial3Place: 'Horticulture Farmer, Salem (TN)',
+  testimonial3Photo: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=200&q=80',
+
+  // ── Welcome Popup ─────────────────────────────────────────────────────
+  popupImage:     '',
+  popupAudience:  'all',
+  popupBehavior:  'firstVisit',
+  popupTitle:     'Welcome to the Personalized Farming Experience!',
+  popupText:      '"Welcome to the personalized farming experience that you can do farming with our expert with daily updates. We care for you!"',
+
+  // ── Contact & Footer ──────────────────────────────────────────────────
+  phone:         '+91-98450-12345',
+  email:         'support@sathyabio.com',
+  address:       '14, Kavundampalayam, Coimbatore – 641030, Tamil Nadu',
+  footerBrand:   "Sathyam Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.",
+  footerBrandMore: 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.',
+  whatsappUrl:   '',
+  facebookUrl:   'https://www.facebook.com/pradeep.sathyambio.7/',
+  youtubeUrl:    '',
+  instagramUrl:  'https://www.instagram.com/sathyambio/',
 }
 
+// ─── Accordion section metadata ───────────────────────────────────────────────
+const SECTIONS = [
+  {
+    id: 'hero',
+    label: '🏠 Hero Banner',
+    fields: [
+      { key: 'heroBannerTag',   label: 'Badge Text (e.g. "India\'s #1 Bio-Pesticide Store")', type: 'input' },
+      { key: 'heroBannerImage', label: '🖼️ Hero Main Image URL',                              type: 'input' },
+      { key: 'heroTitle',       label: 'Hero Heading',                                         type: 'input' },
+      { key: 'heroSubtitle',    label: 'Hero Description',                                     type: 'textarea' },
+      { key: 'heroShopBtnText', label: 'Shop CTA Button Text',                                 type: 'input' },
+    ],
+  },
+  {
+    id: 'deal',
+    label: '🔥 Deal Banner',
+    fields: [
+      { key: 'dealBannerTitle',    label: 'Sale Headline', type: 'input' },
+      { key: 'dealBannerSubtitle', label: 'Sale Sub-text', type: 'input' },
+    ],
+  },
+  {
+    id: 'trust',
+    label: '✅ Trust Strip (4 items)',
+    fields: [
+      { key: 'trust1Title', label: 'Trust Item 1 — Heading', type: 'input' },
+      { key: 'trust1Desc',  label: 'Trust Item 1 — Description', type: 'input' },
+      { key: 'trust2Title', label: 'Trust Item 2 — Heading', type: 'input' },
+      { key: 'trust2Desc',  label: 'Trust Item 2 — Description', type: 'input' },
+      { key: 'trust3Title', label: 'Trust Item 3 — Heading', type: 'input' },
+      { key: 'trust3Desc',  label: 'Trust Item 3 — Description', type: 'input' },
+      { key: 'trust4Title', label: 'Trust Item 4 — Heading', type: 'input' },
+      { key: 'trust4Desc',  label: 'Trust Item 4 — Description', type: 'input' },
+    ],
+  },
+  {
+    id: 'stats',
+    label: '📊 Stats Strip (4 counters)',
+    fields: [
+      { key: 'stat1Number', label: 'Stat 1 — Number (digits only, e.g. 15000)', type: 'input' },
+      { key: 'stat1Label',  label: 'Stat 1 — Label', type: 'input' },
+      { key: 'stat1Sub',    label: 'Stat 1 — Sub-label', type: 'input' },
+      { key: 'stat2Number', label: 'Stat 2 — Number', type: 'input' },
+      { key: 'stat2Label',  label: 'Stat 2 — Label', type: 'input' },
+      { key: 'stat2Sub',    label: 'Stat 2 — Sub-label', type: 'input' },
+      { key: 'stat3Number', label: 'Stat 3 — Number', type: 'input' },
+      { key: 'stat3Label',  label: 'Stat 3 — Label', type: 'input' },
+      { key: 'stat3Sub',    label: 'Stat 3 — Sub-label', type: 'input' },
+      { key: 'stat4Number', label: 'Stat 4 — Number', type: 'input' },
+      { key: 'stat4Label',  label: 'Stat 4 — Label', type: 'input' },
+      { key: 'stat4Sub',    label: 'Stat 4 — Sub-label', type: 'input' },
+    ],
+  },
+  {
+    id: 'grids',
+    label: '📂 Category & Crop Grids',
+    fields: [
+      { key: 'categoryGridTitle',    label: 'Category Section Title', type: 'input' },
+      { key: 'categoryGridSubtitle', label: 'Category Section Subtitle', type: 'input' },
+      { key: 'cropGridTitle',        label: 'Crop Grid Title', type: 'input' },
+      { key: 'cropGridSubtitle',     label: 'Crop Grid Subtitle', type: 'input' },
+    ],
+  },
+  {
+    id: 'ticker',
+    label: '📢 Promo Ticker',
+    fields: [
+      { key: 'banner', label: 'Promos — one per line (blank = use built-in promos)', type: 'textarea', rows: 6 },
+    ],
+  },
+  {
+    id: 'newsletter',
+    label: '🌾 Advisory Newsletter',
+    fields: [
+      { key: 'advisoryTitle', label: 'Newsletter Section Title', type: 'input' },
+      { key: 'advisoryDesc',  label: 'Newsletter Description',   type: 'textarea' },
+      { key: 'advisoryImage', label: '🖼️ Newsletter Left Image URL', type: 'input' },
+    ],
+  },
+  {
+    id: 'certs',
+    label: '🏅 Certifications',
+    fields: [
+      { key: 'certificationsTitle',    label: 'Section Title',    type: 'input' },
+      { key: 'certificationsSubtitle', label: 'Section Subtitle', type: 'textarea' },
+      { key: 'certification1Image', label: '🖼️ Cert 1 Image URL', type: 'input' },
+      { key: 'certification1Label', label: '🏷️ Cert 1 Label',    type: 'input' },
+      { key: 'certification2Image', label: '🖼️ Cert 2 Image URL', type: 'input' },
+      { key: 'certification2Label', label: '🏷️ Cert 2 Label',    type: 'input' },
+      { key: 'certification3Image', label: '🖼️ Cert 3 Image URL', type: 'input' },
+      { key: 'certification3Label', label: '🏷️ Cert 3 Label',    type: 'input' },
+      { key: 'certification4Image', label: '🖼️ Cert 4 Image URL', type: 'input' },
+      { key: 'certification4Label', label: '🏷️ Cert 4 Label',    type: 'input' },
+      { key: 'certification5Image', label: '🖼️ Cert 5 Image URL', type: 'input' },
+      { key: 'certification5Label', label: '🏷️ Cert 5 Label',    type: 'input' },
+    ],
+  },
+  {
+    id: 'testimonials',
+    label: '💬 Testimonials',
+    fields: [
+      { key: 'testimonialsTitle',    label: 'Section Title',    type: 'input' },
+      { key: 'testimonialsSubtitle', label: 'Section Subtitle', type: 'input' },
+      { key: 'testimonial1Quote', label: '💬 Testimonial 1 — Quote',    type: 'textarea' },
+      { key: 'testimonial1Name',  label: '👤 Testimonial 1 — Name',     type: 'input' },
+      { key: 'testimonial1Place', label: '📍 Testimonial 1 — Location', type: 'input' },
+      { key: 'testimonial1Photo', label: '🖼️ Testimonial 1 — Photo URL', type: 'input' },
+      { key: 'testimonial2Quote', label: '💬 Testimonial 2 — Quote',    type: 'textarea' },
+      { key: 'testimonial2Name',  label: '👤 Testimonial 2 — Name',     type: 'input' },
+      { key: 'testimonial2Place', label: '📍 Testimonial 2 — Location', type: 'input' },
+      { key: 'testimonial2Photo', label: '🖼️ Testimonial 2 — Photo URL', type: 'input' },
+      { key: 'testimonial3Quote', label: '💬 Testimonial 3 — Quote',    type: 'textarea' },
+      { key: 'testimonial3Name',  label: '👤 Testimonial 3 — Name',     type: 'input' },
+      { key: 'testimonial3Place', label: '📍 Testimonial 3 — Location', type: 'input' },
+      { key: 'testimonial3Photo', label: '🖼️ Testimonial 3 — Photo URL', type: 'input' },
+    ],
+  },
+  {
+    id: 'popup',
+    label: '🖼️ Welcome Popup',
+    fields: [
+      { key: 'popupImage',    label: '🖼️ Popup Image',       type: 'input' },
+      { key: 'popupAudience', label: '👨‍🌾 Popup Audience',   type: 'select', options: [['all', 'All visitors'], ['farmer', 'Farmers only']] },
+      { key: 'popupBehavior', label: '🎯 Popup Behavior',    type: 'select', options: [['firstVisit', 'First visit only'], ['returning', 'Returning visitors'], ['always', 'Every visit']] },
+      { key: 'popupTitle',    label: '📝 Popup Heading',     type: 'input' },
+      { key: 'popupText',     label: '📄 Popup Body Text',   type: 'textarea' },
+    ],
+  },
+  {
+    id: 'footer',
+    label: '📍 Contact & Footer',
+    fields: [
+      { key: 'phone',          label: '📞 Support Phone Number', type: 'input' },
+      { key: 'email',          label: '✉️ Support Email',        type: 'input' },
+      { key: 'address',        label: '📍 Address',              type: 'input' },
+      { key: 'footerBrand',    label: '🏢 Footer Brand Paragraph (first sentence)', type: 'textarea' },
+      { key: 'footerBrandMore',label: '🏢 Footer Brand Paragraph (second sentence — hidden on mobile)', type: 'textarea' },
+      { key: 'whatsappUrl',    label: '💬 WhatsApp Link URL',   type: 'input' },
+      { key: 'facebookUrl',    label: '📘 Facebook Link URL',   type: 'input' },
+      { key: 'youtubeUrl',     label: '▶️ YouTube Link URL',    type: 'input' },
+      { key: 'instagramUrl',   label: '📸 Instagram Link URL',  type: 'input' },
+    ],
+  },
+]
+
+// ─── Accordion item ───────────────────────────────────────────────────────────
+function AccordionSection({ section, merged, onChange, uploadingKey, fileRefs, onUpload }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div style={{
+      border: '1px solid var(--surface-border)',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      background: 'var(--surface-bg)',
+    }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 18px',
+          background: open ? 'var(--surface-raised)' : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: '0.95rem',
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          textAlign: 'left',
+          transition: 'background 0.2s',
+        }}
+      >
+        <span>{section.label}</span>
+        <span style={{ fontSize: '0.75rem', opacity: 0.6, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: '16px 18px 20px', display: 'flex', flexDirection: 'column', gap: '16px', borderTop: '1px solid var(--surface-border-subtle)' }}>
+          {section.fields.map(f => (
+            <div key={f.key} className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">{f.label}</label>
+
+              {f.type === 'textarea' ? (
+                <textarea
+                  className="form-textarea"
+                  value={merged[f.key] ?? ''}
+                  onChange={onChange(f.key)}
+                  rows={f.rows || 3}
+                />
+              ) : f.type === 'select' ? (
+                <select className="form-input" value={merged[f.key] ?? ''} onChange={onChange(f.key)}>
+                  {f.options.map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              ) : f.key.endsWith('Image') || f.key.endsWith('Photo') ? (
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    className="form-input"
+                    value={merged[f.key] ?? ''}
+                    onChange={onChange(f.key)}
+                    placeholder="https://… or upload an image"
+                  />
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => fileRefs.current[f.key]?.click()}
+                    disabled={uploadingKey === f.key}
+                    style={{ whiteSpace: 'nowrap' }}
+                  >
+                    {uploadingKey === f.key ? 'Uploading…' : '⬆ Upload'}
+                  </button>
+                  <input
+                    ref={el => { fileRefs.current[f.key] = el }}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={onUpload(f.key)}
+                  />
+                  {merged[f.key] && (
+                    <img
+                      src={merged[f.key]}
+                      alt=""
+                      style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--surface-border)' }}
+                      onError={event => { event.currentTarget.style.visibility = 'hidden' }}
+                    />
+                  )}
+                </div>
+              ) : (
+                <input className="form-input" value={merged[f.key] ?? ''} onChange={onChange(f.key)} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Main CMS Page ─────────────────────────────────────────────────────────────
 export default function AdminCMS() {
   const [content, setContent] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sathya_cms') || '{}') } catch { return {} }
   })
   const [saving, setSaving] = useState(false)
 
-  // Load what is actually published, not just this browser's copy. Without
-  // this, opening the editor on another machine showed the built-in defaults
-  // and publishing from there would overwrite the live content with them.
+  // Load what is actually published so another machine's draft never overwrites
+  // live content. Keep the local copy as the offline seed.
   useEffect(() => {
     let cancelled = false
     axios.get('/api/cms')
@@ -43,23 +359,21 @@ export default function AdminCMS() {
         if (cancelled || !data?.success || !data.data) return
         setContent(current => ({ ...data.data, ...current }))
       })
-      .catch(() => {}) // keep the local copy; the editor still works offline
+      .catch(() => {})
     return () => { cancelled = true }
   }, [])
 
   const merged = { ...DEFAULT_CONTENT, ...content }
-  const set = k => e => setContent(c => ({ ...c, [k]: e.target.value }))
+  const onChange = k => e => setContent(c => ({ ...c, [k]: e.target.value }))
 
-  // Image fields accept a pasted URL or an upload. Uploads go to MongoDB via
-  // /api/upload and come back as /api/upload/<id>, so the image survives a
-  // deploy — the host has no writable disk. Sent as base64 JSON rather than
-  // multipart so the server needs no extra dependency.
+  // Image upload — sends base64 to /api/upload which stores in MongoDB and
+  // returns a /api/upload/<id> URL so the image persists across deploys.
   const [uploadingKey, setUploadingKey] = useState('')
   const fileRefs = useRef({})
 
   const handleUpload = key => async event => {
     const file = event.target.files?.[0]
-    event.target.value = '' // let the same file be re-picked after an error
+    event.target.value = ''
     if (!file) return
     if (!file.type.startsWith('image/')) {
       toast.error('Please choose an image file')
@@ -76,7 +390,7 @@ export default function AdminCMS() {
       const { data } = await axios.post('/api/upload', {
         filename: file.name,
         contentType: file.type,
-        data: dataUrl
+        data: dataUrl,
       })
       if (data?.success && data.url) {
         setContent(c => ({ ...c, [key]: data.url }))
@@ -96,8 +410,6 @@ export default function AdminCMS() {
     localStorage.setItem('sathya_cms', JSON.stringify(merged))
     try {
       await axios.put('/api/cms', merged)
-      // Tell any open storefront tab to re-read immediately, so "live" means
-      // live rather than "after the farmer reloads".
       try {
         if ('BroadcastChannel' in window) {
           const channel = new BroadcastChannel('sathya_cms')
@@ -113,91 +425,44 @@ export default function AdminCMS() {
     }
   }
 
-  const fields = [
-    { key: 'heroTitle',      label: '🏠 Hero Title',      type: 'input' },
-    { key: 'heroSubtitle',   label: '📝 Hero Subtitle',   type: 'textarea' },
-    { key: 'banner',         label: '📢 Promo Ticker — one promo per line (blank = keep the built-in promos)', type: 'textarea' },
-    { key: 'advisoryTitle',  label: '🌾 Advisory Section Title', type: 'input' },
-    { key: 'advisoryDesc',   label: '📩 Advisory Description', type: 'textarea' },
-    { key: 'phone',          label: '📞 Support Phone', type: 'input' },
-    { key: 'address',        label: '📍 Address', type: 'input' },
-    { key: 'popupImage',     label: '🖼️ Welcome Popup Image URL', type: 'input' },
-    { key: 'popupAudience',  label: '👨‍🌾 Popup Audience', type: 'select', options: [['all', 'All visitors'], ['farmer', 'Farmers only']] },
-    { key: 'popupBehavior',  label: '🎯 Popup Behavior', type: 'select', options: [['firstVisit', 'First visit only'], ['returning', 'Returning visitors'], ['always', 'Every visit']] },
-    { key: 'certificationsTitle', label: '🏅 Certifications Section Title', type: 'input' },
-    { key: 'certificationsSubtitle', label: '📝 Certifications Section Subtitle', type: 'textarea' },
-    { key: 'certification1Image', label: '🖼️ Certification 1 Image URL', type: 'input' },
-    { key: 'certification1Label', label: '🏷️ Certification 1 Label', type: 'input' },
-    { key: 'certification2Image', label: '🖼️ Certification 2 Image URL', type: 'input' },
-    { key: 'certification2Label', label: '🏷️ Certification 2 Label', type: 'input' },
-    { key: 'certification3Image', label: '🖼️ Certification 3 Image URL', type: 'input' },
-    { key: 'certification3Label', label: '🏷️ Certification 3 Label', type: 'input' },
-    { key: 'certification4Image', label: '🖼️ Certification 4 Image URL', type: 'input' },
-    { key: 'certification4Label', label: '🏷️ Certification 4 Label', type: 'input' },
-    { key: 'certification5Image', label: '🖼️ Certification 5 Image URL', type: 'input' },
-    { key: 'certification5Label', label: '🏷️ Certification 5 Label', type: 'input' },
-  ]
+  const PublishBtn = ({ size }) => (
+    <button
+      className={`btn btn-primary${size === 'lg' ? ' btn-lg' : ''}`}
+      onClick={save}
+      disabled={saving}
+    >
+      {saving ? <><div className="spinner" /> Publishing...</> : '🚀 Publish Live'}
+    </button>
+  )
 
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <div><h1>✏️ Live CMS Editor</h1><p>Edit website content — changes go live instantly</p></div>
+        <div>
+          <h1>✏️ Live CMS Editor</h1>
+          <p>Edit every section of the home page — changes go live instantly after publishing</p>
+        </div>
         <div className="page-header-actions">
-          <button className="btn btn-primary" onClick={save} disabled={saving}>
-            {saving ? <><div className="spinner" /> Publishing...</> : '🚀 Publish Live'}
-          </button>
+          <PublishBtn />
         </div>
       </div>
 
-      <div className="card">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {fields.map(f => (
-            <div key={f.key} className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">{f.label}</label>
-              {f.type === 'textarea'
-                ? <textarea className="form-textarea" value={merged[f.key]} onChange={set(f.key)} rows={f.key === 'banner' ? 6 : 3} />
-                : f.type === 'select'
-                  ? <select className="form-input" value={merged[f.key]} onChange={set(f.key)}>{f.options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
-                  : f.key.endsWith('Image')
-                    ? (
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <input className="form-input" value={merged[f.key]} onChange={set(f.key)} placeholder="https://… or upload an image" />
-                        <button
-                          type="button"
-                          className="btn"
-                          onClick={() => fileRefs.current[f.key]?.click()}
-                          disabled={uploadingKey === f.key}
-                          style={{ whiteSpace: 'nowrap' }}
-                        >
-                          {uploadingKey === f.key ? 'Uploading…' : '⬆ Upload'}
-                        </button>
-                        <input
-                          ref={el => { fileRefs.current[f.key] = el }}
-                          type="file"
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          onChange={handleUpload(f.key)}
-                        />
-                        {merged[f.key] && (
-                          <img
-                            src={merged[f.key]}
-                            alt=""
-                            style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--surface-border)' }}
-                            onError={event => { event.currentTarget.style.visibility = 'hidden' }}
-                          />
-                        )}
-                      </div>
-                    )
-                    : <input className="form-input" value={merged[f.key]} onChange={set(f.key)} />
-              }
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--surface-border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
-          <button className="btn btn-primary btn-lg" onClick={save} disabled={saving}>
-            {saving ? <><div className="spinner" /> Publishing...</> : '🚀 Publish All Changes'}
-          </button>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {SECTIONS.map(section => (
+          <AccordionSection
+            key={section.id}
+            section={section}
+            merged={merged}
+            onChange={onChange}
+            uploadingKey={uploadingKey}
+            fileRefs={fileRefs}
+            onUpload={handleUpload}
+          />
+        ))}
+      </div>
+
+      <div style={{ marginTop: '28px', display: 'flex', justifyContent: 'flex-end' }}>
+        <PublishBtn size="lg" />
       </div>
     </div>
   )

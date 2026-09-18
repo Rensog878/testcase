@@ -130,12 +130,16 @@ export default function Storefront() {
     const scrollToCatalog = () => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
     const setFilter = (name, value) => setFilters(current => ({ ...current, [name]: value }))
     const resetFilters = () => setFilters(DEFAULT_FILTERS)
+    // Entry points from outside the catalogue (nav, mega menu, crop and
+    // category tiles) start a fresh browse: the other filters go back to
+    // their defaults, so a leftover crop or search never hides the results
+    // the shopper just asked for. The sidebar facets below still combine.
     const filterByCategory = category => {
-      setFilters(current => ({ ...current, category }))
+      setFilters({ ...DEFAULT_FILTERS, category })
       scrollToCatalog()
     }
     const filterByCrop = crop => {
-      setFilters(current => ({ ...current, crop }))
+      setFilters({ ...DEFAULT_FILTERS, crop })
       scrollToCatalog()
     }
     const toggleFilterDrawer = open => setFilterDrawerOpen(current => (typeof open === 'boolean' ? open : !current))
@@ -280,7 +284,7 @@ export default function Storefront() {
     const params = new URLSearchParams(location.search)
     const category = params.get('category')
     const crop = params.get('crop')
-    if (category || crop) setFilters(current => ({ ...current, ...(category && { category }), ...(crop && { crop }) }))
+    if (category || crop) setFilters({ ...DEFAULT_FILTERS, ...(category && { category }), ...(crop && { crop }) })
 
     const hash = decodeURIComponent(location.hash.slice(1))
     if (hash === 'scan') {
@@ -333,15 +337,15 @@ export default function Storefront() {
           <NavBar t={t} />
         </div>
         <Hero t={t} cms={cms} />
-        <DealBanner />
-        <TrustStrip t={t} />
-        <StatsStrip />
-        <CategoryGrid t={t} />
-        <CropGrid />
+        <DealBanner cms={cms} />
+        <TrustStrip t={t} cms={cms} />
+        <StatsStrip cms={cms} />
+        <CategoryGrid t={t} cms={cms} />
+        <CropGrid cms={cms} />
         <Certifications settings={cms} />
         <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} loading={catalogLoading} />
         <Trending t={t} products={products} loading={catalogLoading} />
-        <Testimonials />
+        <Testimonials cms={cms} />
         <Newsletter cms={cms} />
         <Footer t={t} cms={cms} />
         <BackToTop />

@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { useStore } from '../StoreContext'
 import { WHATSAPP_EXPERT_URL } from '../data'
 import Modal from './Modal'
+import { cmsText } from '../../hooks/useCmsSettings'
 
 // On phones the poster is a card docked above the bottom bar; a downward
 // swipe from the top of its text closes it.
@@ -9,6 +10,8 @@ const posterScroller = card => card.querySelector('.welcome-poster-body')
 
 export default memo(function WelcomePoster({ state, cms }) {
   const posterImage = cms && typeof cms.popupImage === 'string' ? cms.popupImage.trim() : ''
+  const posterTitle = cmsText(cms, 'popupTitle', 'Welcome to the Personalized Farming Experience!')
+  const posterText  = cmsText(cms, 'popupText',  '"Welcome to the personalized farming experience that you can do farming with our expert with daily updates. We care for you!"')
   const { closeModal } = useStore()
   const close = () => closeModal('welcomePosterModal')
 
@@ -41,9 +44,9 @@ export default memo(function WelcomePoster({ state, cms }) {
 
       <div className="welcome-poster-body">
         <span className="welcome-poster-tag">🌟 Farmer Advisory Platform</span>
-        <h2 className="welcome-poster-title">Welcome to the Personalized Farming Experience!</h2>
+        <h2 className="welcome-poster-title">{posterTitle}</h2>
         <p className="welcome-poster-text">
-          “Welcome to the personalized farming experience that you can do farming with our expert with daily updates. We care for you!”
+          {posterText}
         </p>
         <div className="welcome-poster-features">
           <div className="wp-feat">

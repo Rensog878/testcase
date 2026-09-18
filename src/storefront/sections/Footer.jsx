@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { SOCIAL_LINKS } from '../../shared/socialLinks'
+import { socialLinksFrom } from '../../shared/socialLinks'
 import { useStore } from '../StoreContext'
 import FooterColumn from '../../components/FooterColumn'
 import { cmsText } from '../../hooks/useCmsSettings'
@@ -10,6 +10,8 @@ const HELP_STYLE = { fontSize: '0.85rem', color: '#DCEFE4', marginBottom: '8px' 
 
 export default memo(function Footer({ t, cms }) {
   const { filterByCategory, filterByCrop } = useStore()
+  const brandLine1 = cmsText(cms, 'footerBrand', "Sathyam Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.")
+  const brandLine2 = cmsText(cms, 'footerBrandMore', 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.')
   return (
     <footer style={{ background: 'var(--primary-dark)', color: '#ffffff', padding: '50px 0 20px' }}>
       <div className="container">
@@ -20,11 +22,11 @@ export default memo(function Footer({ t, cms }) {
             {/* Two sentences, each its own key in the language packs; phones
                 show only the first. */}
             <p style={{ fontSize: '0.85rem', color: '#DCEFE4', lineHeight: 1.6, marginBottom: '16px' }}>
-              <span>Sathyam Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.</span>{' '}
-              <span className="footer-brand-more">Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.</span>
+              <span>{brandLine1}</span>{' '}
+              <span className="footer-brand-more">{brandLine2}</span>
             </p>
             <div style={{ display: 'flex', gap: '12px', fontSize: '1.2rem' }}>
-              {SOCIAL_LINKS.map(({ name, href, fa }) => (
+              {socialLinksFrom(cms).map(({ name, href, fa }) => (
                 <a key={name} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'white' }} aria-label={`Sathyam Bio on ${name} (opens in a new tab)`}><i className={fa} aria-hidden="true"></i></a>
               ))}
             </div>

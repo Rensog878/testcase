@@ -2,20 +2,29 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { WHATSAPP_EXPERT_URL } from '../data'
 import { cmsText } from '../../hooks/useCmsSettings'
 
+// ─── Hero bento banner ────────────────────────────────────────────────────────
 export const Hero = memo(function Hero({ t, cms }) {
+  const tag       = cmsText(cms, 'heroBannerTag', "India's #1 Bio-Pesticide Store")
+  const img       = cmsText(cms, 'heroBannerImage', 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80')
+  const title     = cmsText(cms, 'heroTitle', t('hero_title'))
+  const subtitle  = cmsText(cms, 'heroSubtitle', t('hero_desc'))
+  const shopBtn   = cmsText(cms, 'heroShopBtnText', t('hero_shop_btn'))
+
   return (
     <section className="section" style={{ padding: '24px 0 40px 0' }}>
       <div className="container">
         <div className="bento-grid-4">
           {/* Main feature banner (2 columns, 2 rows) */}
           <div className="bento-card bento-span-2 bento-row-2">
-            <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80" className="bento-bg-img" alt="Agriculture Farm Field" fetchpriority="high" decoding="async" />
+            <img src={img} className="bento-bg-img" alt="Agriculture Farm Field" fetchpriority="high" decoding="async" />
             <div className="bento-overlay">
-              <span className="bento-tag">India's #1 Bio-Pesticide Store</span>
-              <h1 className="bento-title" style={{ fontSize: '2rem' }} data-i18n="hero_title">{cmsText(cms, 'heroTitle', t('hero_title'))}</h1>
-              <p className="bento-desc" data-i18n="hero_desc">{cmsText(cms, 'heroSubtitle', t('hero_desc'))}</p>
+              <span className="bento-tag">{tag}</span>
+              <h1 className="bento-title" style={{ fontSize: '2rem' }} data-i18n="hero_title">{title}</h1>
+              <p className="bento-desc" data-i18n="hero_desc">{subtitle}</p>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '10px' }}>
-                <a href="#catalog" className="btn btn-primary bento-btn"><span data-i18n="hero_shop_btn">{t('hero_shop_btn')}</span></a>
+                <a href="#catalog" className="btn btn-primary bento-btn">
+                  <span data-i18n="hero_shop_btn">{shopBtn}</span>
+                </a>
               </div>
             </div>
           </div>
@@ -56,9 +65,13 @@ function untilMidnight() {
   return { h: pad(Math.floor(secs / 3600)), m: pad(Math.floor((secs % 3600) / 60)), s: pad(secs % 60) }
 }
 
-export const DealBanner = memo(function DealBanner() {
+// ─── Deal / Sale Banner ───────────────────────────────────────────────────────
+export const DealBanner = memo(function DealBanner({ cms }) {
   const bannerRef = useRef(null)
   const [time, setTime] = useState(untilMidnight)
+
+  const title    = cmsText(cms, 'dealBannerTitle',    'Kharif Season Sale — Up to 30% Off Paddy & Cotton Essentials')
+  const subtitle = cmsText(cms, 'dealBannerSubtitle', 'Limited stock. Ends midnight tonight. COD available.')
 
   useEffect(() => {
     // Nothing is redrawn while the banner is off-screen or a popup or sheet
@@ -91,8 +104,8 @@ export const DealBanner = memo(function DealBanner() {
         <div className="deal-left">
           <span className="deal-fire"><i className="fa-solid fa-bolt"></i></span>
           <div>
-            <div className="deal-title">Kharif Season Sale — Up to 30% Off Paddy &amp; Cotton Essentials</div>
-            <div className="deal-sub">Limited stock. Ends midnight tonight. COD available.</div>
+            <div className="deal-title">{title}</div>
+            <div className="deal-sub">{subtitle}</div>
           </div>
         </div>
         <div className="deal-right">
@@ -111,52 +124,82 @@ export const DealBanner = memo(function DealBanner() {
   )
 })
 
-export const TrustStrip = memo(function TrustStrip({ t }) {
+// ─── Trust Strip ──────────────────────────────────────────────────────────────
+export const TrustStrip = memo(function TrustStrip({ t, cms }) {
+  // i18nKey keeps the data-i18n marker these headings have always carried:
+  // i18n.js SKIP_TEXT uses it to leave a heading React already translated
+  // alone, so the DOM text-walker never translates it a second time. A
+  // heading with no key (Cash On Delivery) is walked, exactly as before.
+  const items = [
+    {
+      icon: 'fa-shield-halved',
+      i18nKey: 'trust_certified',
+      title: cmsText(cms, 'trust1Title', t('trust_certified')),
+      desc:  cmsText(cms, 'trust1Desc',  'Lab-Tested Original Bio-Formulations'),
+    },
+    {
+      icon: 'fa-truck-fast',
+      i18nKey: 'trust_dispatch',
+      title: cmsText(cms, 'trust2Title', t('trust_dispatch')),
+      desc:  cmsText(cms, 'trust2Desc',  'Express Doorstep Delivery Across India'),
+    },
+    {
+      icon: 'fa-hand-holding-dollar',
+      title: cmsText(cms, 'trust3Title', 'Cash On Delivery'),
+      desc:  cmsText(cms, 'trust3Desc',  'Pay After Delivery at Your Farm'),
+    },
+    {
+      icon: 'fa-brands fa-whatsapp',
+      i18nKey: 'trust_whatsapp',
+      title: cmsText(cms, 'trust4Title', t('trust_whatsapp')),
+      desc:  cmsText(cms, 'trust4Desc',  '24/7 Advisory from Senior Agronomists'),
+    },
+  ]
+
   return (
     <section className="trust-strip">
       <div className="container trust-strip-grid">
-        <div className="trust-item">
-          <i className="fa-solid fa-shield-halved"></i>
-          <div>
-            <strong data-i18n="trust_certified">{t('trust_certified')}</strong>
-            <span>Lab-Tested Original Bio-Formulations</span>
+        {items.map((item, i) => (
+          <div key={i} className="trust-item">
+            <i className={`fa-solid ${item.icon}`}></i>
+            <div>
+              <strong data-i18n={item.i18nKey}>{item.title}</strong>
+              <span>{item.desc}</span>
+            </div>
           </div>
-        </div>
-        <div className="trust-item">
-          <i className="fa-solid fa-truck-fast"></i>
-          <div>
-            <strong data-i18n="trust_dispatch">{t('trust_dispatch')}</strong>
-            <span>Express Doorstep Delivery Across India</span>
-          </div>
-        </div>
-        <div className="trust-item">
-          <i className="fa-solid fa-hand-holding-dollar"></i>
-          <div>
-            <strong>Cash On Delivery</strong>
-            <span>Pay After Delivery at Your Farm</span>
-          </div>
-        </div>
-        <div className="trust-item">
-          <i className="fa-brands fa-whatsapp"></i>
-          <div>
-            <strong data-i18n="trust_whatsapp">{t('trust_whatsapp')}</strong>
-            <span>24/7 Advisory from Senior Agronomists</span>
-          </div>
-        </div>
+        ))}
       </div>
     </section>
   )
 })
 
-const STATS = [
-  { target: 15000, label: 'Farmers Served', sub: 'across 18 Indian states' },
-  { target: 48, label: 'Product Formulations', sub: '100% bio-certified lab tested' },
-  { target: 95, label: '% Dispatch Rate', sub: 'same-day orders fulfilled' },
-  { target: 12, label: 'Years of Expertise', sub: 'trusted since 2013' },
-]
-
-export const StatsStrip = memo(function StatsStrip() {
+// ─── Stats Strip ──────────────────────────────────────────────────────────────
+export const StatsStrip = memo(function StatsStrip({ cms }) {
   const numbers = useRef([])
+
+  // Build stats from CMS, falling back to defaults
+  const stats = [
+    {
+      target:  parseInt(cmsText(cms, 'stat1Number', '15000'), 10) || 15000,
+      label:   cmsText(cms, 'stat1Label', 'Farmers Served'),
+      sub:     cmsText(cms, 'stat1Sub',   'across 18 Indian states'),
+    },
+    {
+      target:  parseInt(cmsText(cms, 'stat2Number', '48'), 10) || 48,
+      label:   cmsText(cms, 'stat2Label', 'Product Formulations'),
+      sub:     cmsText(cms, 'stat2Sub',   '100% bio-certified lab tested'),
+    },
+    {
+      target:  parseInt(cmsText(cms, 'stat3Number', '95'), 10) || 95,
+      label:   cmsText(cms, 'stat3Label', '% Dispatch Rate'),
+      sub:     cmsText(cms, 'stat3Sub',   'same-day orders fulfilled'),
+    },
+    {
+      target:  parseInt(cmsText(cms, 'stat4Number', '12'), 10) || 12,
+      label:   cmsText(cms, 'stat4Label', 'Years of Expertise'),
+      sub:     cmsText(cms, 'stat4Sub',   'trusted since 2013'),
+    },
+  ]
 
   // Each number counts up once, the first time it scrolls into view. The
   // count is written straight to the element, not through React state, so
@@ -191,8 +234,8 @@ export const StatsStrip = memo(function StatsStrip() {
   return (
     <section className="stats-strip">
       <div className="container stats-grid">
-        {STATS.map((stat, index) => (
-          <StatItem key={stat.target} stat={stat} index={index} numbers={numbers} />
+        {stats.map((stat, index) => (
+          <StatItem key={index} stat={stat} index={index} numbers={numbers} />
         ))}
       </div>
     </section>

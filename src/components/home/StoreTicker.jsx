@@ -19,8 +19,12 @@ const ITEMS = [
   ['fa-solid fa-phone-volume', '#34d399', <>Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</>],
 ]
 
-const renderItems = (items, copy) => items.map(([icon, color, text], index) => (
-  <span className="sb-chrome-ticker-item" key={`${copy}-${index}`} aria-hidden={copy === 'b' ? 'true' : undefined}>
+const renderItems = (items, copy, fromCms) => items.map(([icon, color, text], index) => (
+  <span
+    className={`sb-chrome-ticker-item${fromCms ? ' sb-chrome-ticker-item--cms' : ''}`}
+    key={`${copy}-${index}`}
+    aria-hidden={copy === 'b' ? 'true' : undefined}
+  >
     <i className={icon} style={{ color }} aria-hidden="true"></i> {text}
   </span>
 ))
@@ -36,8 +40,8 @@ export default function StoreTicker() {
   return (
     <div className="sb-chrome-ticker">
       <div className="sb-chrome-ticker-track">
-        {renderItems(items, 'a')}
-        {renderItems(items, 'b')}
+        {renderItems(items, 'a', !!adminLines.length)}
+        {renderItems(items, 'b', !!adminLines.length)}
       </div>
     </div>
   )

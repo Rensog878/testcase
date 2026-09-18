@@ -26,7 +26,7 @@ function tickerItemsFor(cms) {
   return (
     <>
       {lines.map((line, index) => (
-        <span className="ticker-item" key={`${index}-${line}`}>
+        <span className="ticker-item ticker-item--cms" key={`${index}-${line}`}>
           <i className="fa-solid fa-bullhorn" style={{ color: '#C77D18' }}></i> {line}
         </span>
       ))}

@@ -9920,6 +9920,14 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     flex: 1 0 100%;
     min-height: 34px;
     letter-spacing: 0.012em;
+    /* Solid white, not the strip's softened ink: the promo is the one thing
+       on this bar and it is read in passing, so it takes the full contrast
+       the dark green allows (about 13:1). */
+    color: #ffffff;
+    font-weight: 500;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-item {
+    color: #ffffff;
   }
   /* Duration comes from TickerBar, which times one copy's width at a constant
      px/sec. Phones keep the flat 38s of the base rule: this line is the only
@@ -9942,21 +9950,9 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
        them at its left edge. */
     justify-content: space-around;
   }
-  /* Each promo travels as its own glass chip - the same pill language as the
-     header card below it - instead of loose text with a dot in front of it. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-item {
-    padding: 3px 18px;
-    margin-right: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
-    color: #ffffff;
-  }
-  /* The dot separated loose text; between chips it is one thing too many. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-item::before {
-    content: none;
-  }
+  /* Plain text on the strip: no chip, no card. The promo is a line of type
+     travelling across the bar, separated from the next one by the strip's own
+     dot (the base rule above), which is all the separation it needs. */
 }
 
 /* ==========================================================================
@@ -10033,4 +10029,14 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   :is(body.sb-home-active .sb-home, .sb-portal) .header-lang-slot {
     display: none;
   }
+}
+
+/* A promo typed in Admin -> CMS keeps the spacing the admin typed. HTML
+   collapses any run of whitespace to one space, so an admin separating two
+   promos on one line with a run of spaces ("...₹999      Use code KISAN20...")
+   saw them rendered a single space apart, with nothing to say why. `pre` keeps
+   the run; the strip is already nowrap, so it still cannot wrap. Built-in
+   promos are untouched - only the CMS-authored items carry this class. */
+:is(body.sb-home-active .sb-home, .sb-portal) .ticker-item--cms {
+  white-space: pre;
 }

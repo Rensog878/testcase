@@ -12284,3 +12284,10 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   .adv-composer-grid { grid-template-columns: 1fr; padding: 16px; }
   .adv-search { max-width: none; width: 100%; }
 }
+
+/* The phone chrome ticker draws the same CMS promos as the desktop strip
+   (storefront.css, .ticker-item--cms): keep the spacing the admin typed
+   instead of collapsing every run of spaces to one. */
+.sb-chrome-ticker-item--cms {
+  white-space: pre;
+}

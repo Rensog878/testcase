@@ -9803,3 +9803,59 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     box-shadow: none;
   }
 }
+
+/* ==========================================================================
+   MEGA-MENU FOOTER LINKS (>=1025px)
+   --------------------------------------------------------------------------
+   `.nav-mega-col :is(button, a)` (0,2,1) outranks `.nav-mega-all` (0,1,0), so
+   the two "see everything" links inherited `display:flex; width:100%` and
+   stretched the full width of their column -- in the wide pest column that is
+   a ~800px hover/focus/underline bar hanging across the panel. They are
+   inline calls to action, not list rows: size the box to the text.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-col a.nav-mega-all {
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+    align-items: center;
+    gap: 6px;
+    /* Aligns with the list rows above it (their 12px inline padding) while the
+       box itself still hugs the text. */
+    margin-left: 12px;
+    padding: 4px 0;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    background: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-col a.nav-mega-all i {
+    color: inherit;
+    transition: transform 0.2s var(--ease-out);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-col a.nav-mega-all:hover,
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-col a.nav-mega-all:focus-visible {
+    background: none;
+    color: var(--primary-dark, var(--primary));
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-col a.nav-mega-all:hover i {
+    transform: translateX(3px);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .nav-mega-col a.nav-mega-all:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+  }
+}
+
+/* The store-page header (components/home/Navigation.jsx) opens a two-column
+   Categories panel: it has no Explore column, so it missed the `:has(>
+   .nav-mega-col--explore)` three-column rule above and fell back to the
+   single-column default, stacking "Shop by category" on top of "Shop by pest
+   & disease" in a ~560px tall panel. Give the two-column shape its own rule.
+   (The crop panel keeps one wide column, handled by `--wide:only-child`.) */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .nav-mega-cols:has(> .nav-mega-col--wide):has(> .nav-mega-col:not(.nav-mega-col--wide)):not(:has(> .nav-mega-col--explore)) {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr);
+  }
+}

@@ -5,10 +5,15 @@ import { LANGUAGES, isLanguageReady } from '../i18n'
 
 const firstSoonIndex = LANGUAGES.findIndex(language => !isLanguageReady(language.code))
 
-// Header "EN / த" pill on phones and tablets: a small menu of languages.
-export default function LanguageQuickSwitch({ appliedLang, t }) {
-  const { changeLanguage } = useStore()
+// The header's language control: a small menu of languages. `onSelect` lets a
+// header outside StoreContext (components/home/Navigation.jsx, which runs on
+// the app's own LanguageContext) use the same control instead of a second
+// implementation of it.
+export default function LanguageQuickSwitch({ appliedLang, t, onSelect }) {
+  const store = useStore()
+  const changeLanguage = onSelect || store?.changeLanguage
   const [menuTop, setMenuTop] = useState(null) // null while closed
+  const [menuRight, setMenuRight] = useState(12)
   const buttonRef = useRef(null)
   const menuRef = useRef(null)
   const open = menuTop !== null
@@ -47,7 +52,15 @@ export default function LanguageQuickSwitch({ appliedLang, t }) {
 
   const toggle = () => {
     if (open) close()
-    else setMenuTop(Math.round(buttonRef.current.getBoundingClientRect().bottom + 8))
+    else {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setMenuTop(Math.round(rect.bottom + 8))
+      // The menu is pinned to the viewport's right edge (phones, where the
+      // control sits in that corner). In the desktop header it sits mid-row,
+      // so the distance to the button's own right edge is published as a
+      // custom property; only the >=1025px rule reads it.
+      setMenuRight(Math.max(12, Math.round(window.innerWidth - rect.right)))
+    }
   }
 
   return (
@@ -71,7 +84,7 @@ export default function LanguageQuickSwitch({ appliedLang, t }) {
       {open && createPortal(
         <>
           <div className="lang-quick-backdrop" onClick={() => close()} />
-          <div ref={menuRef} id="langQuickMenu" className="lang-quick-menu notranslate" role="menu" aria-label="Choose language" style={{ top: `${menuTop}px` }}>
+          <div ref={menuRef} id="langQuickMenu" className="lang-quick-menu notranslate" role="menu" aria-label="Choose language" style={{ top: `${menuTop}px`, '--lang-menu-right': `${menuRight}px` }}>
             {/* In the current language, with "Language" alongside for anyone who cannot read it. */}
             <div className="lang-quick-title">{appliedLang === 'en' ? 'Language' : `${t('lang_label')} · Language`}</div>
             {LANGUAGES.map((language, index) => {

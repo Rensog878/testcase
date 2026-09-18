@@ -14,7 +14,7 @@ import { showToast } from './toast'
 import { setBodyFlag } from './bodyFlags'
 import useModalStates from './useModalStates'
 import { startNavDebugPanel } from './navDebug'
-import { Header, NavBar, TickerBar, Topbar } from './sections/Header'
+import { Header, NavBar, TickerBar } from './sections/Header'
 import { DealBanner, Hero, StatsStrip, TrustStrip } from './sections/Hero'
 import { CategoryGrid, Certifications, CropGrid } from './sections/ShopGrids'
 import { Catalog, Trending } from './sections/Catalog'
@@ -327,7 +327,6 @@ export default function Storefront() {
             wrappers were not here. */}
         <div className="sb-utility-shell">
           <TickerBar cms={cms} />
-          <Topbar t={t} appliedLang={appliedLang} cms={cms} />
         </div>
         <div className="sb-header-shell">
           <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} />

@@ -9899,129 +9899,138 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 
 
 /* ==========================================================================
-   UTILITY STRIP, REBUILT (>=1025px): ANNOUNCEMENT ROW + FACTS ROW
+   UTILITY STRIP (>=1025px): ONE ANNOUNCEMENT ROW
    --------------------------------------------------------------------------
-   The strip used to collapse the marquee and the pinned facts onto one line.
-   Measured at 1280-1920 the marquee window was 393px and its 48px fades left
-   297px legible, against a 551px CMS promo: half a sentence at a time, and a
-   wider monitor did not help because the strip caps its content at 1320px.
-
-   Structure now, on the assumption that a promo is an announcement and the
-   phone / shipping / language items are reference facts:
-     row 1  the promo, full width, centred and still when it fits, scrolling
-            only when the promos genuinely overrun the row (TickerBar sets
-            .ticker-wrap--fits; nothing below 1025px reads it)
-     row 2  the facts, spread across the same width instead of crammed into
-            the right corner, which is what the empty left half looked like
-            once the "Sell on Sathyam Bio" pill was removed
+   The strip used to collapse the marquee and a row of pinned facts onto one
+   line. Measured at 1280-1920 the marquee window was 393px and its 48px fades
+   left 297px legible, against a 551px CMS promo: half a sentence at a time,
+   and a wider monitor did not help because the strip caps its content at
+   1320px. The facts have since gone their own way -- the missed-call number
+   and the shipping promise repeat inside the promos, language moved to the
+   header icon row -- so the promos have the strip to themselves: full width,
+   travelling right to left without stopping, each one a glass chip, at a
+   constant speed TickerBar measures (the fixed 38s keyframes made one promo
+   crawl and six race).
    ========================================================================== */
 @media (min-width: 1025px) {
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell {
-    flex-wrap: wrap;
-    /* `gap: 28px` is meant as a column gap; as a row gap it would open a hole
-       between the two rows. */
-    row-gap: 0;
     min-height: 0;
   }
-
-  /* ---- row 1: the announcement ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap {
-    order: 1;
     flex: 1 0 100%;
-    min-height: 32px;
-    justify-content: center;
-    /* Separates the rows the way the strip's own bottom hairline does, rather
-       than a hard rule across the full width. */
-    background:
-      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14) 15%, rgba(255, 255, 255, 0.14) 85%, transparent)
-      bottom left / 100% 1px no-repeat;
-  }
-  /* Fitted: one copy, centred, no motion, no fades to read through. A promo
-     that fits should sit still and be read, not crawl past twice at once. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-track {
-    animation: none;
-    transform: none;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-copy + .ticker-copy {
-    display: none;
-  }
-  /* The leading dot is a separator between promos; with one promo centred it
-     is just a speck floating ahead of the sentence. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-copy > .ticker-item:first-child::before {
-    content: none;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-item {
-    padding-right: 0;
-  }
-
-  /* ---- row 2: the facts ---- */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-left-links {
-    order: 2;
-    min-height: 30px;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info {
-    order: 3;
-    /* Takes the rest of the row and spaces its own items across it: on home
-       that is the full width, on a store page it is whatever the phone and
-       welcome badges on the left leave. */
-    flex: 1 1 auto;
-    justify-content: space-between;
-    min-height: 30px;
-  }
-  /* The hairline before each fact reads as a divider between neighbours; the
-     first one has nothing to its left to divide from. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info > :first-child {
-    padding-left: 0;
-    background-image: none;
-  }
-}
-
-/* ---- utility strip, finish pass: announcement chip + quieter facts ------
-   Two rows of the same size, weight and colour read as two stacked lists.
-   The promo is the one thing on this strip that changes, so it gets the
-   emphasis: a centred glass chip, the same language as the pill on the
-   language control and the header card below it. The facts step back a size
-   and sit at the two ends -- contact left, controls right -- instead of
-   floating at even thirds across an otherwise empty row. */
-@media (min-width: 1025px) {
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap {
     min-height: 34px;
     letter-spacing: 0.012em;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap--fits .ticker-item {
+  /* Duration comes from TickerBar, which times one copy's width at a constant
+     px/sec. Phones keep the flat 38s of the base rule: this line is the only
+     thing that reads the variable. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-track {
+    animation-duration: var(--ticker-duration, 38s);
+    /* Block-level, so the percentage below resolves against the strip instead
+       of against an inline-flex box sized by this very content. */
+    display: flex;
+    width: max-content;
+    /* Each copy fills the row at minimum, so the -50% loop always has a second
+       copy in place of the first: with one short promo the two copies together
+       were narrower than the row, which trailed a dead gap behind the chip for
+       half of every cycle. */
+    min-width: 200%;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-copy {
+    flex: 1 0 auto;
+    /* Spreads several chips evenly across a stretched copy instead of bunching
+       them at its left edge. */
+    justify-content: space-around;
+  }
+  /* Each promo travels as its own glass chip - the same pill language as the
+     header card below it - instead of loose text with a dot in front of it. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-item {
     padding: 3px 18px;
+    margin-right: 22px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 999px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     color: #ffffff;
   }
-  /* Only the promos rotate, so the facts read as the quieter layer. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell :is(.topbar-left-links, .topbar-right-info) {
-    font-size: 0.74rem;
-    color: rgba(255, 255, 255, 0.78);
+  /* The dot separated loose text; between chips it is one thing too many. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-item::before {
+    content: none;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell :is(.topbar-badge, .topbar-shipping-note) strong {
-    color: #ffffff;
+}
+
+/* ==========================================================================
+   LANGUAGE CONTROL IN THE HEADER (>=1025px)
+   --------------------------------------------------------------------------
+   LanguageQuickSwitch was the phone and tablet control, because the desktop
+   strip carried its own <select>. With that row gone it is the one language
+   control at every width, so on desktop it takes the header's pill language --
+   the same hairline, tinted fill and lift as the search field and basket
+   beside it -- instead of the flat mint chip phones use.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions .lang-quick-btn {
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 7px;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid rgba(11, 70, 48, 0.14);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffffff, #F4F9F6);
+    box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(22, 36, 29, 0.05);
+    color: var(--primary-dark, #0b4630);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
   }
-  /* Contact at one end, controls at the other. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info {
-    justify-content: flex-start;
-    gap: 22px;
+  /* A globe, not the "A/文" language glyph: at this size that glyph reads as a
+     dense little block beside the line-art icons either side of it, and the
+     globe is what this control looked like when it lived on the strip. The
+     swap is a content override, so phones keep the glyph they had. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions .lang-quick-btn i {
+    font-size: 0.95rem;
+    color: var(--primary);
   }
-  /* The language control is the one interactive thing on the row, so it holds
-     the right edge on every page. Anchoring the contact items instead only
-     worked on home: a store page keeps its phone badge in .topbar-left-links,
-     so the rule matched the shipping note there and the whole row bunched to
-     the left with the right half empty. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper {
-    margin-left: auto;
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions .lang-quick-btn i::before {
+    content: "\f0ac";
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .lang-selector-wrapper {
-    height: 25px;
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions .lang-quick-btn:hover {
+    border-color: rgba(11, 122, 75, 0.35);
+    box-shadow: inset 0 1px 0 #ffffff, 0 4px 12px rgba(22, 36, 29, 0.1);
+    transform: translateY(-1px);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions .lang-quick-btn[aria-expanded="true"] {
+    border-color: var(--primary);
+    background: var(--sb-tint, #EEF6F1);
+    box-shadow: 0 0 0 3px rgba(111, 211, 164, 0.22);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions .lang-quick-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  /* Phones pin the menu to the viewport corner their button sits in; in the
+     header row the button is nowhere near that corner, so the menu would hang
+     off on its own. LanguageQuickSwitch publishes the button's distance from
+     the edge and only this rule reads it. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .lang-quick-menu {
+    right: var(--lang-menu-right, 12px);
+  }
+}
+
+/* The store-page header (components/home/Navigation.jsx) gained the language
+   control when the utility row was removed. That header is only its own from
+   1025px up: below it, a store page renders inside the shared phone/tablet
+   chrome, which has its own control, and a second one shifted the tablet
+   action row. Desktop-only, so the tablet header is byte-identical again. */
+@media (max-width: 1024px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-lang-slot {
+    display: none;
   }
 }

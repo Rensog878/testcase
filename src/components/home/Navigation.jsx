@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
+import { useCms } from '../../context/CmsContext'
 import { useBasket, useCheckoutActions } from '../../hooks/useCheckout'
 import { TickerBar, cropOf } from '../../storefront/sections/Header'
+import LanguageQuickSwitch from '../../storefront/sections/LanguageQuickSwitch'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../../storefront/data'
 
 // The header/nav used on every storefront page except the home page itself
@@ -19,7 +21,10 @@ import { CATEGORIES, CROPS, DISEASES, rupees } from '../../storefront/data'
 // all read by AllProducts.jsx) instead of an in-page filter + scroll.
 export default function Navigation() {
   const { user } = useAuth()
-  const { lang, setLang, languages } = useLanguage()
+  const { lang, setLang, t } = useLanguage()
+  // Same CMS state the home page reads (one provider for the whole app), so
+  // promos typed in Admin -> CMS run on every store page, not just home.
+  const { cms } = useCms()
   const { count, totals } = useBasket()
   const { openBasket, showAccount } = useCheckoutActions()
   const navigate = useNavigate()
@@ -72,30 +77,8 @@ export default function Navigation() {
           classes, same storefront.css rules, so this header renders
           pixel-identical to it. Both are `display: contents` below that. */}
       <div className="sb-utility-shell">
-        <TickerBar />
+        <TickerBar cms={cms} />
 
-        <div className="topbar">
-          <div className="container topbar-content">
-            <div className="topbar-left-links">
-              <span
-                className="topbar-badge"
-                style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}
-              >
-                {user && <><i className="fa-solid fa-leaf"></i>{' Welcome, '}<strong>{user.name || 'Farmer'}</strong>{` (${cropOf(user)})`}</>}
-              </span>
-              <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>1800-425-9999</strong></span>
-            </div>
-            <div className="topbar-right-info">
-              <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> FREE Shipping on Agro Orders over ₹999</span>
-              <div className="lang-selector-wrapper">
-                <i className="fa-solid fa-globe"></i>
-                <select className="lang-select" value={lang} onChange={event => setLang(event.target.value)} aria-label="Language">
-                  {languages.map(l => <option key={l.code} value={l.code}>{l.code === 'en' ? l.native : `${l.native} (${l.label})`}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="sb-header-shell">
@@ -131,6 +114,14 @@ export default function Navigation() {
               <div className="action-icon"><i className="fa-regular fa-heart"></i></div>
               <div><span className="action-sub">Saved</span><span className="action-title">Wishlist</span></div>
             </Link>
+
+            {/* Desktop only. Below 1025px a store page is drawn inside the
+                shared phone/tablet chrome (StoreTopChrome), which carries its
+                own language control; a second one here changed the tablet
+                header, which has to render exactly as before. */}
+            <span className="header-lang-slot">
+              <LanguageQuickSwitch appliedLang={lang} t={t} onSelect={setLang} />
+            </span>
 
             <div className="action-item" onClick={showAccount} style={{ cursor: 'pointer' }}>
               <i

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
-import LanguageSelect from './LanguageSelect'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
 import { cmsText, cmsTickerLines } from '../../hooks/useCmsSettings'
 
@@ -35,33 +34,39 @@ function tickerItemsFor(cms) {
   )
 }
 
+// Pixels per second the promo strip travels. Slow enough to read a long
+// sentence as it passes, quick enough that the strip never looks stalled.
+const TICKER_SPEED = 45
+
 export const TickerBar = memo(function TickerBar({ cms }) {
   // The items are drawn twice so the scroll (translateX -50%) loops seamlessly.
   const items = tickerItemsFor(cms)
   const wrapRef = useRef(null)
   const copyRef = useRef(null)
-  // Motion only when the promos actually overrun the strip. On the desktop
-  // header the marquee now has a full row, so a single CMS line fits with room
-  // to spare; scrolling it anyway meant the same sentence crawling past twice
-  // at once. Below 1025px nothing reads this flag - the styles it switches on
-  // are desktop-only - so the phone marquee is untouched.
-  const [fits, setFits] = useState(false)
+  // The keyframes travel a fixed -50% in a fixed 38s, so the strip's speed used
+  // to depend on how much the admin typed: one short CMS line crawled, six
+  // built-in promos raced. One copy's width is exactly the distance travelled,
+  // so timing it at a constant px/sec keeps the read the same either way.
+  const [duration, setDuration] = useState(null)
   useEffect(() => {
-    const wrap = wrapRef.current
     const copy = copyRef.current
-    if (!wrap || !copy || typeof ResizeObserver === 'undefined') return undefined
-    // Measured on the first copy, never on the track: the second copy is the
-    // one the fitted layout hides, so measuring the track would flip the
-    // answer the moment it acted on it.
-    const measure = () => setFits(copy.getBoundingClientRect().width <= wrap.clientWidth)
+    if (!copy || typeof ResizeObserver === 'undefined') return undefined
+    const measure = () => {
+      const width = copy.getBoundingClientRect().width
+      if (!width) return
+      setDuration(Math.min(120, Math.max(10, width / TICKER_SPEED)))
+    }
     measure()
     const observer = new ResizeObserver(measure)
-    observer.observe(wrap)
     observer.observe(copy)
     return () => observer.disconnect()
   }, [items])
   return (
-    <div className={`ticker-wrap${fits ? ' ticker-wrap--fits' : ''}`} ref={wrapRef}>
+    <div
+      className="ticker-wrap"
+      ref={wrapRef}
+      style={duration ? { '--ticker-duration': `${duration.toFixed(1)}s` } : undefined}
+    >
       <div className="ticker-track" id="tickerTrack">
         <span className="ticker-copy" ref={copyRef}>{items}</span>
         <span className="ticker-copy" aria-hidden="true">{items}</span>
@@ -71,32 +76,6 @@ export const TickerBar = memo(function TickerBar({ cms }) {
 })
 
 export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
-
-// The utility strip. It is `display: none` below 1025px (storefront.css), so
-// it is a desktop-only surface and its contents can be edited freely without
-// touching how phones or tablets render.
-//
-// The signed-in greeting that used to sit here is gone: the account control in
-// the row below already shows the same name and crop, a few hundred pixels to
-// the right. The phone number and the delivery promise are the two evergreen
-// facts, so they hold still on the right instead of scrolling past in the
-// marquee (their duplicate ticker items are hidden at >=1025px).
-export const Topbar = memo(function Topbar({ t, appliedLang, cms }) {
-  return (
-    <div className="topbar">
-      <div className="container topbar-content">
-        <div className="topbar-right-info">
-          <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>{cmsText(cms, 'phone', '1800-425-9999')}</strong></span>
-          <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> <span data-i18n="topbar_shipping">{t('topbar_shipping')}</span></span>
-          <div className="lang-selector-wrapper">
-            <i className="fa-solid fa-globe"></i>
-            <LanguageSelect id="langSelectTop" className="lang-select" appliedLang={appliedLang} withEnglishName />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-})
 
 export const Header = memo(function Header({ t, user, appliedLang, cartCount, cartTotal, searchText }) {
   const { setFilter, scrollToCatalog, handleAccountClick, handleBasketClick, goTo } = useStore()
@@ -165,7 +144,8 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
             </div>
           </Link>
 
-          {/* Phones and tablets, where the Language badge above is hidden. */}
+          {/* The store's only language control at every width now: the utility
+              row that used to carry a <select> at >=1025px is gone. */}
           <LanguageQuickSwitch appliedLang={appliedLang} t={t} />
 
           <div className="action-item" id="headerAccountBtn" data-account-open onClick={handleAccountClick} style={{ cursor: 'pointer' }}>

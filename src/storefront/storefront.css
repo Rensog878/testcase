@@ -9887,3 +9887,52 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     border-bottom: 0;
   }
 }
+
+/* ==========================================================================
+   UTILITY STRIP: THE PROMO MARQUEE GETS ITS OWN ROW (>=1025px)
+   --------------------------------------------------------------------------
+   The strip collapsed ticker + topbar into one flex line, so the marquee only
+   got what the pinned facts left over. Measured at 1280-1920: the marquee
+   window was 393px and the 48px fades left 297px legible, while a CMS promo
+   line ("Free Delivery on orders above Rs999 | Use code KISAN20 for 20% off")
+   is 551px -- about half of it was readable at any moment, and a wider monitor
+   did not help because the strip's content is capped at 1320px.
+
+   The pinned facts are fixed-width (phone 288 + shipping 282 + language 209 =
+   819), so the only way to fit the promo without deleting one of them is to
+   stop sharing the line: the marquee takes a full-width row, the facts keep
+   their own row under it. Costs ~22px of chrome height, which is the trade
+   that was chosen over dropping the shipping promise.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell {
+    flex-wrap: wrap;
+    /* The 28px `gap` is a column gap between items on one line; as a row gap
+       it would open a hole between the two rows. */
+    row-gap: 0;
+    min-height: 0;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap {
+    order: 1;
+    /* Full row, and it no longer competes with the pinned facts for width. */
+    flex: 1 0 100%;
+    min-height: 30px;
+    /* Separates the two rows the way the strip's own bottom hairline does,
+       instead of a hard rule. */
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent)
+      bottom left / 100% 1px no-repeat;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-left-links {
+    order: 2;
+    min-height: 32px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .topbar-right-info {
+    order: 3;
+    /* Home has nothing in the left slot now that the "Sell on Sathyam Bio"
+       pill is gone, so the facts are held to the right edge rather than
+       drifting to the middle of an otherwise empty row. */
+    margin-left: auto;
+    min-height: 32px;
+  }
+}

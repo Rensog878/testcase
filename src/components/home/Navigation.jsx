@@ -77,7 +77,6 @@ export default function Navigation() {
         <div className="topbar">
           <div className="container topbar-content">
             <div className="topbar-left-links">
-              <Link to="/products" className="topbar-link">Sell on Sathyam Bio</Link>
               <span
                 className="topbar-badge"
                 style={{ display: user ? 'inline-block' : 'none', background: 'rgba(52, 211, 153, 0.2)', color: '#3FBE86', fontWeight: 600, padding: '2px 8px', borderRadius: '6px' }}

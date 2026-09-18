@@ -60,9 +60,6 @@ export const Topbar = memo(function Topbar({ t, appliedLang, cms }) {
   return (
     <div className="topbar">
       <div className="container topbar-content">
-        <div className="topbar-left-links">
-          <a href="#catalog" className="topbar-link">Sell on Sathyam Bio</a>
-        </div>
         <div className="topbar-right-info">
           <span className="topbar-badge"><i className="fa-solid fa-phone-volume"></i> Missed Call To Order: <strong>{cmsText(cms, 'phone', '1800-425-9999')}</strong></span>
           <span className="topbar-shipping-note"><i className="fa-solid fa-truck-fast"></i> <span data-i18n="topbar_shipping">{t('topbar_shipping')}</span></span>

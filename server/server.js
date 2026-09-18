@@ -68,6 +68,19 @@ const OTP_EXPIRY_MS = 5 * 60 * 1000;
 // The resend wait is randomised per request rather than a fixed 30s. A constant
 // interval is a mechanical, bot-like pattern; varying it per user also spreads
 // out retry traffic instead of bunching it on the same beat.
+// OTP_RATE_LIMITS=off lifts the hourly caps (10 sends an hour per machine, 5
+// per number), which is what stops a number being put through the flow more
+// than a handful of times while working on it. Two controls stay on either way:
+// the 30-60s wait between codes, which is the real guard against rapid-fire
+// abuse, and the cap on wrong guesses, without which a 6-digit code could
+// simply be guessed.
+// Never honoured in production — every OTP is a paid message, and an endpoint
+// anyone can call without limit is a bill waiting to happen.
+const OTP_LIMITS_OFF = process.env.OTP_RATE_LIMITS === 'off' && process.env.NODE_ENV !== 'production';
+if (process.env.OTP_RATE_LIMITS === 'off' && !OTP_LIMITS_OFF) {
+  console.warn('⚠️  OTP_RATE_LIMITS=off ignored: the OTP caps always apply in production.');
+}
+
 const OTP_RESEND_MIN_MS = 30 * 1000;
 const OTP_RESEND_MAX_MS = 60 * 1000;
 
@@ -299,17 +312,19 @@ app.post('/api/auth/send-otp', async (req, res) => {
     // Both counts are taken before the send and given back if no message goes
     // out, so an outage at the provider does not spend a farmer's whole
     // allowance on codes nobody received.
-    const ipWait = await rateLimit(`otp-ip:${clientIp(req)}`, 10, HOUR_MS);
-    if (ipWait) {
-      return tooManyRequests(res, ipWait, 'Too many OTP requests. Please try again later.');
-    }
-    spent.push(`otp-ip:${clientIp(req)}`);
-    if (!isTestPhone(phone)) {
-      const phoneWait = await rateLimit(`otp-phone:${phone}`, 5, HOUR_MS);
-      if (phoneWait) {
-        return tooManyRequests(res, phoneWait, 'Too many OTP requests for this number. Please try again later.');
+    if (!OTP_LIMITS_OFF) {
+      const ipWait = await rateLimit(`otp-ip:${clientIp(req)}`, 10, HOUR_MS);
+      if (ipWait) {
+        return tooManyRequests(res, ipWait, 'Too many OTP requests. Please try again later.');
       }
-      spent.push(`otp-phone:${phone}`);
+      spent.push(`otp-ip:${clientIp(req)}`);
+      if (!isTestPhone(phone)) {
+        const phoneWait = await rateLimit(`otp-phone:${phone}`, 5, HOUR_MS);
+        if (phoneWait) {
+          return tooManyRequests(res, phoneWait, 'Too many OTP requests for this number. Please try again later.');
+        }
+        spent.push(`otp-phone:${phone}`);
+      }
     }
 
     // Sign-in and sign-up share one code: purpose 'auth' does not care whether
@@ -2116,6 +2131,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`🚀 Sathyam Bio Engine running with persistent DB on port ${PORT}`);
     console.log(`📱 WhatsApp OTP system enabled`);
+    if (OTP_LIMITS_OFF) console.log('⚠️  hourly OTP caps OFF (OTP_RATE_LIMITS=off) — local testing only; the 30-60s resend wait still applies');
   });
 }
 

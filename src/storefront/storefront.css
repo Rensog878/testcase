@@ -5817,6 +5817,69 @@ body.sb-home-active {
   gap: 16px;
   animation: authViewIn 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
+/* Shown once, on the card of an account that was just created from a mobile
+   number alone: a greeting and the one action worth taking, so a brand-new
+   farmer does not meet a column of "Not added". */
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(11, 122, 75, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(140deg, #F2FAF5, #E2F2E8);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0B7A4B, #096540);
+  color: #ffffff;
+  font-size: 1rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-words {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-words strong {
+  font: 700 1.02rem/1.3 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  color: #0A5C3B;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-words span {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #3F5A4C;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-btn {
+  grid-column: 2;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #0B7A4B;
+  color: #ffffff;
+  font: 600 0.9rem/1 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-btn:hover {
+  background: #096540;
+}
+/* The line under the sign-in button: the same code creates an account. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-foot {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #5A7266;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) .acct-head {
   display: flex;
   align-items: center;

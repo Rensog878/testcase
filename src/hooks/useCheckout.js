@@ -366,7 +366,10 @@ export function CheckoutProvider({ enabled, children }) {
       showStep('address')
     }
 
-    const afterSignIn = async signedInUser => {
+    // `celebrate` is the sign-in sheet telling us this account was just created,
+    // so the full welcome is worth playing. Someone coming back gets their name
+    // said back to them instead, and nobody mid-checkout is interrupted at all.
+    const afterSignIn = async (signedInUser, { celebrate = false } = {}) => {
       const resume = resumeRef.current
       // Staff roles each have their own portal.
       const home = STAFF_HOME[signedInUser?.role]
@@ -384,14 +387,14 @@ export function CheckoutProvider({ enabled, children }) {
       const midTask = resume || Boolean(live.current.step) || guestItems > 0
       if (midTask || STAY_AFTER_SIGN_IN.test(live.current.location.pathname)) {
         closeSignIn()
-        if (!midTask) celebrateSignIn(signedInUser)
+        if (celebrate && !midTask) celebrateSignIn(signedInUser)
         // Anything added as a guest joins this farmer's basket.
         const items = await loadCart(signedInUser)
         if (resume && items.length) showStep('address')
         else if (guestItems && !live.current.step) showStep('basket')
         return
       }
-      celebrateSignIn(signedInUser)
+      if (celebrate) celebrateSignIn(signedInUser)
       leaveSignInFor(farmerLandingPath())
       loadCart(signedInUser)
     }

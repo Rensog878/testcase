@@ -905,11 +905,15 @@ class DatabaseManager {
                 email: userData.email || '',
                 password: await hashPassword(userData.password),
                 role,
-                crop: userData.crop || 'All Crops',
+                // Only a caller that says nothing about these gets the sample
+                // values; a blank answer is kept blank. An account made from a
+                // mobile number alone must not claim a village it invented —
+                // deliveries and advisories read these fields.
+                crop: userData.crop ?? 'All Crops',
                 acreage: Number(userData.acreage) || 0,
-                village: userData.village || 'Farm Village',
-                district: userData.district || 'Coimbatore',
-                state: userData.state || 'Tamil Nadu',
+                village: userData.village ?? 'Farm Village',
+                district: userData.district ?? 'Coimbatore',
+                state: userData.state ?? 'Tamil Nadu',
                 department: userData.department || '',
                 status: userData.status || 'active',
                 createdBy: userData.createdBy || 'admin',

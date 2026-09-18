@@ -1,0 +1,226 @@
+// One WhatsApp code both signs a farmer in and, for a number we have not seen
+// before, creates their account. There is no password anywhere in this flow:
+// staff keep theirs at /api/auth/login, and a customer who reaches that door is
+// turned away with otpOnly. Nothing here may reveal whether a number is known.
+// Run from server/: npm test
+
+import { test, before, after, beforeEach } from 'node:test';
+import assert from 'node:assert/strict';
+
+// Settings must be in place before the modules load (dotenv never overrides them).
+Object.assign(process.env, {
+  NODE_ENV: 'test',
+  MONGODB_URI: '',
+  OTP_HASH_SECRET: 'test-secret',
+  TEST_PHONE_NUMBERS: '',
+  WASENDER_API_KEY: 'test-key',
+  WASENDER_API_URL: 'https://wasender.test/api/send-message',
+  WASENDER_MIN_GAP_MS: '0',
+  WASENDER_GAP_JITTER_MS: '0',
+  WASENDER_CHECK_NUMBERS: 'off',
+});
+for (let slot = 2; slot <= 10; slot++) delete process.env[`WASENDER_API_KEY_${slot}`];
+
+const { db } = await import('../db.js');
+const { default: app } = await import('../server.js');
+const { hashPassword } = await import('../security.js');
+
+// Request logs are expected here.
+console.log = () => {};
+console.warn = () => {};
+
+// There is no database: the short-lived records live in a Map, and the accounts
+// in another one keyed by mobile number.
+const store = new Map();
+const users = new Map();
+let created = null;
+
+Object.assign(db, {
+  kvGet: async (key) => store.get(key) ?? null,
+  kvSet: async (key, value) => { store.set(key, value); return value; },
+  kvDelete: async (key) => { store.delete(key); },
+  kvGetMany: async (keys) => new Map(keys.filter((key) => store.has(key)).map((key) => [key, store.get(key)])),
+  kvClaimSlot: async () => 0,
+  kvIncrement: async (key, field) => {
+    const value = store.get(key) || {};
+    value[field] = (Number(value[field]) || 0) + 1;
+    store.set(key, value);
+    return value[field];
+  },
+  getUserByIdentifier: async (identifier) => users.get(String(identifier)) ?? null,
+  getUserById: async (id) => [...users.values()].find((user) => user.id === id) ?? null,
+  createUser: async (data) => {
+    created = data;
+    const user = { id: `USR-${users.size + 1}`, ...data, password: 'stored-hash' };
+    users.set(user.phone, user);
+    return user;
+  },
+  updateUser: async (id, updates) => {
+    const user = [...users.values()].find((item) => item.id === id);
+    if (!user) return null;
+    Object.assign(user, updates);
+    return user;
+  },
+});
+
+// The code itself never leaves the server, so the test reads it out of the
+// WhatsApp message the same way a farmer would read it off their phone.
+let lastOtp = '';
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, init) => {
+  if (!String(url).startsWith('https://wasender.test/')) return realFetch(url, init);
+  lastOtp = (String(init?.body || '').match(/\b\d{6}\b/) || [''])[0];
+  return new Response(JSON.stringify({ success: true, data: { msgId: 1, status: 'in_progress' } }), { status: 200 });
+};
+
+let server;
+let base;
+
+before(async () => {
+  server = app.listen(0, '127.0.0.1');
+  await new Promise((resolve) => server.once('listening', resolve));
+  base = `http://127.0.0.1:${server.address().port}`;
+});
+
+after(() => {
+  server.closeAllConnections();
+  server.close();
+});
+
+beforeEach(() => {
+  store.clear();
+  users.clear();
+  created = null;
+  lastOtp = '';
+});
+
+async function post(path, body) {
+  const res = await realFetch(`${base}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return { status: res.status, data: await res.json() };
+}
+
+// Asks for a code and answers with the one that was actually sent.
+async function signIn(phone = '9876543210') {
+  const sent = await post('/api/auth/send-otp', { phone, purpose: 'auth' });
+  assert.equal(sent.status, 200, 'the code was sent');
+  return post('/api/auth/verify-otp', { phone, otp: lastOtp });
+}
+
+const farmer = (phone, extra = {}) => ({ id: 'USR-farmer', name: 'Murugan', phone, role: 'farmer', ...extra });
+
+test('a number we have not seen gets an account and is signed in by the same code', async () => {
+  const { status, data } = await signIn();
+
+  assert.equal(status, 200);
+  assert.equal(data.isNewUser, true);
+  assert.equal(data.user.phone, '9876543210');
+  assert.equal(data.user.role, 'farmer', 'self sign-up can only ever make a farmer');
+  assert.ok(data.token, 'they are signed in straight away, with nothing else to fill in');
+  assert.equal(created.createdBy, 'self-registered');
+  assert.ok(created.password && created.password.length >= 32, 'a random secret nobody knows, so tokens can still be revoked');
+  assert.equal(data.user.password, undefined, 'the account password never goes to the browser');
+});
+
+test('a number that already has an account is signed in, not signed up again', async () => {
+  users.set('9876543210', farmer('9876543210'));
+
+  const { status, data } = await signIn();
+
+  assert.equal(status, 200);
+  assert.equal(data.isNewUser, false, 'so the sheet can say "welcome back" instead of celebrating');
+  assert.equal(data.user.name, 'Murugan');
+  assert.ok(data.token);
+  assert.equal(created, null, 'no second account on the same number');
+  assert.equal(users.size, 1);
+});
+
+test('asking for a code never says whether the number is registered', async () => {
+  const unknown = await post('/api/auth/send-otp', { phone: '9876543210', purpose: 'auth' });
+
+  users.set('9000000001', farmer('9000000001'));
+  const known = await post('/api/auth/send-otp', { phone: '9000000001', purpose: 'auth' });
+
+  assert.equal(unknown.status, 200);
+  assert.equal(known.status, 200, 'a registered number is not refused, which would give it away');
+  assert.equal(known.data.message, unknown.data.message);
+  assert.equal(known.data.alreadyRegistered, undefined);
+});
+
+test('a staff number is not signed in by a code, and no account is made on it', async () => {
+  users.set('9876543210', { id: 'USR-admin', name: 'Admin', phone: '9876543210', role: 'admin' });
+
+  const { status, data } = await signIn();
+
+  assert.equal(status, 403);
+  assert.equal(data.staffAccount, true);
+  assert.equal(data.token, undefined);
+  assert.equal(created, null, 'the staff account is not replaced by a farmer one');
+});
+
+test('a disabled account cannot be signed in with a code', async () => {
+  users.set('9876543210', farmer('9876543210', { status: 'blocked' }));
+
+  const { status, data } = await signIn();
+
+  assert.equal(status, 403);
+  assert.equal(data.token, undefined);
+  assert.match(data.message, /disabled/i);
+});
+
+test('a wrong code signs nobody in and creates nothing', async () => {
+  await post('/api/auth/send-otp', { phone: '9876543210', purpose: 'auth' });
+  const wrong = String((Number(lastOtp) + 1) % 1000000).padStart(6, '0');
+
+  const { status, data } = await post('/api/auth/verify-otp', { phone: '9876543210', otp: wrong });
+
+  assert.equal(status, 400);
+  assert.equal(data.token, undefined);
+  assert.equal(created, null);
+});
+
+test('a code is single use: the second try cannot open a session', async () => {
+  const first = await signIn();
+  assert.equal(first.status, 200);
+
+  const again = await post('/api/auth/verify-otp', { phone: '9876543210', otp: lastOtp });
+  assert.equal(again.status, 400);
+  assert.equal(again.data.token, undefined);
+});
+
+test('the password door turns a customer away and points at their code', async () => {
+  // A farmer from before the change, whose old password still verifies.
+  users.set('9876543210', farmer('9876543210', { password: await hashPassword('Kavya2026farm') }));
+
+  const { status, data } = await post('/api/auth/login', { identifier: '9876543210', password: 'Kavya2026farm' });
+
+  assert.equal(status, 403);
+  assert.equal(data.otpOnly, true);
+  assert.equal(data.token, undefined, 'the old password does not open a session any more');
+});
+
+test('the password door does not reveal that a number belongs to a customer', async () => {
+  users.set('9876543210', farmer('9876543210', { password: await hashPassword('Kavya2026farm') }));
+
+  const customer = await post('/api/auth/login', { identifier: '9876543210', password: 'wrong-password' });
+  const unknown = await post('/api/auth/login', { identifier: '9000000002', password: 'wrong-password' });
+
+  // The role is only checked once the password is right, so a wrong guess at a
+  // customer's number looks exactly like a wrong guess at a number nobody has.
+  assert.equal(customer.status, 401);
+  assert.equal(customer.data.message, unknown.data.message);
+  assert.equal(customer.data.otpOnly, undefined);
+});
+
+test('a customer cannot set a password through the reset flow', async () => {
+  users.set('9876543210', farmer('9876543210'));
+
+  const { status, data } = await post('/api/auth/forgot-password/send-otp', { phone: '9876543210' });
+
+  // Answered exactly as an unregistered number is, so the reply gives nothing away.
+  assert.equal(status, 200);
+  assert.equal(lastOtp, '', 'no reset code is sent to a farmer');
+});

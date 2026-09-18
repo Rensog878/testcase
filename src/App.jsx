@@ -8,7 +8,6 @@ import PrivateRoute from './components/PrivateRoute'
 
 // Auth Pages
 import Login    from './pages/Login'
-import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ProductDetail from './pages/ProductDetail'
 import IngredientDetail from './pages/IngredientDetail'
@@ -108,7 +107,9 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/cart"    element={<Navigate to="/checkout" replace />} />
         <Route path="/login"   element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Customers have no sign-up form any more: the WhatsApp code on the
+            store's sign-in sheet both signs them in and creates the account. */}
+        <Route path="/register" element={<Navigate to="/#login" replace />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/order-status" element={<Navigate to="/orders" replace />} />
         <Route path="/shop" element={<Navigate to="/products" replace />} />

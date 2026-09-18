@@ -3,7 +3,6 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { toast } from 'sonner'
 import LanguageSwitcher from '../components/LanguageSwitcher'
-import { celebrateSignIn, farmerLandingPath } from '../storefront/welcome'
 import { Check, Eye, EyeOff, LogIn } from 'lucide-react'
 
 // Staff sign-in (/login, and /admin when signed out). Farmers sign in on the
@@ -41,12 +40,6 @@ export default function Login() {
     setLoading(true)
     try {
       const user = await login(mobile.trim(), password)
-      // A farmer account belongs on the storefront, where it is now signed in.
-      if (user.role === 'farmer') {
-        celebrateSignIn(user)
-        navigate(farmerLandingPath(), { replace: true })
-        return
-      }
       // Right password, wrong role: do not leave that account signed in.
       if (user.role !== selectedRole) {
         logout(false)
@@ -56,6 +49,13 @@ export default function Login() {
       toast.success(`Welcome back, ${user.name}! 🌿`)
       navigate(ROLE_HOME[user.role] || '/', { replace: true })
     } catch (err) {
+      // Customers have no password: the server turns them away here and their
+      // WhatsApp code is on the store's sign-in sheet.
+      if (err?.otpOnly) {
+        toast.info('Customers sign in with a WhatsApp code. Taking you to the store...', { duration: 5000 })
+        navigate('/#login', { replace: true })
+        return
+      }
       toast.error(err?.message || err?.response?.data?.message || 'Invalid credentials')
     } finally {
       setLoading(false)

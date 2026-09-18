@@ -115,36 +115,33 @@ return Promise.reject(err)
 return () => axios.interceptors.response.eject(interceptor)
 }, [])
 
+// Staff only. Customers have no password: they sign in with a WhatsApp code on
+// the storefront, and the server answers otpOnly if one arrives here.
 const login = async (identifier, password) => {
 try {
 const { data } = await axios.post('/api/auth/login', { identifier: identifier.trim(), password })
 saveSession(data.token, data.user)
 return data.user
 } catch (err) {
-throw new Error(err.response?.data?.message || 'Could not reach the server. Please try again.')
+const failed = new Error(err.response?.data?.message || 'Could not reach the server. Please try again.')
+failed.otpOnly = Boolean(err.response?.data?.otpOnly)
+throw failed
 }
 }
 
-// Send a WhatsApp OTP for registration (does not create the account)
-const sendRegistrationOtp = async (name, phone) => {
-const { data } = await axios.post('/api/auth/send-otp', { name, phone })
+// Send the WhatsApp code. The same code signs in and signs up, so this never
+// says whether the number already has an account.
+const sendAuthOtp = async (phone) => {
+const { data } = await axios.post('/api/auth/send-otp', { phone, purpose: 'auth' })
 return data
 }
 
-// Verify a WhatsApp OTP for registration (does not create the account)
-const verifyRegistrationOtp = async (phone, otp) => {
+// A correct code is the sign-in. The server creates the account first when the
+// number is new, and says which happened through isNewUser.
+const verifyAuthOtp = async (phone, otp) => {
 const { data } = await axios.post('/api/auth/verify-otp', { phone, otp })
-return data
-}
-
-const register = async (payload) => {
-try {
-const { data } = await axios.post('/api/auth/register', payload)
 saveSession(data.token, data.user)
-return data.user
-} catch (err) {
-throw new Error(err.response?.data?.message || 'Could not reach the server. Please try again.')
-}
+return data
 }
 
 const logout = (showToast = true) => {
@@ -153,7 +150,7 @@ if (showToast) toast.success('Logged out successfully')
 }
 
 return (
-<AuthContext.Provider value={{ user, token, login, register, sendRegistrationOtp, verifyRegistrationOtp, logout, setSession: saveSession, loading, isAuth: !!user }}>
+<AuthContext.Provider value={{ user, token, login, sendAuthOtp, verifyAuthOtp, logout, setSession: saveSession, loading, isAuth: !!user }}>
 {children}
 </AuthContext.Provider>
 )

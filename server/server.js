@@ -13,7 +13,6 @@ import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
 import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
-import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { selectRecipients, renderAdvisory, parseBroadcastRequest, parseOptOutWebhook, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
@@ -107,18 +106,16 @@ function isTestPhone(phone) {
   return getTestPhones().includes(phone);
 }
 const OTP_MAX_ATTEMPTS = 5;
-const VERIFIED_PHONE_TTL_MS = 10 * 60 * 1000;
 
 // ============================================================
 // OTP STORAGE
 // ============================================================
-// Pending codes and verified numbers live in MongoDB (see db.kv*), not process
-// memory: on Vercel the send and verify requests can land on different
-// instances. MongoDB expires the records on its own.
+// Pending codes live in MongoDB (see db.kv*), not process memory: on Vercel the
+// send and verify requests can land on different instances. MongoDB expires the
+// records on its own.
 
 const OTP_RECORD_TTL_MS = OTP_EXPIRY_MS + OTP_RESEND_MAX_MS;
 const otpKey = (phone) => `otp:${phone}`;
-const verifiedKey = (phone) => `otp-verified:${phone}`;
 
 // ============================================================
 // NORMALIZE INDIAN PHONE NUMBER
@@ -249,6 +246,18 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ success: false, message: 'This account has been disabled. Please contact support.' });
     }
 
+    // Customers are OTP-only. This door is for staff, who keep passwords so an
+    // outage at the WhatsApp provider cannot lock admins out of the shop.
+    // Farmers registered before the change still hold a usable password hash,
+    // so the role is checked rather than the presence of one.
+    if (user.role === 'farmer') {
+      return res.status(403).json({
+        success: false,
+        message: 'Please sign in with the OTP sent to your WhatsApp number.',
+        otpOnly: true,
+      });
+    }
+
     await clearRateLimit(`login-fail:${accountKey}`, LOGIN_WINDOW_MS);
 
     const updates = { lastLogin: new Date().toISOString() };
@@ -289,10 +298,12 @@ app.post('/api/auth/send-otp', async (req, res) => {
       }
     }
 
-    // This endpoint exists to verify a number during sign-up, so refuse before
-    // spending an OTP if the number already has an account. (Pass
-    // purpose: 'login' if this is ever reused for signing in.)
-    if (req.body?.purpose !== 'login' && !isTestPhone(phone)) {
+    // Sign-in and sign-up share one code: purpose 'auth' does not care whether
+    // the number is registered, and must not answer that question either, or
+    // anyone with a list of numbers could learn which ones have accounts.
+    // Older callers that only ever sign up still get the early 409.
+    const authPurpose = req.body?.purpose === 'auth' || req.body?.purpose === 'login';
+    if (!authPurpose && !isTestPhone(phone)) {
       const alreadyRegistered = await db.getUserByIdentifier(phone);
       if (alreadyRegistered) {
         return res.status(409).json({
@@ -335,9 +346,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
       resendAfterMs,
       attempts: 0,
     }, OTP_RECORD_TTL_MS);
-
-    // New OTP invalidates previous phone verification.
-    await db.kvDelete(verifiedKey(phone));
 
     console.log(`✅ OTP sent to +91 ${phone} (resend allowed in ${Math.round(resendAfterMs / 1000)}s)`);
 
@@ -422,12 +430,69 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     await db.kvDelete(otpKey(phone));
     forgetOtpLayout(phone);
 
-    // Mark phone as verified. Registration must happen within VERIFIED_PHONE_TTL_MS.
-    await db.kvSet(verifiedKey(phone), { verifiedUntil: Date.now() + VERIFIED_PHONE_TTL_MS }, VERIFIED_PHONE_TTL_MS);
-
     console.log(`✅ OTP verified for +91 ${phone}`);
 
-    return res.json({ success: true, message: 'Mobile number verified successfully.', verified: true });
+    // A correct code is proof of the number, and for a farmer the number IS the
+    // account: there is nothing else to ask. A known number is signed in, an
+    // unknown one gets an account here and is signed in the same way, so
+    // sign-up and sign-in are one screen and one tap for the farmer. Staff sign
+    // in with a password at /login, so a staff number is not signed in here.
+    const existing = await db.getUserByIdentifier(phone);
+
+    if (existing && existing.role !== 'farmer') {
+      return res.status(403).json({
+        success: false,
+        message: 'This number belongs to a staff account. Please sign in with your password.',
+        staffAccount: true,
+      });
+    }
+
+    if (existing) {
+      if (existing.status && existing.status !== 'active') {
+        return res.status(403).json({ success: false, message: 'This account has been disabled. Please contact support.' });
+      }
+      const updated = await db.updateUser(existing.id, { lastLogin: new Date().toISOString() });
+      const token = await issueToken(existing.id);
+      return res.json({
+        success: true,
+        verified: true,
+        isNewUser: false,
+        user: toSafeUser(updated || existing),
+        token,
+      });
+    }
+
+    // New farmer. Nothing is asked beyond the number: the rest of the profile
+    // (name, crop, village, and whatever the admin's Profile Form Builder adds)
+    // is filled in later from the account card, so a first order is never held
+    // up by a form. The stored password is a random secret nobody ever learns —
+    // see the note in issueToken's callers — which keeps the token fingerprint,
+    // and with it session revocation, working exactly as before.
+    const created = await db.createUser({
+      name: 'Farmer',
+      phone,
+      password: crypto.randomBytes(32).toString('base64url'),
+      role: 'farmer',
+      createdBy: 'self-registered',
+      lastLogin: new Date().toISOString(),
+      // Explicitly blank, not left out: we know nothing about this farm yet and
+      // must not invent a village, district or crop for it.
+      crop: '',
+      village: '',
+      district: '',
+      state: '',
+    });
+    const token = await issueToken(created.id);
+
+    console.log(`🌱 New farmer account for +91 ${phone}`);
+
+    return res.json({
+      success: true,
+      verified: true,
+      isNewUser: true,
+      user: toSafeUser(created),
+      token,
+    });
   } catch (err) {
     console.error('❌ Verify OTP error:', err.message);
     return res.status(500).json({ success: false, message: 'Unable to verify OTP.' });
@@ -475,7 +540,10 @@ app.post('/api/auth/forgot-password/send-otp', async (req, res) => {
 
     const resendAfterMs = nextResendCooldownMs();
     const user = await db.getUserByIdentifier(phone);
-    const canReset = Boolean(user) && (!user.status || user.status === 'active');
+    // Farmers have no password to reset — their WhatsApp code IS the sign-in.
+    // They are treated exactly like an unknown number here, so the reply cannot
+    // be used to tell a farmer's number from one that has never shopped.
+    const canReset = Boolean(user) && user.role !== 'farmer' && (!user.status || user.status === 'active');
 
     let otpHash = null;
     if (canReset) {
@@ -568,7 +636,7 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
     }
 
     const user = await db.getUserByIdentifier(phone, { includePassword: true });
-    if (!user || (user.status && user.status !== 'active')) {
+    if (!user || user.role === 'farmer' || (user.status && user.status !== 'active')) {
       await db.kvDelete(resetOtpKey(phone));
       return res.status(403).json({ success: false, message: 'This account cannot be reset online. Please contact support.' });
     }
@@ -604,99 +672,6 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
     return res.json({ success: true, message: 'Your password has been reset. You are now signed in.', user: toSafeUser(updated || user), token });
   } catch (err) {
     sendError(res, userInputError(err), 'Password reset');
-  }
-});
-
-// ============================================================
-// REGISTER - OTP REQUIRED
-// ============================================================
-
-// Self-registration always creates a farmer account. Staff accounts can only
-// be created by an admin, so no request body can choose its own role.
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const ipWait = await rateLimit(`register-ip:${clientIp(req)}`, 20, HOUR_MS);
-    if (ipWait) {
-      return tooManyRequests(res, ipWait, 'Too many registration attempts. Please try again later.');
-    }
-
-    const phone = normalizePhone(req.body?.phone);
-    const password = req.body?.password;
-    const name = cleanText(req.body?.name, 80);
-
-    const passwordIssues = passwordProblems(password, { role: 'farmer', phone });
-    if (passwordIssues.length) {
-      return res.status(400).json({
-        success: false,
-        message: weakPasswordMessage(passwordIssues),
-        passwordIssues,
-      });
-    }
-
-    if (!name) {
-      return res.status(400).json({ success: false, message: 'Please enter your name.' });
-    }
-
-    // Everything else a farmer is asked comes from the admin's Profile Form
-    // Builder: required answers, types and choices are checked here as well.
-    const profileFields = await db.getProfileFields();
-    const { values: answers, errors: fieldErrors } = validateProfileValues(
-      profileFields,
-      { ...req.body, name },
-      { only: profileFields.map(field => field.id).filter(id => id !== 'phone') },
-    );
-    if (Object.keys(fieldErrors).length) {
-      return res.status(400).json({ success: false, message: Object.values(fieldErrors)[0], fieldErrors });
-    }
-    const { core, profile } = splitProfileValues(answers);
-
-    if (!phone) {
-      return res.status(400).json({ success: false, message: 'A valid mobile number is required.' });
-    }
-
-    const verified = await db.kvGet(verifiedKey(phone));
-
-    if (!verified || verified.verifiedUntil <= Date.now()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Please verify your mobile number with OTP before creating your account.',
-        requiresOtp: true,
-      });
-    }
-
-    const existing = await db.getUserByIdentifier(phone);
-
-    if (isTestPhone(phone)) {
-      // Test number: clear every account on it (there may be historical
-      // duplicates) so the sign-up flow can be re-run from a clean slate.
-      const removed = await db.deleteUsersByPhone(phone);
-      if (removed) console.log(`🧪 Test number +91 ${phone}: cleared ${removed} previous account(s)`);
-    } else if (existing) {
-      // One account per mobile number — otherwise login cannot tell duplicates apart.
-      return res.status(409).json({
-        success: false,
-        message: 'This mobile number is already registered. Please sign in instead.',
-        alreadyRegistered: true,
-      });
-    }
-
-    // Consume verification. Cannot be reused.
-    await db.kvDelete(verifiedKey(phone));
-
-    const user = await db.createUser({
-      ...core,
-      name: core.name || name,
-      phone,
-      password,
-      profile,
-      role: 'farmer',
-      createdBy: 'self-registered',
-    });
-    const token = await issueToken(user.id);
-
-    res.json({ success: true, user: toSafeUser(user), token });
-  } catch (err) {
-    sendError(res, userInputError(err), 'Registration');
   }
 });
 

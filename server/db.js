@@ -1758,11 +1758,13 @@ class DatabaseManager {
 
   // Atomically adds 1 to a numeric field inside the value. With upsert (the
   // default) a missing record is created; otherwise a missing record returns 0.
-  async kvIncrement(key, field, ttlMs, { upsert = true } = {}) {
+  // `by` may be negative, to give back a count that was taken for something
+  // that then did not happen (see refundRateLimit).
+  async kvIncrement(key, field, ttlMs, { upsert = true, by = 1 } = {}) {
         await connectDB();
         const doc = await Ephemeral.findOneAndUpdate(
             upsert ? { _id: key } : { _id: key, purgeAt: { $gt: new Date() } },
-            { $inc: { [`value.${field}`]: 1 }, $setOnInsert: { purgeAt: new Date(Date.now() + ttlMs) } },
+            { $inc: { [`value.${field}`]: by }, $setOnInsert: { purgeAt: new Date(Date.now() + ttlMs) } },
             { upsert, returnDocument: 'after', lean: true }
         );
         return Number(doc?.value?.[field]) || 0;

@@ -24,6 +24,7 @@ import {
   toSafeUser,
   clientIp,
   rateLimit,
+  refundRateLimit,
   peekRateLimit,
   clearRateLimit,
   tooManyRequests,
@@ -279,6 +280,14 @@ app.post('/api/auth/login', async (req, res) => {
 // ============================================================
 
 app.post('/api/auth/send-otp', async (req, res) => {
+  // Counts taken from the hourly allowances below, to be given back if no
+  // WhatsApp message ends up going out. Declared before anything can throw, so
+  // the catch can always call it.
+  const spent = [];
+  const giveBackAllowance = async () => {
+    await Promise.all(spent.map(name => refundRateLimit(name, HOUR_MS)));
+  };
+
   try {
     const phone = normalizePhone(req.body?.phone);
 
@@ -287,15 +296,20 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
 
     // Every OTP is a paid WhatsApp message: cap sends per client and per number.
+    // Both counts are taken before the send and given back if no message goes
+    // out, so an outage at the provider does not spend a farmer's whole
+    // allowance on codes nobody received.
     const ipWait = await rateLimit(`otp-ip:${clientIp(req)}`, 10, HOUR_MS);
     if (ipWait) {
       return tooManyRequests(res, ipWait, 'Too many OTP requests. Please try again later.');
     }
+    spent.push(`otp-ip:${clientIp(req)}`);
     if (!isTestPhone(phone)) {
       const phoneWait = await rateLimit(`otp-phone:${phone}`, 5, HOUR_MS);
       if (phoneWait) {
         return tooManyRequests(res, phoneWait, 'Too many OTP requests for this number. Please try again later.');
       }
+      spent.push(`otp-phone:${phone}`);
     }
 
     // Sign-in and sign-up share one code: purpose 'auth' does not care whether
@@ -306,6 +320,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     if (!authPurpose && !isTestPhone(phone)) {
       const alreadyRegistered = await db.getUserByIdentifier(phone);
       if (alreadyRegistered) {
+        await giveBackAllowance();
         return res.status(409).json({
           success: false,
           message: 'This mobile number is already registered. Please sign in instead.',
@@ -321,6 +336,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
     // so each user is held for a different length of time.
     const waitSeconds = resendWaitSeconds(existing, now);
     if (waitSeconds) {
+      // The code already on its way still works; nothing new is sent, so this
+      // request does not spend an allowance either.
+      await giveBackAllowance();
       return res.status(429).json({
         success: false,
         message: `Please wait ${waitSeconds} seconds before requesting another OTP.`,
@@ -357,6 +375,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     });
   } catch (err) {
     console.error('❌ Send OTP error:', err.message);
+    // A number that is not on WhatsApp is the caller's mistake, and the check
+    // costs us a lookup, so that one keeps its count: otherwise the endpoint
+    // would test numbers for WhatsApp registration as often as anyone liked.
+    // Everything else here is our side failing, and no message went out.
     if (err.code === 'NOT_ON_WHATSAPP') {
       return res.status(400).json({
         success: false,
@@ -364,6 +386,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         message: 'This number is not on WhatsApp. Please enter the mobile number you use for WhatsApp.',
       });
     }
+    await giveBackAllowance();
     if (err.code === 'BUSY' || err.code === 'NO_SENDER') {
       return tooManyRequests(res, 30, 'We are sending a lot of codes right now. Please try again in 30 seconds.');
     }

@@ -64,6 +64,18 @@ export async function rateLimit(name, limit, windowMs) {
   return count > limit ? secondsLeftInWindow(windowMs) : 0;
 }
 
+// Gives back a count taken by rateLimit for something that then did not happen
+// — an OTP whose WhatsApp message never went out, say. Without this a provider
+// outage spends every caller's allowance on messages nobody received, and they
+// stay locked out for the rest of the window after the provider recovers.
+// Never taken below zero, so a stray refund cannot buy extra attempts.
+export async function refundRateLimit(name, windowMs) {
+  const key = windowKey(name, windowMs);
+  const record = await db.kvGet(key);
+  if (!(Number(record?.count) > 0)) return;
+  await db.kvIncrement(key, 'count', windowMs, { upsert: false, by: -1 });
+}
+
 // Like rateLimit, but only checks; nothing is counted.
 export async function peekRateLimit(name, limit, windowMs) {
   const record = await db.kvGet(windowKey(name, windowMs));

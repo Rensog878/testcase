@@ -34,9 +34,9 @@ Object.assign(db, {
   kvDelete: async (key) => { store.delete(key); },
   kvGetMany: async (keys) => new Map(keys.filter((key) => store.has(key)).map((key) => [key, store.get(key)])),
   kvClaimSlot: async () => 0,
-  kvIncrement: async (key, field) => {
+  kvIncrement: async (key, field, ttlMs, { by = 1 } = {}) => {
     const value = store.get(key) || {};
-    value[field] = (Number(value[field]) || 0) + 1;
+    value[field] = (Number(value[field]) || 0) + by;
     store.set(key, value);
     return value[field];
   },

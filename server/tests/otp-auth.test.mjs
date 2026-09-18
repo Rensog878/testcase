@@ -41,9 +41,9 @@ Object.assign(db, {
   kvDelete: async (key) => { store.delete(key); },
   kvGetMany: async (keys) => new Map(keys.filter((key) => store.has(key)).map((key) => [key, store.get(key)])),
   kvClaimSlot: async () => 0,
-  kvIncrement: async (key, field) => {
+  kvIncrement: async (key, field, ttlMs, { by = 1 } = {}) => {
     const value = store.get(key) || {};
-    value[field] = (Number(value[field]) || 0) + 1;
+    value[field] = (Number(value[field]) || 0) + by;
     store.set(key, value);
     return value[field];
   },
@@ -66,9 +66,11 @@ Object.assign(db, {
 // The code itself never leaves the server, so the test reads it out of the
 // WhatsApp message the same way a farmer would read it off their phone.
 let lastOtp = '';
+let sendFails = false; // stands in for the provider being down
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, init) => {
   if (!String(url).startsWith('https://wasender.test/')) return realFetch(url, init);
+  if (sendFails) return new Response(JSON.stringify({ success: false, message: 'upstream down' }), { status: 503 });
   lastOtp = (String(init?.body || '').match(/\b\d{6}\b/) || [''])[0];
   return new Response(JSON.stringify({ success: true, data: { msgId: 1, status: 'in_progress' } }), { status: 200 });
 };
@@ -92,6 +94,7 @@ beforeEach(() => {
   users.clear();
   created = null;
   lastOtp = '';
+  sendFails = false;
 });
 
 async function post(path, body) {
@@ -223,4 +226,31 @@ test('a customer cannot set a password through the reset flow', async () => {
   // Answered exactly as an unregistered number is, so the reply gives nothing away.
   assert.equal(status, 200);
   assert.equal(lastOtp, '', 'no reset code is sent to a farmer');
+});
+
+test('codes that never went out do not spend the hourly allowance', async () => {
+  // The provider is down. Eight tries is inside the limit of ten, but would
+  // leave only two if every failure counted against it.
+  sendFails = true;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const failed = await post('/api/auth/send-otp', { phone: '9876543210', purpose: 'auth' });
+    assert.equal(failed.data.success, false, 'nothing was sent');
+  }
+
+  // It comes back. A farmer must not be locked out for the rest of the hour
+  // over messages they never received.
+  sendFails = false;
+  const { status, data } = await signIn();
+  assert.equal(status, 200);
+  assert.equal(data.isNewUser, true);
+});
+
+test('the hourly limit still bites once the codes really are going out', async () => {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const sent = await post('/api/auth/send-otp', { phone: `98111111${String(attempt).padStart(2, '0')}`, purpose: 'auth' });
+    assert.equal(sent.status, 200, `send ${attempt + 1} went out`);
+  }
+
+  const over = await post('/api/auth/send-otp', { phone: '9822222222', purpose: 'auth' });
+  assert.equal(over.status, 429, 'the eleventh real send in the window is refused');
 });

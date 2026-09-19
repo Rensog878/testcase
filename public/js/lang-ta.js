@@ -354,6 +354,9 @@ window.SB_LANG_TA = {
     '10 Digit Number': '10 இலக்க எண்',
     '8+ characters: letters & numbers': '8+ எழுத்துகள்: எழுத்துகள் & எண்கள்',
     'Primary Crop': 'முதன்மைப் பயிர்',
+    // The Profile Form Builder's own title. Page text is matched exactly, so
+    // the lower-case spelling needs its own key.
+    'Primary crop': 'முதன்மைப் பயிர்',
     'Land Size': 'நில அளவு',
     'Acres': 'ஏக்கர்',
     'Village / Farm Address': 'கிராமம் / பண்ணை முகவரி',
@@ -467,6 +470,44 @@ window.SB_LANG_TA = {
     'Resetting': 'மீட்டமைக்கப்படுகிறது',
     'That code did not work. Check WhatsApp and try again': 'இந்தக் குறியீடு சரியில்லை. வாட்ஸ்அப்பைப் பார்த்து மீண்டும் முயலுங்கள்',
     'Registration session expired. Please register again': 'பதிவு நேரம் முடிந்தது. மீண்டும் பதிவு செய்யுங்கள்',
+
+    // Passwordless sign-in: one number, one WhatsApp code. A number we already
+    // know is signed straight in; a new one is asked for its details here.
+    // The three progress labels share a phone's width, so they stay short.
+    'Mobile': 'மொபைல்',
+    'WhatsApp code': 'குறியீடு',
+    'Your details': 'விவரங்கள்',
+    'Enter your WhatsApp number and we will send you a 6-digit code': 'உங்கள் வாட்ஸ்அப் எண்ணை உள்ளிடுங்கள்; 6 இலக்கக் குறியீட்டை அனுப்புவோம்',
+    'New here? The same code creates your account': 'புதியவரா? அதே குறியீடே உங்கள் கணக்கையும் உருவாக்கும்',
+    'Enter your code': 'உங்கள் குறியீட்டை உள்ளிடுங்கள்',
+    'Verify & continue': 'சரிபார்த்துத் தொடரவும்',
+    'Signing you in': 'உள்நுழைகிறது',
+    // Step 3, shown only to a number that has just proved itself.
+    'Almost there': 'கிட்டத்தட்ட முடிந்தது',
+    'Tell us who you are and where you farm, so we can deliver to the right place and send advice for your crops': 'நீங்கள் யார், எங்கு விவசாயம் செய்கிறீர்கள் என்று சொல்லுங்கள் — சரியான இடத்திற்கு டெலிவரி செய்யவும், உங்கள் பயிர்களுக்கான ஆலோசனைகளை அனுப்பவும் இது உதவும்',
+    'Create my account': 'என் கணக்கை உருவாக்கு',
+    'Creating your account': 'கணக்கு உருவாக்கப்படுகிறது',
+    'Email address': 'மின்னஞ்சல் முகவரி',
+    'Village / town': 'கிராமம் / ஊர்',
+    // The closing bracket is added back by the page walker, so it is not in the key.
+    'Farm size (acres': 'பண்ணை அளவு (ஏக்கர்',
+    // On the profile card, when an account still has nothing filled in.
+    'Finish setting up your account': 'உங்கள் கணக்கை முழுமையாக்குங்கள்',
+    'Add your name and village so we can tailor crop advice and deliveries to your farm': 'உங்கள் பெயரையும் கிராமத்தையும் சேர்த்தால், உங்கள் பண்ணைக்கு ஏற்ற பயிர் ஆலோசனையையும் டெலிவரியையும் தர முடியும்',
+    'Complete profile': 'சுயவிவரத்தை நிறைவு செய்',
+
+    // What the sign-in sheet says when something needs fixing
+    'Please enter your mobile number': 'உங்கள் மொபைல் எண்ணை உள்ளிடுங்கள்',
+    'That code has expired. Please enter your mobile number again': 'அந்தக் குறியீட்டின் கால அவகாசம் முடிந்தது. மொபைல் எண்ணை மீண்டும் உள்ளிடுங்கள்',
+    'Could not send the code. Please check your mobile number': 'குறியீட்டை அனுப்ப முடியவில்லை. உங்கள் மொபைல் எண்ணைச் சரிபாருங்கள்',
+    'Failed to resend the code': 'குறியீட்டை மீண்டும் அனுப்ப முடியவில்லை',
+    'Could not create your account. Please try again': 'கணக்கை உருவாக்க முடியவில்லை. மீண்டும் முயலுங்கள்',
+    'Village / town is required': 'கிராமம் / ஊர் தேவை',
+    'Mobile number verified successfully': 'மொபைல் எண் வெற்றிகரமாகச் சரிபார்க்கப்பட்டது',
+    'This number belongs to a staff account. Please sign in with your password': 'இந்த எண் ஊழியர் கணக்கிற்குரியது. உங்கள் கடவுச்சொல்லைக் கொண்டு உள்நுழையுங்கள்',
+    'This mobile number is already registered. Please sign in instead': 'இந்த மொபைல் எண் ஏற்கெனவே பதிவாகியுள்ளது. உள்நுழையுங்கள்',
+    'Please verify your mobile number with OTP before creating your account': 'கணக்கை உருவாக்கும் முன் உங்கள் மொபைல் எண்ணை OTP மூலம் சரிபாருங்கள்',
+    'This account has been disabled. Please contact support': 'இந்தக் கணக்கு முடக்கப்பட்டுள்ளது. ஆதரவு குழுவைத் தொடர்பு கொள்ளுங்கள்',
 
     // Checks shown under the sign-in and new farmer fields
     'Please enter your name': 'உங்கள் பெயரை உள்ளிடுங்கள்',

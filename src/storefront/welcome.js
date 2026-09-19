@@ -11,10 +11,14 @@ export function celebrateSignIn(user) {
   window.dispatchEvent(new CustomEvent(WELCOME_EVENT, { detail }))
 }
 
-// Where a farmer lands after signing in: the Shop tab of the phone bottom nav
-// (MobileBottomNav, shown up to 768px), otherwise the categories page.
+// Where a farmer lands after signing in or creating an account: the home page,
+// on a phone and on a desktop alike. It used to be the categories listing,
+// which dropped someone who had just signed in straight into a filtered
+// catalogue with none of the home page's context — the welcome, the offers,
+// the advice. Same path for every screen size, so there is no device branch
+// here to keep in step.
 export function farmerLandingPath() {
-  return window.matchMedia('(max-width: 768px)').matches ? '/categories?ct=Brands' : '/categories'
+  return '/'
 }
 
 export function takePendingWelcome() {

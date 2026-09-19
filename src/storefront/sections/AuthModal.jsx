@@ -31,7 +31,9 @@ const INITIAL_FIELDS = { authPhone: '', storefrontOtpInput: '', ...REGISTER_DEFA
 // Fields that keep only digits, with their length.
 const DIGITS_ONLY = { authPhone: 10, storefrontOtpInput: 6, regAcreage: 4, acctAcreage: 4 }
 const TITLE_IDS = { phone: 'authPhoneTitle', otp: 'authOtpTitle', details: 'authDetailsTitle' }
-const AUTH_STEPS = ['Mobile number', 'WhatsApp code', 'Your details']
+// Three labels share a phone's width, so they are kept to one word where a
+// word will do: "Mobile number" wrapped onto two lines in English and in Tamil.
+const AUTH_STEPS = ['Mobile', 'WhatsApp code', 'Your details']
 
 // 9876501234 -> "+91 98765 01234", grouped the way the number is read out.
 function formatMobile(phone) {

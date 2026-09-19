@@ -22,6 +22,9 @@ import {
   MASTER_PRODUCTS 
 } from '../data/allProductsData'
 
+// One screenful of catalogue cards. The grid grows by this as it is scrolled.
+const CATALOG_PAGE = 24
+
 export default function AllProducts() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -63,6 +66,10 @@ export default function AllProducts() {
   const [sortBy, setSortBy] = useState('popular')
   // The pest row is a side-scroller; "View All" opens every tile instead.
   const [showAllPests, setShowAllPests] = useState(false)
+  // How many catalogue cards are built right now. Painting all 78 up front is
+  // most of the wait on this page; the rest follow as they are scrolled to.
+  const [visibleCount, setVisibleCount] = useState(CATALOG_PAGE)
+  const sentinelRef = useRef(null)
 
   // Real-time SSOT catalog loaded from MongoDB and synchronized across open tabs
   const {
@@ -284,6 +291,12 @@ export default function AllProducts() {
   }, [catalogOptions?.diseases])
 
   // Filter and sort catalog
+  // A filter change starts the grid again from the first screenful, otherwise
+  // a narrow result would inherit a count grown by scrolling the wide one.
+  useEffect(() => {
+    setVisibleCount(CATALOG_PAGE)
+  }, [activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
+
   const filteredProducts = useMemo(() => {
     let list = [...dbProducts]
 
@@ -341,6 +354,32 @@ export default function AllProducts() {
 
     return list
   }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
+
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount],
+  )
+  const hasMore = visibleCount < filteredProducts.length
+
+  // The sentinel sits under the last card; reaching it builds the next
+  // screenful. Without IntersectionObserver every product is rendered at once,
+  // which is what this page did before - slower, never broken.
+  useEffect(() => {
+    if (!hasMore) return undefined
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisibleCount(filteredProducts.length)
+      return undefined
+    }
+    const node = sentinelRef.current
+    if (!node) return undefined
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setVisibleCount(count => Math.min(count + CATALOG_PAGE, filteredProducts.length))
+      }
+    }, { rootMargin: '600px 0px' })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [hasMore, filteredProducts.length])
 
   // Quick filter handlers that scroll down to catalog if filtered
   // Picking a browse tile (category, crop, pest, nutrient) starts a fresh
@@ -1236,7 +1275,7 @@ export default function AllProducts() {
           {/* Master Products Grid */}
           {filteredProducts.length > 0 ? (
             <div className="catalog-products-grid">
-              {filteredProducts.map(prod => {
+              {visibleProducts.map(prod => {
                 const activeSize = getProductActiveSize(prod)
                 const isWishlisted = wishlist.has(prod.id)
 
@@ -1331,6 +1370,9 @@ export default function AllProducts() {
                   </div>
                 )
               })}
+              {/* Reaching this builds the next screenful. It is inside the
+                  grid's place in the flow but carries no card of its own. */}
+              <div ref={sentinelRef} className="catalog-grid-sentinel" aria-hidden="true" />
             </div>
           ) : (
             <div className="catalog-empty-state">

@@ -205,6 +205,40 @@ function normalizeProduct(product) {
     };
 }
 
+// The catalogue is read on nearly every page view and changes only when an
+// admin edits it, but the cluster is an Atlas shared tier: it refuses
+// `hostInfo` and returns the 78 products (84 KB) at about 90 KB/s, a full
+// second, whatever compression is asked for. Nothing here can make that faster,
+// so the whole collection is held for a short while instead and every filter is
+// applied to it in memory, which is what getProducts already did.
+//
+// Every write below drops it, so an admin's edit is live at once on this
+// instance; the TTL is what bounds staleness anywhere else (each serverless
+// instance keeps its own).
+const PRODUCT_CACHE_MS = Number(process.env.PRODUCT_CACHE_MS || 30000);
+let productCache = null;
+let productCacheAt = 0;
+let productCacheInFlight = null;
+
+function invalidateProductCache() {
+    productCache = null;
+    productCacheAt = 0;
+}
+
+async function allProducts() {
+    if (productCache && Date.now() - productCacheAt < PRODUCT_CACHE_MS) return productCache;
+    // Two requests arriving together wait on one read, not two.
+    if (productCacheInFlight) return productCacheInFlight;
+    productCacheInFlight = Product.find({}).lean()
+          .then(docs => {
+                    productCache = docs.map(serialize).map(normalizeProduct);
+                    productCacheAt = Date.now();
+                    return productCache;
+          })
+          .finally(() => { productCacheInFlight = null; });
+    return productCacheInFlight;
+}
+
 // ================= DEFAULT / SEED DATA =================
 
 const DEFAULT_CATALOG_OPTIONS = {
@@ -690,6 +724,7 @@ async function seedIfEmpty() {
         await Promise.all(INITIAL_USERS.map(async u => ({ ...u, _id: u.id, password: await hashPassword(u.password) })))
   );
     await Product.insertMany(INITIAL_PRODUCTS.map(p => ({ ...p, _id: p.id })));
+    invalidateProductCache();
     await Order.insertMany(INITIAL_ORDERS.map(o => ({ ...o, _id: o.id })));
     await AdvisorySubscriber.insertMany(INITIAL_ADVISORY_SUBSCRIBERS.map(a => ({ ...a, _id: a.id })));
     await InventoryItem.insertMany(INITIAL_INVENTORY.map(i => ({ ...i, _id: i.id })));
@@ -977,6 +1012,7 @@ class DatabaseManager {
         { targetUserId: id },
         { $set: { targetUserId: 'all', targetUserName: 'All Users (General Catalog)' } }
             );
+      invalidateProductCache();
 
       await User.deleteOne({ _id: id });
         return true;
@@ -987,7 +1023,9 @@ class DatabaseManager {
   async getProducts(options = {}) {
         await connectDB();
         const { userId, category, crop, disease, search, sortBy, onlineOnly } = options;
-        let list = (await Product.find({}).lean()).map(serialize).map(normalizeProduct);
+        // A copy: the sorts further down reorder in place, and the cached array
+        // is shared with every other request.
+        let list = [...(await allProducts())];
 
       // Offline products are sold at the billing counter only, never on the website.
       if (onlineOnly) {
@@ -1176,6 +1214,7 @@ class DatabaseManager {
       });
 
       const created = await Product.create(newProd);
+      invalidateProductCache();
       return serialize(created.toObject());
   }
 
@@ -1244,6 +1283,7 @@ class DatabaseManager {
       };
 
       await Product.findByIdAndUpdate(id, { $set: merged }, { strict: false });
+      invalidateProductCache();
 
       await this.registerCatalogOptions({
               categories: [merged.category],
@@ -1258,6 +1298,7 @@ class DatabaseManager {
   async deleteProduct(id) {
         await connectDB();
         const res = await Product.deleteOne({ _id: id });
+        invalidateProductCache();
         return res.deletedCount > 0;
   }
 
@@ -1341,6 +1382,7 @@ class DatabaseManager {
             }
             taken.push(line);
         }
+        invalidateProductCache();
         return { ok: true };
   }
 
@@ -1349,6 +1391,7 @@ class DatabaseManager {
         for (const line of lines) {
             await Product.updateOne({ _id: line.id }, { $inc: { stock: line.qty } });
         }
+        invalidateProductCache();
   }
 
   // ---- CART (one document per user, _id = userId) ----

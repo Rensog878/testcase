@@ -1,10 +1,3 @@
-import ComingSoon from '../../components/ComingSoon'
-
-// POS billing / GST invoicing sits under Payment Gateway Integration, Phase 2
-// work — not part of this presentation build. Real implementation kept
-// below, commented out, to restore later.
-
-/*
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import axios from 'axios'
@@ -222,20 +215,6 @@ export default function BillingDashboard() {
       </div>
 
       {invoiceVisible && invoice && <div id="gst-invoice" className="print-invoice"><div className="invoice-brand">SATHYAM <span>BIO</span></div><h1>GST TAX INVOICE</h1><div className="invoice-meta"><span>Invoice: {invoice.id}</span><span>Date: {new Date(invoice.date).toLocaleString('en-IN')}</span></div><div className="invoice-customer"><strong>Bill to</strong><br />{invoice.customerName}<br />{invoice.customerPhone || 'Walk-in customer'}</div><table><thead><tr><th>Product</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>{invoice.items.map(item => <tr key={item.id}><td>{item.name}</td><td>{item.hsn}</td><td>{item.qty}</td><td>₹{Number(item.price).toLocaleString()}</td><td>₹{(Number(item.price) * Number(item.qty)).toLocaleString()}</td></tr>)}</tbody></table><div className="invoice-total"><span>Subtotal ₹{invoice.subtotal.toLocaleString()}</span><span>Discount ₹{invoice.discountAmount.toLocaleString()}</span><span>GST ₹{invoice.totalGst.toLocaleString()}</span><strong>Total ₹{invoice.grandTotal.toLocaleString()}</strong></div><p>Payment mode: {invoice.paymentMode} · Cashier: {invoice.cashier}</p></div>}
-    </div>
-  )
-}
-*/
-
-export default function BillingDashboard() {
-  return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <div><h1>🧾 POS billing counter</h1></div>
-      </div>
-      <div className="card">
-        <ComingSoon title="Billing counter — coming soon" message="GST invoicing and the POS billing counter will be available here in the next phase." />
-      </div>
     </div>
   )
 }

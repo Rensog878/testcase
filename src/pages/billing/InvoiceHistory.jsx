@@ -1,10 +1,3 @@
-import ComingSoon from '../../components/ComingSoon'
-
-// Invoice history depends on the billing counter, Phase 2 work — not part
-// of this presentation build. Real implementation kept below, commented
-// out, to restore later.
-
-/*
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
@@ -52,20 +45,6 @@ export default function InvoiceHistory() {
             </table>
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-*/
-
-export default function InvoiceHistory() {
-  return (
-    <div className="animate-fade-in">
-      <div className="page-header">
-        <div><h1>🗂️ Invoice history</h1></div>
-      </div>
-      <div className="card">
-        <ComingSoon title="Invoice history — coming soon" message="Generated GST invoices will be listed here in the next phase." />
       </div>
     </div>
   )

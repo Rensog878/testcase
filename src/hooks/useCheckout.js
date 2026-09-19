@@ -88,7 +88,8 @@ function readDraft(user) {
   return { ...newDraft(user), ...saved, fields: { ...initialFields(user), ...saved.fields } }
 }
 
-// index.html loads Razorpay; after a flaky connection it is tried once more.
+// Razorpay is not in index.html: it is fetched the first time a payment needs
+// it, and after a flaky connection it is tried once more.
 let razorpayLoad = null
 function loadRazorpay() {
   if (window.Razorpay) return Promise.resolve(window.Razorpay)

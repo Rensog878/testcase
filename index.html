@@ -20,8 +20,12 @@
   <!-- Font Awesome: the icon set used by the storefront and the bottom bar -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Razorpay Checkout SDK -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <!-- Razorpay Checkout SDK: fetched when a payment actually starts
+       (hooks/useCheckout.js loadRazorpay, which already retries a flaky
+       connection). Loaded here it was a render-blocking 58 KB from a third
+       party on every page - over a second on mobile data - for something only
+       the checkout uses. The preconnect keeps the payment itself quick. -->
+  <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin>
 
   <!-- Schema.org JSON-LD for SEO -->
   <script type="application/ld+json">

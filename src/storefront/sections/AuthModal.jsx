@@ -717,12 +717,14 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         <ResendAnnouncer announcement={signupResend.announcement} />
         <AuthBrand t={t} />
 
-        <div className="auth-topbar">
-          <button type="button" id="authBackBtn" className="auth-back" onClick={changeNumber} hidden={view !== 'otp'}>
-            <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>
-            <span id="authBackText">Back</span>
-          </button>
-        </div>
+        {view === 'otp' && (
+          <div className="auth-topbar">
+            <button type="button" id="authBackBtn" className="auth-back" onClick={changeNumber}>
+              <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>
+              <span id="authBackText">Back</span>
+            </button>
+          </div>
+        )}
 
         {/* Shown when signing in is needed to continue */}
         <div id="authNoticeBanner" className="auth-notice" role="status" style={{ display: notice ? 'flex' : 'none' }}>
@@ -742,7 +744,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         <form id="storefrontLoginForm" className="auth-form" onSubmit={sendCode} noValidate hidden={view !== 'phone'}>
           <header className="auth-head">
             <h2 id="authPhoneTitle" className="auth-title" tabIndex={-1}>Welcome to Sathyam Bio</h2>
-            <p className="auth-sub">Enter your WhatsApp number and we will send you a 6-digit code. No password to remember.</p>
+            <p className="auth-sub">Enter your WhatsApp number and we will send you a 6-digit code.</p>
           </header>
 
           <div className="auth-field">
@@ -758,9 +760,8 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
             <button type="submit" className="auth-cta" id="loginSubmitBtn" disabled={busy === 'send'}>
               {busy === 'send' ? <Spinner label="Sending code..." /> : <><i className="fa-brands fa-whatsapp" aria-hidden="true"></i> Send code on WhatsApp</>}
             </button>
+            <p className="auth-foot">New here? The same code creates your account.</p>
           </div>
-
-          <p className="auth-foot">New here? The same code creates your account.</p>
         </form>
 
         {/* STEP 2: the WhatsApp code. Getting it right is the sign-in. */}

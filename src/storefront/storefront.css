@@ -5106,12 +5106,13 @@ body.sb-home-active {
 }
 
 /* Second row: the Sign In / New Farmer switch or a back button, full width
-   under the brand row. */
+   under the brand row. It is sized by what is in it - a fixed 56px floor left
+   the Back link swimming between the brand and the progress bars. */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-topbar {
   display: flex;
   align-items: center;
-  min-height: 56px;
-  margin-bottom: 20px;
+  min-height: 40px;
+  margin-bottom: 8px;
 }
 
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-tabs {
@@ -5204,12 +5205,14 @@ body.sb-home-active {
   display: none !important;
 }
 
-/* New farmer progress: Details, Farm, Verify. */
+/* Sign-in progress: one column per step, whatever the flow is. Hard-coding
+   three left an empty column and stopped the bars two thirds across. */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: -4px 0 22px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin: 2px 0 20px;
   padding: 0;
   list-style: none;
 }
@@ -5286,9 +5289,9 @@ body.sb-home-active {
   margin-bottom: 4px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-badge {
-  width: 56px;
-  height: 56px;
-  margin-bottom: 16px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 10px;
   display: grid;
   place-items: center;
   border-radius: 18px;
@@ -5873,12 +5876,16 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .acct-welcome-btn:hover {
   background: #096540;
 }
-/* The line under the sign-in button: the same code creates an account. */
+/* The line under the sign-in button: the same code creates an account. It
+   lives inside .auth-actions, which is the sticky white bar that carries the
+   card's bottom padding - outside it the text pressed against the card edge. */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-foot {
-  margin: 12px 0 0;
+  margin: 2px 0 0;
   text-align: center;
   font-size: 0.88rem;
+  line-height: 1.4;
   color: #5A7266;
+  text-wrap: balance;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .acct-head {
   display: flex;
@@ -6088,8 +6095,8 @@ body.sb-home-active {
     letter-spacing: 0;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .auth-topbar {
-    min-height: 52px;
-    margin-bottom: 14px;
+    min-height: 36px;
+    margin-bottom: 6px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .auth-tabs {
     padding: 2px;
@@ -6102,7 +6109,7 @@ body.sb-home-active {
     width: calc(50% - 2px);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .auth-steps {
-    margin: -2px 0 16px;
+    margin: 2px 0 16px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .auth-steps li {
     gap: 6px;

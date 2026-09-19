@@ -8,14 +8,14 @@ import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
 import Modal from './Modal'
 
-// One sheet with two views: phone (the mobile number) and otp (the WhatsApp
-// code). There is no password and no sign-up form — the code both signs in and,
-// for a number we have not seen, creates the account, so a farmer never has to
-// remember anything or choose which button they are. Signed-in visitors see
-// their profile card instead (AccountCard), where they fill in the rest of
-// their details. Styles: storefront.css, 7f (sign-in) and 7f-2 (the profile
-// card). What Edit profile asks comes from Admin → Profile Form Builder
-// (src/shared/profileFieldRules.js).
+// One sheet with three views: phone (the mobile number), otp (the WhatsApp
+// code) and details (who they are and where they farm). There is no password
+// and no choice to make: the same code signs in a number we know and, for one
+// we do not, opens the details form that creates the account. Signed-in
+// visitors see their profile card instead (AccountCard). Styles:
+// storefront.css, 7f (sign-in) and 7f-2 (the profile card). What sign-up and
+// Edit profile ask comes from Admin → Profile Form Builder
+// (src/shared/profileFieldRules.js); the mobile number is never asked twice.
 
 const CROP_OPTIONS = [
   ['Paddy / Rice', 'Paddy / Rice'],
@@ -27,11 +27,19 @@ const CROP_OPTIONS = [
   ['Grapes', 'Grapes / Fruits'],
   ['All Crops', 'All Crops'],
 ]
-const INITIAL_FIELDS = { authPhone: '', storefrontOtpInput: '' }
+// What the details form starts with. The mobile number is not here: it is
+// already verified, and is shown rather than asked.
+const REGISTER_DEFAULTS = { regName: '', regEmail: '', regCrop: 'Paddy / Rice', regAcreage: '3', regVillage: '', regDistrict: '', regState: '' }
+// Details input ids for built-in fields; fields an admin adds get regField-<id>.
+const REG_IDS = { name: 'regName', email: 'regEmail', crop: 'regCrop', acreage: 'regAcreage', village: 'regVillage', district: 'regDistrict', state: 'regState' }
+const regIdFor = id => REG_IDS[id] || `regField-${id}`
+// Asked by the sheet itself; everything else comes from the builder.
+const ASKED_ELSEWHERE = ['name', 'phone']
+const INITIAL_FIELDS = { authPhone: '', storefrontOtpInput: '', ...REGISTER_DEFAULTS }
 // Fields that keep only digits, with their length.
-const DIGITS_ONLY = { authPhone: 10, storefrontOtpInput: 6, acctAcreage: 4 }
-const TITLE_IDS = { phone: 'authPhoneTitle', otp: 'authOtpTitle' }
-const AUTH_STEPS = ['Mobile number', 'WhatsApp code']
+const DIGITS_ONLY = { authPhone: 10, storefrontOtpInput: 6, regAcreage: 4, acctAcreage: 4 }
+const TITLE_IDS = { phone: 'authPhoneTitle', otp: 'authOtpTitle', details: 'authDetailsTitle' }
+const AUTH_STEPS = ['Mobile number', 'WhatsApp code', 'Your details']
 
 // 9876501234 -> "+91 98765 01234", grouped the way the number is read out.
 function formatMobile(phone) {
@@ -435,7 +443,7 @@ function AccountCard({ t, user, view, onView, profileForm }) {
 
 export default memo(function AuthModal({ t, state, user, notice, loginRequest }) {
   const { afterSignIn } = useStore()
-  const { verifyAuthOtp } = useAuth()
+  const { verifyAuthOtp, register } = useAuth()
 
   const [view, setView] = useState('phone')
   const [fields, setFields] = useState(INITIAL_FIELDS)
@@ -447,9 +455,13 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const [accountView, setAccountView] = useState('profile') // signed in: 'profile' | 'edit'
   const signupResend = useResendCountdown()
   const profileForm = useProfileForm(Boolean(state))
+  // The builder's questions other than the two the sheet asks itself.
+  const farmFields = profileForm.filter(field => !ASKED_ELSEWHERE.includes(field.id))
+  const titleOf = id => profileForm.find(field => field.id === id)?.title
 
   const fieldsRef = useRef(fields)
   const sentTo = useRef('') // the number the code on screen went to
+  const verifiedPhone = useRef('') // proved by a correct code, awaiting its details
   const verifying = useRef(false)
   const focusNext = useRef(null)
   const shellKey = useRef('phone')
@@ -457,6 +469,10 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   // ---- field state ----
   const setField = (id, value) => {
     fieldsRef.current = { ...fieldsRef.current, [id]: value }
+    setFields(fieldsRef.current)
+  }
+  const setFieldsTo = values => {
+    fieldsRef.current = { ...fieldsRef.current, ...values }
     setFields(fieldsRef.current)
   }
   const setFieldError = (id, message) => {
@@ -474,6 +490,10 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const clearField = id => {
     setStatus(current => without(current, [id]))
     setHints(current => without(current, [id]))
+  }
+  const clearFields = ids => {
+    setStatus(current => without(current, ids))
+    setHints(current => without(current, ids))
   }
 
   // ---- views ----
@@ -523,6 +543,15 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     return true
   }
 
+  const validateName = value => {
+    const v = value.trim()
+    if (!v) { clearField('regName'); return false }
+    // Letters in any script, as the server checks: names are typed in Tamil and Hindi too.
+    if ((v.match(/\p{L}/gu) || []).length < 2) { setFieldError('regName', 'Please enter your name, not a number.'); return false }
+    setFieldValid('regName')
+    return true
+  }
+
   const onInput = (id, digits = DIGITS_ONLY[id]) => event => {
     let value = event.target.value
     if (digits) value = value.replace(/\D/g, '').slice(0, digits)
@@ -533,6 +562,9 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
       if (value.length === 6) verifyOtp(value)
       else clearField(id)
     }
+    else if (id === 'regName') validateName(value)
+    // Any other answer: a problem shown on submit goes once it is changed.
+    else if (id.startsWith('reg')) clearField(id)
   }
 
   const inputProps = (id, { className = 'auth-input', describedBy, digits } = {}) => ({
@@ -642,17 +674,21 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
       signupResend.clear()
       sentTo.current = ''
+      clearOtp()
+
+      // A number we have not seen: the code proved it, now the shop needs to
+      // know who they are and where they farm before an account can exist.
+      if (data.isNewUser) {
+        verifiedPhone.current = phone
+        showView('details', { focus: 'regName' })
+        return
+      }
+
       setField('authPhone', '')
       clearField('authPhone')
-      clearOtp()
       setView('phone')
-
-      // A brand-new farmer gets the full welcome (WelcomeCelebration, played by
-      // afterSignIn unless they are in the middle of a checkout); someone coming
-      // back just gets their name said back to them, which is quieter.
-      if (!data.isNewUser) showToast(`Welcome back, ${data.user?.name || 'Farmer'}!`, 'success')
-
-      await afterSignIn(data.user, { celebrate: Boolean(data.isNewUser) })
+      showToast(`Welcome back, ${data.user?.name || 'Farmer'}!`, 'success')
+      await afterSignIn(data.user, { celebrate: false })
     } catch (err) {
       const answer = err?.response?.data
       const message = answer?.message || 'Could not reach the server. Please try again.'
@@ -699,16 +735,149 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     }
   }
 
+  // ---- step 3: who they are and where they farm ----
+  // Checks the answers against the admin's form. Returns the first input that
+  // needs fixing (or null) and the cleaned answers to send.
+  const checkDetails = () => {
+    const f = fieldsRef.current
+    const answers = Object.fromEntries(farmFields.map(field => [field.id, f[regIdFor(field.id)]]))
+    const { values, errors } = validateProfileValues(profileForm, answers, { only: farmFields.map(field => field.id) })
+    let firstBad = null
+    farmFields.forEach(field => {
+      const id = regIdFor(field.id)
+      if (errors[field.id]) {
+        setFieldError(id, errors[field.id])
+        firstBad = firstBad || id
+      } else clearField(id)
+    })
+    return { firstBad, values }
+  }
+
+  const submitDetails = async event => {
+    event.preventDefault()
+    const phone = verifiedPhone.current
+    if (!phone) {
+      showToast('That code has expired. Please enter your mobile number again.', 'warning')
+      showView('phone', { focus: 'authPhone' })
+      return
+    }
+
+    const f = fieldsRef.current
+    const name = f.regName.trim()
+    if (!name) {
+      setFieldError('regName', 'Please enter your name.')
+      document.getElementById('regName')?.focus()
+      return
+    }
+    if (!validateName(name)) {
+      document.getElementById('regName')?.focus()
+      return
+    }
+    const details = checkDetails()
+    if (details.firstBad) {
+      document.getElementById(details.firstBad)?.focus()
+      return
+    }
+
+    setBusy('register')
+    try {
+      const created = await register({ ...details.values, name, phone })
+
+      verifiedPhone.current = ''
+      setFieldsTo({ ...REGISTER_DEFAULTS, authPhone: '' })
+      clearFields(['authPhone', ...Object.keys(REGISTER_DEFAULTS), ...Object.keys(f).filter(id => id.startsWith('regField-'))])
+      setView('phone')
+
+      // The full welcome, played by afterSignIn unless they are mid-checkout.
+      await afterSignIn(created, { celebrate: true })
+    } catch (err) {
+      const answer = err?.response?.data
+      // The number was taken, or the code expired while the form was open.
+      if (answer?.requiresOtp || answer?.alreadyRegistered) {
+        verifiedPhone.current = ''
+        showToast(answer.message, 'warning', 6000)
+        showView('phone', { focus: 'authPhone', select: true })
+        return
+      }
+      // The admin changed the form meanwhile: show what needs an answer.
+      const fieldErrors = answer?.fieldErrors || {}
+      const firstId = Object.keys(fieldErrors)[0]
+      if (firstId) {
+        Object.entries(fieldErrors).forEach(([id, message]) => setFieldError(regIdFor(id), message))
+        document.getElementById(regIdFor(firstId))?.focus()
+        return
+      }
+      showToast(answer?.message || 'Could not create your account. Please try again.', 'error')
+    } finally {
+      setBusy('')
+    }
+  }
+
   const changeNumber = () => {
     signupResend.clear()
     sentTo.current = ''
+    verifiedPhone.current = ''
     clearOtp()
     showView('phone', { focus: 'authPhone', select: true })
   }
 
+  const acreage = parseInt(fields.regAcreage, 10) || 0
+  const stepAcreage = delta => {
+    setField('regAcreage', String(Math.min(ACRE_LIMITS.max, Math.max(ACRE_LIMITS.min, acreage + delta))))
+    clearField('regAcreage')
+  }
+
+  // One question on the details form. Crop and farm size keep their own controls.
+  const farmField = (field, index) => {
+    const id = regIdFor(field.id)
+    const hint = <FieldHint id={id} hint={hints[id]} />
+    if (field.id === 'crop') {
+      return (
+        <div className="auth-field" key={field.id}>
+          <label className="auth-label" htmlFor="regCrop">{field.title}</label>
+          <div className="auth-control auth-control--select">
+            <select {...inputProps('regCrop')}>
+              {CROP_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+            <i className="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
+            <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>
+          </div>
+          {hint}
+        </div>
+      )
+    }
+    if (field.id === 'acreage') {
+      return (
+        <div className="auth-field" key={field.id}>
+          <label className="auth-label" htmlFor="regAcreage">{field.title}</label>
+          <div className="auth-stepper">
+            <button type="button" className="auth-stepper-btn" data-acre-step="-1" aria-controls="regAcreage" aria-disabled={acreage <= ACRE_LIMITS.min} onClick={() => { if (acreage > ACRE_LIMITS.min) stepAcreage(-1) }}>
+              <i className="fa-solid fa-minus" aria-hidden="true"></i><span className="auth-sr">Fewer acres</span>
+            </button>
+            <div className="auth-control auth-control--suffix">
+              <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" {...inputProps('regAcreage', { describedBy: 'regAcreageUnit' })} />
+              <span className="auth-suffix" id="regAcreageUnit">acres</span>
+            </div>
+            <button type="button" className="auth-stepper-btn" data-acre-step="1" aria-controls="regAcreage" aria-disabled={acreage >= ACRE_LIMITS.max} onClick={() => { if (acreage < ACRE_LIMITS.max) stepAcreage(1) }}>
+              <i className="fa-solid fa-plus" aria-hidden="true"></i><span className="auth-sr">More acres</span>
+            </button>
+          </div>
+          {hint}
+        </div>
+      )
+    }
+    const village = field.id === 'village'
+    const control = {
+      ...inputProps(id, { describedBy: village ? 'regVillageHelp' : undefined, digits: field.type === 'tel' ? 10 : undefined }),
+      placeholder: village ? 'e.g. Thiruvaiyaru, Thanjavur' : undefined,
+    }
+    const help = village && <p className="auth-help" id="regVillageHelp">Used for local weather and spraying advice.</p>
+    return <ProfileFieldInput key={field.id} field={field} control={control} help={help} hint={hint} enterKeyHint={index === farmFields.length - 1 ? 'go' : 'next'} />
+  }
+
   let labelledBy = TITLE_IDS[view]
   if (user) labelledBy = accountView === 'edit' ? 'authEditTitle' : 'authAccountTitle'
-  const stepNow = view === 'otp' ? 2 : 1
+  const stepNow = { phone: 1, otp: 2, details: 3 }[view] || 1
 
   return (
     <Modal id="authModal" state={state} cardClassName="modal-card auth-card" cardProps={{ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': labelledBy }}>
@@ -791,6 +960,39 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
           <div className="auth-actions">
             <button type="submit" className="auth-cta" id="storefrontOtpVerifyBtn" disabled={busy === 'verify'}>
               {busy === 'verify' ? <Spinner label="Signing you in..." /> : <><i className="fa-solid fa-circle-check" aria-hidden="true"></i> Verify &amp; continue</>}
+            </button>
+          </div>
+        </form>
+
+        {/* STEP 3: who they are and where they farm. Only a number that has
+            just answered its code reaches this, and the account is made here. */}
+        <form id="storefrontRegisterForm" className="auth-form" onSubmit={submitDetails} noValidate hidden={view !== 'details'}>
+          <header className="auth-head">
+            <h2 id="authDetailsTitle" className="auth-title" tabIndex={-1}>Almost there</h2>
+            <p className="auth-sub">Tell us who you are and where you farm, so we can deliver to the right place and send advice for your crops.</p>
+          </header>
+
+          {/* The number is proved; it is shown, never asked again. */}
+          <div className="auth-number auth-number--done">
+            <span className="auth-number-check" aria-hidden="true"><i className="fa-solid fa-circle-check"></i></span>
+            <strong className="notranslate">{otpPhone}</strong>
+            <button type="button" className="auth-link" onClick={changeNumber}>Change</button>
+          </div>
+
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="regName">{titleOf('name') || 'Your name'}</label>
+            <div className="auth-control">
+              <input type="text" autoComplete="name" autoCapitalize="words" enterKeyHint={farmFields.length ? 'next' : 'go'} placeholder="e.g. Murugan Selvam" {...inputProps('regName')} />
+              <i className="fa-solid fa-user auth-control-icon" aria-hidden="true"></i>
+            </div>
+            <FieldHint id="regName" hint={hints.regName} />
+          </div>
+
+          {farmFields.map(farmField)}
+
+          <div className="auth-actions">
+            <button type="submit" className="auth-cta" id="regSubmitBtn" disabled={busy === 'register'}>
+              {busy === 'register' ? <Spinner label="Creating your account..." /> : <><i className="fa-solid fa-circle-check" aria-hidden="true"></i> Create my account</>}
             </button>
           </div>
         </form>

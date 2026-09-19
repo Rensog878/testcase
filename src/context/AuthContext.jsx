@@ -136,12 +136,21 @@ const { data } = await axios.post('/api/auth/send-otp', { phone, purpose: 'auth'
 return data
 }
 
-// A correct code is the sign-in. The server creates the account first when the
-// number is new, and says which happened through isNewUser.
+// A correct code signs in a number we already know, and comes back with
+// isNewUser for one we do not: that number is now verified, and the details
+// form finishes the account through register() below. Only a reply carrying a
+// token is a session.
 const verifyAuthOtp = async (phone, otp) => {
 const { data } = await axios.post('/api/auth/verify-otp', { phone, otp })
-saveSession(data.token, data.user)
+if (data.token) saveSession(data.token, data.user)
 return data
+}
+
+// Creates the account for a number verified moments ago, and signs them in.
+const register = async (payload) => {
+const { data } = await axios.post('/api/auth/register', payload)
+saveSession(data.token, data.user)
+return data.user
 }
 
 const logout = (showToast = true) => {
@@ -150,7 +159,7 @@ if (showToast) toast.success('Logged out successfully')
 }
 
 return (
-<AuthContext.Provider value={{ user, token, login, sendAuthOtp, verifyAuthOtp, logout, setSession: saveSession, loading, isAuth: !!user }}>
+<AuthContext.Provider value={{ user, token, login, sendAuthOtp, verifyAuthOtp, register, logout, setSession: saveSession, loading, isAuth: !!user }}>
 {children}
 </AuthContext.Provider>
 )

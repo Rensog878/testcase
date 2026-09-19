@@ -5820,6 +5820,18 @@ body.sb-home-active {
   gap: 16px;
   animation: authViewIn 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
+/* The verified number on the details form: settled, not something to act on,
+   so the tick carries the meaning and the row sits quieter than on the code
+   screen where the number still had to be checked. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-number--done {
+  border-color: rgba(11, 122, 75, 0.28);
+  background: #F2FAF5;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-number--done .auth-number-check {
+  margin-right: 8px;
+  color: #0B7A4B;
+  font-size: 1rem;
+}
 /* Shown once, on the card of an account that was just created from a mobile
    number alone: a greeting and the one action worth taking, so a brand-new
    farmer does not meet a column of "Not added". */

@@ -1,7 +1,9 @@
-// One WhatsApp code both signs a farmer in and, for a number we have not seen
-// before, creates their account. There is no password anywhere in this flow:
-// staff keep theirs at /api/auth/login, and a customer who reaches that door is
-// turned away with otpOnly. Nothing here may reveal whether a number is known.
+// One WhatsApp code signs a farmer in; a number we have not seen is marked
+// verified instead, and /register turns it into an account once the farmer has
+// said who they are and where they farm. There is no password anywhere in this
+// flow: staff keep theirs at /api/auth/login, and a customer who reaches that
+// door is turned away with otpOnly. Nothing here may reveal whether a number is
+// known.
 // Run from server/: npm test
 
 import { test, before, after, beforeEach } from 'node:test';
@@ -24,6 +26,10 @@ for (let slot = 2; slot <= 10; slot++) delete process.env[`WASENDER_API_KEY_${sl
 const { db } = await import('../db.js');
 const { default: app } = await import('../server.js');
 const { hashPassword } = await import('../security.js');
+const { normalizeProfileFields, DEFAULT_PROFILE_FIELDS } = await import('../../src/shared/profileFieldRules.js');
+
+// The questions an admin has set, as the details form asks them.
+const profileForm = normalizeProfileFields(DEFAULT_PROFILE_FIELDS);
 
 // Request logs are expected here.
 console.log = () => {};
@@ -48,6 +54,8 @@ Object.assign(db, {
     return value[field];
   },
   getUserByIdentifier: async (identifier) => users.get(String(identifier)) ?? null,
+  getProfileFields: async () => profileForm,
+  deleteUsersByPhone: async (phone) => (users.delete(String(phone)) ? 1 : 0),
   getUserById: async (id) => [...users.values()].find((user) => user.id === id) ?? null,
   createUser: async (data) => {
     created = data;
@@ -115,26 +123,82 @@ async function signIn(phone = '9876543210') {
 
 const farmer = (phone, extra = {}) => ({ id: 'USR-farmer', name: 'Murugan', phone, role: 'farmer', ...extra });
 
-test('a number we have not seen gets an account and is signed in by the same code', async () => {
+async function registerDetails(extra = {}) {
+  const res = await realFetch(`${base}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: '9876543210', name: 'Murugan', crop: 'Cotton', acreage: '4', village: 'Thiruvaiyaru', district: 'Thanjavur', state: 'Tamil Nadu', ...extra }),
+  });
+  return { status: res.status, data: await res.json() };
+}
+
+test('a number we have not seen is verified, but no account exists until the details are given', async () => {
   const { status, data } = await signIn();
 
   assert.equal(status, 200);
   assert.equal(data.isNewUser, true);
+  assert.equal(data.token, undefined, 'a verified number is not yet a session');
+  assert.equal(created, null, 'and not yet an account');
+});
+
+test('the details finish the account and sign them in', async () => {
+  await signIn();
+  const { status, data } = await registerDetails();
+
+  assert.equal(status, 200);
   assert.equal(data.user.phone, '9876543210');
+  assert.equal(data.user.name, 'Murugan');
   assert.equal(data.user.role, 'farmer', 'self sign-up can only ever make a farmer');
-  assert.ok(data.token, 'they are signed in straight away, with nothing else to fill in');
+  assert.ok(data.token, 'they are signed in the moment the account exists');
   assert.equal(created.createdBy, 'self-registered');
+  assert.equal(created.crop, 'Cotton');
+  assert.equal(created.village, 'Thiruvaiyaru');
   assert.ok(created.password && created.password.length >= 32, 'a random secret nobody knows, so tokens can still be revoked');
   assert.equal(data.user.password, undefined, 'the account password never goes to the browser');
 });
 
-test('a number that already has an account is signed in, not signed up again', async () => {
+test('the details form cannot create an account on a number that never answered a code', async () => {
+  const { status, data } = await registerDetails();
+
+  assert.equal(status, 403);
+  assert.equal(data.requiresOtp, true);
+  assert.equal(created, null);
+});
+
+test('a required answer left blank is refused, and the verified number stays usable', async () => {
+  await signIn();
+  const { status, data } = await registerDetails({ name: '' });
+
+  assert.equal(status, 400);
+  assert.equal(created, null);
+  assert.ok(store.has('otp-verified:9876543210'), 'they can fix it without asking for a new code');
+});
+
+test('a verification is used up: the details cannot be sent twice', async () => {
+  await signIn();
+  assert.equal((await registerDetails()).status, 200);
+
+  users.delete('9876543210'); // as if the first account had been removed
+  const again = await registerDetails();
+  assert.equal(again.status, 403, 'the same verification cannot make a second account');
+});
+
+test('self-registration cannot choose its own role or status', async () => {
+  await signIn();
+  const { status } = await registerDetails({ role: 'admin', status: 'blocked' });
+
+  assert.equal(status, 200);
+  assert.equal(created.role, 'farmer');
+  assert.equal(created.status, undefined);
+});
+
+test('a number that already has an account is signed in, not asked for details again', async () => {
   users.set('9876543210', farmer('9876543210'));
 
   const { status, data } = await signIn();
 
   assert.equal(status, 200);
-  assert.equal(data.isNewUser, false, 'so the sheet can say "welcome back" instead of celebrating');
+  assert.equal(data.isNewUser, false, 'so the sheet says "welcome back" instead of opening the form');
   assert.equal(data.user.name, 'Murugan');
   assert.ok(data.token);
   assert.equal(created, null, 'no second account on the same number');
@@ -174,7 +238,7 @@ test('a disabled account cannot be signed in with a code', async () => {
   assert.match(data.message, /disabled/i);
 });
 
-test('a wrong code signs nobody in and creates nothing', async () => {
+test('a wrong code verifies nothing and creates nothing', async () => {
   await post('/api/auth/send-otp', { phone: '9876543210', purpose: 'auth' });
   const wrong = String((Number(lastOtp) + 1) % 1000000).padStart(6, '0');
 
@@ -183,6 +247,7 @@ test('a wrong code signs nobody in and creates nothing', async () => {
   assert.equal(status, 400);
   assert.equal(data.token, undefined);
   assert.equal(created, null);
+  assert.ok(!store.has('otp-verified:9876543210'), 'the number is not marked verified');
 });
 
 test('a code is single use: the second try cannot open a session', async () => {

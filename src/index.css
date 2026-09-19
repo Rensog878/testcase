@@ -8790,6 +8790,20 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .category-circle-lab
   line-height: var(--script-leading);
 }
 
+/* A subcategory heading is a short word in English ("FUNGICIDES") and one long
+   compound in Tamil ("பூஞ்சைக்கொல்லிகள்"). The nowrap + ellipsis above keeps a
+   long English name from pushing the item count out of the pane, but on an
+   Indian script it cut almost every heading mid-glyph. Wrapping is the better
+   trade: the heading is worth more than the rule line beside it, and the count
+   keeps its place either way. */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .subcat-group-title {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  letter-spacing: 0;
+}
+
 /* Shop rails on phone/tablet: single Indian-language words ("தெளிப்பான்கள்",
    "மக்காச்சோளம்") are wider than the 76-78px label, so category labels were
    cut mid-glyph and crop/pest labels spilled over their neighbours. Break

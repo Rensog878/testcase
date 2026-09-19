@@ -6516,6 +6516,27 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-act
   text-transform: none;
 }
 
+@media (min-width: 769px) {
+  /* The bento overlay is lifted out of the flow and anchored to the bottom of
+     its photo, so the card's height never answers to its own text. Two lines
+     of English fit inside the 460px hero; the same sentence in Tamil runs to
+     four, grew upward past the top of the card and was cut off there, taking
+     the badge with it. Phones were spared only because the block below shrinks
+     the heading to 1.08rem.
+
+     Putting the overlay back in the flow lets the card grow to whatever the
+     script needs. It still fills the card, because the card's min-height is
+     untouched, so nothing moves until the text genuinely needs the room — and
+     a long headline an admin types is handled the same way. Scoped to the four
+     Indian scripts, so English renders identically at every width. */
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .bento-card > .bento-overlay,
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .bento-card > .bento-overlay-light {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+  }
+}
+
 @media (max-width: 768px) {
   html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-title {
     font-size: 1.08rem !important;

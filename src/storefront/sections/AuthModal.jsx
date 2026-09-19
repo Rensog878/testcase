@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import { STAFF_HOME } from '../../hooks/checkoutRules'
 import { ResendAnnouncer, resendLabel, useResendCountdown } from '../../shared/useResendCountdown'
-import { ACRE_LIMITS, DEFAULT_PROFILE_FIELDS, normalizeProfileFields, profileValueOf, validateProfileValues } from '../../shared/profileFieldRules'
+import { ACRE_LIMITS, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, normalizeProfileFields, profileValueOf, validateProfileValues } from '../../shared/profileFieldRules'
 import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
 import Modal from './Modal'
@@ -17,19 +17,11 @@ import Modal from './Modal'
 // Edit profile ask comes from Admin → Profile Form Builder
 // (src/shared/profileFieldRules.js); the mobile number is never asked twice.
 
-const CROP_OPTIONS = [
-  ['Paddy / Rice', 'Paddy / Rice'],
-  ['Cotton', 'Cotton'],
-  ['Tomato', 'Tomato'],
-  ['Wheat', 'Wheat'],
-  ['Sugarcane', 'Sugarcane'],
-  ['Corn / Maize', 'Corn / Maize'],
-  ['Grapes', 'Grapes / Fruits'],
-  ['All Crops', 'All Crops'],
-]
 // What the details form starts with. The mobile number is not here: it is
 // already verified, and is shown rather than asked.
-const REGISTER_DEFAULTS = { regName: '', regEmail: '', regCrop: 'Paddy / Rice', regAcreage: '3', regVillage: '', regDistrict: '', regState: '' }
+// regCrop is filled from the shop's own crop list once the form arrives, so
+// nothing here has to guess what the shop sells for.
+const REGISTER_DEFAULTS = { regName: '', regEmail: '', regCrop: '', regAcreage: '3', regVillage: '', regDistrict: '', regState: '' }
 // Details input ids for built-in fields; fields an admin adds get regField-<id>.
 const REG_IDS = { name: 'regName', email: 'regEmail', crop: 'regCrop', acreage: 'regAcreage', village: 'regVillage', district: 'regDistrict', state: 'regState' }
 const regIdFor = id => REG_IDS[id] || `regField-${id}`
@@ -177,9 +169,15 @@ const acctIdFor = id => PROFILE_INPUT[id] || `acctField-${id}`
 const CARD_KEYS = ['name', 'phone', 'crop', 'acreage', 'village', 'district']
 
 const cropOf = user => user.crop || user.primaryCrop || ''
+// The crop choices to show: the shop's list, with the value already saved kept
+// at the front if the list no longer has it.
+const cropOptionsFor = (field, saved) => {
+  const offered = field?.options?.length ? field.options : CROP_CHOICES
+  return offered.includes(saved) || !saved ? offered : [saved, ...offered]
+}
 const profileOf = (user, fields) => Object.fromEntries(fields.map(field => {
   const value = profileValueOf(user, field)
-  if (field.id === 'crop') return [field.id, value || CROP_OPTIONS[0][0]]
+  if (field.id === 'crop') return [field.id, value || field.options?.[0] || '']
   // A farm size of 0 means it was never given.
   if (field.id === 'acreage') return [field.id, Number(value) > 0 ? String(value) : '']
   return [field.id, String(value)]
@@ -309,8 +307,11 @@ function AccountCard({ t, user, view, onView, profileForm }) {
     }
   }
   const hint = key => <FieldHint id={acctIdFor(key)} hint={errors[key] && { kind: 'error', message: errors[key] }} />
-  // A crop saved before the list changed stays choosable.
-  const cropChoices = CROP_OPTIONS.some(([value]) => value === form.crop) ? CROP_OPTIONS : [[form.crop, form.crop], ...CROP_OPTIONS]
+  // The choices are the shop's own crop list, served with the form. One saved
+  // before that list changed stays choosable, so opening Edit profile can never
+  // silently move a farmer off the crop they picked.
+  const cropField = profileForm.find(field => field.id === 'crop')
+  const cropChoices = cropOptionsFor(cropField, form.crop)
 
   const editField = (field, index) => {
     const last = index === editableFields.length - 1
@@ -320,7 +321,7 @@ function AccountCard({ t, user, view, onView, profileForm }) {
           <label className="auth-label" htmlFor="acctCrop">{field.title}</label>
           <div className="auth-control auth-control--select">
             <select {...inputProps('crop')}>
-              {cropChoices.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              {cropChoices.map(value => <option key={value} value={value}>{value}</option>)}
             </select>
             <i className="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
             <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>
@@ -510,6 +511,14 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   useEffect(() => {
     if (loginRequest) setView(sentTo.current ? 'otp' : 'phone')
   }, [loginRequest])
+
+  // The crop select starts on the first crop the shop actually sells for, once
+  // the form has said what those are. Only while it is still unset: a farmer
+  // part-way through the details keeps what they chose.
+  const cropOptions = profileForm.find(field => field.id === 'crop')?.options
+  useEffect(() => {
+    if (!fieldsRef.current.regCrop && cropOptions?.length) setField('regCrop', cropOptions[0])
+  }, [cropOptions])
 
   // The profile card opens on the profile, not on an edit left half-done.
   const cardOpen = Boolean(state)
@@ -837,7 +846,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
           <label className="auth-label" htmlFor="regCrop">{field.title}</label>
           <div className="auth-control auth-control--select">
             <select {...inputProps('regCrop')}>
-              {CROP_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              {cropOptionsFor(field, fields.regCrop).map(value => <option key={value} value={value}>{value}</option>)}
             </select>
             <i className="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
             <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>

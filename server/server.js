@@ -726,7 +726,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Everything else a farmer is asked comes from the admin's Profile Form
     // Builder: required answers, types and choices are checked here as well.
-    const profileFields = await db.getProfileFields();
+    const profileFields = await withCatalogCrops(await db.getProfileFields());
     const { values: answers, errors: fieldErrors } = validateProfileValues(
       profileFields,
       { ...req.body, name },
@@ -806,9 +806,51 @@ app.get('/api/auth/me', requireAuth(), (req, res) => {
 // PROFILE FIELDS
 // ============================================================
 
+// "Paddy / Rice" and "Paddy/Rice" are one crop; so are "Grapes" and
+// "Grapes / Fruits". Matches how the catalogue itself compares them
+// (src/utils/catalogUtils.js, normalizeCrop and matchesCrop).
+const cropKey = (value) => String(value || '').trim().toLowerCase().replace(/\s*\/\s*/g, '/');
+function sameCrop(a, b) {
+  const left = cropKey(a);
+  const right = cropKey(b);
+  if (!left || !right) return false;
+  if (left === right) return true;
+  // Only the crop itself is compared, never the qualifier after the slash:
+  // "Grapes" and "Grapes / Fruits" are one crop, but "Citrus / Fruits" and
+  // "Grapes / Fruits" are two, and matching on any shared part would have
+  // quietly dropped one of them.
+  return left.split('/')[0] === right.split('/')[0];
+}
+
+// The crops a farmer can pick are the ones the shop actually sells for. That
+// list is the admin's (Settings.catalogOptions.crops) and grows by itself as
+// products are saved, so offering it here means sign-up and Edit profile can
+// never fall behind the catalogue the way a second hardcoded list does.
+// Decorated on the way out only: the saved form keeps whatever the admin chose,
+// so turning a product into a new crop never rewrites the form itself.
+async function withCatalogCrops(fields) {
+  const crop = fields.find(field => field.id === 'crop');
+  if (!crop) return fields;
+
+  const { crops } = await db.getCatalogOptions();
+  const shopCrops = (crops || []).map(value => String(value).trim()).filter(Boolean);
+  if (!shopCrops.length) return fields;
+
+  // The admin's list wins outright rather than being merged with whatever the
+  // form was saved with: merging showed "Grapes" beside "Grapes / Fruits" and
+  // "Paddy/Rice" beside "Paddy / Rice", which is three ways of asking the same
+  // question. Anything a farmer already saved stays choosable — the sheet puts
+  // it back at the top of their own dropdown.
+  const offered = [];
+  for (const value of [...shopCrops, 'All Crops']) {
+    if (!offered.some(seen => sameCrop(seen, value))) offered.push(value);
+  }
+  return fields.map(field => (field.id === 'crop' ? { ...field, options: offered } : field));
+}
+
 app.get('/api/profile-fields', async (req, res) => {
   try {
-    const data = await db.getProfileFields();
+    const data = await withCatalogCrops(await db.getProfileFields());
     res.json({ success: true, data });
   } catch (err) {
     sendError(res, err, 'Profile fields');
@@ -818,7 +860,7 @@ app.get('/api/profile-fields', async (req, res) => {
 app.put('/api/profile-fields', requireAuth('admin'), async (req, res) => {
   try {
     const fields = await db.saveProfileFields((req.body && req.body.fields) || []);
-    res.json({ success: true, data: fields });
+    res.json({ success: true, data: await withCatalogCrops(fields) });
   } catch (err) {
     sendError(res, err, 'Save profile fields');
   }

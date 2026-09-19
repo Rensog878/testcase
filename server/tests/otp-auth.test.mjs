@@ -55,6 +55,8 @@ Object.assign(db, {
   },
   getUserByIdentifier: async (identifier) => users.get(String(identifier)) ?? null,
   getProfileFields: async () => profileForm,
+  // What an admin has set as the shop's crops, grown as products are saved.
+  getCatalogOptions: async () => ({ crops: ['Paddy / Rice', 'Paddy/Rice', 'Citrus / Fruits', 'Grapes / Fruits', 'Grapes', 'Potato'] }),
   deleteUsersByPhone: async (phone) => (users.delete(String(phone)) ? 1 : 0),
   getUserById: async (id) => [...users.values()].find((user) => user.id === id) ?? null,
   createUser: async (data) => {
@@ -318,4 +320,34 @@ test('the hourly limit still bites once the codes really are going out', async (
 
   const over = await post('/api/auth/send-otp', { phone: '9822222222', purpose: 'auth' });
   assert.equal(over.status, 429, 'the eleventh real send in the window is refused');
+});
+
+test('the crop choices come from the catalogue, not a second hardcoded list', async () => {
+  const res = await realFetch(`${base}/api/profile-fields`);
+  const { data } = await res.json();
+  const crop = data.find((field) => field.id === 'crop');
+
+  // Crops an admin added by saving a product are offered at sign-up without
+  // anyone editing the form, which is what stops the two lists drifting apart.
+  assert.ok(crop.options.includes('Citrus / Fruits'));
+  assert.ok(crop.options.includes('Potato'));
+  assert.ok(crop.options.includes('All Crops'), 'and a farmer can always say "all of them"');
+
+  // "Paddy / Rice" and "Paddy/Rice" are the same crop typed two ways, and so
+  // are "Grapes" and "Grapes / Fruits": a farmer must not be shown both.
+  const head = value => value.toLowerCase().replace(/\s*\/\s*/g, '/').split('/')[0];
+  const heads = crop.options.map(head);
+  assert.equal(new Set(heads).size, heads.length, `one entry per crop: ${crop.options.join(', ')}`);
+
+  // But two crops that merely share a qualifier are two crops.
+  assert.ok(crop.options.includes('Citrus / Fruits'));
+  assert.ok(crop.options.some(value => head(value) === 'grapes'), 'grapes survives beside citrus');
+});
+
+test('a crop an admin offers can be chosen at sign-up', async () => {
+  await signIn();
+  const { status } = await registerDetails({ crop: 'Potato' });
+
+  assert.equal(status, 200);
+  assert.equal(created.crop, 'Potato');
 });

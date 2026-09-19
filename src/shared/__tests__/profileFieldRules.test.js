@@ -59,12 +59,17 @@ test('required answers, types and choices are checked', () => {
   assert.equal(validateProfileValues(form, {}).errors.soil, 'Soil type is required.')
 })
 
-test('good answers come back cleaned', () => {
+test('good answers come back cleaned, and an optional one may be left blank', () => {
   const { values, errors } = validateProfileValues(form, {
-    name: '  முருகன்   செல்வம் ', email: 'A@B.in', acreage: '5', soil: 'Red', sowing: '2026-06-01', village: '',
+    name: '  முருகன்   செல்வம் ', email: '', acreage: '5', soil: 'Red', sowing: '2026-06-01', village: ' Thiruvaiyaru ',
   }, { only: ['name', 'email', 'acreage', 'soil', 'sowing', 'village'] })
   assert.deepEqual(errors, {})
-  assert.deepEqual(values, { name: 'முருகன் செல்வம்', email: 'a@b.in', acreage: 5, soil: 'Red', sowing: '2026-06-01', village: '' })
+  assert.deepEqual(values, { name: 'முருகன் செல்வம்', email: '', acreage: 5, soil: 'Red', sowing: '2026-06-01', village: 'Thiruvaiyaru' })
+})
+
+test('a village is required: it is what a delivery is routed by', () => {
+  const { errors } = validateProfileValues(form, { name: 'Murugan', village: '' }, { only: ['name', 'village'] })
+  assert.equal(errors.village, 'Village / town is required.')
 })
 
 test('partial checks leave fields that were not sent alone', () => {

@@ -12,7 +12,21 @@
 
 export const FIELD_TYPES = ['text', 'email', 'tel', 'number', 'date', 'textarea', 'select']
 
-export const CROP_CHOICES = ['Paddy / Rice', 'Cotton', 'Tomato', 'Wheat', 'Sugarcane', 'Corn / Maize', 'Grapes', 'All Crops']
+// Only what is shown before the shop's own crop list arrives with the profile
+// form (server/server.js, withCatalogCrops). Kept in step with
+// DEFAULT_CATALOG_OPTIONS.crops in server/db.js, which is what an admin edits.
+export const CROP_CHOICES = [
+  'Paddy / Rice',
+  'Wheat',
+  'Cotton',
+  'Tomato',
+  'Corn / Maize',
+  'Sugarcane',
+  'Citrus / Fruits',
+  'Grapes / Fruits',
+  'Potato',
+  'All Crops',
+]
 
 // type: the input it always uses. fixed: cannot be removed. lockRequired /
 // lockEditable: the value those switches always have.
@@ -31,7 +45,7 @@ export const DEFAULT_PROFILE_FIELDS = [
   { id: 'name', title: 'Full name', type: 'text', required: true, editable: true },
   { id: 'email', title: 'Email address', type: 'email', required: false, editable: true },
   { id: 'phone', title: 'Mobile number', type: 'tel', required: true, editable: false },
-  { id: 'village', title: 'Village / town', type: 'text', required: false, editable: true },
+  { id: 'village', title: 'Village / town', type: 'text', required: true, editable: true },
   { id: 'district', title: 'District', type: 'text', required: false, editable: true },
   { id: 'state', title: 'State', type: 'text', required: false, editable: true },
   { id: 'crop', title: 'Primary crop', type: 'select', required: false, editable: true },

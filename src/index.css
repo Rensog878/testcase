@@ -5590,6 +5590,23 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   display: none;
 }
 
+/* "View All" on the Pest & Disease row: the side-scroller becomes a wrapping
+   grid so every pest is reachable, instead of only the few that fit the rail.
+   Same tiles, same sizes - they just stop scrolling out of sight. */
+.pests-scroll-container.pests-expanded-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  justify-items: center;
+  overflow-x: visible;
+  row-gap: 20px;
+}
+
+.pests-scroll-container.pests-expanded-grid .pest-circle-item {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 96px;
+}
+
 .crop-circle-item,
 .pest-circle-item {
   display: flex;
@@ -12290,4 +12307,15 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
    instead of collapsing every run of spaces to one. */
 .sb-chrome-ticker-item--cms {
   white-space: pre;
+}
+
+
+/* Every password field in the app ships its own show/hide eye. Edge and
+   Chromium on Windows add a native reveal button inside the same field, so the
+   farmer sees two eyes. Hide the browser's; ours stays. */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
 }

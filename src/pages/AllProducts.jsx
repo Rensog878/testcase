@@ -27,6 +27,27 @@ export default function AllProducts() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
+  // Any product card opens its product page. Clicks that land on a control
+  // inside the card (add to cart, wishlist, size dropdown, inner links) keep
+  // their own behaviour, and text selection never counts as a click.
+  const cardOpenProps = (productId, productName) => ({
+    role: 'link',
+    tabIndex: 0,
+    'aria-label': `View ${productName}`,
+    style: { cursor: 'pointer' },
+    onClick: event => {
+      if (event.target.closest('button, a, input, select, textarea, label')) return
+      if (window.getSelection && String(window.getSelection()).length) return
+      navigate(`/product/${encodeURIComponent(productId)}`)
+    },
+    onKeyDown: event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      if (event.target !== event.currentTarget) return
+      event.preventDefault()
+      navigate(`/product/${encodeURIComponent(productId)}`)
+    }
+  })
+
   // Active filters from URL query parameters
   const initialCategory = searchParams.get('category') || ''
   const initialCrop = searchParams.get('crop') || ''
@@ -40,6 +61,8 @@ export default function AllProducts() {
   const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [sortBy, setSortBy] = useState('popular')
+  // The pest row is a side-scroller; "View All" opens every tile instead.
+  const [showAllPests, setShowAllPests] = useState(false)
 
   // Real-time SSOT catalog loaded from MongoDB and synchronized across open tabs
   const {
@@ -93,12 +116,15 @@ export default function AllProducts() {
     }
   }
 
-  // Sync state with URL params
+  // The URL owns the filters. This mirrors it into state on every change and,
+  // just as importantly, clears a filter the URL no longer carries - otherwise
+  // a stale category or crop stays applied after navigating back to /products.
   useEffect(() => {
-    if (searchParams.get('category')) setActiveCategory(searchParams.get('category'))
-    if (searchParams.get('crop')) setActiveCrop(searchParams.get('crop'))
-    if (searchParams.get('disease')) setActiveDisease(searchParams.get('disease'))
-    if (searchParams.get('search')) setSearchQuery(searchParams.get('search'))
+    setActiveCategory(searchParams.get('category') || '')
+    setActiveCrop(searchParams.get('crop') || '')
+    setActiveDisease(searchParams.get('disease') || '')
+    setActiveNutrient(searchParams.get('nutrient') || '')
+    setSearchQuery(searchParams.get('search') || '')
   }, [searchParams])
 
   const getWishlistIdentity = () => {
@@ -317,59 +343,74 @@ export default function AllProducts() {
   }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
 
   // Quick filter handlers that scroll down to catalog if filtered
-  const selectCategory = (cat) => {
-    if (activeCategory === cat) {
-      setActiveCategory('')
-      setSearchParams({})
-    } else {
-      setActiveCategory(cat)
-      setSearchParams({ category: cat })
-      if (catalogSectionRef.current) {
-        catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
-      }
+  // Picking a browse tile (category, crop, pest, nutrient) starts a fresh
+  // view: the other filters reset, so the shopper never lands on an empty
+  // grid because an earlier crop or search was still applied. Clicking the
+  // active tile again clears it. Everything goes through the URL, so the
+  // chips, the grid, the address bar and a refresh always agree.
+  const applyBrowseFilter = (name, value) => {
+    const next = new URLSearchParams()
+    if (value) next.set(name, value)
+    setSearchParams(next)
+    // Going from "no query string" to "no query string" is not a navigation,
+    // so the effect above never re-runs. A search typed straight into the box
+    // lives only in state and has to be cleared by hand, or it stays applied
+    // while no chip shows it.
+    setSearchQuery('')
+    if (value && catalogSectionRef.current) {
+      catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
     }
+  }
+
+  const selectCategory = (cat) => {
+    const same = Boolean(cat) && activeCategory.toLowerCase() === String(cat).toLowerCase()
+    applyBrowseFilter('category', same ? '' : cat)
   }
 
   const selectCrop = (cropName) => {
-    if (activeCrop && normalizeCrop(activeCrop) === normalizeCrop(cropName)) {
-      setActiveCrop('')
-    } else {
-      setActiveCrop(cropName)
-      if (catalogSectionRef.current) {
-        catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
+    const same = activeCrop && normalizeCrop(activeCrop) === normalizeCrop(cropName)
+    applyBrowseFilter('crop', same ? '' : cropName)
   }
 
   const selectDisease = (diseaseCode) => {
-    if (activeDisease === diseaseCode) {
-      setActiveDisease('')
-    } else {
-      setActiveDisease(diseaseCode)
-      if (catalogSectionRef.current) {
-        catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
+    const same = activeDisease.toLowerCase() === String(diseaseCode).toLowerCase()
+    applyBrowseFilter('disease', same ? '' : diseaseCode)
   }
 
   const selectNutrient = (nutName) => {
-    if (activeNutrient === nutName) {
-      setActiveNutrient('')
-    } else {
-      setActiveNutrient(nutName)
-      if (catalogSectionRef.current) {
-        catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
+    const same = activeNutrient.toLowerCase() === String(nutName).toLowerCase()
+    applyBrowseFilter('nutrient', same ? '' : nutName)
+  }
+
+  // A search typed here must not sit behind a stale `?search=` left by the
+  // header: the moment any other chip changed, the URL value would come back
+  // and overwrite what was typed. Once the URL carries a search it is kept in
+  // step, replacing the history entry so typing never fills the back button.
+  const handleSearchChange = (value) => {
+    setSearchQuery(value)
+    if (!searchParams.has('search')) return
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set('search', value)
+    else next.delete('search')
+    setSearchParams(next, { replace: true })
   }
 
   const clearAllFilters = () => {
-    setActiveCategory('')
-    setActiveCrop('')
-    setActiveDisease('')
-    setActiveNutrient('')
+    setSearchParams(new URLSearchParams())
     setSearchQuery('')
-    setSearchParams({})
+    setMobileSearchOpen(false)
+    setSortBy('popular')
+  }
+
+  // Removing one chip keeps the rest of the filters intact.
+  const removeFilter = (name) => {
+    const next = new URLSearchParams(searchParams)
+    next.delete(name)
+    setSearchParams(next)
+    if (name === 'search') {
+      setSearchQuery('')
+      setMobileSearchOpen(false)
+    }
   }
 
   // Get active size info for a product
@@ -453,11 +494,11 @@ export default function AllProducts() {
                 type="text"
                 placeholder="Search crop, chemical, disease e.g. Blast, Tomato..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 autoFocus={mobileSearchOpen}
               />
               {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery('')} className="search-clear-btn">
+                <button type="button" onClick={() => removeFilter('search')} className="search-clear-btn">
                   <X size={14} />
                 </button>
               )}
@@ -529,7 +570,7 @@ export default function AllProducts() {
             <div className="top10-cards-track" ref={top10ScrollRef}>
               {top10PicksList.map(item => {
                 return (
-                  <div key={item.rank} className="top10-product-card">
+                  <div key={item.rank} className="top10-product-card" {...cardOpenProps(item.id, item.title)}>
                     {/* Top row: Rank number & Category Pill */}
                     <div className="top10-card-header">
                       <div className="top10-rank-circle" style={{ backgroundColor: item.rankBg }}>
@@ -663,7 +704,7 @@ export default function AllProducts() {
                 const isWishlisted = wishlist.has(prod.id)
 
                 return (
-                  <div key={prod.id} className="agro-product-card">
+                  <div key={prod.id} className="agro-product-card" {...cardOpenProps(prod.id, prod.name)}>
                     {/* Top Badges: Discount Tag + Wishlist Heart */}
                     <div className="card-top-bar">
                       <span className="discount-tag">{prod.discount}</span>
@@ -791,10 +832,12 @@ export default function AllProducts() {
               <h2 className="section-title">Shop by Pest & Disease 🐞</h2>
               <p className="section-subtitle">Find solutions for your crop problems.</p>
             </div>
-            <button type="button" className="view-all-link" onClick={() => selectCategory('Insecticide')}>View All</button>
+            <button type="button" className="view-all-link" onClick={() => setShowAllPests(show => !show)} aria-expanded={showAllPests}>
+              {showAllPests ? 'Show Less' : `View All (${dynamicDiseaseList.length})`}
+            </button>
           </div>
 
-          <div className="pests-scroll-container" ref={pestsScrollRef}>
+          <div className={`pests-scroll-container ${showAllPests ? 'pests-expanded-grid' : ''}`} ref={pestsScrollRef}>
             {dynamicDiseaseList.map(pest => {
               const isSelected = activeDisease.toLowerCase() === pest.matchValue.toLowerCase()
               return (
@@ -841,7 +884,7 @@ export default function AllProducts() {
               const isWishlisted = wishlist.has(prod.id)
 
               return (
-                <div key={prod.id} className="agro-product-card">
+                <div key={prod.id} className="agro-product-card" {...cardOpenProps(prod.id, prod.name)}>
                   <div className="card-top-bar">
                     <span className="discount-tag">{prod.discount}</span>
                     <button 
@@ -991,7 +1034,7 @@ export default function AllProducts() {
               const isWishlisted = wishlist.has(prod.id)
 
               return (
-                <div key={prod.id} className="agro-product-card">
+                <div key={prod.id} className="agro-product-card" {...cardOpenProps(prod.id, prod.name)}>
                   <div className="card-top-bar">
                     <span className="discount-tag">{prod.discount}</span>
                     <button 
@@ -1096,10 +1139,10 @@ export default function AllProducts() {
                   type="text" 
                   placeholder="Search 500+ agro products, chemicals, crops..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
                 {searchQuery && (
-                  <button type="button" onClick={() => setSearchQuery('')} className="search-clear-btn">
+                  <button type="button" onClick={() => removeFilter('search')} className="search-clear-btn">
                     <X size={14} />
                   </button>
                 )}
@@ -1151,31 +1194,31 @@ export default function AllProducts() {
                 {activeCategory && (
                   <span className="filter-pill-tag">
                     Category: {activeCategory}
-                    <button type="button" onClick={() => setActiveCategory('')}><X size={12} /></button>
+                    <button type="button" onClick={() => removeFilter('category')}><X size={12} /></button>
                   </span>
                 )}
                 {activeCrop && (
                   <span className="filter-pill-tag">
                     Crop: {activeCrop}
-                    <button type="button" onClick={() => setActiveCrop('')}><X size={12} /></button>
+                    <button type="button" onClick={() => removeFilter('crop')}><X size={12} /></button>
                   </span>
                 )}
                 {activeDisease && (
                   <span className="filter-pill-tag">
                     Target Issue: {activeDisease}
-                    <button type="button" onClick={() => setActiveDisease('')}><X size={12} /></button>
+                    <button type="button" onClick={() => removeFilter('disease')}><X size={12} /></button>
                   </span>
                 )}
                 {activeNutrient && (
                   <span className="filter-pill-tag">
                     Nutrient: {activeNutrient}
-                    <button type="button" onClick={() => setActiveNutrient('')}><X size={12} /></button>
+                    <button type="button" onClick={() => removeFilter('nutrient')}><X size={12} /></button>
                   </span>
                 )}
                 {searchQuery && (
                   <span className="filter-pill-tag">
                     Search: "{searchQuery}"
-                    <button type="button" onClick={() => setSearchQuery('')}><X size={12} /></button>
+                    <button type="button" onClick={() => removeFilter('search')}><X size={12} /></button>
                   </span>
                 )}
                 <button type="button" className="clear-all-filters-btn" onClick={clearAllFilters}>
@@ -1198,7 +1241,7 @@ export default function AllProducts() {
                 const isWishlisted = wishlist.has(prod.id)
 
                 return (
-                  <div key={prod.id} className="agro-product-card">
+                  <div key={prod.id} className="agro-product-card" {...cardOpenProps(prod.id, prod.name)}>
                     <div className="card-top-bar">
                       <span className="discount-tag">{prod.discount}</span>
                       <button 

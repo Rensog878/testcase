@@ -384,10 +384,16 @@ export function CheckoutProvider({ enabled, children }) {
       // read (a product, orders, wishlist, an article). Otherwise they go
       // shopping, and the sign-in card's history entry becomes that page.
       const guestItems = readGuestCart().length
-      const midTask = resume || Boolean(live.current.step) || guestItems > 0
+      // Two different questions. `midTask` decides where they land: anything in
+      // flight means stay put. `midCheckout` decides whether the welcome would
+      // interrupt - and a basket filled as a guest is not an interruption, it
+      // is just a basket waiting to be merged, so a new farmer still gets
+      // their welcome. Only a checkout actually under way skips it.
+      const midCheckout = resume || Boolean(live.current.step)
+      const midTask = midCheckout || guestItems > 0
       if (midTask || STAY_AFTER_SIGN_IN.test(live.current.location.pathname)) {
         closeSignIn()
-        if (celebrate && !midTask) celebrateSignIn(signedInUser)
+        if (celebrate && !midCheckout) celebrateSignIn(signedInUser)
         // Anything added as a guest joins this farmer's basket.
         const items = await loadCart(signedInUser)
         if (resume && items.length) showStep('address')

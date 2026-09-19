@@ -7873,7 +7873,14 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 :is(body.sb-home-active .sb-home, .sb-portal) .enq-textarea {
   resize: vertical;
   min-height: 84px;
-  padding-top: 12px;
+  /* .auth-input reserves 48px on the left for the icon that sits inside every
+     other field. This box has no icon, so that gap only pushed the typed text
+     into the middle of the card and left it floating away from both edges.
+     Even 16px padding lines it up with the labels above it. */
+  padding: 12px 16px;
+  height: auto;
+  line-height: 1.45;
+  text-align: left;
   font-family: inherit;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .enq-card form.auth-form {

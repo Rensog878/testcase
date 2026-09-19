@@ -342,11 +342,11 @@ export default function Storefront() {
         <StatsStrip cms={cms} />
         <CategoryGrid t={t} cms={cms} />
         <CropGrid cms={cms} />
-        <Certifications settings={cms} />
         <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} loading={catalogLoading} />
         <Trending t={t} products={products} loading={catalogLoading} />
         <Testimonials cms={cms} />
         <Newsletter cms={cms} />
+        <Certifications settings={cms} />
         <Footer t={t} cms={cms} />
         <BackToTop />
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />

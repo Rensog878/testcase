@@ -51,8 +51,31 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   const hasReviews = catalog ? p.reviewsEnabled && p.reviewsCount > 0 : p.reviewsEnabled && p.reviewsCount
   const packs = Array.isArray(p.packSizes) && p.packSizes.length ? p.packSizes : catalog ? DEFAULT_PACKS : []
 
+  // The whole card opens the product page. Clicks that start on a control
+  // inside the card (add to cart, the view button, pack chips) keep their own
+  // behaviour, and text selection never counts as a click.
+  const openFromCard = event => {
+    if (event.target.closest('button, a, input, select, textarea, label')) return
+    if (window.getSelection && String(window.getSelection()).length) return
+    openProductPage(p.id)
+  }
+  const keyFromCard = event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    if (event.target !== event.currentTarget) return
+    event.preventDefault()
+    openProductPage(p.id)
+  }
+
   return (
-    <div className="product-card">
+    <div
+      className="product-card"
+      role="link"
+      tabIndex={0}
+      aria-label={`View ${p.name}`}
+      style={{ cursor: 'pointer' }}
+      onClick={openFromCard}
+      onKeyDown={keyFromCard}
+    >
       <span className="discount-tag">{catalog ? p.discount || 'Special Offer' : p.discount}</span>
       <div className="product-img-box">
         <img loading="lazy" decoding="async" src={productImage(p)} alt={p.name} onError={useFallbackImage} />

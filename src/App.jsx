@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react'
+import { Suspense, lazy, useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { CmsProvider } from './context/CmsContext'
@@ -26,38 +26,38 @@ import Checkout from './pages/Checkout'
 import Blog from './pages/Blog'
 import BlogDetail from './pages/BlogDetail'
 
-// Admin Pages
-import AdminLayout    from './layouts/AdminLayout'
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminCMS       from './pages/admin/CMS'
-import AdminProducts  from './pages/admin/Products'
-import AdminOrders    from './pages/admin/Orders'
-import AdminSubscribers from './pages/admin/Subscribers'
-import AdminEnquiries from './pages/admin/Enquiries'
-import AdminAnalytics from './pages/admin/Analytics'
-import AdminUsers     from './pages/admin/Users'
-import AdminProfileFields from './pages/admin/ProfileFields'
-import Employees from './pages/admin/Employees'
-import SupportTickets from './pages/admin/SupportTickets'
-import AdminBlogs from './pages/admin/Blogs'
-import AdminVideos from './pages/admin/Videos'
+// The staff portals. Every one of these used to be imported here, which put
+// the whole of admin, employee, delivery and billing into the one bundle a
+// farmer downloads before the catalogue can even be asked for - and no farmer
+// ever opens them. They are fetched when a staff route is actually opened.
+const AdminLayout    = lazy(() => import('./layouts/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+const AdminCMS       = lazy(() => import('./pages/admin/CMS'))
+const AdminProducts  = lazy(() => import('./pages/admin/Products'))
+const AdminOrders    = lazy(() => import('./pages/admin/Orders'))
+const AdminSubscribers = lazy(() => import('./pages/admin/Subscribers'))
+const AdminEnquiries = lazy(() => import('./pages/admin/Enquiries'))
+const AdminAnalytics = lazy(() => import('./pages/admin/Analytics'))
+const AdminUsers     = lazy(() => import('./pages/admin/Users'))
+const AdminProfileFields = lazy(() => import('./pages/admin/ProfileFields'))
+const Employees = lazy(() => import('./pages/admin/Employees'))
+const SupportTickets = lazy(() => import('./pages/admin/SupportTickets'))
+const AdminBlogs = lazy(() => import('./pages/admin/Blogs'))
+const AdminVideos = lazy(() => import('./pages/admin/Videos'))
 
-// Employee Pages
-import EmployeeLayout    from './layouts/EmployeeLayout'
-import EmployeeDashboard from './pages/employee/Dashboard'
+const EmployeeLayout    = lazy(() => import('./layouts/EmployeeLayout'))
+const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'))
 
-// Delivery Pages
-import DeliveryLayout    from './layouts/DeliveryLayout'
-import DeliveryDashboard from './pages/delivery/Dashboard'
+const DeliveryLayout    = lazy(() => import('./layouts/DeliveryLayout'))
+const DeliveryDashboard = lazy(() => import('./pages/delivery/Dashboard'))
 
-// Billing Pages
-import BillingLayout    from './layouts/BillingLayout'
-import BillingDashboard from './pages/billing/Dashboard'
-import InvoiceHistory from './pages/billing/InvoiceHistory'
+const BillingLayout    = lazy(() => import('./layouts/BillingLayout'))
+const BillingDashboard = lazy(() => import('./pages/billing/Dashboard'))
+const InvoiceHistory = lazy(() => import('./pages/billing/InvoiceHistory'))
 
 // Tickets & Chat (shared between admin/employee)
-import Tickets     from './pages/shared/Tickets'
-import ChatRecords from './pages/shared/ChatRecords'
+const Tickets     = lazy(() => import('./pages/shared/Tickets'))
+const ChatRecords = lazy(() => import('./pages/shared/ChatRecords'))
 
 // Staff are taken to their portal; everyone else gets the storefront.
 function HomePage() {
@@ -100,6 +100,7 @@ export default function App() {
     <CmsProvider>
     <CheckoutProvider enabled={storePage}>
       <StoreTop />
+      <Suspense fallback={<div className="route-loading" role="status" aria-live="polite" />}>
       <Routes>
         {/* Public Home - the storefront */}
         <Route path="/"        element={<HomePage />} />
@@ -169,6 +170,7 @@ export default function App() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
       {storePage && <StorePopups />}
       <StoreBottom />
       <StoreTranslation />

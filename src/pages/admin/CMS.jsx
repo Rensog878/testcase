@@ -101,6 +101,19 @@ const DEFAULT_CONTENT = {
   instagramUrl:  'https://www.instagram.com/sathyambio/',
 }
 
+// ─── Which fields are shown to farmers as words ───────────────────────────────
+// A Tamil box appears under these. Everything else is a URL, an image, a
+// colour, a number or a setting: nothing a farmer reads as a sentence, so
+// translating it would be meaningless or would break the page.
+const NOT_WORDS = /image|photo|url|link|color|colour|phone|email|whatsapp|key|secret|mode|count|percent|price|rate|id$/i
+const isTranslatable = field =>
+  (field.type === 'input' || field.type === 'textarea') && !NOT_WORDS.test(field.key)
+
+// The languages an admin can translate into today. Adding Hindi, Kannada or
+// Telugu is one more entry here; nothing else in the CMS or the storefront
+// needs to change.
+const TRANSLATION_LANGUAGES = [{ code: 'ta', label: 'Tamil', native: 'தமிழ்' }]
+
 // ─── Accordion section metadata ───────────────────────────────────────────────
 const SECTIONS = [
   {
@@ -247,7 +260,7 @@ const SECTIONS = [
 ]
 
 // ─── Accordion item ───────────────────────────────────────────────────────────
-function AccordionSection({ section, merged, onChange, uploadingKey, fileRefs, onUpload }) {
+function AccordionSection({ section, merged, onChange, translationOf, onTranslationChange, uploadingKey, fileRefs, onUpload }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -335,6 +348,22 @@ function AccordionSection({ section, merged, onChange, uploadingKey, fileRefs, o
               ) : (
                 <input className="form-input" value={merged[f.key] ?? ''} onChange={onChange(f.key)} />
               )}
+
+              {isTranslatable(f) && TRANSLATION_LANGUAGES.map(language => (
+                <div key={language.code} style={{ marginTop: '8px', paddingLeft: '12px', borderLeft: '2px solid var(--surface-border)' }}>
+                  <label className="form-label" style={{ fontSize: '0.8rem', opacity: 0.75 }} htmlFor={`${f.key}-${language.code}`}>
+                    {language.native} — {language.label}
+                  </label>
+                  <input
+                    id={`${f.key}-${language.code}`}
+                    className="form-input"
+                    lang={language.code}
+                    value={translationOf(language.code, f.key)}
+                    onChange={onTranslationChange(language.code, f.key)}
+                    placeholder="Leave blank to show the English above"
+                  />
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -365,6 +394,23 @@ export default function AdminCMS() {
 
   const merged = { ...DEFAULT_CONTENT, ...content }
   const onChange = k => e => setContent(c => ({ ...c, [k]: e.target.value }))
+
+  // Translations live beside the English, under cms.translations.<code>.<key>,
+  // so a field and its wording travel together and a new language needs no
+  // change to how any of this is stored.
+  const translationOf = (code, key) => merged.translations?.[code]?.[key] ?? ''
+  const onTranslationChange = (code, key) => event => {
+    const { value } = event.target
+    setContent(c => {
+      const all = { ...(c.translations ?? merged.translations ?? {}) }
+      const forLanguage = { ...(all[code] || {}) }
+      // A blank box is no translation at all, not an empty one.
+      if (value.trim()) forLanguage[key] = value
+      else delete forLanguage[key]
+      all[code] = forLanguage
+      return { ...c, translations: all }
+    })
+  }
 
   // Image upload — sends base64 to /api/upload which stores in MongoDB and
   // returns a /api/upload/<id> URL so the image persists across deploys.
@@ -454,6 +500,8 @@ export default function AdminCMS() {
             section={section}
             merged={merged}
             onChange={onChange}
+            translationOf={translationOf}
+            onTranslationChange={onTranslationChange}
             uploadingKey={uploadingKey}
             fileRefs={fileRefs}
             onUpload={handleUpload}

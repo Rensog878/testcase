@@ -2,9 +2,17 @@
  * Gives every product a starting `unitsSold`, so the trending rows have
  * something to rank by before the shop has taken enough real orders.
  *
- *   node server/scripts/seed-units-sold.mjs --yes            (dry run without --yes)
- *   node server/scripts/seed-units-sold.mjs --yes --all      (also re-rolls products that already have a count)
- *   node server/scripts/seed-units-sold.mjs --yes --max=500  (default 400)
+ *   node server/scripts/seed-units-sold.mjs                        (dry run: shows what it would do)
+ *   node server/scripts/seed-units-sold.mjs --db=sathyambio --yes  (applies)
+ *   node server/scripts/seed-units-sold.mjs --yes --all            (also re-rolls products that already have a count)
+ *   node server/scripts/seed-units-sold.mjs --yes --max=500        (default 400)
+ *
+ * Run it from the folder whose .env holds the connection string you mean: from
+ * `server/` for the live database, or with MONGODB_URI set yourself.
+ *
+ * Pass --db=<name> when you apply to a database that matters. The script stops
+ * unless the database it actually connected to has that name, which is what
+ * catches a stale .env or the wrong cluster before it writes anything.
  *
  * The numbers are invented. Real sales are counted from here on by
  * db.reserveStock, which raises unitsSold in the same atomic update that takes
@@ -43,9 +51,22 @@ const roll = () => {
   return Math.max(1, Math.round(skewed * MAX));
 };
 
+const expectDb = (args.find(a => a.startsWith('--db=')) || '').split('=')[1] || '';
+
 await mongoose.connect(uri, { bufferCommands: false });
 const db = mongoose.connection;
 console.log(`database: ${db.name}`);
+
+if (expectDb && db.name !== expectDb) {
+  console.error(`ABORT: expected the database ${expectDb}, connected to ${db.name}. Nothing written.`);
+  await mongoose.disconnect();
+  process.exit(1);
+}
+if (APPLY && !expectDb) {
+  console.error('ABORT: applying needs --db=<name> naming the database you expect, so a stale .env cannot be written to by accident.');
+  await mongoose.disconnect();
+  process.exit(1);
+}
 
 const products = db.collection('products');
 const filter = ALL ? {} : { $or: [{ unitsSold: { $exists: false } }, { unitsSold: 0 }, { unitsSold: null }] };

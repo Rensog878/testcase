@@ -55,9 +55,24 @@ const captureRawBody = (req, _res, buf) => { req.rawBody = buf; };
 app.use('/api/upload', express.json({ limit: '200mb', verify: captureRawBody }));
 app.use(express.json({ limit: '4mb', verify: captureRawBody }));
 
-// Serve uploaded files (videos, images) directly from disk — no MongoDB size limit
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+// Serve uploaded files (videos, images) directly from disk — no MongoDB size limit.
+//
+// Where that disk is depends on where this runs. On Vercel the bundle is
+// READ-ONLY and only /tmp can be written, so creating server/uploads here threw
+// at module load and took the whole API down with it - every route answered
+// FUNCTION_INVOCATION_FAILED, because the function never finished starting.
+// Nothing about serving a catalogue should depend on an uploads folder, so this
+// never throws now: if the directory cannot be made, uploads say so and the
+// rest of the API carries on.
+const UPLOADS_DIR = process.env.UPLOADS_DIR
+  || (process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, 'uploads'));
+let uploadsDiskReady = false;
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  uploadsDiskReady = true;
+} catch (err) {
+  console.warn(`Uploads directory unavailable (${UPLOADS_DIR}): ${err.message}. File uploads are disabled; everything else is unaffected.`);
+}
 app.use('/uploads', express.static(UPLOADS_DIR, {
   maxAge: '1y',
   immutable: true,
@@ -1843,6 +1858,12 @@ app.post('/api/upload', requireAuth('admin'), async (req, res) => {
     const diskPath = path.join(UPLOADS_DIR, diskFile);
 
     // Write to disk — works for any file size
+    if (!uploadsDiskReady) {
+      return res.status(503).json({
+        success: false,
+        message: 'File uploads are not available on this server: it has no writable uploads directory. Set UPLOADS_DIR to a writable path, or use a URL instead of a file.',
+      });
+    }
     fs.writeFileSync(diskPath, buf);
 
     // Store lightweight metadata in MongoDB (no binary data)

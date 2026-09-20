@@ -235,7 +235,7 @@ export function CheckoutProvider({ enabled, children }) {
       return promise
     }
 
-    const addItem = line => saveCart(withItemAdded(cartRef.current, line))
+    const addItem = (line, quantity = 1) => saveCart(withItemAdded(cartRef.current, line, quantity))
 
     const updateQty = (index, change) => {
       const current = cartRef.current

@@ -67,6 +67,23 @@ export function cmsText(cms, key, translated) {
 }
 
 /**
+ * What the admin typed for this key, or null when they have never touched it.
+ *
+ * cmsText cannot tell "never set" from "deliberately cleared" - both read as
+ * '' - so a field the admin emptied came straight back as the built-in copy.
+ * This keeps the difference, for the places where clearing a field is how you
+ * turn a piece of the page off. It follows the same aliases as cmsText, so an
+ * override written under either key name is found.
+ */
+export function cmsOverride(cms, key) {
+  if (!cms) return null
+  for (const name of [key, ...(KEY_ALIASES[key] || [])]) {
+    if (typeof cms[name] === 'string') return cms[name].trim()
+  }
+  return null
+}
+
+/**
  * The promo ticker. The admin edits it as one textarea, one promo per line, so
  * the number of promos is theirs to choose. Empty means "leave the built-in
  * promos alone", which keeps the strip byte-identical until someone edits it.

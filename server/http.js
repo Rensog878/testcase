@@ -21,6 +21,18 @@ export function sendError(res, err, label = 'Request') {
     return res.status(err.status).json({ success: false, message: err.message, ...err.extra });
   }
   console.error(`❌ ${label} error:`, err?.message || err);
+  if (err?.message === 'MONGODB_URI environment variable is not set. Configure it (e.g. a MongoDB Atlas connection string) before the API can serve requests.') {
+    return res.status(503).json({
+      success: false,
+      message: 'Database is not configured. Set MONGODB_URI in server/.env and restart the API.'
+    });
+  }
+  if (err?.name === 'MongoServerSelectionError' || err?.code === 'ECONNREFUSED' || /ECONNREFUSED|MongoServerSelectionError/.test(err?.message || '')) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database is unavailable. Start MongoDB or check MONGODB_URI in server/.env.'
+    });
+  }
   return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
 }
 

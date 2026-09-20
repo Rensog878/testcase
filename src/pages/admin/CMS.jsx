@@ -243,6 +243,13 @@ const SECTIONS = [
     ],
   },
   {
+    id: 'contact-card',
+    label: '📞 Contact Page Card',
+    fields: [
+      { key: 'contactCardTitle', label: 'Contact Card Heading', type: 'input' },
+    ],
+  },
+  {
     id: 'footer',
     label: '📍 Contact & Footer',
     fields: [

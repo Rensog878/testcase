@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { Link } from 'react-router-dom'
 import { socialLinksFrom } from '../../shared/socialLinks'
 import { useStore } from '../StoreContext'
 import FooterColumn from '../../components/FooterColumn'
@@ -66,10 +67,12 @@ export default memo(function Footer({ t, cms }) {
 
         <div className="footer-bottom-row" style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#C2E8D4' }}>
           <span data-i18n="footer_copyright">{t('footer_copyright')}</span>
-          <div style={{ display: 'flex', gap: '15px' }}>
-            <span>Privacy Policy</span>
-            <span>Terms of Sale</span>
-            <span>Refund Policy</span>
+          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <Link to="/privacy-policy" style={{ color: 'inherit' }}>Privacy Policy</Link>
+            <Link to="/terms-of-sale" style={{ color: 'inherit' }}>Terms of Sale</Link>
+            <Link to="/refund-policy" style={{ color: 'inherit' }}>Refund Policy</Link>
+            <Link to="/about-us" style={{ color: 'inherit' }}>About Us</Link>
+            <Link to="/contact-us" style={{ color: 'inherit' }}>Contact Us</Link>
             <span style={{ opacity: 0.75 }}>Designed by cupnsaucer</span>
           </div>
         </div>

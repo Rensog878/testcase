@@ -25,6 +25,7 @@ import OrderStatus from './pages/OrderStatus'
 import Checkout from './pages/Checkout'
 import Blog from './pages/Blog'
 import BlogDetail from './pages/BlogDetail'
+import InformationPage from './pages/InformationPage'
 
 // The staff portals. Every one of these used to be imported here, which put
 // the whole of admin, employee, delivery and billing into the one bundle a
@@ -44,6 +45,8 @@ const Employees = lazy(() => import('./pages/admin/Employees'))
 const SupportTickets = lazy(() => import('./pages/admin/SupportTickets'))
 const AdminBlogs = lazy(() => import('./pages/admin/Blogs'))
 const AdminVideos = lazy(() => import('./pages/admin/Videos'))
+const AdminCoupons = lazy(() => import('./pages/admin/Coupons'))
+const AdminReferrals = lazy(() => import('./pages/admin/Referrals'))
 
 const EmployeeLayout    = lazy(() => import('./layouts/EmployeeLayout'))
 const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'))
@@ -67,7 +70,7 @@ function HomePage() {
 }
 
 // The store pages: storefront, shop, blog, product, basket and orders.
-const STORE_PAGES = /^\/(?:$|products|shop|categories|crops|brands|blog|product\/|wishlist|orders|checkout|cart)/
+const STORE_PAGES = /^\/(?:$|products|shop|categories|crops|brands|blog|product\/|wishlist|orders|checkout|cart|privacy-policy|terms-of-sale|refund-policy|about-us|contact-us)/
 
 const useStorePage = () => STORE_PAGES.test(useLocation().pathname)
 
@@ -129,6 +132,11 @@ export default function App() {
           <Route path="/brands" element={<StoreSection type="brands" />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogDetail />} />
+          <Route path="/privacy-policy" element={<InformationPage path="/privacy-policy" />} />
+          <Route path="/terms-of-sale" element={<InformationPage path="/terms-of-sale" />} />
+          <Route path="/refund-policy" element={<InformationPage path="/refund-policy" />} />
+          <Route path="/about-us" element={<InformationPage path="/about-us" />} />
+          <Route path="/contact-us" element={<InformationPage path="/contact-us" />} />
         </Route>
 
         {/* Admin Routes — signed-out visitors get the admin sign-in here */}
@@ -148,6 +156,8 @@ export default function App() {
           <Route path="chat"       element={<ChatRecords />} />
           <Route path="blogs"      element={<AdminBlogs />} />
           <Route path="videos"     element={<AdminVideos />} />
+          <Route path="coupons"    element={<AdminCoupons />} />
+          <Route path="referrals"  element={<AdminReferrals />} />
         </Route>
 
         {/* Employee Routes */}

@@ -150,6 +150,113 @@ body {
 #root > .app-layout { min-height: 100vh; }
 
 .public-page-shell { min-height: 50vh; }
+
+.information-page {
+  background: linear-gradient(180deg, #f4fbf6 0%, #ffffff 32%);
+  padding: 56px 24px 72px;
+}
+.information-page-inner {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+.information-page-hero {
+  max-width: 760px;
+  margin: 0 auto 42px;
+  text-align: center;
+}
+.information-page-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0b7a4b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.information-page-hero h1 {
+  margin: 14px 0 12px;
+  color: #064e3b;
+  font-family: 'Outfit', var(--script-font, sans-serif), sans-serif;
+  font-size: clamp(2.1rem, 5vw, 3.8rem);
+  line-height: 1.05;
+}
+.information-page-hero p {
+  margin: 0 auto;
+  max-width: 680px;
+  color: #52665d;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+.information-page-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 28px;
+  align-items: start;
+}
+.information-page-copy,
+.information-contact-card {
+  border: 1px solid #dcebe1;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(6, 78, 59, 0.07);
+}
+.information-page-copy {
+  padding: 12px 34px;
+}
+.information-page-copy section {
+  padding: 24px 0;
+  border-bottom: 1px solid #e6f0e9;
+}
+.information-page-copy section:last-child {
+  border-bottom: 0;
+}
+.information-page-copy h2,
+.information-contact-card h2 {
+  margin: 0 0 9px;
+  color: #07563f;
+  font-family: 'Outfit', var(--script-font, sans-serif), sans-serif;
+  font-size: 1.22rem;
+}
+.information-page-copy p,
+.information-contact-card p,
+.information-contact-card a {
+  color: #50645a;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+.information-page-copy p,
+.information-contact-card p {
+  margin: 0;
+}
+.information-contact-card {
+  padding: 26px;
+}
+.information-contact-card a,
+.information-contact-card p {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  text-decoration: none;
+}
+.information-contact-card svg {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: #0b7a4b;
+}
+
+@media (max-width: 760px) {
+  .information-page {
+    padding: 40px 16px 56px;
+  }
+  .information-page-body {
+    grid-template-columns: 1fr;
+  }
+  .information-page-copy {
+    padding: 8px 22px;
+  }
+}
 .store-section-page { max-width: 1180px; margin: 0 auto; padding: 56px 5vw 80px; }
 .store-section-heading { max-width: 700px; margin-bottom: 30px; }
 .store-section-heading h1 { margin: 12px 0 8px; color: #062d25; }

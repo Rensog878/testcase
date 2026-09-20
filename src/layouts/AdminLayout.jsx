@@ -32,6 +32,13 @@ const ADMIN_NAV = [
     ]
   },
   {
+    title: 'MARKETING & PROMOTIONS',
+    links: [
+      { to: '/admin/coupons',   icon: '🎟️', label: 'Coupons & Credits' },
+      { to: '/admin/referrals', icon: '🎁', label: 'Referrals & Points' },
+    ]
+  },
+  {
     title: 'SUPPORT',
     links: [
       { to: '/admin/support-tickets', icon: '🎫', label: 'Support Tickets' },

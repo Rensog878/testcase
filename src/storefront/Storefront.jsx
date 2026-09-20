@@ -177,10 +177,35 @@ export default function Storefront() {
     const toggleFilterDrawer = open => setFilterDrawerOpen(current => (typeof open === 'boolean' ? open : !current))
 
     // ---- basket (hooks/useCheckout.js) ----
-    const addToCart = productId => {
+    const addToCart = (productId, customPack, customQty = 1) => {
       const product = productsRef.current.find(item => item.id === productId)
       if (!product) return
-      checkout.addItem({ ...product, selectedPack: product.selectedPack || (Array.isArray(product.packSizes) ? product.packSizes[0] : undefined) })
+      const selectedPack = customPack || product.selectedPack || (Array.isArray(product.packSizes) ? (typeof product.packSizes[0] === 'object' ? product.packSizes[0].size : product.packSizes[0]) : undefined)
+
+      let price = product.packagePrices?.[selectedPack] || product.packPrices?.[selectedPack]
+      let originalPrice = product.packageMrps?.[selectedPack] || product.packMrps?.[selectedPack]
+
+      if (price === undefined) {
+        const packUnits = pack => {
+          const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
+          if (!match) return 1
+          const value = Number(match[1])
+          return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
+        }
+        const basePack = product.selectedPack || (Array.isArray(product.packSizes) ? (typeof product.packSizes[0] === 'object' ? product.packSizes[0].size : product.packSizes[0]) : undefined)
+        if (basePack && selectedPack && packUnits(basePack) > 0) {
+          price = Math.round(Number(product.price || 0) * (packUnits(selectedPack) / packUnits(basePack)))
+        } else {
+          price = Number(product.price || 0)
+        }
+      }
+      if (originalPrice === undefined) {
+        const basePrice = Number(product.price || 1)
+        const baseOrig = Number(product.originalPrice || product.mrp || product.price)
+        originalPrice = baseOrig ? Math.round(baseOrig * (price / basePrice)) : price
+      }
+
+      checkout.addItem({ ...product, price: Number(price), originalPrice: Number(originalPrice), selectedPack }, customQty)
 
       if (!live.current.user) {
         showToast(`"${product.name}" added to cart!`, 'success')

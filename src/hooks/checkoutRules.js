@@ -41,21 +41,31 @@ export const normalizeCart = items => (Array.isArray(items) ? items : [])
 
 export const itemCount = items => items.reduce((sum, item) => sum + item.qty, 0)
 
-// Same rule as the server: GST is 18% of the subtotal, rounded. The server
-// prices the order again from its own product records.
-export function cartTotals(items) {
+export function cartTotals(items, appliedDiscount = 0) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const gst = Math.round(subtotal * GST_RATE)
-  return { subtotal, gst, total: subtotal + gst }
+  const gstAmount = items.reduce((sum, item) => {
+    const rate = Number(item.gstRate !== undefined ? item.gstRate : 18) / 100
+    return sum + (item.price * item.qty * rate)
+  }, 0)
+
+  const gst = Math.round(gstAmount)
+  const cgst = Math.round(gstAmount / 2)
+  const sgst = Math.round(gstAmount / 2)
+  const igst = gst
+  const discount = Math.min(subtotal, Math.max(0, Number(appliedDiscount) || 0))
+  const finalSubtotal = Math.max(0, subtotal - discount)
+  const total = finalSubtotal + gst
+
+  return { subtotal, discount, finalSubtotal, gst, cgst, sgst, igst, total }
 }
 
-// One more of a product in its pack size.
-export function withItemAdded(items, line) {
+export function withItemAdded(items, line, quantity = 1) {
   const id = keyOf(line)
   const index = items.findIndex(item => sameLine(item, line))
-  if (index > -1) return items.map((item, i) => (i === index ? { ...item, qty: item.qty + 1 } : item))
+  const addQty = Math.max(1, Number(quantity) || 1)
+  if (index > -1) return items.map((item, i) => (i === index ? { ...item, qty: item.qty + addQty } : item))
   // _id mirrors id so every page keys a line off the same value.
-  return [...items, ...normalizeCart([{ ...line, id, _id: id, qty: 1 }])]
+  return [...items, ...normalizeCart([{ ...line, id, _id: id, qty: addQty }])]
 }
 
 // A guest basket joins the account's basket at sign-in: the same product in

@@ -1,8 +1,19 @@
 import { useEffect, useState, useCallback } from 'react'
-import { ArrowLeft, ExternalLink, Heart, ShoppingCart, Star } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Heart, ShoppingCart, Star, Film, Video } from 'lucide-react'
 import axios from 'axios'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCheckoutActions } from '../hooks/useCheckout'
+
+const getYouTubeId = (url) => {
+  if (!url) return null
+  const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : null
+}
+
+const isHtml5Video = (url) => {
+  if (!url) return false
+  return url.startsWith('/api/upload') || url.startsWith('data:video') || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)
+}
 
 // Signed-in customers are identified by their token on the server. Guests get
 // a random, unguessable visitor id so nobody can read another person's list.
@@ -24,6 +35,7 @@ export default function ProductDetail() {
   const [relatedProducts, setRelatedProducts] = useState([])
   const [activeImage, setActiveImage] = useState(0)
   const [selectedPack, setSelectedPack] = useState('')
+  const [quantity, setQuantity] = useState(1)
   const [wishlisted, setWishlisted] = useState(false)
   const [cartAdded, setCartAdded] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -100,7 +112,7 @@ export default function ProductDetail() {
   const resolveImage = image => image?.startsWith('./') ? image.slice(1) : image
   const reviews = product.reviewsEnabled && Array.isArray(product.reviews) ? product.reviews : []
   const averageRating = reviews.length ? (reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length).toFixed(1) : null
-  const packSizes = [...new Set(product.packSizes || [])]
+  const packSizes = [...new Set((product.packSizes || []).map(s => typeof s === 'object' ? s.size : s))]
   const basePack = product.selectedPack || packSizes[0]
   const packUnits = pack => {
     const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
@@ -108,21 +120,32 @@ export default function ProductDetail() {
     const value = Number(match[1])
     return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
   }
+
   const packagePrice = pack => {
     const explicit = product.packagePrices?.[pack] || product.packPrices?.[pack]
     if (explicit !== undefined) return Number(explicit)
     if (!basePack || !pack) return Number(product.price || 0)
     return Math.round(Number(product.price || 0) * (packUnits(pack) / packUnits(basePack)))
   }
+
+  const packageMrp = pack => {
+    const explicit = product.packageMrps?.[pack] || product.packMrps?.[pack]
+    if (explicit !== undefined) return Number(explicit)
+    const price = packagePrice(pack)
+    const basePrice = Number(product.price || 1)
+    const baseMrp = Number(product.originalPrice || product.mrp || product.price)
+    return baseMrp ? Math.round(baseMrp * (price / basePrice)) : price
+  }
+
   const selectedPrice = packagePrice(selectedPack)
-  const selectedOriginalPrice = product.originalPrice ? Math.round(Number(product.originalPrice) * (selectedPrice / Number(product.price || 1))) : selectedPrice
-  // The store's one basket (hooks/useCheckout.js). The price is for the basket
-  // only; the server prices the order again.
+  const selectedOriginalPrice = packageMrp(selectedPack)
+  const totalPrice = selectedPrice * quantity
+  const totalOriginalPrice = selectedOriginalPrice * quantity
+
   const addToCart = () => {
-    addItem({ ...product, id: product.id || product._id, price: selectedPrice, originalPrice: selectedOriginalPrice, selectedPack })
+    addItem({ ...product, id: product.id || product._id, price: selectedPrice, originalPrice: selectedOriginalPrice, selectedPack }, quantity)
     setCartAdded(true)
   }
-  // Opens the floating checkout at the delivery step (or sign-in first).
   const proceedToCheckout = () => {
     if (!cartAdded) addToCart()
     startCheckout()
@@ -163,8 +186,45 @@ export default function ProductDetail() {
           <div className="product-detail-review-summary">
             {averageRating ? <><Star size={16} fill="currentColor" /> {averageRating} ({reviews.length} verified reviews)</> : 'No verified reviews yet'}
           </div>
-          <div className="product-detail-price">₹{selectedPrice.toLocaleString()} <del>₹{selectedOriginalPrice.toLocaleString()}</del></div>
-          {packSizes.length > 0 && <div className="product-pack-selector"><strong>Package size</strong><div>{packSizes.map(pack => <button type="button" key={pack} className={selectedPack === pack ? 'active' : ''} onClick={() => setSelectedPack(pack)}>{pack}<small>₹{packagePrice(pack).toLocaleString()}</small></button>)}</div></div>}
+          <div className="product-detail-price">
+            ₹{totalPrice.toLocaleString()} {totalOriginalPrice > totalPrice && <del>₹{totalOriginalPrice.toLocaleString()}</del>}
+          </div>
+
+          {packSizes.length > 0 && (
+            <div className="product-pack-selector">
+              <strong>Package size</strong>
+              <div>
+                {packSizes.map(pack => (
+                  <button type="button" key={pack} className={selectedPack === pack ? 'active' : ''} onClick={() => setSelectedPack(pack)}>
+                    {pack}<small>₹{packagePrice(pack).toLocaleString()}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ margin: '14px 0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <strong style={{ color: 'var(--text-primary, #fff)' }}>Quantity:</strong>
+            <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', overflow: 'hidden' }}>
+              <button
+                type="button"
+                style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              >-</button>
+              <span style={{ padding: '6px 16px', fontWeight: 'bold', fontSize: '1rem', minWidth: '40px', textAlign: 'center', color: '#fff' }}>{quantity}</span>
+              <button
+                type="button"
+                style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}
+                onClick={() => setQuantity(q => q + 1)}
+              >+</button>
+            </div>
+            {quantity > 1 && (
+              <span style={{ fontSize: '0.85rem', color: '#34d399' }}>
+                (₹{selectedPrice.toLocaleString()} x {quantity})
+              </span>
+            )}
+          </div>
+
           <p className="product-detail-description">{product.detailedDescription || product.description}</p>
           <div className="product-detail-facts">
             <div><strong>Active ingredient</strong><span>{product.activeIngredient || 'Not specified'}</span></div>
@@ -183,6 +243,84 @@ export default function ProductDetail() {
         <section className="product-detail-section"><h2>How to use</h2><p>{product.howToUse || 'Usage instructions will be published by the administrator.'}</p></section>
         <section className="product-detail-section"><h2>When to use</h2><p>{product.whenToUse || 'Timing guidance will be published by the administrator.'}</p></section>
       </div>
+
+      {/* Product Demonstrations & Field Usage Videos */}
+      {Array.isArray(product.taggedVideos) && product.taggedVideos.length > 0 && (
+        <section className="product-detail-section product-videos-section" style={{ marginTop: '32px' }}>
+          <div className="product-section-heading" style={{ marginBottom: '20px' }}>
+            <div>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Film size={22} style={{ color: '#22c55e' }} />
+                Product Demonstrations &amp; Field Usage
+              </h2>
+              <p style={{ color: 'var(--text-muted)' }}>
+                Watch expert agronomy demonstrations, dilution guidance, and field trial results.
+              </p>
+            </div>
+            <span className="badge badge-green">
+              {product.taggedVideos.length} {product.taggedVideos.length === 1 ? 'Demo Video' : 'Demo Videos'}
+            </span>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: product.taggedVideos.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '24px'
+          }}>
+            {product.taggedVideos.map((vid, i) => {
+              const videoUrl = typeof vid === 'string' ? vid : (vid.url || vid.videoUrl)
+              const ytId = getYouTubeId(videoUrl)
+              const isLocal = isHtml5Video(videoUrl)
+              const title = typeof vid === 'object' && vid.title ? vid.title : `Product Demo ${i + 1}`
+              const category = typeof vid === 'object' && vid.category ? vid.category : 'Demonstration'
+
+              return (
+                <div key={i} className="card" style={{
+                  background: 'var(--dark-800)', border: '1px solid var(--dark-700)',
+                  borderRadius: '14px', overflow: 'hidden', display: 'flex', flexDirection: 'column'
+                }}>
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000' }}>
+                    {ytId ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}`}
+                        title={title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ width: '100%', height: '100%', border: 0 }}
+                      />
+                    ) : isLocal ? (
+                      <video
+                        src={videoUrl}
+                        controls
+                        preload="metadata"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <iframe
+                        src={videoUrl}
+                        title={title}
+                        allowFullScreen
+                        style={{ width: '100%', height: '100%', border: 0 }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                        <span className="badge badge-green" style={{ fontSize: '0.7rem' }}>{category}</span>
+                        <span className="badge badge-gray" style={{ fontSize: '0.7rem' }}>Verified Demo</span>
+                      </div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                        {title}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="product-detail-section product-reviews-section">
         <div className="product-section-heading"><div><h2>Verified customer reviews</h2><p>Only submitted review records are shown here.</p></div><span className={`badge ${product.reviewsEnabled ? 'badge-green' : 'badge-gray'}`}>{product.reviewsEnabled ? 'Reviews enabled' : 'Reviews disabled'}</span></div>

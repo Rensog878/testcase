@@ -1,4 +1,11 @@
 node_modules/
 .env
 .env.*
+!.env.example
 .vscode/
+# Runtime and local-machine artefacts that arrived with Alagu's copy: uploaded
+# files belong on disk beside the server, not in the repo, and server/data is a
+# local MongoDB's storage. tools/ was a downloaded MongoDB build (~hundreds of MB).
+server/uploads/
+server/data/
+tools/

@@ -31,7 +31,11 @@ export async function connectDB() {
                         );
         }
         mongoose.set('strictQuery', false);
-        cached.promise = mongoose.connect(uri, { bufferCommands: false }).then(m => m);
+            cached.promise = mongoose.connect(uri, {
+                  bufferCommands: false,
+                  serverSelectionTimeoutMS: 5000,
+                  connectTimeoutMS: 5000,
+            }).then(m => m);
   }
 
   try {
@@ -126,14 +130,24 @@ const Blog = mongoose.models.Blog || mongoose.model('Blog', blogSchema);
 const Video = mongoose.models.Video || mongoose.model('Video', videoSchema);
 const invoiceSchema = new mongoose.Schema({ _id: String }, permissive);
 const Invoice = mongoose.models.Invoice || mongoose.model('Invoice', invoiceSchema);
+const couponSchema = new mongoose.Schema({ _id: String }, permissive);
+const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
+const couponUsageSchema = new mongoose.Schema({ _id: String }, permissive);
+const CouponUsage = mongoose.models.CouponUsage || mongoose.model('CouponUsage', couponUsageSchema);
+const referralSchema = new mongoose.Schema({ _id: String }, permissive);
+const Referral = mongoose.models.Referral || mongoose.model('Referral', referralSchema);
+const pointsLedgerSchema = new mongoose.Schema({ _id: String }, permissive);
+const PointsLedger = mongoose.models.PointsLedger || mongoose.model('PointsLedger', pointsLedgerSchema);
 
-// Images uploaded from the admin CMS. They live in MongoDB rather than on disk
-// because the app is deployed to a serverless host, where the filesystem is
-// wiped between invocations. Base64 costs ~33% over the raw bytes, which is
-// fine for a handful of certification logos and poster images; a product
-// catalogue's worth of photos would belong in object storage instead.
+// Images uploaded from the admin CMS. Small files (images) are stored as base64
+// in MongoDB for backward compatibility. Large files (videos) are saved to disk
+// and only metadata is stored in MongoDB to avoid the 16MB document size limit.
 const uploadSchema = new mongoose.Schema({ _id: String }, permissive);
 const Upload = mongoose.models.Upload || mongoose.model('Upload', uploadSchema);
+
+// Lightweight metadata for disk-stored uploads (no binary field).
+const uploadMetaSchema = new mongoose.Schema({ _id: String }, permissive);
+const UploadMeta = mongoose.models.UploadMeta || mongoose.model('UploadMeta', uploadMetaSchema);
 
 export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing'];
 
@@ -184,8 +198,12 @@ function stripMongoFields(doc) {
 // original db.js applied once at load() time - applied here on every read.
 function normalizeProduct(product) {
     const reviews = Array.isArray(product.reviews) ? product.reviews : [];
+    const visibility = product.visibility || (product.online === false ? 'offline' : 'both');
     return {
           ...product,
+          visibility,
+          online: visibility !== 'offline',
+          taggedVideos: Array.isArray(product.taggedVideos) ? product.taggedVideos : [],
           images:
             Array.isArray(product.images) && product.images.length
               ? product.images
@@ -1025,14 +1043,26 @@ class DatabaseManager {
 
   async getProducts(options = {}) {
         await connectDB();
-        const { userId, category, crop, disease, search, sortBy, onlineOnly } = options;
+        const { userId, category, crop, disease, search, sortBy, onlineOnly, channel } = options;
         // A copy: the sorts further down reorder in place, and the cached array
-        // is shared with every other request.
+        // is shared with every other request. (Alagu's channel filter reads the
+        // same list; it does not need its own trip to the cluster.)
         let list = [...(await allProducts())];
 
-      // Offline products are sold at the billing counter only, never on the website.
+      // Visibility channel filtering:
+      // Online: website only or both (online !== false)
+      // Offline: billing counter only or both
+      // Both: explicitly available on both
       if (onlineOnly) {
-              list = list.filter(p => p.online !== false);
+              list = list.filter(p => p.visibility === 'online' || p.visibility === 'both' || (p.visibility === undefined && p.online !== false));
+      } else if (channel && channel !== 'all') {
+          if (channel === 'online') {
+              list = list.filter(p => p.visibility === 'online' || p.visibility === 'both' || p.online !== false);
+          } else if (channel === 'offline') {
+              list = list.filter(p => p.visibility === 'offline' || p.visibility === 'both' || p.online === false);
+          } else if (channel === 'both') {
+              list = list.filter(p => p.visibility === 'both');
+          }
       }
 
       if (category && category !== 'All') {
@@ -1157,6 +1187,11 @@ class DatabaseManager {
         name: prodData.name || 'New Bio Product',
         tagline: prodData.tagline || `${prodData.category || 'Agro'} Solution for High Yield`,
         category: prodData.category || 'Bio-Pesticide',
+        hsnCode: prodData.hsnCode || '3808',
+        gstRate: Number(prodData.gstRate !== undefined ? prodData.gstRate : 18),
+        cgstRate: Number(prodData.gstRate !== undefined ? prodData.gstRate : 18) / 2,
+        sgstRate: Number(prodData.gstRate !== undefined ? prodData.gstRate : 18) / 2,
+        igstRate: Number(prodData.gstRate !== undefined ? prodData.gstRate : 18),
         price,
         originalPrice: mrp,
         discount: prodData.discount || `${discountPct}% OFF`,
@@ -1202,7 +1237,9 @@ class DatabaseManager {
           prodData.description ||
           'Scientifically formulated for modern organic and integrated pest management.',
         targetUserId: prodData.targetUserId || 'all',
-        online: prodData.online !== false,
+        visibility: prodData.visibility || (prodData.online === false ? 'offline' : 'both'),
+        online: (prodData.visibility ? prodData.visibility !== 'offline' : prodData.online !== false),
+        taggedVideos: Array.isArray(prodData.taggedVideos) ? prodData.taggedVideos : [],
         targetUserName,
         targetUserPhone,
         sortOrder: Number(prodData.sortOrder) || 1,
@@ -1248,11 +1285,26 @@ class DatabaseManager {
           : existing.originalPrice;
       const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
 
+      const visibility = updates.visibility !== undefined
+        ? updates.visibility
+        : (updates.online !== undefined ? (updates.online ? 'online' : 'offline') : (existing.visibility || 'both'));
+      const taggedVideos = updates.taggedVideos !== undefined
+        ? (Array.isArray(updates.taggedVideos) ? updates.taggedVideos : [])
+        : (existing.taggedVideos || []);
+
       const merged = {
         ...existing,
         ...updates,
+        visibility,
+        online: visibility !== 'offline',
+        taggedVideos,
         targetUserName,
         targetUserPhone,
+        hsnCode: updates.hsnCode !== undefined ? updates.hsnCode : (existing.hsnCode || '3808'),
+        gstRate: updates.gstRate !== undefined ? Number(updates.gstRate) : (existing.gstRate !== undefined ? Number(existing.gstRate) : 18),
+        cgstRate: (updates.gstRate !== undefined ? Number(updates.gstRate) : (existing.gstRate !== undefined ? Number(existing.gstRate) : 18)) / 2,
+        sgstRate: (updates.gstRate !== undefined ? Number(updates.gstRate) : (existing.gstRate !== undefined ? Number(existing.gstRate) : 18)) / 2,
+        igstRate: updates.gstRate !== undefined ? Number(updates.gstRate) : (existing.gstRate !== undefined ? Number(existing.gstRate) : 18),
         price,
         originalPrice: mrp,
         discount: updates.discount || `${discountPct}% OFF`,
@@ -1529,6 +1581,28 @@ class DatabaseManager {
         return merged;
   }
 
+  async createUploadMeta({ id, diskFile, contentType, filename, size, uploadedBy }) {
+        await connectDB();
+        await UploadMeta.create({
+              _id: id,
+              id,
+              diskFile,
+              contentType,
+              filename: filename || diskFile,
+              size: size || 0,
+              uploadedBy: uploadedBy || '',
+              createdAt: new Date().toISOString()
+        });
+        return id;
+  }
+
+  async getUploadMeta(id) {
+        if (!id) return null;
+        await connectDB();
+        const doc = await UploadMeta.findById(String(id)).lean();
+        return doc ? serialize(doc) : null;
+  }
+
   async createUpload({ data, contentType, filename, uploadedBy }) {
         await connectDB();
         const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
@@ -1654,6 +1728,16 @@ class DatabaseManager {
         return serialize(created.toObject());
   }
 
+  async updateFarmerEnquiryStatus(id, status) {
+        await connectDB();
+        const updated = await FarmerEnquiry.findByIdAndUpdate(
+            id,
+            { $set: { status, updatedAt: new Date().toISOString() } },
+            { new: true }
+        ).lean();
+        return updated ? serialize(updated) : null;
+  }
+
   async getWishlists() {
         await connectDB();
         const items = await WishlistItem.find({}).lean();
@@ -1735,8 +1819,9 @@ class DatabaseManager {
         const DAY_MS = 24 * 60 * 60 * 1000;
         const dayStartIso = new Date(Math.floor((Date.now() + IST_OFFSET_MS) / DAY_MS) * DAY_MS - IST_OFFSET_MS).toISOString();
 
-        const [orders, totalProducts, activeProducts, subscribers, openTickets, wishlistSaves] = await Promise.all([
+        const [orders, invoices, totalProducts, activeProducts, subscribers, openTickets, wishlistSaves] = await Promise.all([
             Order.find({}, { total: 1, paymentStatus: 1, deliveryStatus: 1, createdAt: 1 }).lean(),
+            Invoice.find({}, { grandTotal: 1, status: 1, date: 1 }).lean(),
             Product.countDocuments({}),
             Product.countDocuments({ stock: { $gt: 0 } }),
             AdvisorySubscriber.countDocuments({}),
@@ -1745,11 +1830,24 @@ class DatabaseManager {
         ]);
 
         const paid = orders.filter(o => o.paymentStatus === 'Paid');
+        const onlineRevenue = paid.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+        const offlineRevenue = invoices.reduce((sum, inv) => sum + (Number(inv.grandTotal) || 0), 0);
+        const totalRevenue = Math.round((onlineRevenue + offlineRevenue) * 100) / 100;
+
+        const onlineToday = orders.filter(o => String(o.createdAt || '') >= dayStartIso).length;
+        const offlineToday = invoices.filter(i => String(i.date || '') >= dayStartIso).length;
+
         return {
-            totalRevenue: Math.round(paid.reduce((sum, o) => sum + (Number(o.total) || 0), 0) * 100) / 100,
+            totalRevenue,
+            onlineRevenue: Math.round(onlineRevenue * 100) / 100,
+            offlineRevenue: Math.round(offlineRevenue * 100) / 100,
             paidOrders: paid.length,
-            totalOrders: orders.length,
-            ordersToday: orders.filter(o => String(o.createdAt || '') >= dayStartIso).length,
+            totalOrders: orders.length + invoices.length,
+            onlineOrders: orders.length,
+            offlineOrders: invoices.length,
+            ordersToday: onlineToday + offlineToday,
+            onlineOrdersToday: onlineToday,
+            offlineOrdersToday: offlineToday,
             totalProducts,
             activeProducts,
             subscribers,
@@ -1963,14 +2061,18 @@ class DatabaseManager {
 
   async createVideo(data) {
         await connectDB();
-        const id = newId('vid');
+        const videoUrl = data.videoUrl || data.url || '';
+        const thumb = data.thumbnailUrl || data.thumbnail || '';
+        const id = newId('VID');
         const newVideo = {
             _id: id,
             id,
             title: data.title || 'Untitled Video',
             description: data.description || '',
-            videoUrl: data.videoUrl || '',
-            thumbnail: data.thumbnail || '',
+            videoUrl,
+            url: videoUrl,
+            thumbnail: thumb,
+            thumbnailUrl: thumb,
             category: data.category || 'Product Demo',
             tags: splitTags(data.tags, []),
             duration: data.duration || '',
@@ -1986,9 +2088,15 @@ class DatabaseManager {
         const existing = await Video.findById(String(id)).lean();
         if (!existing) return null;
         const { _id, id: _ignored, createdAt, ...rest } = updates;
+        const videoUrl = rest.videoUrl || rest.url || existing.videoUrl || existing.url || '';
+        const thumb = rest.thumbnailUrl || rest.thumbnail || existing.thumbnailUrl || existing.thumbnail || '';
         const merged = {
             ...serialize(existing),
             ...rest,
+            videoUrl,
+            url: videoUrl,
+            thumbnail: thumb,
+            thumbnailUrl: thumb,
             tags: rest.tags !== undefined ? splitTags(rest.tags, []) : existing.tags,
             updatedAt: new Date().toISOString()
         };
@@ -2001,6 +2109,216 @@ class DatabaseManager {
         await connectDB();
         const res = await Video.deleteOne({ _id: String(id) });
         return res.deletedCount > 0;
+  }
+
+  // ---- COUPON MANAGEMENT & CREDIT MONITORING ----
+  async getCoupons() {
+    await connectDB();
+    let coupons = (await Coupon.find({}).lean()).map(serialize);
+    if (coupons.length === 0) {
+      const defaultCoupons = [
+        {
+          _id: 'CPN-SATHYA10',
+          id: 'CPN-SATHYA10',
+          code: 'SATHYA10',
+          type: 'percentage',
+          value: 10,
+          minOrder: 500,
+          maxDiscount: 300,
+          usageType: 'multiple',
+          active: true,
+          usageCount: 3,
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: 'CPN-FIRSTFARMER',
+          id: 'CPN-FIRSTFARMER',
+          code: 'FIRSTFARMER',
+          type: 'flat',
+          value: 150,
+          minOrder: 400,
+          maxDiscount: 150,
+          usageType: 'first_time',
+          active: true,
+          usageCount: 5,
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: 'CPN-HARVEST200',
+          id: 'CPN-HARVEST200',
+          code: 'HARVEST200',
+          type: 'flat',
+          value: 200,
+          minOrder: 1000,
+          maxDiscount: 200,
+          usageType: 'one_time',
+          active: true,
+          usageCount: 1,
+          createdAt: new Date().toISOString()
+        }
+      ];
+      await Coupon.insertMany(defaultCoupons);
+      coupons = defaultCoupons;
+    }
+    return coupons;
+  }
+
+  async addCoupon(couponData) {
+    await connectDB();
+    const code = String(couponData.code || '').trim().toUpperCase();
+    const id = `CPN-${code}`;
+    const doc = {
+      _id: id,
+      id,
+      code,
+      type: couponData.type || 'percentage',
+      value: Number(couponData.value) || 0,
+      minOrder: Number(couponData.minOrder) || 0,
+      maxDiscount: Number(couponData.maxDiscount) || 0,
+      usageType: couponData.usageType || 'multiple',
+      active: couponData.active !== false,
+      usageCount: 0,
+      createdAt: new Date().toISOString()
+    };
+    await Coupon.create(doc);
+    return serialize(doc);
+  }
+
+  async updateCoupon(id, updates) {
+    await connectDB();
+    const existing = await Coupon.findById(id).lean();
+    if (!existing) return null;
+    const merged = { ...serialize(existing), ...updates, updatedAt: new Date().toISOString() };
+    await Coupon.findByIdAndUpdate(id, { $set: merged }, { strict: false });
+    return merged;
+  }
+
+  async deleteCoupon(id) {
+    await connectDB();
+    const res = await Coupon.deleteOne({ _id: id });
+    return res.deletedCount > 0;
+  }
+
+  async getCouponUsages() {
+    await connectDB();
+    let usages = (await CouponUsage.find({}).lean()).map(serialize);
+    if (usages.length === 0) {
+      const defaultUsages = [
+        {
+          _id: 'USG-1',
+          id: 'USG-1',
+          couponCode: 'FIRSTFARMER',
+          userId: 'usr-1',
+          userName: 'Ramesh Kumar',
+          userPhone: '9876543210',
+          orderId: 'ORD-1002',
+          discountAmount: 150,
+          usedAt: new Date(Date.now() - 86400000 * 2).toISOString()
+        },
+        {
+          _id: 'USG-2',
+          id: 'USG-2',
+          couponCode: 'SATHYA10',
+          userId: 'usr-2',
+          userName: 'Suresh Patel',
+          userPhone: '9812345678',
+          orderId: 'ORD-1005',
+          discountAmount: 180,
+          usedAt: new Date(Date.now() - 86400000 * 1).toISOString()
+        }
+      ];
+      await CouponUsage.insertMany(defaultUsages);
+      usages = defaultUsages;
+    }
+    return usages;
+  }
+
+  async recordCouponUsage(couponCode, userId, userName, userPhone, orderId, discountAmount) {
+    await connectDB();
+    const id = `USG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const usage = {
+      _id: id,
+      id,
+      couponCode: String(couponCode).toUpperCase(),
+      userId: String(userId || 'guest'),
+      userName: String(userName || 'Customer'),
+      userPhone: String(userPhone || ''),
+      orderId: String(orderId || ''),
+      discountAmount: Number(discountAmount) || 0,
+      usedAt: new Date().toISOString()
+    };
+    await CouponUsage.create(usage);
+    await Coupon.updateOne({ code: couponCode.toUpperCase() }, { $inc: { usageCount: 1 } });
+    return usage;
+  }
+
+  // ---- REFERRALS & REWARD POINTS ----
+  async getReferrals() {
+    await connectDB();
+    let refs = (await Referral.find({}).lean()).map(serialize);
+    if (refs.length === 0) {
+      const defaultRefs = [
+        {
+          _id: 'REF-1',
+          id: 'REF-1',
+          referrerId: 'usr-1',
+          referrerName: 'Ramesh Kumar',
+          referrerPhone: '9876543210',
+          referredId: 'usr-3',
+          referredName: 'Venkatesh Rao',
+          referredPhone: '9765432109',
+          pointsAwarded: 100,
+          status: 'Completed',
+          createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
+        },
+        {
+          _id: 'REF-2',
+          id: 'REF-2',
+          referrerId: 'usr-2',
+          referrerName: 'Suresh Patel',
+          referrerPhone: '9812345678',
+          referredId: 'usr-4',
+          referredName: 'Anil Reddy',
+          referredPhone: '9654321098',
+          pointsAwarded: 100,
+          status: 'Completed',
+          createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
+        }
+      ];
+      await Referral.insertMany(defaultRefs);
+      refs = defaultRefs;
+    }
+    return refs;
+  }
+
+  async getPointsLedgers() {
+    await connectDB();
+    return (await PointsLedger.find({}).lean()).map(serialize);
+  }
+
+  async assignCustomerPoints(userId, points, description = 'Admin Assigned Reward Points') {
+    await connectDB();
+    const user = await User.findById(userId).lean();
+    if (!user) return null;
+
+    const currentPoints = Number(user.points || 0);
+    const newPoints = currentPoints + Number(points);
+    await User.findByIdAndUpdate(userId, { $set: { points: newPoints } });
+
+    const ledgerId = `PT-${Date.now()}`;
+    const ledger = {
+      _id: ledgerId,
+      id: ledgerId,
+      userId,
+      userName: user.name || user.phone || 'Customer',
+      points: Number(points),
+      balanceAfter: newPoints,
+      type: points >= 0 ? 'earned' : 'spent',
+      description,
+      createdAt: new Date().toISOString()
+    };
+    await PointsLedger.create(ledger);
+    return { userId, newPoints, ledger };
   }
 }
 

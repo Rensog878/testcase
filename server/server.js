@@ -8,6 +8,10 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import Razorpay from 'razorpay';
 import { db, connectDB, newId } from './db.js';
 import adminRoutes from './adminRoutes.js';
@@ -42,8 +46,27 @@ const HOUR_MS = 60 * MINUTE_MS;
 app.disable('x-powered-by');
 app.use(cors());
 // The raw bytes are kept for the Razorpay webhook, whose signature covers the
-// exact body sent. 4mb leaves room for product photos uploaded as data URLs.
-app.use(express.json({ limit: '4mb', verify: (req, _res, buf) => { req.rawBody = buf; } }));
+// exact body sent.
+const captureRawBody = (req, _res, buf) => { req.rawBody = buf; };
+// Admin video uploads arrive as base64 inside JSON, so that ONE route takes a
+// large body. Raising the limit globally, as this first did, let any
+// unauthenticated caller make the server buffer 200MB per request - the
+// cheapest denial of service there is. The route below is admin-only.
+app.use('/api/upload', express.json({ limit: '200mb', verify: captureRawBody }));
+app.use(express.json({ limit: '4mb', verify: captureRawBody }));
+
+// Serve uploaded files (videos, images) directly from disk — no MongoDB size limit
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOADS_DIR, {
+  maxAge: '1y',
+  immutable: true,
+  setHeaders: (res, filePath) => {
+    if (/\.(mp4|webm|ogg|mov)$/i.test(filePath)) {
+      res.setHeader('Accept-Ranges', 'bytes');
+    }
+  }
+}));
 
 app.use('/api/admin', requireAuth('admin'), adminRoutes);
 
@@ -1092,10 +1115,16 @@ app.post('/api/videos', requireAuth('admin'), async (req, res) => {
     if (typeof req.body?.title !== 'string' || !req.body.title.trim()) {
       return res.status(400).json({ success: false, message: 'Video title is required' });
     }
-    if (typeof req.body?.videoUrl !== 'string' || !req.body.videoUrl.trim()) {
-      return res.status(400).json({ success: false, message: 'Video URL or YouTube link is required' });
+    const videoUrl = req.body?.videoUrl || req.body?.url || req.body?.fileUrl;
+    if (typeof videoUrl !== 'string' || !videoUrl.trim()) {
+      return res.status(400).json({ success: false, message: 'Video URL, link, or uploaded file is required' });
     }
-    const video = await db.createVideo(req.body);
+    const payload = {
+      ...req.body,
+      videoUrl: videoUrl.trim(),
+      url: videoUrl.trim()
+    };
+    const video = await db.createVideo(payload);
     res.json({ success: true, data: video, message: 'Video added successfully!' });
   } catch (err) {
     sendError(res, err, 'Create video');
@@ -1104,7 +1133,12 @@ app.post('/api/videos', requireAuth('admin'), async (req, res) => {
 
 app.put('/api/videos/:id', requireAuth('admin'), async (req, res) => {
   try {
-    const updated = await db.updateVideo(req.params.id, req.body || {});
+    const videoUrl = req.body?.videoUrl || req.body?.url || req.body?.fileUrl;
+    const payload = {
+      ...req.body,
+      ...(videoUrl ? { videoUrl: videoUrl.trim(), url: videoUrl.trim() } : {})
+    };
+    const updated = await db.updateVideo(req.params.id, payload);
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Video not found' });
     }
@@ -1762,15 +1796,17 @@ app.put('/api/cms', requireAuth('admin'), async (req, res) => {
 });
 
 // ============================================================
-// IMAGE UPLOADS (admin CMS and blog covers)
+// MEDIA UPLOADS (admin CMS, blog covers, and product/blog videos)
 // Stored in MongoDB: the deploy target has no writable disk. The client sends
-// base64 JSON rather than multipart so no extra dependency is needed; the
-// existing express.json limit (4mb) caps the request, and ALLOWED_UPLOAD_TYPES
-// keeps it to images so this cannot become a general file host.
+// base64 JSON rather than multipart so no extra dependency is needed.
 // ============================================================
 
-const ALLOWED_UPLOAD_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
-const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+const ALLOWED_UPLOAD_TYPES = [
+  'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml',
+  'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'
+];
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;      // 10MB for images
+const MAX_VIDEO_BYTES = 150 * 1024 * 1024;     // 150MB for videos (stored on disk, no MongoDB limit)
 
 app.post('/api/upload', requireAuth('admin'), async (req, res) => {
   try {
@@ -1781,27 +1817,66 @@ app.post('/api/upload', requireAuth('admin'), async (req, res) => {
 
     if (!base64) return res.status(400).json({ success: false, message: 'No file data received' });
     if (!ALLOWED_UPLOAD_TYPES.includes(contentType)) {
-      return res.status(400).json({ success: false, message: 'Only PNG, JPEG, WebP, GIF or SVG images can be uploaded' });
-    }
-    const size = Buffer.byteLength(base64, 'base64');
-    if (size > MAX_UPLOAD_BYTES) {
-      return res.status(413).json({ success: false, message: 'Image is larger than 2MB. Please use a smaller image.' });
+      return res.status(400).json({ success: false, message: 'Only images (PNG, JPEG, WebP, GIF, SVG) or videos (MP4, WebM, OGG, MOV) can be uploaded' });
     }
 
+    const buf = Buffer.from(base64, 'base64');
+    const size = buf.length;
+    const isVideo = contentType?.startsWith('video/');
+    // For videos: save to disk (avoids MongoDB 16MB document limit).
+    // For images: keep in MongoDB as before if under 10MB, else also save to disk.
+    const limit = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (size > limit) {
+      return res.status(413).json({ success: false, message: `${isVideo ? 'Video' : 'Image'} is larger than ${Math.round(limit / (1024 * 1024))}MB. Please use a smaller file.` });
+    }
+
+    // Determine file extension from contentType
+    const EXT_MAP = {
+      'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png',
+      'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg',
+      'video/mp4': 'mp4', 'video/webm': 'webm', 'video/ogg': 'ogg',
+      'video/quicktime': 'mov', 'video/x-msvideo': 'avi',
+    };
+    const ext = EXT_MAP[contentType] || (filename ? path.extname(filename).slice(1) : 'bin');
+    const id = `${Date.now().toString(36)}${crypto.randomBytes(6).toString('hex')}`;
+    const diskFile = `${id}.${ext}`;
+    const diskPath = path.join(UPLOADS_DIR, diskFile);
+
+    // Write to disk — works for any file size
+    fs.writeFileSync(diskPath, buf);
+
+    // Store lightweight metadata in MongoDB (no binary data)
     const user = await getAuthenticatedUser(req);
-    const id = await db.createUpload({ data: base64, contentType, filename, uploadedBy: user?.id || '' });
-    res.json({ success: true, url: `/api/upload/${id}`, id, size });
+    await db.createUploadMeta({
+      id,
+      diskFile,
+      contentType,
+      filename: filename || diskFile,
+      size,
+      uploadedBy: user?.id || '',
+    });
+
+    res.json({ success: true, url: `/uploads/${diskFile}`, id, size, isVideo });
   } catch (err) {
     sendError(res, err, 'Upload');
   }
 });
 
-// Public: an uploaded image has to be readable by every farmer visiting the
-// site. Ids are random, and only admins can create them.
+// Legacy: serve any old uploads that were stored as base64 in MongoDB
+// New uploads go directly to /uploads/ static dir (served above).
 app.get('/api/upload/:id', async (req, res) => {
   try {
+    // First check if a disk file exists via metadata
+    const meta = await db.getUploadMeta(req.params.id).catch(() => null);
+    if (meta?.diskFile) {
+      const diskPath = path.join(UPLOADS_DIR, meta.diskFile);
+      if (fs.existsSync(diskPath)) {
+        return res.redirect(301, `/uploads/${meta.diskFile}`);
+      }
+    }
+    // Fall back to old MongoDB binary storage (for backwards compatibility)
     const file = await db.getUpload(req.params.id);
-    if (!file || !file.data) return res.status(404).json({ success: false, message: 'Image not found' });
+    if (!file || !file.data) return res.status(404).json({ success: false, message: 'File not found' });
     const body = Buffer.from(file.data, 'base64');
     res.set('Content-Type', file.contentType || 'application/octet-stream');
     res.set('Content-Length', String(body.length));
@@ -2096,6 +2171,185 @@ app.get('/api/enquiries', requireAuth('admin'), async (req, res) => {
   }
 });
 
+app.put('/api/enquiries/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updated = await db.updateFarmerEnquiryStatus(req.params.id, status);
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Enquiry not found' });
+    }
+    res.json({ success: true, message: 'Enquiry status updated successfully', data: updated });
+  } catch (err) {
+    sendError(res, err, 'Update farmer enquiry status');
+  }
+});
+
+// ============================================================
+// COUPONS & DISCOUNT CREDIT MONITORING
+// ============================================================
+
+app.get('/api/admin/coupons', requireAuth('admin'), async (req, res) => {
+  try {
+    const data = await db.getCoupons();
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Get coupons');
+  }
+});
+
+app.post('/api/admin/coupons', requireAuth('admin'), async (req, res) => {
+  try {
+    const { code, type, value, minOrder, maxDiscount, usageType, active } = req.body;
+    if (!code || value === undefined) {
+      return res.status(400).json({ success: false, message: 'Coupon code and value are required.' });
+    }
+    const created = await db.addCoupon({ code, type, value, minOrder, maxDiscount, usageType, active });
+    res.json({ success: true, message: `Coupon "${created.code}" created successfully!`, data: created });
+  } catch (err) {
+    sendError(res, err, 'Create coupon');
+  }
+});
+
+app.put('/api/admin/coupons/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const updated = await db.updateCoupon(req.params.id, req.body);
+    res.json({ success: true, message: 'Coupon updated successfully', data: updated });
+  } catch (err) {
+    sendError(res, err, 'Update coupon');
+  }
+});
+
+app.delete('/api/admin/coupons/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    await db.deleteCoupon(req.params.id);
+    res.json({ success: true, message: 'Coupon deleted successfully' });
+  } catch (err) {
+    sendError(res, err, 'Delete coupon');
+  }
+});
+
+app.get('/api/admin/coupon-usages', requireAuth('admin'), async (req, res) => {
+  try {
+    const data = await db.getCouponUsages();
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Get coupon usages');
+  }
+});
+
+app.post('/api/coupons/validate', async (req, res) => {
+  try {
+    // Who is asking is decided here, not by the caller. This read `userId` and
+    // `userOrdersCount` straight from the body, so anyone could claim to be a
+    // first-time buyer - or somebody else - and keep re-using a one-per-person
+    // code. The signed-in user comes from the token, and how many orders they
+    // have placed is counted on this side.
+    const { code, cartTotal = 0 } = req.body;
+    const signedIn = await getAuthenticatedUser(req);
+    const userId = signedIn?.id || '';
+    const userOrdersCount = userId
+      ? (await db.getOrders()).filter(order => order.userId === userId).length
+      : 0;
+    const cleanCode = String(code || '').trim().toUpperCase();
+    if (!cleanCode) {
+      return res.status(400).json({ success: false, message: 'Enter a coupon code.' });
+    }
+
+    const coupons = await db.getCoupons();
+    const coupon = coupons.find(c => c.code.toUpperCase() === cleanCode && c.active);
+
+    if (!coupon) {
+      return res.status(404).json({ success: false, message: 'Invalid or expired coupon code.' });
+    }
+
+    if (cartTotal < (coupon.minOrder || 0)) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum order total of ₹${coupon.minOrder} is required for this coupon.`
+      });
+    }
+
+    // Check usage type rules
+    if (coupon.usageType === 'first_time') {
+      const usages = await db.getCouponUsages();
+      const userUsed = userId ? usages.filter(u => u.userId === userId || u.couponCode === cleanCode) : [];
+      if (userOrdersCount > 0 || userUsed.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'This coupon is valid for first-time orders only.'
+        });
+      }
+    } else if (coupon.usageType === 'one_time') {
+      const usages = await db.getCouponUsages();
+      const hasUsed = usages.some(u => u.couponCode === cleanCode && u.userId === userId);
+      if (hasUsed) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already used this coupon code.'
+        });
+      }
+    }
+
+    // Calculate discount amount
+    let discount = 0;
+    if (coupon.type === 'percentage') {
+      discount = Math.round((cartTotal * coupon.value) / 100);
+      if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+        discount = coupon.maxDiscount;
+      }
+    } else {
+      discount = coupon.value;
+    }
+
+    discount = Math.min(discount, cartTotal);
+
+    res.json({
+      success: true,
+      message: `Coupon "${coupon.code}" applied! Discount: ₹${discount}`,
+      data: {
+        code: coupon.code,
+        type: coupon.type,
+        value: coupon.value,
+        discount,
+        usageType: coupon.usageType
+      }
+    });
+  } catch (err) {
+    sendError(res, err, 'Validate coupon');
+  }
+});
+
+// ============================================================
+// REFERRALS & REWARD POINTS MANAGEMENT
+// ============================================================
+
+app.get('/api/admin/referrals', requireAuth('admin'), async (req, res) => {
+  try {
+    const referrals = await db.getReferrals();
+    const ledgers = await db.getPointsLedgers();
+    const users = (await db.getUsers()).filter(u => u.role === 'farmer');
+    res.json({ success: true, data: { referrals, ledgers, users } });
+  } catch (err) {
+    sendError(res, err, 'Get referrals');
+  }
+});
+
+app.post('/api/admin/referrals/assign-points', requireAuth('admin'), async (req, res) => {
+  try {
+    const { userId, points, description } = req.body;
+    if (!userId || points === undefined) {
+      return res.status(400).json({ success: false, message: 'User ID and points amount are required.' });
+    }
+    const result = await db.assignCustomerPoints(userId, points, description);
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'Customer account not found.' });
+    }
+    res.json({ success: true, message: `Updated points balance to ${result.newPoints} points!`, data: result });
+  } catch (err) {
+    sendError(res, err, 'Assign points');
+  }
+});
+
 // ============================================================
 // INVENTORY / STAFF TASKS
 // ============================================================
@@ -2124,14 +2378,54 @@ app.get('/api/staff-tasks', requireAuth('admin', 'employee'), async (req, res) =
 
 app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, res) => {
   try {
-    const { customerName, customerPhone, discountAmount = 0, paymentMode } = req.body || {};
+    const { customerName, customerPhone, discountAmount = 0, couponCode = '', paymentMode } = req.body || {};
     const items = Array.isArray(req.body?.items) ? req.body.items.slice(0, 200) : [];
 
-    const subtotal = items.reduce((sum, item) => sum + Math.max(0, Number(item.price) || 0) * Math.max(0, Number(item.qty) || 0), 0);
-    const taxableAmount = Math.max(0, subtotal - Math.max(0, Number(discountAmount) || 0));
-    const cgst = +(taxableAmount * 0.09).toFixed(2);
-    const sgst = +(taxableAmount * 0.09).toFixed(2);
-    const totalGst = +(cgst + sgst).toFixed(2);
+    // Calculate itemized totals & taxes
+    let subtotal = 0;
+    let totalCgst = 0;
+    let totalSgst = 0;
+    let totalIgst = 0;
+
+    const enrichedItems = items.map(item => {
+      const qty = Math.max(1, Number(item.qty) || 1);
+      const price = Math.max(0, Number(item.price) || 0);
+      const lineTotal = price * qty;
+      subtotal += lineTotal;
+
+      const gstRate = Number(item.gstRate ?? item.gst) || 18;
+      const cgstRate = Number(item.cgstRate) || +(gstRate / 2).toFixed(2);
+      const sgstRate = Number(item.sgstRate) || +(gstRate / 2).toFixed(2);
+      const igstRate = Number(item.igstRate) || gstRate;
+
+      // Calculate line tax (assuming tax is calculated on taxable line total after proportional discount)
+      const lineCgst = +(lineTotal * (cgstRate / 100)).toFixed(2);
+      const lineSgst = +(lineTotal * (sgstRate / 100)).toFixed(2);
+      const lineIgst = +(lineTotal * (igstRate / 100)).toFixed(2);
+
+      totalCgst += lineCgst;
+      totalSgst += lineSgst;
+      totalIgst += lineIgst;
+
+      return {
+        id: item.id,
+        name: item.name || item.productName || 'Product',
+        hsnCode: item.hsnCode || item.hsn || '380899',
+        price,
+        qty,
+        gstRate,
+        cgstRate,
+        sgstRate,
+        igstRate,
+        lineTotal,
+        lineCgst,
+        lineSgst
+      };
+    });
+
+    const discAmt = Math.max(0, Number(discountAmount) || 0);
+    const taxableAmount = Math.max(0, subtotal - discAmt);
+    const totalGst = +(totalCgst + totalSgst).toFixed(2);
     const grandTotal = +(taxableAmount + totalGst).toFixed(2);
 
     const invoice = {
@@ -2139,10 +2433,14 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
       date: new Date().toISOString(),
       customerName: cleanText(customerName, 80) || 'Walk-in Customer',
       customerPhone: cleanText(customerPhone, 15),
-      items,
-      subtotal,
-      discountAmount: Math.max(0, Number(discountAmount) || 0),
-      taxableAmount,
+      items: enrichedItems,
+      subtotal: +subtotal.toFixed(2),
+      discountAmount: discAmt,
+      couponCode: cleanText(couponCode, 50).toUpperCase(),
+      taxableAmount: +taxableAmount.toFixed(2),
+      cgst: +totalCgst.toFixed(2),
+      sgst: +totalSgst.toFixed(2),
+      igst: +totalIgst.toFixed(2),
       totalGst,
       grandTotal,
       paymentMode: cleanText(paymentMode, 30) || 'Cash',

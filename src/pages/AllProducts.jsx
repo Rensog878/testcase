@@ -518,23 +518,46 @@ export default function AllProducts() {
     }
   }
 
-  // Get active size info for a product
+  const packUnits = pack => {
+    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
+    if (!match) return 1
+    const value = Number(match[1])
+    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
+  }
+
+  // Get active size info for a product with custom pack prices
   const getProductActiveSize = (product) => {
-    const rawSizes = Array.isArray(product.sizes) && product.sizes.length > 0
-      ? product.sizes
-      : (Array.isArray(product.packSizes) && product.packSizes.length > 0 
-          ? product.packSizes.map(s => ({ size: typeof s === 'object' ? s.size : s, price: product.price, originalPrice: product.originalPrice || product.price })) 
-          : [{ size: product.selectedPack || 'Standard', price: product.price, originalPrice: product.originalPrice || product.price }])
+    const packSizes = Array.isArray(product.packSizes) && product.packSizes.length > 0
+      ? product.packSizes.map(s => typeof s === 'object' ? s.size : s)
+      : (Array.isArray(product.sizes) ? product.sizes.map(s => typeof s === 'object' ? s.size : s) : [product.selectedPack || 'Standard'])
     
-    const selectedSizeName = selectedSizes[product.id] || product.selectedSize || product.selectedPack || (typeof rawSizes[0] === 'object' ? rawSizes[0]?.size : rawSizes[0]) || 'Standard'
-    const match = rawSizes.find(s => (typeof s === 'object' ? s.size : s) === selectedSizeName)
-    const price = typeof match === 'object' && match?.price !== undefined ? match.price : product.price
-    const orig = typeof match === 'object' && match?.originalPrice !== undefined ? match.originalPrice : (product.originalPrice || product.price)
+    const selectedSizeName = selectedSizes[product.id] || product.selectedSize || product.selectedPack || packSizes[0] || 'Standard'
+    
+    let price = product.packagePrices?.[selectedSizeName] || product.packPrices?.[selectedSizeName]
+    let orig = product.packageMrps?.[selectedSizeName] || product.packMrps?.[selectedSizeName]
+    
+    if (price === undefined) {
+      const basePack = product.selectedPack || packSizes[0]
+      if (basePack && selectedSizeName && packUnits(basePack) > 0) {
+        price = Math.round(Number(product.price || 0) * (packUnits(selectedSizeName) / packUnits(basePack)))
+      } else {
+        price = Number(product.price || 0)
+      }
+    }
+    if (orig === undefined) {
+      const basePrice = Number(product.price || 1)
+      const baseOrig = Number(product.originalPrice || product.mrp || product.price)
+      orig = baseOrig ? Math.round(baseOrig * (price / basePrice)) : price
+    }
+
+    const finalPrice = Number(price) || 0
+    const finalOrig = Number(orig) || 0
+    
     return {
       size: selectedSizeName,
-      price: Number(price) || 0,
-      originalPrice: orig > price ? Number(orig) : null,
-      save: orig > price ? orig - price : 0
+      price: finalPrice,
+      originalPrice: finalOrig > finalPrice ? finalOrig : null,
+      save: finalOrig > finalPrice ? finalOrig - finalPrice : 0
     }
   }
 

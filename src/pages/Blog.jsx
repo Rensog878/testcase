@@ -1,10 +1,3 @@
-import ComingSoon from '../components/ComingSoon'
-
-// Community Blogs is Phase 3 work — not part of this presentation build.
-// Real implementation kept below, commented out, to restore later.
-// Note: admin blog management (/admin/blogs) is untouched.
-
-/*
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Search, Calendar, User, Clock, ArrowRight } from 'lucide-react'
@@ -55,9 +48,9 @@ export default function Blog() {
       <header className="sb-blog-hero">
         <span className="sb-blog-badge">
           <BookOpen size={14} aria-hidden="true" />
-          <span>SATHYAM BIO AGRONOMY & RESEARCH BLOG</span>
+          <span>SATHYAM BIO AGRONOMY &amp; RESEARCH BLOG</span>
         </span>
-        <h1>Farmer Guides, Crop Care & Bio Insights</h1>
+        <h1>Farmer Guides, Crop Care &amp; Bio Insights</h1>
         <p>Scientific pest management advisories, bio-fungicide guides, and seasonal farm strategies written by our certified agronomy experts.</p>
         <div className="sb-blog-search">
           <Search size={18} aria-hidden="true" />
@@ -152,15 +145,6 @@ export default function Blog() {
           })}
         </div>
       )}
-    </div>
-  )
-}
-*/
-
-export default function Blog() {
-  return (
-    <div className="sb-blog animate-fade-in">
-      <ComingSoon title="Blog — coming soon" message="Farmer guides, crop care and bio insights will be published here soon." />
     </div>
   )
 }

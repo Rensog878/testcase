@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
 import { matchesCrop, matchesCategory, matchesDisease, topSelling } from '../../utils/catalogUtils'
@@ -31,6 +31,39 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   const { addToCart, openProductPage } = useStore()
   const catalog = variant === 'catalog'
 
+  const packs = Array.isArray(p.packSizes) && p.packSizes.length
+    ? p.packSizes.map(s => typeof s === 'object' ? s.size : s)
+    : catalog ? DEFAULT_PACKS : []
+  const [selectedPack, setSelectedPack] = useState(p.selectedPack || packs[0] || '')
+
+  const packUnits = pack => {
+    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
+    if (!match) return 1
+    const value = Number(match[1])
+    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
+  }
+
+  const getPackPrice = pack => {
+    let price = p.packagePrices?.[pack] || p.packPrices?.[pack]
+    if (price !== undefined) return Number(price)
+    const basePack = p.selectedPack || packs[0]
+    if (basePack && pack && packUnits(basePack) > 0) {
+      return Math.round(Number(p.price || 0) * (packUnits(pack) / packUnits(basePack)))
+    }
+    return Number(p.price || 0)
+  }
+
+  const getPackMrp = (pack, packPrice) => {
+    let mrp = p.packageMrps?.[pack] || p.packMrps?.[pack]
+    if (mrp !== undefined) return Number(mrp)
+    const basePrice = Number(p.price || 1)
+    const baseMrp = Number(p.originalPrice || p.mrp || p.price)
+    return baseMrp ? Math.round(baseMrp * (packPrice / basePrice)) : packPrice
+  }
+
+  const currentPrice = getPackPrice(selectedPack)
+  const currentMrp = getPackMrp(selectedPack, currentPrice)
+
   let personalBadge = null
   if (catalog && user) {
     if (p.targetUserId === user.id) {
@@ -49,7 +82,6 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   }
 
   const hasReviews = catalog ? p.reviewsEnabled && p.reviewsCount > 0 : p.reviewsEnabled && p.reviewsCount
-  const packs = Array.isArray(p.packSizes) && p.packSizes.length ? p.packSizes : catalog ? DEFAULT_PACKS : []
 
   // The whole card opens the product page. Clicks that start on a control
   // inside the card (add to cart, the view button, pack chips) keep their own
@@ -91,16 +123,28 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
           : <div className="rating-row" style={{ color: 'var(--text-muted)' }}>No verified reviews yet</div>}
 
         <div className="price-row">
-          <span className="current-price">₹{p.price}</span>
-          <span className="original-price">₹{catalog ? p.originalPrice || p.mrp || p.price : p.originalPrice}</span>
+          <span className="current-price">₹{currentPrice.toLocaleString()}</span>
+          {currentMrp > currentPrice && <span className="original-price">₹{currentMrp.toLocaleString()}</span>}
         </div>
 
         <div className="pack-sizes-row">
-          {packs.map((pack, idx) => <span key={`${pack}-${idx}`} className={`pack-chip ${idx === 0 ? 'active' : ''}`}>{pack}</span>)}
+          {packs.map((pack, idx) => (
+            <span
+              key={`${pack}-${idx}`}
+              className={`pack-chip ${selectedPack === pack ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setSelectedPack(pack)
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              {pack}
+            </span>
+          ))}
         </div>
 
         <div className="card-btn-row">
-          <button className={`btn btn-primary ${catalog ? 'add-to-cart-btn' : 'trending-add-btn'}`} data-id={p.id} style={{ flex: 1 }} onClick={() => addToCart(p.id)}>
+          <button className={`btn btn-primary ${catalog ? 'add-to-cart-btn' : 'trending-add-btn'}`} data-id={p.id} style={{ flex: 1 }} onClick={() => addToCart(p.id, selectedPack)}>
             <i className="fa-solid fa-cart-shopping"></i> {t('add_to_cart')}
           </button>
           <button className={`btn btn-outline ${catalog ? 'view-details-btn' : 'trending-view-btn'}`} data-id={p.id} onClick={() => openProductPage(p.id)} aria-label={`View ${p.name}`}>

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useCms } from '../../context/CmsContext'
@@ -29,7 +29,17 @@ export default function Navigation() {
   const { openBasket, showAccount } = useCheckoutActions()
   const navigate = useNavigate()
 
-  const [searchText, setSearchText] = useState('')
+  const location = useLocation()
+  // This box and the catalogue's own search box are one filter with two faces,
+  // so the URL is what both show. Without this the term typed up here stayed
+  // behind after the catalogue cleared it - a category tile replacing it, or
+  // the shopper emptying the box down there - and kept sitting in the header
+  // looking like it was still narrowing the results.
+  const urlSearch = location.pathname === '/products'
+    ? (new URLSearchParams(location.search).get('search') || '')
+    : ''
+  const [searchText, setSearchText] = useState(urlSearch)
+  useEffect(() => { setSearchText(urlSearch) }, [urlSearch])
   const [openMenu, setOpenMenu] = useState(null)
 
   const goProducts = params => {

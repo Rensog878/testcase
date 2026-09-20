@@ -424,13 +424,12 @@ export default function AllProducts() {
   // Typing a search starts a fresh view, exactly like picking a browse tile:
   // a category, crop, pest or nutrient left over from browsing is dropped, so
   // the search never lands on an empty grid because of a filter the shopper
-  // had stopped thinking about. The URL is the one source of truth, so once
-  // anything is in it the box is kept in step there - replacing the history
-  // entry, so typing never fills the back button.
+  // had stopped thinking about. The query always goes into the URL - it is the
+  // one source of truth the chips, the grid, a refresh and the header's own
+  // search box all read - replacing the history entry, so typing never fills
+  // the back button.
   const handleSearchChange = (value) => {
     setSearchQuery(value)
-    const browsing = Boolean(activeCategory || activeCrop || activeDisease || activeNutrient)
-    if (!browsing && !searchParams.has('search')) return
     const next = new URLSearchParams()
     if (value) next.set('search', value)
     setSearchParams(next, { replace: true })

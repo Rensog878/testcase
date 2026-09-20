@@ -73,6 +73,15 @@ try {
 } catch (err) {
   console.warn(`Uploads directory unavailable (${UPLOADS_DIR}): ${err.message}. File uploads are disabled; everything else is unaffected.`);
 }
+// Said at module load, not inside app.listen: on a serverless host listen()
+// never runs, which is exactly where this warning matters most.
+if (!uploadsDiskReady) {
+  console.warn(`⚠️  uploads are OFF — ${UPLOADS_DIR} could not be created`);
+} else if (process.env.VERCEL) {
+  console.warn(`⚠️  uploads go to ${UPLOADS_DIR}, which this host WIPES between cold starts — uploaded files will not survive. Point UPLOADS_DIR at a real disk, or use file URLs.`);
+} else {
+  console.log(`📁 uploads → ${UPLOADS_DIR}`);
+}
 app.use('/uploads', express.static(UPLOADS_DIR, {
   maxAge: '1y',
   immutable: true,

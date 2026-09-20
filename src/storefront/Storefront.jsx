@@ -19,7 +19,8 @@ import { DealBanner, Hero, StatsStrip, TrustStrip } from './sections/Hero'
 import { CategoryGrid, Certifications, CropGrid } from './sections/ShopGrids'
 import { Catalog, Trending } from './sections/Catalog'
 import { Newsletter, Testimonials } from './sections/Community'
-import Footer from './sections/Footer'
+// The one footer, shared with every other store page.
+import Footer from '../components/home/Footer'
 import BackToTop from './sections/BackToTop'
 import PhotoScannerModal from './sections/PhotoScannerModal'
 import Chatbot from './sections/Chatbot'
@@ -414,12 +415,17 @@ export default function Storefront() {
         <Testimonials cms={cms} />
         <Newsletter cms={cms} />
         <Certifications settings={cms} />
-        <Footer t={t} cms={cms} />
         <BackToTop />
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />
         <Chatbot t={t} />
         <WelcomePoster state={modals.welcomePosterModal} cms={cms} />
       </div>
+      {/* Outside .sb-home on purpose. The footer's styles live in index.css,
+          which is inside @layer app, so anything unlayered in storefront.css
+          beats them: rendered inside the store scope, the shared footer came
+          out as unstyled bullet lists on a white background. Every other page
+          mounts it outside the scope too (layouts/StoreLayout.jsx). */}
+      <Footer />
     </StoreContext.Provider>
   )
 }

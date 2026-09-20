@@ -3,11 +3,19 @@ import { Link } from 'react-router-dom'
 import FooterColumn from '../FooterColumn'
 import { socialLinksFrom } from '../../shared/socialLinks'
 import { useCms } from '../../context/CmsContext'
+import { cmsText } from '../../hooks/useCmsSettings'
 
-// The store pages' footer (Blog, product pages, and Shop and Categories on
-// wider screens). Phones get the home page footer's layout: brand on top, the
-// link groups as tap-to-open rows, a centred bottom row. Styles: index.css,
-// .public-site-footer.
+// THE footer. One copy, on every store page including the home page.
+//
+// There used to be two - this one and storefront/sections/Footer.jsx - built
+// from different markup, and they had drifted: they showed different phone
+// numbers and different addresses, so the shop gave two answers depending on
+// which page a farmer happened to be reading. This one keeps its markup and
+// takes over the other's CMS wiring, so the contact details an admin types
+// appear everywhere.
+//
+// Phones get the brand on top, the link groups as tap-to-open rows and a
+// centred bottom row. Styles: index.css, .public-site-footer.
 
 const ICONS = { WhatsApp: MessageCircle, Facebook, YouTube: Youtube, Instagram }
 
@@ -30,6 +38,12 @@ function SocialLinks({ className }) {
 }
 
 export default function Footer() {
+  const { cms } = useCms()
+  const brandLine = cmsText(cms, 'footerBrand', "India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.")
+  const brandMore = cmsText(cms, 'footerBrandMore', 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.')
+  const phone = cmsText(cms, 'phone', '1800-425-9999')
+  const email = cmsText(cms, 'email', 'support@sathyabio.com')
+  const address = cmsText(cms, 'address', 'Sathyam Agro Mart, Hyderabad, India')
   return (
     <footer className="public-site-footer">
       {/* Main Footer */}
@@ -37,12 +51,8 @@ export default function Footer() {
         {/* Brand */}
         <div className="public-footer-brand">
           <h3>SATHYAM <span>AGRO MART</span></h3>
-          <p>
-            India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.
-          </p>
-          <p className="public-footer-brand-more">
-            Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.
-          </p>
+          <p>{brandLine}</p>
+          <p className="public-footer-brand-more">{brandMore}</p>
           <SocialLinks className="public-footer-brand-social" />
         </div>
 
@@ -72,21 +82,21 @@ export default function Footer() {
               <Phone size={16} aria-hidden="true" />
               <div>
                 <p className="public-footer-contact-label">Toll Free</p>
-                <p>1800-425-9999</p>
+                <p>{phone}</p>
               </div>
             </li>
             <li>
               <Mail size={16} aria-hidden="true" />
               <div>
                 <p className="public-footer-contact-label">Email</p>
-                <p>support@sathyabio.com</p>
+                <p>{email}</p>
               </div>
             </li>
             <li>
               <MapPin size={16} aria-hidden="true" />
               <div>
                 <p className="public-footer-contact-label">Address</p>
-                <p>Sathyam Agro Mart<br />Hyderabad, India</p>
+                <p>{address}</p>
               </div>
             </li>
           </ul>

@@ -97,8 +97,7 @@ export default function Navigation() {
           <Link to="/" className="logo-box">
             <div className="logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
             <div>
-              <div className="logo-text">SATHYAM <span>AGRO MART</span></div>
-              <span className="logo-sub">From our farms to your home</span>
+              <div className="logo-text has-brand-wordmark"><img className="brand-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" /></div>
             </div>
           </Link>
 
@@ -212,6 +211,11 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
+      {/* A second, smaller header: it hangs just below the main one and
+          travels with it while the page scrolls. */}
+      <div className="header-slogan header-slogan--store" aria-hidden="true">
+        <span className="header-slogan-text">From our farms to your home</span>
+      </div>
       </div>
     </div>
   )

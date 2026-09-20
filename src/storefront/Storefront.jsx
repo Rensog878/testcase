@@ -397,6 +397,11 @@ export default function Storefront() {
         <div className="sb-header-shell">
           <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} />
           <NavBar t={t} />
+          {/* A second, smaller header: hangs below the main one and travels
+              with it while the page scrolls. */}
+          <div className="header-slogan header-slogan--store" aria-hidden="true">
+            <span className="header-slogan-text" data-i18n="logo_sub">{t('logo_sub')}</span>
+          </div>
         </div>
         <Hero t={t} cms={cms} />
         <DealBanner cms={cms} />

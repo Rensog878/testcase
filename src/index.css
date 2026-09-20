@@ -6647,6 +6647,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
    responsive.css), on every React store page (components/home/StoreHeader).
    ========================================================================== */
 .sb-store-head {
+  overflow: visible;
   display: none;
 }
 
@@ -6656,7 +6657,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
     position: sticky;
     top: 0;
     z-index: 1000;
-    padding: 8px 12px;
+    padding: 8px 12px 10px;
     background: #ffffff;
     border-bottom: 1px solid rgba(16, 185, 129, 0.15);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
@@ -12523,4 +12524,122 @@ input[type='password']::-ms-clear {
   font-size: 0.95rem;
   letter-spacing: -0.2px;
   white-space: nowrap;
+}
+
+/* ------------------------------------------------------------
+   HEADER LOCKUP (phone store header)
+   Same stack as the desktop header and the logo itself: SATHYAM, AGRO MART
+   beneath it in leaf green, then the tagline.
+   ------------------------------------------------------------ */
+.sb-store-logo-text {
+  font-size: 1.12rem;
+  line-height: 1.04;
+  letter-spacing: -0.2px;
+}
+.sb-store-logo-text span {
+  display: block;
+  font-size: 0.62em;
+  line-height: 1.1;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+}
+/* Kept inside the wordmark's width, as in the logo. */
+.sb-store-logo-sub {
+  font-size: 0.47rem;
+  letter-spacing: 0.04em;
+}
+
+/* Phone store header: the wordmark artwork, with the translated tagline
+   under it. See the note in storefront.css. */
+.sb-store-logo-text.has-brand-wordmark {
+  display: block;
+  line-height: 0;
+}
+.brand-wordmark {
+  display: block;
+  height: 28px;
+  width: auto;
+  max-width: 100%;
+}
+/* ------------------------------------------------------------
+   HEADER SLOGAN
+   "From our farms to your home" runs along the foot of the header, centred
+   under everything, the way it sits under the wordmark in the logo. It eases
+   in once on arrival - rising a few pixels while its letter-spacing opens out
+   - and then a slow highlight passes across it every so often. Both are small
+   on purpose: this is a line a farmer reads past, not an advert.
+   ------------------------------------------------------------ */
+/* Two copies exist - one under the shared phone chrome, one under the store
+   header - because they are separate headers. Each shows only at the width
+   where its own header does, so a page never shows the slogan twice. */
+/* Both classes, so this outranks the base .header-slogan rule below it
+   whichever order they end up in. */
+.header-slogan.header-slogan--chrome {
+  display: none;
+}
+@media (max-width: 767px) {
+  .header-slogan.header-slogan--chrome {
+    display: flex;
+    position: static;
+    transform: none;
+    margin: 9px auto 0;
+    max-width: calc(100% - 24px);
+  }
+}
+.header-slogan {
+  /* Hung below the header it belongs to, not placed in the page: absolute
+     inside the pinned header, so it travels with it while the page scrolls
+     and reads as a small second header floating under the main one. It takes
+     no space in the flow and lets clicks through to whatever is behind. */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -37px; /* clear of the header, not lapping over it */
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: calc(100% - 24px);
+  pointer-events: none;
+  /* The pill itself. This cannot live on the text, because the text
+     uses background-clip: text for its highlight - which would clip
+     this white away to the shape of the letters. */
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 6px 18px rgba(11, 61, 32, 0.14);
+}
+.header-slogan-text {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #4a5d53;
+  background-image: linear-gradient(100deg, #4a5d53 0%, #4a5d53 38%, #309315 50%, #4a5d53 62%, #4a5d53 100%);
+  background-size: 300% 100%;
+  background-position: 120% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: sloganIn 900ms cubic-bezier(0.22, 1, 0.36, 1) both,
+             sloganSheen 9s ease-in-out 1.6s infinite;
+}
+@keyframes sloganIn {
+  from { opacity: 0; transform: translateY(-5px); letter-spacing: 0.08em; }
+  to   { opacity: 1; transform: none;             letter-spacing: 0.22em; }
+}
+@keyframes sloganSheen {
+  0%, 72%  { background-position: 120% 0; }
+  92%, 100% { background-position: -20% 0; }
+}
+/* Nobody needs the shimmer to read the line. */
+@media (prefers-reduced-motion: reduce) {
+  .header-slogan-text {
+    animation: none;
+    background-image: none;
+  }
 }

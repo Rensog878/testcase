@@ -64,8 +64,7 @@ export default function StoreHeader() {
         <TransitionLink to="/" className="sb-store-logo">
           <span className="sb-store-logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></span>
           <span className="sb-store-logo-words">
-            <span className="sb-store-logo-text">SATHYAM <span>AGRO MART</span></span>
-            <span className="sb-store-logo-sub">From our farms to your home</span>
+            <span className="sb-store-logo-text has-brand-wordmark"><img className="brand-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" /></span>
           </span>
         </TransitionLink>
 
@@ -93,6 +92,13 @@ export default function StoreHeader() {
           </a>
         </div>
       </div>
+
+      {/* A second, smaller header: hangs below this one and stays pinned with
+          it while the page scrolls. */}
+      <div className="header-slogan header-slogan--chrome" aria-hidden="true">
+        <span className="header-slogan-text">From our farms to your home</span>
+      </div>
+
 
       {menuOpen && (
         <>

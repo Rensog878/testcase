@@ -95,8 +95,8 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
         <a href="#" className="logo-box">
           <div className="logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
           <div>
-            <div className="logo-text">SATHYAM <span>AGRO MART</span></div>
-            <span className="logo-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
+            <div className="logo-text has-brand-wordmark"><img className="brand-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" /></div>
+
           </div>
         </a>
 

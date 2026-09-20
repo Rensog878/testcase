@@ -4438,6 +4438,7 @@ body.sb-home-active {
   @media (max-width: 767px) {
     :is(body.sb-home-active .sb-home, .sb-portal) .ticker-wrap,
     :is(body.sb-home-active .sb-home, .sb-portal) .header-main .logo-box,
+    :is(body.sb-home-active .sb-home, .sb-portal) .header-slogan--store,
     :is(body.sb-home-active .sb-home, .sb-portal) .header-main .header-actions {
       display: none !important;
     }
@@ -8904,6 +8905,13 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-search { order: 3; }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .nav-actions { order: 4; }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-actions { order: 5; }
+  /* The slogan belongs UNDER everything, centred across the card. The header
+     row is one flex line and must stay one line - letting it wrap threw the
+     account and basket onto a second row - so the slogan is taken out of the
+     flow and laid along the bottom of the shell, which is the card at this
+     width. The shell gains the height the strip needs. */
+  /* The slogan is no longer inside the card, so the shell keeps its own
+     height; the pill floats under it. */
 
   /* ---- brand ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .logo-box {
@@ -10306,5 +10314,98 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #welcomePosterModal .welcome-poster-brand span {
     display: block;
+  }
+}
+
+/* ------------------------------------------------------------
+   HEADER LOCKUP (store pages)
+   The logo stacks SATHYAM over AGRO MART over the tagline, so the header
+   does the same instead of running the name across one line. The emblem sits
+   beside that block, and the three lines together come to about its height -
+   the proportion a horizontal lockup wants. AGRO MART is set smaller and
+   letter-spaced, as it is in the artwork.
+   ------------------------------------------------------------ */
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-text {
+  font-size: 1.25rem;
+  line-height: 1.04;
+  letter-spacing: -0.2px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-text span {
+  display: block;
+  font-size: 0.62em;
+  line-height: 1.1;
+  letter-spacing: 0.17em;
+  font-weight: 700;
+}
+/* In the logo the tagline is narrower than AGRO MART. Sized so it sits
+   inside the wordmark's width instead of sticking out past it. */
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-sub {
+  font-size: 0.53rem;
+  letter-spacing: 0.055em;
+  margin-top: 3px;
+}
+
+/* The wordmark is the artwork itself now, not type we set to look like it:
+   the serif SATHYAM, the rules either side of AGRO MART and the leaf inside
+   its O are all part of the logo, and no web font reproduces them. The
+   tagline underneath stays live text, because it is translated. */
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-text.has-brand-wordmark {
+  display: block;
+  line-height: 0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .brand-wordmark {
+  display: block;
+  height: 34px;
+  width: auto;
+  max-width: 100%;
+}
+/* The store's own header carries the same slogan strip; these rules give it
+   the store's spacing without repeating the animation, which index.css
+   defines once for both. */
+:is(body.sb-home-active .sb-home, .sb-portal) .header-slogan {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -37px; /* clear of the header, not lapping over it */
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  max-width: calc(100% - 32px);
+  pointer-events: none;
+  /* The pill itself - see the note in index.css: it cannot sit on the
+     text, whose highlight clips its background to the letters. */
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 6px 18px rgba(11, 61, 32, 0.14);
+}
+
+/* The slogan's own type, here rather than in index.css: index.css is inside
+   @layer app, so on store pages these declarations lost to the unlayered
+   rules around them and the line came out in sentence case at body size.
+   Same wording, same animation names as the app-side copy. */
+:is(body.sb-home-active .sb-home, .sb-portal) .header-slogan-text {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #4a5d53;
+  background-image: linear-gradient(100deg, #4a5d53 0%, #4a5d53 38%, #309315 50%, #4a5d53 62%, #4a5d53 100%);
+  background-size: 300% 100%;
+  background-position: 120% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: sloganIn 900ms cubic-bezier(0.22, 1, 0.36, 1) both,
+             sloganSheen 9s ease-in-out 1.6s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-slogan-text {
+    animation: none;
+    background-image: none;
   }
 }

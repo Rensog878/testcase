@@ -197,6 +197,9 @@ function normalizeProduct(product) {
           relatedBlogs: Array.isArray(product.relatedBlogs) ? product.relatedBlogs : [],
           relatedProductIds: Array.isArray(product.relatedProductIds) ? product.relatedProductIds : [],
           reviewsEnabled: product.reviewsEnabled === true,
+          // How many units have ever been sold, which is what the trending
+          // rows rank by. Products from before this existed read as 0.
+          unitsSold: Math.max(0, Number(product.unitsSold) || 0),
           reviews,
           rating: reviews.length
             ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length
@@ -1158,6 +1161,7 @@ class DatabaseManager {
         originalPrice: mrp,
         discount: prodData.discount || `${discountPct}% OFF`,
         stock: Number(prodData.stock) || 0,
+        unitsSold: 0, // a new product has sold nothing; only reserveStock moves this
         crops: Array.isArray(prodData.crops)
           ? prodData.crops
           : typeof prodData.crops === 'string'
@@ -1279,6 +1283,12 @@ class DatabaseManager {
                         updates.reviewsEnabled !== undefined ? updates.reviewsEnabled === true : existing.reviewsEnabled,
               rating: null,
               reviewsCount: Array.isArray(existing.reviews) ? existing.reviews.length : 0,
+              // Sales belong to the shop, not to whoever is editing the form.
+              // The admin page round-trips the product it last read, so without
+              // this an edit would quietly put the count back to what it was
+              // when the form was opened - or to 0 for a product loaded before
+              // the counts existed. Only reserveStock/releaseStock move it.
+              unitsSold: Math.max(0, Number(existing.unitsSold) || 0),
               updatedAt: new Date().toISOString()
       };
 
@@ -1372,9 +1382,11 @@ class DatabaseManager {
         await connectDB();
         const taken = [];
         for (const line of lines) {
+            // One update: the stock leaves and the sale is counted together,
+            // so `unitsSold` can never drift from what was actually sold.
             const result = await Product.updateOne(
                 { _id: line.id, stock: { $gte: line.qty } },
-                { $inc: { stock: -line.qty }, $set: { updatedAt: new Date().toISOString() } }
+                { $inc: { stock: -line.qty, unitsSold: line.qty }, $set: { updatedAt: new Date().toISOString() } }
             );
             if (!result.modifiedCount) {
                 await this.releaseStock(taken);
@@ -1389,7 +1401,9 @@ class DatabaseManager {
   async releaseStock(lines) {
         await connectDB();
         for (const line of lines) {
-            await Product.updateOne({ _id: line.id }, { $inc: { stock: line.qty } });
+            // Reverses reserveStock exactly: an order that never happened is
+            // not a sale.
+            await Product.updateOne({ _id: line.id }, { $inc: { stock: line.qty, unitsSold: -line.qty } });
         }
         invalidateProductCache();
   }

@@ -4,7 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cropHandle, dedupeCropLabels, isSameCrop, matchesCrop } from '../../utils/catalogUtils.js';
+import { cropHandle, dedupeCropLabels, isSameCrop, matchesCrop, topSelling } from '../../utils/catalogUtils.js';
 
 test('the same crop spelled two ways is offered once, under its fuller name', () => {
   assert.deepEqual(dedupeCropLabels(['Corn / Maize', 'Corn']), ['Corn / Maize']);
@@ -54,4 +54,38 @@ test('crops that are merely related stay apart', () => {
 test('the synonyms reach the filter lists too', () => {
   assert.equal(isSameCrop('Corn / Maize', 'Maize'), true);
   assert.deepEqual(dedupeCropLabels(['Maize', 'Corn / Maize']), ['Corn / Maize']);
+});
+
+test('best sellers come back most sold first', () => {
+  const products = [
+    { id: 'a', unitsSold: 4 },
+    { id: 'b', unitsSold: 91 },
+    { id: 'c', unitsSold: 0 },
+    { id: 'd', unitsSold: 37 },
+  ];
+  assert.deepEqual(topSelling(products, 3).map(p => p.id), ['b', 'd', 'a']);
+});
+
+test('ties are broken by rating, then reviews, so the order never wobbles', () => {
+  const products = [
+    { id: 'a', unitsSold: 10, rating: 4.1, reviewsCount: 90 },
+    { id: 'b', unitsSold: 10, rating: 4.9, reviewsCount: 2 },
+    { id: 'c', unitsSold: 10, rating: 4.1, reviewsCount: 300 },
+  ];
+  assert.deepEqual(topSelling(products, 3).map(p => p.id), ['b', 'c', 'a']);
+});
+
+test('before the shop has sold anything the caller keeps its own rule', () => {
+  assert.equal(topSelling([{ id: 'a' }, { id: 'b', unitsSold: 0 }], 4), null);
+  assert.equal(topSelling([], 4), null);
+  assert.equal(topSelling(undefined, 4), null);
+});
+
+test('a broken or negative count never outranks a real one', () => {
+  const products = [
+    { id: 'junk', unitsSold: 'lots' },
+    { id: 'negative', unitsSold: -50 },
+    { id: 'real', unitsSold: 3 },
+  ];
+  assert.deepEqual(topSelling(products, 1).map(p => p.id), ['real']);
 });

@@ -8,7 +8,7 @@ import {
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
-import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop } from '../utils/catalogUtils'
+import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import axios from 'axios'
 import {
   SHOP_CATEGORIES,
@@ -19,6 +19,8 @@ import {
 
 // One screenful of catalogue cards. The grid grows by this as it is scrolled.
 const CATALOG_PAGE = 24
+// The numbered chart at the top of /products. "Best Selling" carries on from here.
+const TOP_PICKS = 10
 
 // One rule per filter, used both by the grid below and by the browse rails
 // above it, so a tile is shown exactly when tapping it would find something.
@@ -218,8 +220,10 @@ export default function AllProducts() {
     showToast(`Added ${product.name.slice(0, 24)}... (${currentSize}) to Basket! 🛒`)
   }
 
+  // "Top 10 Picks by Farmers" is now what farmers actually bought most, rather
+  // than the first ten products the database happened to return.
   const top10PicksList = useMemo(() => {
-    return dbProducts.slice(0, 10).map((p, idx) => ({
+    return (topSelling(dbProducts, TOP_PICKS) || dbProducts.slice(0, TOP_PICKS)).map((p, idx) => ({
       ...p,
       rank: idx + 1,
       rankBg: '#15803d',
@@ -248,14 +252,14 @@ export default function AllProducts() {
   // "Best Selling" rendered BEST_SELLING from src/data/allProductsData.js,
   // which is a fixed empty array - so the section has always been a heading,
   // a subtitle and a "View All" above an empty carousel, on every device. It
-  // shows the catalogue's own best sellers now, by the same rule the
-  // storefront's Trending row uses, and stands down when there are none.
+  // shows the catalogue's real best sellers now, most sold first - starting
+  // where the Top 10 chart above it stops, so the same product never appears
+  // twice on one page - and stands down when there are none left to show.
   // The card in that carousel reads prod.sizes, which a raw catalogue product
   // does not carry - the neighbouring rails all build it. Same shape here.
   const bestSellingList = useMemo(
-    () => dbProducts
-      .filter(p => p.badge === 'Best Seller' || p.badge === '100% Organic' || p.rating >= 4.8)
-      .slice(0, 8)
+    () => (topSelling(dbProducts, TOP_PICKS + 8)?.slice(TOP_PICKS)
+      || dbProducts.filter(p => p.badge === 'Best Seller' || p.badge === '100% Organic' || p.rating >= 4.8).slice(0, 8))
       .map(p => ({
         ...p,
         sizes: (Array.isArray(p.packSizes) && p.packSizes.length ? p.packSizes : ['Standard']).map(size => ({

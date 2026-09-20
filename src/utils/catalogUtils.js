@@ -185,3 +185,28 @@ export function dedupeCropLabels(crops) {
   }
   return kept
 }
+
+/**
+ * The best sellers, most sold first.
+ *
+ * `unitsSold` is kept on every product by the server: db.reserveStock raises it
+ * in the same atomic update that takes the stock, so it counts orders actually
+ * placed. Ties go to the better-rated product, then the more reviewed, so the
+ * order is stable rather than whatever the database happened to return.
+ *
+ * Returns null when nothing has sold yet - a new shop, or a catalogue loaded
+ * before the counts existed - so each row can fall back to the rule it used
+ * before instead of showing an arbitrary slice of the catalogue.
+ */
+export function topSelling(products, count) {
+  const list = Array.isArray(products) ? products : []
+  const sold = product => Math.max(0, Number(product?.unitsSold) || 0)
+  if (!list.some(product => sold(product) > 0)) return null
+  return [...list]
+    .sort((a, b) => (
+      sold(b) - sold(a)
+      || (Number(b?.rating) || 0) - (Number(a?.rating) || 0)
+      || (Number(b?.reviewsCount) || 0) - (Number(a?.reviewsCount) || 0)
+    ))
+    .slice(0, count)
+}

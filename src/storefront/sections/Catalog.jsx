@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
-import { matchesCrop, matchesCategory, matchesDisease } from '../../utils/catalogUtils'
+import { matchesCrop, matchesCategory, matchesDisease, topSelling } from '../../utils/catalogUtils'
 
 const MOBILE_CHIPS = [
   ['All', 'All'],
@@ -231,8 +231,12 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
 })
 
 export const Trending = memo(function Trending({ t, products, loading = false }) {
+  // What is actually selling, most sold first. Until the shop has taken an
+  // order the counts are all zero, and the badge/rating rule this row used
+  // before stands in.
   const trending = useMemo(
-    () => products.filter(p => p.badge === 'Best Seller' || p.badge === '100% Organic' || p.rating >= 4.8).slice(0, 4),
+    () => topSelling(products, 4)
+      || products.filter(p => p.badge === 'Best Seller' || p.badge === '100% Organic' || p.rating >= 4.8).slice(0, 4),
     [products],
   )
   return (

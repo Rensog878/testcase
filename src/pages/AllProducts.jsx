@@ -8,7 +8,7 @@ import {
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
-import { matchesCrop, matchesCategory, matchesDisease, normalizeCrop } from '../utils/catalogUtils'
+import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop } from '../utils/catalogUtils'
 import axios from 'axios'
 import { 
   SHOP_CATEGORIES, 
@@ -24,6 +24,31 @@ import {
 
 // One screenful of catalogue cards. The grid grows by this as it is scrolled.
 const CATALOG_PAGE = 24
+
+// One rule per filter, used both by the grid below and by the browse rails
+// above it, so a tile is shown exactly when tapping it would find something.
+// They were written out inside the grid's filter before; keeping one copy is
+// what stops a rail from offering a crop or a pest that leads to an empty page.
+const matchesCategoryFilter = (product, category) => (
+  matchesCategory(product.category, category)
+  || (category === 'Offers' && product.discount >= 20)
+  || (category === 'Urban Gardening' && (matchesCategory(product.category, 'Seeds') || matchesCategory(product.category, 'Crop Nutrition')))
+)
+const matchesCropFilter = (product, crop) => matchesCrop(product.crops, crop)
+const matchesDiseaseFilter = (product, disease) => (
+  matchesDisease(product.diseases, disease)
+  || product.name.toLowerCase().includes(String(disease).toLowerCase())
+)
+const matchesNutrientFilter = (product, nutrient) => {
+  const keywords = NUTRIENTS_LIST.find(n => n.name === nutrient)?.matchKeywords || []
+  if (keywords.length) {
+    const haystack = `${product.name} ${product.description || ''} ${product.category || ''}`.toLowerCase()
+    return keywords.some(k => haystack.includes(k))
+  }
+  return matchesCategory(product.category, 'Crop Nutrition')
+    || product.name.toLowerCase().includes('nutrient')
+    || product.name.toLowerCase().includes('humic')
+}
 
 export default function AllProducts() {
   const { user } = useAuth()
@@ -238,6 +263,16 @@ export default function AllProducts() {
   }, [dbProducts])
 
 
+  // A browse tile is only worth showing when it leads somewhere. The registry
+  // behind these lists (/api/catalog-options) is append-only and the built-in
+  // lists are fixed, so both carry crops and pests no product has any more -
+  // tapping one landed on "0 products" with nothing to explain it. Everything
+  // is offered until the catalogue has loaded, or the rails would pop in.
+  const hasProductFor = useMemo(() => {
+    if (!dbProducts.length) return () => true
+    return (value, matches) => dbProducts.some(product => matches(product, value))
+  }, [dbProducts])
+
   // Dynamic categories merging admin categories with default shop categories
   const dynamicCategories = useMemo(() => {
     const adminCats = catalogOptions?.categories || []
@@ -256,11 +291,14 @@ export default function AllProducts() {
       }))
 
     return [...SHOP_CATEGORIES, ...customAdminItems]
-  }, [catalogOptions?.categories])
+      .filter(cat => hasProductFor(cat.filterCategory, matchesCategoryFilter))
+  }, [catalogOptions?.categories, hasProductFor])
 
   // Dynamic crops merging admin-added crops with default list
   const dynamicCropsList = useMemo(() => {
-    const adminCrops = catalogOptions?.crops || []
+    // dedupeCropLabels first: the registry holds "Corn" beside "Corn / Maize"
+    // and "Paddy/Rice" beside "Paddy / Rice", which are one crop each.
+    const adminCrops = dedupeCropLabels(catalogOptions?.crops || [])
     const existing = new Set(CROPS_LIST.map(c => normalizeCrop(c.cropCode)))
     const customAdminItems = adminCrops
       .filter(crop => crop && crop !== 'all' && crop !== 'All Crops' && !existing.has(normalizeCrop(crop)))
@@ -271,8 +309,21 @@ export default function AllProducts() {
         image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&q=80',
         popularIssues: 'Crop Protection & Health'
       }))
-    return [...CROPS_LIST, ...customAdminItems]
-  }, [catalogOptions?.crops])
+    // Drop the tiles that lead nowhere FIRST, then keep one tile per crop: the
+    // built-in "Paddy" and the registry's "Paddy / Rice" are the same crop and
+    // select the same products, and the built-in tile - the one with a real
+    // picture and its common pests - is the one worth keeping. Order matters.
+    // The built-in Maize tile carries cropCode "Maize", which matches no
+    // product tagged "Corn", so deduping first let a dead tile swallow the
+    // live "Corn / Maize" and the crop disappeared from the rail altogether.
+    const live = [...CROPS_LIST, ...customAdminItems]
+      .filter(crop => hasProductFor(crop.cropCode, matchesCropFilter))
+    const merged = []
+    for (const crop of live) {
+      if (!merged.some(kept => isSameCrop(kept.cropCode, crop.cropCode))) merged.push(crop)
+    }
+    return merged
+  }, [catalogOptions?.crops, hasProductFor])
 
   // Dynamic pest/disease tiles merging admin-added diseases with the default list
   const dynamicDiseaseList = useMemo(() => {
@@ -288,7 +339,14 @@ export default function AllProducts() {
         cureCategory: ''
       }))
     return [...PESTS_AND_DISEASES, ...customAdminItems]
-  }, [catalogOptions?.diseases])
+      .filter(pest => hasProductFor(pest.matchValue, matchesDiseaseFilter))
+  }, [catalogOptions?.diseases, hasProductFor])
+
+  // The nutrient rail is a fixed list, and just as able to point at nothing.
+  const dynamicNutrientsList = useMemo(
+    () => NUTRIENTS_LIST.filter(nut => hasProductFor(nut.name, matchesNutrientFilter)),
+    [hasProductFor],
+  )
 
   // Filter and sort catalog
   // A filter change starts the grid again from the first screenful, otherwise
@@ -301,34 +359,19 @@ export default function AllProducts() {
     let list = [...dbProducts]
 
     if (activeCategory) {
-      list = list.filter(p => 
-        matchesCategory(p.category, activeCategory) ||
-        (activeCategory === 'Offers' && p.discount >= 20) ||
-        (activeCategory === 'Urban Gardening' && (matchesCategory(p.category, 'Seeds') || matchesCategory(p.category, 'Crop Nutrition')))
-      )
+      list = list.filter(p => matchesCategoryFilter(p, activeCategory))
     }
 
     if (activeCrop) {
-      list = list.filter(p => matchesCrop(p.crops, activeCrop))
+      list = list.filter(p => matchesCropFilter(p, activeCrop))
     }
 
     if (activeDisease) {
-      list = list.filter(p => 
-        matchesDisease(p.diseases, activeDisease) ||
-        p.name.toLowerCase().includes(activeDisease.toLowerCase())
-      )
+      list = list.filter(p => matchesDiseaseFilter(p, activeDisease))
     }
 
     if (activeNutrient) {
-      const nutrientDef = NUTRIENTS_LIST.find(n => n.name === activeNutrient)
-      const keywords = nutrientDef?.matchKeywords || []
-      list = list.filter(p => {
-        if (keywords.length) {
-          const haystack = `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase()
-          return keywords.some(k => haystack.includes(k))
-        }
-        return matchesCategory(p.category, 'Crop Nutrition') || p.name.toLowerCase().includes('nutrient') || p.name.toLowerCase().includes('humic')
-      })
+      list = list.filter(p => matchesNutrientFilter(p, activeNutrient))
     }
 
     if (searchQuery.trim()) {
@@ -551,46 +594,48 @@ export default function AllProducts() {
       <main className="shop-main-container">
 
         {/* 1. CATEGORIES CIRCULAR ROW (Matching Image 1 & Mobile Screenshot 1) */}
-        <section className="shop-section shop-categories-section">
-          <div className="section-header-row">
-            <h2 className="section-title">Categories</h2>
-            <Link to="/categories" className="view-all-link">View All</Link>
-          </div>
+        {dynamicCategories.length > 0 && (
+          <section className="shop-section shop-categories-section">
+            <div className="section-header-row">
+              <h2 className="section-title">Categories</h2>
+              <Link to="/categories" className="view-all-link">View All</Link>
+            </div>
 
-          <div className="categories-circular-grid">
-            {dynamicCategories.map(cat => {
-              const isSelected = activeCategory && cat.filterCategory && activeCategory.toLowerCase() === cat.filterCategory.toLowerCase()
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`category-circle-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => selectCategory(cat.filterCategory)}
-                >
-                  <div 
-                    className="category-circle-avatar" 
-                    style={{ backgroundColor: cat.bg, borderColor: cat.border }}
+            <div className="categories-circular-grid">
+              {dynamicCategories.map(cat => {
+                const isSelected = activeCategory && cat.filterCategory && activeCategory.toLowerCase() === cat.filterCategory.toLowerCase()
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`category-circle-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => selectCategory(cat.filterCategory)}
                   >
-                    {cat.iconText ? (
-                      <span className="category-percent-icon" style={{ color: cat.textColor }}>{cat.iconText}</span>
-                    ) : (
-                      <img 
-                        src={cat.image} 
-                        alt={cat.name} 
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.onerror = null
-                          e.target.src = 'https://media.bighaat.com/categories/Offers_icon.webp'
-                        }}
-                      />
-                    )}
-                  </div>
-                  <span className="category-circle-label">{cat.name}</span>
-                </button>
-              )
-            })}
-          </div>
-        </section>
+                    <div 
+                      className="category-circle-avatar" 
+                      style={{ backgroundColor: cat.bg, borderColor: cat.border }}
+                    >
+                      {cat.iconText ? (
+                        <span className="category-percent-icon" style={{ color: cat.textColor }}>{cat.iconText}</span>
+                      ) : (
+                        <img 
+                          src={cat.image} 
+                          alt={cat.name} 
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = 'https://media.bighaat.com/categories/Offers_icon.webp'
+                          }}
+                        />
+                      )}
+                    </div>
+                    <span className="category-circle-label">{cat.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* 2. TOP 10 PICKS BY FARMERS (Matching Image 2 & Mobile Screenshot 1) */}
         {top10PicksList.length > 0 && (
@@ -689,42 +734,44 @@ export default function AllProducts() {
         )}
 
         {/* 3. SHOP BY CROP 🌾 (Matching Image 3 & Mobile Screenshot 2) */}
-        <section className="shop-section shop-by-crop-section">
-          <div className="section-header-row">
-            <div>
-              <h2 className="section-title">Shop By Crop 🌾</h2>
-              <p className="section-subtitle">Get solutions customized for your crops.</p>
+        {dynamicCropsList.length > 0 && (
+          <section className="shop-section shop-by-crop-section">
+            <div className="section-header-row">
+              <div>
+                <h2 className="section-title">Shop By Crop 🌾</h2>
+                <p className="section-subtitle">Get solutions customized for your crops.</p>
+              </div>
+              <Link to="/crops" className="view-all-link">View All</Link>
             </div>
-            <Link to="/crops" className="view-all-link">View All</Link>
-          </div>
 
-          <div className="crops-scroll-container" ref={cropsScrollRef}>
-            {dynamicCropsList.map(crop => {
-              const isSelected = activeCrop && normalizeCrop(activeCrop) === normalizeCrop(crop.cropCode)
-              return (
-                <button
-                  key={crop.id}
-                  type="button"
-                  className={`crop-circle-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => selectCrop(crop.cropCode)}
-                >
-                  <div className="crop-circle-avatar">
-                    <img 
-                      src={crop.image} 
-                      alt={crop.name} 
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&q=80'
-                      }}
-                    />
-                  </div>
-                  <span className="crop-circle-label">{crop.name}</span>
-                </button>
-              )
-            })}
-          </div>
-        </section>
+            <div className="crops-scroll-container" ref={cropsScrollRef}>
+              {dynamicCropsList.map(crop => {
+                const isSelected = activeCrop && normalizeCrop(activeCrop) === normalizeCrop(crop.cropCode)
+                return (
+                  <button
+                    key={crop.id}
+                    type="button"
+                    className={`crop-circle-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => selectCrop(crop.cropCode)}
+                  >
+                    <div className="crop-circle-avatar">
+                      <img 
+                        src={crop.image} 
+                        alt={crop.name} 
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&q=80'
+                        }}
+                      />
+                    </div>
+                    <span className="crop-circle-label">{crop.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* 4. TODAY'S OFFER ⚡ (Matching Image 3 & Mobile Screenshot 2) */}
         {todaysOffersList.length > 0 && (
@@ -866,45 +913,47 @@ export default function AllProducts() {
         )}
 
         {/* 5. SHOP BY PEST & DISEASE 🐞 (Matching Image 4) */}
-        <section className="shop-section pest-disease-section">
-          <div className="section-header-row">
-            <div>
-              <h2 className="section-title">Shop by Pest & Disease 🐞</h2>
-              <p className="section-subtitle">Find solutions for your crop problems.</p>
+        {dynamicDiseaseList.length > 0 && (
+          <section className="shop-section pest-disease-section">
+            <div className="section-header-row">
+              <div>
+                <h2 className="section-title">Shop by Pest & Disease 🐞</h2>
+                <p className="section-subtitle">Find solutions for your crop problems.</p>
+              </div>
+              <button type="button" className="view-all-link" onClick={() => setShowAllPests(show => !show)} aria-expanded={showAllPests}>
+                {showAllPests ? 'Show Less' : `View All (${dynamicDiseaseList.length})`}
+              </button>
             </div>
-            <button type="button" className="view-all-link" onClick={() => setShowAllPests(show => !show)} aria-expanded={showAllPests}>
-              {showAllPests ? 'Show Less' : `View All (${dynamicDiseaseList.length})`}
-            </button>
-          </div>
 
-          <div className={`pests-scroll-container ${showAllPests ? 'pests-expanded-grid' : ''}`} ref={pestsScrollRef}>
-            {dynamicDiseaseList.map(pest => {
-              const isSelected = activeDisease.toLowerCase() === pest.matchValue.toLowerCase()
-              return (
-                <button
-                  key={pest.id}
-                  type="button"
-                  className={`pest-circle-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => selectDisease(pest.matchValue)}
-                >
-                  <div className="pest-circle-avatar">
-                    <img 
-                      src={pest.image} 
-                      alt={pest.name} 
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=200&q=80'
-                      }}
-                    />
-                  </div>
-                  <span className="pest-circle-label">{pest.name}</span>
-                  {pest.subtitle && <span className="pest-circle-sub">{pest.subtitle}</span>}
-                </button>
-              )
-            })}
-          </div>
-        </section>
+            <div className={`pests-scroll-container ${showAllPests ? 'pests-expanded-grid' : ''}`} ref={pestsScrollRef}>
+              {dynamicDiseaseList.map(pest => {
+                const isSelected = activeDisease.toLowerCase() === pest.matchValue.toLowerCase()
+                return (
+                  <button
+                    key={pest.id}
+                    type="button"
+                    className={`pest-circle-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => selectDisease(pest.matchValue)}
+                  >
+                    <div className="pest-circle-avatar">
+                      <img 
+                        src={pest.image} 
+                        alt={pest.name} 
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=200&q=80'
+                        }}
+                      />
+                    </div>
+                    <span className="pest-circle-label">{pest.name}</span>
+                    {pest.subtitle && <span className="pest-circle-sub">{pest.subtitle}</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* 6. BEST SELLING SECTION (Matching Image 4) */}
         <section className="shop-section best-selling-section">
@@ -1018,44 +1067,46 @@ export default function AllProducts() {
         </section>
 
         {/* 7. SHOP BY NUTRIENTS 🧪 (Requested specifically: "shop by nutreicint") */}
-        <section className="shop-section shop-by-nutrients-section">
-          <div className="section-header-row">
-            <div>
-              <h2 className="section-title">Shop by Nutrients 🧪</h2>
-              <p className="section-subtitle">Balanced macro, micro and bio-stimulant plant nutrition formulations.</p>
+        {dynamicNutrientsList.length > 0 && (
+          <section className="shop-section shop-by-nutrients-section">
+            <div className="section-header-row">
+              <div>
+                <h2 className="section-title">Shop by Nutrients 🧪</h2>
+                <p className="section-subtitle">Balanced macro, micro and bio-stimulant plant nutrition formulations.</p>
+              </div>
+              <button type="button" className="view-all-link" onClick={() => selectCategory('Crop Nutrition')}>View All</button>
             </div>
-            <button type="button" className="view-all-link" onClick={() => selectCategory('Crop Nutrition')}>View All</button>
-          </div>
 
-          <div className="nutrients-scroll-container" ref={nutrientsScrollRef}>
-            {NUTRIENTS_LIST.map(nut => {
-              const isSelected = activeNutrient === nut.name
-              return (
-                <button
-                  key={nut.id}
-                  type="button"
-                  className={`nutrient-card-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => selectNutrient(nut.name)}
-                >
-                  <div className="nutrient-icon-circle">
-                    <img 
-                      src={nut.image} 
-                      alt={nut.name} 
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = 'https://media.bighaat.com/categories/crop_nutrition_ct.webp'
-                      }}
-                    />
-                  </div>
-                  <strong className="nutrient-name">{nut.name}</strong>
-                  <span className="nutrient-formula">{nut.formula}</span>
-                  <small className="nutrient-benefit">{nut.benefit}</small>
-                </button>
-              )
-            })}
-          </div>
-        </section>
+            <div className="nutrients-scroll-container" ref={nutrientsScrollRef}>
+              {dynamicNutrientsList.map(nut => {
+                const isSelected = activeNutrient === nut.name
+                return (
+                  <button
+                    key={nut.id}
+                    type="button"
+                    className={`nutrient-card-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => selectNutrient(nut.name)}
+                  >
+                    <div className="nutrient-icon-circle">
+                      <img 
+                        src={nut.image} 
+                        alt={nut.name} 
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = 'https://media.bighaat.com/categories/crop_nutrition_ct.webp'
+                        }}
+                      />
+                    </div>
+                    <strong className="nutrient-name">{nut.name}</strong>
+                    <span className="nutrient-formula">{nut.formula}</span>
+                    <small className="nutrient-benefit">{nut.benefit}</small>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* 8. GROWTH PROMOTERS ✨ (Matching Image 5) */}
         {growthPromotersList.length > 0 && (

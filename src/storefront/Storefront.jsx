@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { matchesCategory, matchesCrop, matchesDisease } from '../utils/catalogUtils'
+import { dedupeCropLabels, matchesCategory, matchesCrop, matchesDisease } from '../utils/catalogUtils'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
@@ -112,7 +112,9 @@ export default function Storefront() {
       categories: ['All', ...keep(rawCatalogOptions.categories, (p, c) => matchesCategory(p.category, c))],
       crops: [
         { id: 'all', name: 'All Crops' },
-        ...keep(rawCatalogOptions.crops, (p, c) => matchesCrop(p.crops, c)).map(crop => ({ id: crop, name: crop })),
+        // Prune before deduping, or a spelling that matches nothing can take
+        // the live one down with it (see the Maize / Corn case in AllProducts).
+        ...dedupeCropLabels(keep(rawCatalogOptions.crops, (p, c) => matchesCrop(p.crops, c))).map(crop => ({ id: crop, name: crop })),
       ],
       diseases: [
         { id: 'all', name: 'All Diseases & Pests' },

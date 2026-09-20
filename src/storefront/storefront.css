@@ -10150,3 +10150,56 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 :is(body.sb-home-active .sb-home, .sb-portal) .ticker-item--cms {
   white-space: pre;
 }
+
+/* ------------------------------------------------------------
+   PHONE — THE FILTER SHEET'S CONTROLS
+   .filter-group / .filter-label / .filter-select (Catalog.jsx) are styled
+   only at >=1025px, so on phones the three dropdowns rendered as raw HTML:
+   each one as wide as its longest option, with the platform's own chevron,
+   inside an otherwise finished sheet. Tamil made it plainest, the three
+   boxes stepping in and out by 100px. This gives them one width and one
+   control style, phones only - tablet keeps what it has today.
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-group {
+    margin-bottom: 16px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #4A5D53;
+    margin-bottom: 8px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-select {
+    /* One control, one width, a 48px target, and the sheet's own chevron so
+       the three never disagree about their height. */
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 40px 12px 14px;
+    border: 1px solid #DCDFD8;
+    border-radius: 12px;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236B7A73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    color: #1F2A24;
+    text-overflow: ellipsis;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .filter-select:focus {
+    outline: none;
+    border-color: #0B7A4B;
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.14);
+  }
+}

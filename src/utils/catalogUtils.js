@@ -96,3 +96,43 @@ export function matchesDisease(productDiseases, filterDisease) {
     return norm === filter || norm.includes(filter) || filter.includes(norm)
   })
 }
+
+/**
+ * Collapses the crop registry's near-duplicates into one label each.
+ *
+ * /api/catalog-options is append-only, so it accumulates several spellings of
+ * the same crop: "Paddy / Rice" beside "Paddy/Rice", "Corn / Maize" beside
+ * "Corn". matchesCrop already treats them as the same crop, so they select the
+ * same products - they only make the filter list look careless and split one
+ * crop across two entries.
+ *
+ * Two labels are the same crop when they normalize identically, or when one is
+ * a single name that appears as one of the other's names ("Corn" inside
+ * "Corn / Maize"). The longer label wins, being the more descriptive of the
+ * two. Labels that merely share a name - "Citrus / Fruits" and
+ * "Grapes / Fruits" - are left alone: neither is a single name, so neither is
+ * a spelling of the other.
+ */
+export function isSameCrop(a, b) {
+  const left = normalizeCrop(a)
+  const right = normalizeCrop(b)
+  if (!left || !right) return false
+  if (left === right) return true
+  const leftParts = left.split('/').filter(Boolean)
+  const rightParts = right.split('/').filter(Boolean)
+  if (leftParts.length === 1) return rightParts.includes(leftParts[0])
+  if (rightParts.length === 1) return leftParts.includes(rightParts[0])
+  return false
+}
+
+export function dedupeCropLabels(crops) {
+  const kept = []
+  for (const raw of crops || []) {
+    const label = String(raw || '').trim()
+    if (!label || !normalizeCrop(label)) continue
+    const existing = kept.findIndex(other => isSameCrop(other, label))
+    if (existing === -1) kept.push(label)
+    else if (label.length > kept[existing].length) kept[existing] = label
+  }
+  return kept
+}

@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import {
   Plus, Edit2, Trash2, Check, X, Search, User, Filter,
   ArrowUpDown, RefreshCw, Sparkles, Tag, ShieldAlert, BarChart3,
-  IndianRupee, Sprout, Package, Image as ImageIcon, Info
+  IndianRupee, Sprout, Package, Image as ImageIcon, Info, Film, Video
 } from 'lucide-react'
 import { parseImageList } from '../../shared/productImages.js'
 
@@ -34,6 +34,10 @@ export default function AdminProducts() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [userFilter, setUserFilter] = useState('all')
+  const [channelFilter, setChannelFilter] = useState('all') // 'all', 'both', 'online', 'offline'
+  const [availableVideos, setAvailableVideos] = useState([])
+  const [customVideoUrl, setCustomVideoUrl] = useState('')
+  const [customVideoTitle, setCustomVideoTitle] = useState('')
   const [sortBy, setSortBy] = useState('user') // 'user', 'price_asc', 'price_desc', 'stock', 'default'
   const [showDemandSummary, setShowDemandSummary] = useState(false)
   const [catalogOptions, setCatalogOptions] = useState({ categories: DEFAULT_CATEGORIES, crops: [], storageBatches: [], diseases: [] })
@@ -54,7 +58,9 @@ export default function AdminProducts() {
     crops: '',
     diseases: '',
     description: '',
+    visibility: 'both',
     online: true,
+    taggedVideos: [],
     targetUserId: 'all',
     activeIngredient: '',
     dosage: '250g - 500g per Acre',
@@ -72,7 +78,17 @@ export default function AdminProducts() {
     fetchProducts()
     fetchUsersList()
     fetchCatalogOptions()
+    fetchVideosList()
   }, [category, sortBy])
+
+  const fetchVideosList = async () => {
+    try {
+      const { data } = await axios.get('/api/videos')
+      if (data.success) setAvailableVideos(data.data || [])
+    } catch (err) {
+      console.error('Error loading videos for product attachment:', err)
+    }
+  }
 
   const fetchCatalogOptions = async () => {
     try {
@@ -92,12 +108,45 @@ export default function AdminProducts() {
 
   const handlePhotoUpload = async (event) => {
     const files = Array.from(event.target.files || [])
-    const encodedPhotos = await Promise.all(files.map(file => new Promise(resolve => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.readAsDataURL(file)
-    })))
-    setForm(current => ({ ...current, images: [current.images, ...encodedPhotos].filter(Boolean).join('\n') }))
+    if (files.length === 0) return
+
+    toast.info('Uploading image(s)...')
+    const uploadedUrls = []
+    
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not an image`)
+        continue
+      }
+      try {
+        const reader = new FileReader()
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
+        
+        const { data } = await axios.post('/api/upload', {
+          filename: file.name,
+          contentType: file.type,
+          data: base64
+        })
+        
+        if (data.success && data.url) {
+          uploadedUrls.push(data.url)
+        }
+      } catch (err) {
+        toast.error(`Failed to upload ${file.name}`)
+      }
+    }
+    
+    if (uploadedUrls.length > 0) {
+      setForm(current => ({ 
+        ...current, 
+        images: [current.images, ...uploadedUrls].filter(Boolean).join('\n') 
+      }))
+      toast.success('Image(s) uploaded successfully!')
+    }
     event.target.value = ''
   }
 
@@ -182,30 +231,57 @@ export default function AdminProducts() {
     fetchProducts()
   }
 
-  // Filter products by targeted user if selected
+  // Filter products by targeted user and channel if selected
   const filtered = products.filter(p => {
-    if (userFilter === 'all') return true
-    if (userFilter === 'general') return !p.targetUserId || p.targetUserId === 'all'
-    return p.targetUserId === userFilter
+    if (userFilter !== 'all') {
+      if (userFilter === 'general' && p.targetUserId && p.targetUserId !== 'all') return false
+      if (userFilter !== 'general' && p.targetUserId !== userFilter) return false
+    }
+    if (channelFilter !== 'all') {
+      const vis = p.visibility || (p.online === false ? 'offline' : 'both')
+      if (channelFilter === 'both' && vis !== 'both') return false
+      if (channelFilter === 'online' && vis !== 'online' && vis !== 'both') return false
+      if (channelFilter === 'offline' && vis !== 'offline' && vis !== 'both') return false
+    }
+    return true
   })
+
+  const packUnits = pack => {
+    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
+    if (!match) return 1
+    const value = Number(match[1])
+    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
+  }
 
   const openAddModal = () => {
     setIsEditing(null)
+    setCustomVideoUrl('')
+    setCustomVideoTitle('')
+    const defaultPackDetails = [
+      { size: '250g', price: '200', mrp: '250' },
+      { size: '500g', price: '380', mrp: '450' },
+      { size: '1kg', price: '720', mrp: '850' }
+    ]
     setForm({
       name: '',
       category: 'Fungicide',
-      price: '',
-      mrp: '',
+      price: '380',
+      mrp: '450',
       stock: 100,
       badge: 'Best Seller',
       crops: 'Paddy / Rice, Wheat',
       diseases: '',
       description: '',
+      visibility: 'both',
       online: true,
+      taggedVideos: [],
       targetUserId: userFilter !== 'all' && userFilter !== 'general' ? userFilter : 'all',
       activeIngredient: '100% Bio-Active Formulation',
       dosage: '250g per Acre',
       packSizes: '250g, 500g, 1kg',
+      packDetails: defaultPackDetails,
+      hsnCode: '3808',
+      gstRate: 18,
       images: '',
       howToUse: '',
       whenToUse: '',
@@ -219,6 +295,32 @@ export default function AdminProducts() {
 
   const openEditModal = (p) => {
     setIsEditing(p.id)
+    setCustomVideoUrl('')
+    setCustomVideoTitle('')
+    const pVis = p.visibility || (p.online === false ? 'offline' : 'both')
+    const pPackSizes = Array.isArray(p.packSizes) && p.packSizes.length
+      ? p.packSizes.map(s => typeof s === 'object' ? s.size : s)
+      : (p.packSizes ? String(p.packSizes).split(',').map(s => s.trim()).filter(Boolean) : ['250g', '500g', '1kg'])
+    const basePrice = Number(p.price || 0)
+    const baseMrp = Number(p.originalPrice || p.mrp || basePrice * 1.2)
+    const basePack = p.selectedPack || pPackSizes[0]
+
+    const packDetails = pPackSizes.map(size => {
+      let price = p.packagePrices?.[size] || p.packPrices?.[size]
+      let mrp = p.packageMrps?.[size] || p.packMrps?.[size]
+      if (price === undefined) {
+        if (basePack && size && packUnits(basePack) > 0) {
+          price = Math.round(basePrice * (packUnits(size) / packUnits(basePack)))
+        } else {
+          price = basePrice
+        }
+      }
+      if (mrp === undefined) {
+        mrp = basePrice > 0 ? Math.round(baseMrp * (price / basePrice)) : price
+      }
+      return { size, price: String(price), mrp: String(mrp) }
+    })
+
     setForm({
       name: p.name || '',
       category: p.category || 'Fungicide',
@@ -229,11 +331,16 @@ export default function AdminProducts() {
       crops: Array.isArray(p.crops) ? p.crops.join(', ') : (p.crops || ''),
       diseases: Array.isArray(p.diseases) ? p.diseases.join(', ') : (p.diseases || ''),
       description: p.description || '',
-      online: p.online !== false,
+      visibility: pVis,
+      online: pVis !== 'offline',
+      taggedVideos: Array.isArray(p.taggedVideos) ? p.taggedVideos : [],
       targetUserId: p.targetUserId || 'all',
       activeIngredient: p.activeIngredient || '',
       dosage: p.dosage || '250g per Acre',
-      packSizes: Array.isArray(p.packSizes) ? p.packSizes.join(', ') : (p.packSizes || '500g, 1kg'),
+      packSizes: pPackSizes.join(', '),
+      packDetails,
+      hsnCode: p.hsnCode || '3808',
+      gstRate: p.gstRate !== undefined ? p.gstRate : 18,
       images: Array.isArray(p.images) ? p.images.join('\n') : (p.image || ''),
       howToUse: p.howToUse || '',
       whenToUse: p.whenToUse || '',
@@ -247,8 +354,8 @@ export default function AdminProducts() {
 
   const handleSave = async (e) => {
     e.preventDefault()
-    if (!form.name || form.price === '' || form.stock === '') {
-      toast.error('Please fill required fields (Name, Price, Stock)')
+    if (!form.name || form.stock === '') {
+      toast.error('Please fill required fields (Name, Stock)')
       return
     }
 
@@ -258,14 +365,51 @@ export default function AdminProducts() {
       return
     }
 
+    const visibility = form.visibility || (form.online ? 'both' : 'offline')
+
+    const packagePrices = {}
+    const packageMrps = {}
+    const packSizesList = []
+
+    const packDetails = Array.isArray(form.packDetails) ? form.packDetails : []
+    packDetails.forEach(item => {
+      const s = (item.size || '').trim()
+      if (!s) return
+      packSizesList.push(s)
+      packagePrices[s] = Number(item.price) || Number(form.price) || 0
+      packageMrps[s] = Number(item.mrp) || Number(form.mrp) || Math.round(packagePrices[s] * 1.2)
+    })
+
+    if (packSizesList.length === 0) {
+      form.packSizes.split(',').map(s => s.trim()).filter(Boolean).forEach(s => {
+        packSizesList.push(s)
+        packagePrices[s] = Number(form.price) || 0
+        packageMrps[s] = Number(form.mrp) || Math.round(packagePrices[s] * 1.2)
+      })
+    }
+
+    const firstSize = packSizesList[0] || 'Standard'
+    const finalPrice = packagePrices[firstSize] !== undefined ? packagePrices[firstSize] : Number(form.price || 0)
+    const finalMrp = packageMrps[firstSize] !== undefined ? packageMrps[firstSize] : Number(form.mrp || finalPrice * 1.2)
+
     const payload = {
       ...form,
-      price: Number(form.price),
-      originalPrice: Number(form.mrp || form.price * 1.2),
+      visibility,
+      online: visibility !== 'offline',
+      taggedVideos: Array.isArray(form.taggedVideos) ? form.taggedVideos : [],
+      price: finalPrice,
+      originalPrice: finalMrp,
+      packagePrices,
+      packageMrps,
+      hsnCode: form.hsnCode || '3808',
+      gstRate: Number(form.gstRate !== undefined ? form.gstRate : 18),
+      cgstRate: Number(form.gstRate !== undefined ? form.gstRate : 18) / 2,
+      sgstRate: Number(form.gstRate !== undefined ? form.gstRate : 18) / 2,
+      igstRate: Number(form.gstRate !== undefined ? form.gstRate : 18),
       stock: Number(form.stock),
       crops: form.crops.split(',').map(s => s.trim()).filter(Boolean),
       diseases: form.diseases.split(',').map(s => s.trim()).filter(Boolean),
-      packSizes: form.packSizes.split(',').map(s => s.trim()).filter(Boolean),
+      packSizes: packSizesList,
       images,
       image: images[0],
       howToUse: form.howToUse.trim(),
@@ -449,6 +593,20 @@ export default function AdminProducts() {
           </optgroup>
         </select>
 
+        {/* Filter by Sales Channel */}
+        <select
+          className="filter-select"
+          value={channelFilter}
+          onChange={e => setChannelFilter(e.target.value)}
+          title="Filter by Sales Channel"
+          style={{ minWidth: '160px', borderColor: channelFilter !== 'all' ? 'var(--brand-400)' : undefined }}
+        >
+          <option value="all">Channel: All Channels</option>
+          <option value="both">🔄 Both (Web &amp; POS)</option>
+          <option value="online">🌐 Online Only (Web)</option>
+          <option value="offline">🏬 Offline Only (POS)</option>
+        </select>
+
         {/* Sort Controls (including Sort by User) */}
         <select
           className="filter-select"
@@ -476,6 +634,7 @@ export default function AdminProducts() {
               <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--dark-700)' }}>
                 <th style={{ padding: '14px 16px' }}>Product</th>
                 <th style={{ padding: '14px 16px' }}>Category</th>
+                <th style={{ padding: '14px 16px' }}>Channel</th>
                 <th style={{ padding: '14px 16px' }}>Price / MRP</th>
                 <th style={{ padding: '14px 16px' }}>Stock</th>
                 <th style={{ padding: '14px 16px' }}>Targeted User (Sorting)</th>
@@ -487,13 +646,13 @@ export default function AdminProducts() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     Loading products from database...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     No products found. Adjust filters or click "Add New Product" to create one.
                   </td>
                 </tr>
@@ -522,6 +681,24 @@ export default function AdminProducts() {
                     {/* Category */}
                     <td style={{ padding: '14px 16px' }}>
                       <span className="badge badge-blue">{p.category}</span>
+                    </td>
+
+                    {/* Channel Availability */}
+                    <td style={{ padding: '14px 16px' }}>
+                      {p.visibility === 'both' || (p.visibility === undefined && p.online !== false) ? (
+                        <span className="badge badge-green" title="Available on Online Web Store & POS Billing Counter">🔄 Both</span>
+                      ) : p.visibility === 'offline' || p.online === false ? (
+                        <span className="badge badge-yellow" title="Available on POS Billing Counter only">🏬 Offline Only</span>
+                      ) : (
+                        <span className="badge badge-blue" title="Available on Online Web Store only">🌐 Online Only</span>
+                      )}
+                      {Array.isArray(p.taggedVideos) && p.taggedVideos.length > 0 && (
+                        <div style={{ marginTop: '4px' }}>
+                          <span className="badge" style={{ fontSize: '0.68rem', background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.3)' }}>
+                            🎬 {p.taggedVideos.length} {p.taggedVideos.length === 1 ? 'Demo Video' : 'Demo Videos'}
+                          </span>
+                        </div>
+                      )}
                     </td>
 
                     {/* Price & MRP */}
@@ -738,6 +915,25 @@ export default function AdminProducts() {
                       </div>
                     </div>
                   </div>
+                  <div className="pform-grid-2" style={{ marginTop: '12px' }}>
+                    <div className="pform-field">
+                      <label>HSN Code * <em>(Tax Classification)</em></label>
+                      <input type="text" placeholder="e.g. 3808, 3105" value={form.hsnCode || ''} onChange={e => setForm({ ...form, hsnCode: e.target.value })} />
+                    </div>
+                    <div className="pform-field">
+                      <label>GST Rate (%) *</label>
+                      <select value={form.gstRate} onChange={e => setForm({ ...form, gstRate: Number(e.target.value) })}>
+                        <option value={18}>18% GST (Standard Bio-Pesticide)</option>
+                        <option value={12}>12% GST (Fertilizers / Micronutrients)</option>
+                        <option value={5}>5% GST (Bio-Seeds / Agro Inputs)</option>
+                        <option value={0}>0% GST (Exempt / Organic Raw)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)', padding: '8px 12px', borderRadius: '8px', marginTop: '10px', fontSize: '0.82rem', color: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>🧾 Tax Breakdown:</span>
+                    <strong>CGST: {(Number(form.gstRate || 18) / 2)}% &nbsp;|&nbsp; SGST: {(Number(form.gstRate || 18) / 2)}% &nbsp;|&nbsp; IGST: {Number(form.gstRate || 18)}%</strong>
+                  </div>
                 </section>
 
                 {/* CROP, PEST & PACK TARGETING */}
@@ -792,24 +988,122 @@ export default function AdminProducts() {
                   </div>
 
                   <div className="pform-field">
-                    <label>Pack Sizes</label>
-                    <input
-                      placeholder="e.g. 250g, 500g, 1kg"
-                      value={form.packSizes}
-                      onChange={e => setForm({ ...form, packSizes: e.target.value })}
-                    />
-                    {form.packSizes.trim() && (
-                      <div className="pform-chips">
-                        {form.packSizes.split(',').map(s => s.trim()).filter(Boolean).map(p => <span key={p} className="pform-chip">{p}<button type="button" className="pform-chip-x" onClick={() => removeListItem('packSizes', p)} aria-label={`Remove ${p}`}><X size={11} /></button></span>)}
-                      </div>
-                    )}
-                    <div className="pform-adder">
-                      <select value="" onChange={e => addFormOption('packSizes', e.target.value, setNewStorageBatch)}>
-                        <option value="">Choose saved pack size</option>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>📦 Pack Sizes &amp; Individual Pricing (₹)</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--brand-400)' }}>Configure price &amp; MRP for each pack size</span>
+                    </label>
+
+                    <div className="pack-sizes-admin-grid" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                      {(form.packDetails || []).map((pd, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <div style={{ flex: 1 }}>
+                            <small style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Pack Size Name</small>
+                            <input
+                              type="text"
+                              value={pd.size}
+                              placeholder="e.g. 250g, 1kg"
+                              style={{ width: '100%', padding: '6px 8px', fontSize: '0.85rem' }}
+                              onChange={e => {
+                                const val = e.target.value
+                                setForm(current => {
+                                  const next = [...(current.packDetails || [])]
+                                  next[idx] = { ...next[idx], size: val }
+                                  return { ...current, packDetails: next, packSizes: next.map(n => n.size).filter(Boolean).join(', ') }
+                                })
+                              }}
+                            />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <small style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Selling Price (₹)</small>
+                            <input
+                              type="number"
+                              value={pd.price}
+                              placeholder="Selling ₹"
+                              style={{ width: '100%', padding: '6px 8px', fontSize: '0.85rem' }}
+                              onChange={e => {
+                                const val = e.target.value
+                                setForm(current => {
+                                  const next = [...(current.packDetails || [])]
+                                  next[idx] = { ...next[idx], price: val }
+                                  return { ...current, packDetails: next }
+                                })
+                              }}
+                            />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <small style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>MRP / Original (₹)</small>
+                            <input
+                              type="number"
+                              value={pd.mrp}
+                              placeholder="MRP ₹"
+                              style={{ width: '100%', padding: '6px 8px', fontSize: '0.85rem' }}
+                              onChange={e => {
+                                const val = e.target.value
+                                setForm(current => {
+                                  const next = [...(current.packDetails || [])]
+                                  next[idx] = { ...next[idx], mrp: val }
+                                  return { ...current, packDetails: next }
+                                })
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ padding: '6px 10px', marginTop: '14px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}
+                            title="Remove this pack size"
+                            onClick={() => {
+                              setForm(current => {
+                                const next = (current.packDetails || []).filter((_, i) => i !== idx)
+                                return { ...current, packDetails: next, packSizes: next.map(n => n.size).filter(Boolean).join(', ') }
+                              })
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                      <select
+                        value=""
+                        style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+                        onChange={e => {
+                          const val = e.target.value
+                          if (!val) return
+                          setForm(current => {
+                            const next = [...(current.packDetails || []), { size: val, price: '', mrp: '' }]
+                            return { ...current, packDetails: next, packSizes: next.map(n => n.size).filter(Boolean).join(', ') }
+                          })
+                        }}
+                      >
+                        <option value="">Quick select saved pack size...</option>
                         {catalogOptions.storageBatches.map(batch => <option key={batch} value={batch}>{batch}</option>)}
                       </select>
-                      <input value={newStorageBatch} onChange={e => setNewStorageBatch(e.target.value)} placeholder="New pack size" />
-                      <button type="button" onClick={() => addFormOption('packSizes', newStorageBatch, setNewStorageBatch)}><Plus size={14} className="pform-adder-icon" />Add pack size</button>
+                      <input
+                        type="text"
+                        placeholder="Custom size (e.g. 5kg)"
+                        value={newStorageBatch}
+                        onChange={e => setNewStorageBatch(e.target.value)}
+                        style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+                        onClick={() => {
+                          const val = newStorageBatch.trim()
+                          if (!val) return
+                          setForm(current => {
+                            const next = [...(current.packDetails || []), { size: val, price: '', mrp: '' }]
+                            return { ...current, packDetails: next, packSizes: next.map(n => n.size).filter(Boolean).join(', ') }
+                          })
+                          setNewStorageBatch('')
+                        }}
+                      >
+                        + Add Size
+                      </button>
                     </div>
                   </div>
                 </section>
@@ -884,20 +1178,191 @@ export default function AdminProducts() {
                   </div>
                   <div className="product-visibility-panel" style={{ marginTop: '14px' }}>
                     <div>
-                      <label className="product-visibility-title">Product visibility</label>
-                      <p>Choose where this product can be used.</p>
+                      <label className="product-visibility-title">Product Channel &amp; Visibility</label>
+                      <p>Choose where this formulation is sold and stocked.</p>
                     </div>
-                    <div className="product-visibility-options">
-                      <label className={`product-visibility-option ${form.online ? 'active' : ''}`}>
-                        <input type="radio" name="product-visibility" checked={form.online} onChange={() => setForm({ ...form, online: true })} />
-                        <strong>Online</strong>
-                        <span>Visible on the customer website</span>
+                    <div className="product-visibility-options" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }}>
+                      <label className={`product-visibility-option ${form.visibility === 'both' ? 'active' : ''}`} style={{ cursor: 'pointer' }}>
+                        <input type="radio" name="product-visibility" checked={form.visibility === 'both'} onChange={() => setForm({ ...form, visibility: 'both', online: true })} />
+                        <strong>🔄 Both (Web &amp; POS)</strong>
+                        <span>Available on website &amp; billing counter</span>
                       </label>
-                      <label className={`product-visibility-option ${!form.online ? 'active offline' : ''}`}>
-                        <input type="radio" name="product-visibility" checked={!form.online} onChange={() => setForm({ ...form, online: false })} />
-                        <strong>Offline</strong>
-                        <span>Billing portal only, hidden from website</span>
+                      <label className={`product-visibility-option ${form.visibility === 'online' ? 'active' : ''}`} style={{ cursor: 'pointer' }}>
+                        <input type="radio" name="product-visibility" checked={form.visibility === 'online'} onChange={() => setForm({ ...form, visibility: 'online', online: true })} />
+                        <strong>🌐 Online Only</strong>
+                        <span>Customer e-commerce website only</span>
                       </label>
+                      <label className={`product-visibility-option ${form.visibility === 'offline' ? 'active offline' : ''}`} style={{ cursor: 'pointer' }}>
+                        <input type="radio" name="product-visibility" checked={form.visibility === 'offline'} onChange={() => setForm({ ...form, visibility: 'offline', online: false })} />
+                        <strong>🏬 Offline Only</strong>
+                        <span>Billing portal only, hidden from store</span>
+                      </label>
+                    </div>
+                  </div>
+                </section>
+
+                {/* PRODUCT VIDEOS & DEMONSTRATIONS */}
+                <section className="pform-section">
+                  <div className="pform-section-head">
+                    <span className="pform-section-icon"><Film size={15} /></span>
+                    <div>
+                      <h3>Product Videos &amp; Demonstrations</h3>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        Attach application demos or explainer videos. These appear in an interactive video player below the single product view on the customer website.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Attached videos list */}
+                  {Array.isArray(form.taggedVideos) && form.taggedVideos.length > 0 && (
+                    <div style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+                        Attached Videos ({form.taggedVideos.length})
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {form.taggedVideos.map((vid, idx) => (
+                          <div key={vid.id || vid.url || idx} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '8px 12px', background: 'rgba(34, 197, 94, 0.08)',
+                            border: '1px solid rgba(74, 222, 128, 0.25)', borderRadius: '8px', gap: '10px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                              <Film size={15} style={{ color: '#22c55e', flexShrink: 0 }} />
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {vid.title || 'Demonstration Video'}
+                                </div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {vid.category ? `[${vid.category}] ` : ''}{vid.url}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setForm(curr => ({
+                                  ...curr,
+                                  taggedVideos: curr.taggedVideos.filter((_, i) => i !== idx)
+                                }))
+                              }}
+                              style={{
+                                background: 'transparent', border: 'none', color: '#f87171',
+                                cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center'
+                              }}
+                              title="Remove video attachment"
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pick from existing media library */}
+                  {availableVideos.length > 0 && (
+                    <div style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                        Select from Uploaded Media Library
+                      </label>
+                      <div style={{
+                        maxHeight: '140px', overflowY: 'auto', border: '1px solid var(--dark-600)',
+                        borderRadius: '8px', padding: '8px', background: 'var(--dark-900)'
+                      }}>
+                        {availableVideos.map(v => {
+                          const isSelected = form.taggedVideos?.some(tv => tv.id === (v._id || v.id) || tv.url === (v.videoUrl || v.url))
+                          return (
+                            <div
+                              key={v._id || v.id}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setForm(curr => ({
+                                    ...curr,
+                                    taggedVideos: (curr.taggedVideos || []).filter(tv => tv.id !== (v._id || v.id) && tv.url !== (v.videoUrl || v.url))
+                                  }))
+                                } else {
+                                  setForm(curr => ({
+                                    ...curr,
+                                    taggedVideos: [
+                                      ...(curr.taggedVideos || []),
+                                      {
+                                        id: v._id || v.id,
+                                        title: v.title || 'Product Demo',
+                                        url: v.videoUrl || v.url || '',
+                                        category: v.category || 'Product Demo',
+                                        thumbnailUrl: v.thumbnailUrl || ''
+                                      }
+                                    ]
+                                  }))
+                                }
+                              }}
+                              style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '6px 8px', borderRadius: '6px', cursor: 'pointer',
+                                background: isSelected ? 'rgba(74, 222, 128, 0.12)' : 'transparent',
+                                marginBottom: '4px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={!!isSelected}
+                                  onChange={() => {}} // Handled by parent onClick
+                                  style={{ cursor: 'pointer' }}
+                                />
+                                <span style={{ fontSize: '0.82rem', fontWeight: isSelected ? 600 : 400, color: isSelected ? 'var(--brand-400)' : 'var(--text-primary)' }}>
+                                  {v.title}
+                                </span>
+                                {v.category && <span className="badge badge-gray" style={{ fontSize: '0.68rem', padding: '1px 5px' }}>{v.category}</span>}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Or add custom video URL */}
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                      Or Attach Custom Video URL / File
+                    </label>
+                    <div className="pform-adder" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <input
+                        placeholder="Video Title (e.g. Field Application Demo)"
+                        value={customVideoTitle}
+                        onChange={e => setCustomVideoTitle(e.target.value)}
+                        style={{ flex: '1 1 180px' }}
+                      />
+                      <input
+                        placeholder="Video URL (YouTube or /api/upload/... or MP4 link)"
+                        value={customVideoUrl}
+                        onChange={e => setCustomVideoUrl(e.target.value)}
+                        style={{ flex: '2 1 240px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!customVideoUrl.trim()) { toast.error('Please enter a video URL'); return }
+                          const newVid = {
+                            id: `custom-${Date.now()}`,
+                            title: customVideoTitle.trim() || 'Product Demonstration',
+                            url: customVideoUrl.trim(),
+                            category: 'Product Demo'
+                          }
+                          setForm(curr => ({
+                            ...curr,
+                            taggedVideos: [...(curr.taggedVideos || []), newVid]
+                          }))
+                          setCustomVideoTitle('')
+                          setCustomVideoUrl('')
+                          toast.success('Video attached to product!')
+                        }}
+                        className="btn btn-outline"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                      >
+                        Attach Video
+                      </button>
                     </div>
                   </div>
                 </section>

@@ -17,19 +17,21 @@ function fmtRs(n) { return '₹' + fmt(n) }
 function dateLabel(iso) { return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) }
 
 /** Export data as an Excel-compatible CSV file */
-function exportCSV(orders, period) {
+function exportCSV(orders, period, channelMode) {
   if (!orders || orders.length === 0) { alert('No data to export for this period.'); return }
-  const headers = ['Order ID','Date','Customer','Phone','District','State','Items','Total (₹)','Payment','Delivery Status']
+  const headers = ['Channel','Order/Invoice ID','Date','Customer','Phone','District / Counter','State','Items','Total (₹)','Payment Status','Payment Method','Fulfillment Status']
   const rows = orders.map(o => [
+    o.channel === 'offline' ? 'POS Counter' : 'Online Store',
     o.id,
     new Date(o.date).toLocaleString('en-IN'),
     o.customer,
     o.phone,
     o.district,
     o.state,
-    '"' + o.items.replace(/"/g,'""') + '"',
+    '"' + String(o.items || '').replace(/"/g,'""') + '"',
     o.total,
     o.paymentStatus,
+    o.paymentMethod || 'Online',
     o.deliveryStatus,
   ])
   const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
@@ -37,7 +39,7 @@ function exportCSV(orders, period) {
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
-  a.download = `sathyabio-analytics-${period}.csv`
+  a.download = `sathyabio-analytics-${channelMode || 'all'}-${period}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -119,7 +121,14 @@ const PERIOD_OPTS = [
   { key: 'custom', label: 'Custom Range' },
 ]
 
+const CHANNEL_MODES = [
+  { key: 'both',    label: '🔄 Both (Online & Offline)', badge: 'Omnichannel View', desc: 'Unified Web Orders + Billing Counter POS' },
+  { key: 'online',  label: '🌐 Online Only',             badge: 'Customer Web Store', desc: 'Orders placed on website & delivered' },
+  { key: 'offline', label: '🏬 Offline Only',            badge: 'Billing Counter POS', desc: 'In-store counter invoices & walk-in sales' },
+]
+
 export default function AdminAnalytics() {
+  const [channel,    setChannel]    = useState('both') // 'both', 'online', 'offline'
   const [period,     setPeriod]     = useState('month')
   const [fromDate,   setFromDate]   = useState('')
   const [toDate,     setToDate]     = useState('')
@@ -138,9 +147,12 @@ export default function AdminAnalytics() {
     setLoading(true)
     setError('')
     try {
-      const params = period === 'custom'
-        ? { from: new Date(fromDate).toISOString(), to: new Date(toDate + 'T23:59:59').toISOString() }
-        : { period }
+      const params = {
+        ...(period === 'custom'
+          ? { from: new Date(fromDate).toISOString(), to: new Date(toDate + 'T23:59:59').toISOString() }
+          : { period }),
+        channel
+      }
       const { data: res } = await axios.get('/api/admin/analytics', {
         params,
         signal: abortRef.current.signal,
@@ -151,7 +163,7 @@ export default function AdminAnalytics() {
     } finally {
       setLoading(false)
     }
-  }, [period, fromDate, toDate])
+  }, [period, fromDate, toDate, channel])
 
   useEffect(() => { fetchAnalytics() }, [fetchAnalytics])
 
@@ -164,18 +176,36 @@ export default function AdminAnalytics() {
 
   const filteredOrders = orders.filter(o =>
     !searchTerm ||
-    [o.id, o.customer, o.phone, o.district, o.state, o.deliveryStatus]
+    [o.id, o.customer, o.phone, o.district, o.state, o.deliveryStatus, o.paymentMethod, o.channel]
       .some(v => String(v).toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const periodLabel = PERIOD_OPTS.find(p => p.key === period)?.label || 'This Month'
+  const activeChannelMode = CHANNEL_MODES.find(m => m.key === channel)
 
-  const kpiCards = [
-    { label: 'Total Revenue',    value: fmtRs(kpi.totalRevenue),   delta: `${kpi.paidOrders || 0} paid orders`,  color: '#34d399', icon: '₹' },
-    { label: 'Total Orders',     value: fmt(kpi.totalOrders),       delta: `${kpi.paidOrders || 0} paid, ${kpi.cancelled || 0} cancelled`, color: '#60a5fa', icon: '📦' },
-    { label: 'Unique Customers', value: fmt(kpi.uniqueCustomers),   delta: 'Distinct buyers',   color: '#a78bfa', icon: '👥' },
-    { label: 'Return / Cancel',  value: `${kpi.returnRate || 0}%`,  delta: `${kpi.cancelled || 0} cancelled orders`, color: '#f5c86b', icon: '↩' },
-  ]
+  let kpiCards = []
+  if (channel === 'both') {
+    kpiCards = [
+      { label: 'Omnichannel Revenue',  value: fmtRs(kpi.totalRevenue),   delta: `₹${fmt(kpi.onlineRevenue || 0)} web + ₹${fmt(kpi.offlineRevenue || 0)} counter`, color: '#34d399', icon: '₹' },
+      { label: 'Total Transactions',   value: fmt(kpi.totalOrders),       delta: `${kpi.onlineOrders || 0} web orders, ${kpi.offlineOrders || 0} counter bills`,    color: '#60a5fa', icon: '📦' },
+      { label: 'Unique Customers',     value: fmt(kpi.uniqueCustomers),   delta: 'Across online store & billing counter',                                            color: '#a78bfa', icon: '👥' },
+      { label: 'Online Return/Cancel', value: `${kpi.returnRate || 0}%`,  delta: `${kpi.cancelled || 0} cancelled web orders`,                                      color: '#f5c86b', icon: '↩' },
+    ]
+  } else if (channel === 'online') {
+    kpiCards = [
+      { label: 'Online Web Revenue',   value: fmtRs(kpi.totalRevenue),   delta: `${kpi.paidOrders || 0} paid customer orders`,   color: '#34d399', icon: '₹' },
+      { label: 'Online Orders Placed', value: fmt(kpi.totalOrders),       delta: `${kpi.paidOrders || 0} paid, ${kpi.cancelled || 0} cancelled`, color: '#60a5fa', icon: '🌐' },
+      { label: 'Unique Web Buyers',    value: fmt(kpi.uniqueCustomers),   delta: 'Distinct website farmers & clients',             color: '#a78bfa', icon: '👥' },
+      { label: 'Web Return/Cancel',    value: `${kpi.returnRate || 0}%`,  delta: `${kpi.cancelled || 0} cancelled online orders`,  color: '#f5c86b', icon: '↩' },
+    ]
+  } else {
+    kpiCards = [
+      { label: 'POS Counter Revenue',  value: fmtRs(kpi.totalRevenue),   delta: 'In-store collection (Cash, UPI, Card)',          color: '#34d399', icon: '₹' },
+      { label: 'Counter Bills Done',   value: fmt(kpi.totalOrders),       delta: `${kpi.paidOrders || 0} paid GST counter invoices`, color: '#fbbf24', icon: '🧾' },
+      { label: 'Walk-in Buyers',       value: fmt(kpi.uniqueCustomers),   delta: 'Counter billed farmers & retail accounts',       color: '#a78bfa', icon: '👥' },
+      { label: 'Counter Fulfillment',  value: '100%',                     delta: 'Instant on-counter handover',                    color: '#60a5fa', icon: '🏬' },
+    ]
+  }
 
   return (
     <div className="animate-fade-in bi-page">
@@ -183,9 +213,9 @@ export default function AdminAnalytics() {
       {/* ── Header ── */}
       <div className="bi-header">
         <div className="bi-header-left">
-          <div className="eyebrow">📊 Power BI Analytics</div>
+          <div className="eyebrow">📊 Omnichannel Sales Analytics</div>
           <h1>Performance Dashboard</h1>
-          <p>{periodLabel} · Revenue, Demand &amp; Regional Sales</p>
+          <p>{activeChannelMode?.badge} · {periodLabel} · Revenue, Channel Demand &amp; Regional Performance</p>
         </div>
         <div className="bi-header-right">
           <div className="bi-period-bar">
@@ -220,7 +250,7 @@ export default function AdminAnalytics() {
             >
               {showActual ? '📊 Charts' : '📋 Actual Data'}
             </button>
-            <button className="btn btn-outline" onClick={() => exportCSV(orders, periodLabel)}>
+            <button className="btn btn-outline" onClick={() => exportCSV(orders, periodLabel, channel)}>
               ⬇ Export Excel
             </button>
             <button className="btn btn-outline" onClick={fetchAnalytics} disabled={loading}>
@@ -228,6 +258,51 @@ export default function AdminAnalytics() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ── 3-Mode Channel Switcher (Online, Offline, Both) ── */}
+      <div className="bi-channel-selector" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '12px',
+        marginBottom: '24px'
+      }}>
+        {CHANNEL_MODES.map(m => {
+          const isActive = channel === m.key
+          return (
+            <button
+              key={m.key}
+              type="button"
+              onClick={() => setChannel(m.key)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 18px',
+                borderRadius: '12px',
+                background: isActive ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%)' : 'var(--dark-800)',
+                border: isActive ? '2px solid #22c55e' : '1px solid var(--dark-700)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                color: 'inherit',
+                transition: 'all 0.2s ease',
+                boxShadow: isActive ? '0 4px 14px rgba(34, 197, 94, 0.15)' : 'none'
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isActive ? '#4ade80' : 'var(--text-primary)', marginBottom: '3px' }}>
+                  {m.label}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {m.desc}
+                </div>
+              </div>
+              <span className={`badge ${isActive ? 'badge-green' : 'badge-gray'}`} style={{ fontSize: '0.7rem' }}>
+                {m.badge}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
       {error && <div className="bi-error">{error}</div>}
@@ -252,6 +327,30 @@ export default function AdminAnalytics() {
               </div>
             ))}
           </div>
+
+          {/* ── Omnichannel Split Card when Both is selected ── */}
+          {channel === 'both' && data?.channelBreakdown && (
+            <div className="card" style={{ marginBottom: '20px', padding: '18px 24px', background: 'var(--dark-800)', borderRadius: '12px', border: '1px solid var(--dark-700)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                <div style={{ fontWeight: 700, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🔄 Omnichannel Split (Online Web Store vs In-Store Counter)
+                </div>
+                <span className="badge badge-green">Combined View</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                <div style={{ padding: '12px 16px', background: 'rgba(96, 165, 250, 0.08)', borderRadius: '10px', border: '1px solid rgba(96, 165, 250, 0.25)' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#60a5fa', fontWeight: 600 }}>🌐 Online Customer Web Store</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff', margin: '4px 0' }}>{fmtRs(data.channelBreakdown.online?.revenue || 0)}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{fmt(data.channelBreakdown.online?.count || 0)} customer orders</div>
+                </div>
+                <div style={{ padding: '12px 16px', background: 'rgba(251, 191, 36, 0.08)', borderRadius: '10px', border: '1px solid rgba(251, 191, 36, 0.25)' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 600 }}>🏬 In-Store POS Billing Counter</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff', margin: '4px 0' }}>{fmtRs(data.channelBreakdown.offline?.revenue || 0)}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{fmt(data.channelBreakdown.offline?.count || 0)} counter invoices</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ── Chart mode ── */}
           {!showActual && (
@@ -357,7 +456,7 @@ export default function AdminAnalytics() {
                     style={{ width: 220, padding: '6px 12px', borderRadius: 8 }}
                   />
                   <span className="badge badge-blue">{filteredOrders.length} rows</span>
-                  <button className="btn btn-outline" onClick={() => exportCSV(orders, periodLabel)}>
+                  <button className="btn btn-outline" onClick={() => exportCSV(orders, periodLabel, channel)}>
                     ⬇ Export Excel
                   </button>
                 </div>
@@ -366,40 +465,62 @@ export default function AdminAnalytics() {
                 <table>
                   <thead>
                     <tr>
-                      <th>#</th><th>Order ID</th><th>Date</th><th>Customer</th>
-                      <th>Phone</th><th>District</th><th>State</th><th>Items</th>
-                      <th>Total</th><th>Payment</th><th>Delivery</th>
+                      <th>#</th>
+                      <th>Channel</th>
+                      <th>Order/Bill ID</th>
+                      <th>Date</th>
+                      <th>Customer</th>
+                      <th>Phone</th>
+                      <th>Location / Counter</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Payment</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredOrders.length === 0 && (
                       <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
-                        No orders found for this period
+                        No transactions found for this period and channel
                       </td></tr>
                     )}
                     {filteredOrders.map((o, i) => (
                       <tr key={o.id}>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{i + 1}</td>
+                        <td>
+                          {o.channel === 'offline' ? (
+                            <span className="badge badge-yellow" style={{ fontSize: '0.7rem' }}>🏬 POS Bill</span>
+                          ) : (
+                            <span className="badge badge-blue" style={{ fontSize: '0.7rem' }}>🌐 Online</span>
+                          )}
+                        </td>
                         <td><strong style={{ color: 'var(--brand-400)' }}>{o.id}</strong></td>
                         <td style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
                           {new Date(o.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td style={{ fontWeight: 600 }}>{o.customer}</td>
-                        <td style={{ fontSize: '0.8rem' }}>{o.phone}</td>
-                        <td>{o.district}</td>
-                        <td>{o.state}</td>
-                        <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.78rem' }} title={o.items}>{o.items}</td>
+                        <td style={{ fontSize: '0.8rem' }}>{o.phone || '—'}</td>
+                        <td style={{ fontSize: '0.8rem' }}>{o.channel === 'offline' ? 'Billing Counter' : (o.district || o.state || 'Web Store')}</td>
+                        <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.78rem' }} title={o.items}>{o.items || '—'}</td>
                         <td style={{ fontWeight: 700, color: 'var(--brand-400)' }}>{fmtRs(o.total)}</td>
                         <td>
-                          <span className={`badge badge-${o.paymentStatus === 'Paid' ? 'green' : 'yellow'}`}>
-                            {o.paymentStatus}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span className={`badge badge-${o.paymentStatus === 'Paid' ? 'green' : 'yellow'}`} style={{ fontSize: '0.7rem' }}>
+                              {o.paymentStatus}
+                            </span>
+                            {o.paymentMethod && (
+                              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                                {o.paymentMethod}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <span className="badge" style={{
                             background: (STATUS_COLORS[o.deliveryStatus] || '#888') + '22',
                             color:      STATUS_COLORS[o.deliveryStatus] || '#aaa',
                             border:    `1px solid ${STATUS_COLORS[o.deliveryStatus] || '#444'}`,
+                            fontSize:   '0.72rem'
                           }}>
                             {o.deliveryStatus}
                           </span>

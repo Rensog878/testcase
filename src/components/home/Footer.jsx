@@ -102,9 +102,11 @@ export default function Footer() {
         </div>
 
         <div>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Sale</a>
-          <a href="#">Refund Policy</a>
+          <Link to="/privacy-policy">Privacy Policy</Link>
+          <Link to="/terms-of-sale">Terms of Sale</Link>
+          <Link to="/refund-policy">Refund Policy</Link>
+          <Link to="/about-us">About Us</Link>
+          <Link to="/contact-us">Contact Us</Link>
           <span className="public-footer-credit">Designed by cupnsaucer</span>
         </div>
 

@@ -39,7 +39,27 @@ test('a guest basket joins the account basket at sign-in', () => {
 });
 
 test('totals: GST is 18% of the subtotal, rounded, as on the server', () => {
-  assert.deepEqual(cartTotals(normalizeCart([{ price: 333, qty: 1 }, { price: 10, qty: 2 }])), { subtotal: 353, gst: 64, total: 417 });
+  // cartTotals also returns a CGST/SGST breakdown and a discount now, so the
+  // three numbers that decide what a farmer pays are asserted by name rather
+  // than by the exact shape of the object.
+  const totals = cartTotals(normalizeCart([{ price: 333, qty: 1 }, { price: 10, qty: 2 }]));
+  assert.equal(totals.subtotal, 353);
+  assert.equal(totals.gst, 64);
+  assert.equal(totals.total, 417);
+  assert.equal(totals.cgst + totals.sgst, totals.gst, 'CGST and SGST must add up to the GST charged');
+  assert.equal(totals.igst, totals.gst);
+});
+
+test('totals: a per-item GST rate is respected, and a discount comes off the subtotal', () => {
+  const mixed = cartTotals(normalizeCart([{ price: 100, qty: 1, gstRate: 5 }, { price: 100, qty: 1, gstRate: 12 }]));
+  assert.equal(mixed.subtotal, 200);
+  assert.equal(mixed.gst, 17);
+  const discounted = cartTotals(normalizeCart([{ price: 500, qty: 1 }]), 100);
+  assert.equal(discounted.discount, 100);
+  assert.equal(discounted.finalSubtotal, 400);
+  const capped = cartTotals(normalizeCart([{ price: 500, qty: 1 }]), 9999);
+  assert.equal(capped.discount, 500, 'a discount can never exceed the basket');
+  assert.equal(capped.finalSubtotal, 0);
 });
 
 test('an order line carries only the product, quantity and pack - never a price', () => {

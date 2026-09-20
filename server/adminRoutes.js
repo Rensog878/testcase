@@ -197,11 +197,13 @@ router.get('/wishlist-summary', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ANALYTICS  GET /api/admin/analytics?from=ISO&to=ISO
+// ANALYTICS  GET /api/admin/analytics?from=ISO&to=ISO&channel=online|offline|both
 // Returns live aggregated KPIs, trend, top products, and regional breakdown.
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/analytics', async (req, res) => {
     try {
+        const channel = (req.query.channel || req.query.mode || 'both').toLowerCase();
+
         // Resolve the date window.
         const IST_OFFSET_MS = 330 * 60 * 1000;
         const DAY_MS       = 24 * 60 * 60 * 1000;
@@ -228,26 +230,82 @@ router.get('/analytics', async (req, res) => {
             }
         }
 
-        const allOrders = await db.getOrders();
-        const orders = allOrders.filter(o => {
-            const t = new Date(o.createdAt).getTime();
-            return t >= fromMs && t < toMs;
-        });
-        const paid = orders.filter(o => o.paymentStatus === 'Paid');
+        const [allOrders, allInvoices] = await Promise.all([
+            db.getOrders(),
+            db.getInvoices()
+        ]);
+
+        const onlineTx = allOrders.map(o => ({
+            id:             o.id,
+            date:           o.createdAt,
+            timeMs:         new Date(o.createdAt).getTime(),
+            customer:       o.customerName || 'Guest',
+            phone:          o.customerPhone || '',
+            district:       o.district || o.state || 'Online Web',
+            state:          o.state || 'Tamil Nadu',
+            items:          Array.isArray(o.items) ? o.items : [],
+            itemSummary:    Array.isArray(o.items) ? o.items.map(i => `${i.name || '?'} x${i.qty || 1}`).join(', ') : '',
+            total:          Number(o.total) || 0,
+            isPaid:         o.paymentStatus === 'Paid',
+            paymentStatus:  o.paymentStatus || 'Pending',
+            paymentMethod:  o.paymentMethod || 'Razorpay / Online',
+            deliveryStatus: o.deliveryStatus || o.status || 'Pending',
+            channel:        'online',
+            cashier:        'Web Store'
+        }));
+
+        const offlineTx = allInvoices.map(inv => ({
+            id:             inv.id,
+            date:           inv.date,
+            timeMs:         new Date(inv.date).getTime(),
+            customer:       inv.customerName || 'Walk-in Customer',
+            phone:          inv.customerPhone || '',
+            district:       'Billing Counter',
+            state:          'Tamil Nadu',
+            items:          Array.isArray(inv.items) ? inv.items : [],
+            itemSummary:    Array.isArray(inv.items) ? inv.items.map(i => `${i.name || '?'} x${i.qty || 1}`).join(', ') : '',
+            total:          Number(inv.grandTotal) || 0,
+            isPaid:         String(inv.status).toUpperCase() === 'PAID',
+            paymentStatus:  'Paid',
+            paymentMethod:  inv.paymentMode || 'Cash',
+            deliveryStatus: 'Completed (POS Counter)',
+            channel:        'offline',
+            cashier:        inv.cashier || 'Counter Cashier'
+        }));
+
+        const inWindow = tx => tx.timeMs >= fromMs && tx.timeMs < toMs;
+        const windowOnline = onlineTx.filter(inWindow);
+        const windowOffline = offlineTx.filter(inWindow);
+
+        let selectedTx = [];
+        if (channel === 'online') {
+            selectedTx = windowOnline;
+        } else if (channel === 'offline') {
+            selectedTx = windowOffline;
+        } else {
+            selectedTx = [...windowOnline, ...windowOffline].sort((a, b) => b.timeMs - a.timeMs);
+        }
+
+        const paidTx = selectedTx.filter(t => t.isPaid);
 
         // ── KPI cards ──────────────────────────────────────────────────────
-        const totalRevenue = Math.round(paid.reduce((s, o) => s + (Number(o.total) || 0), 0) * 100) / 100;
-        const totalOrders  = orders.length;
-        const paidOrders   = paid.length;
+        const totalRevenue = Math.round(paidTx.reduce((s, t) => s + (Number(t.total) || 0), 0) * 100) / 100;
+        const onlineRevenue = Math.round(windowOnline.filter(t => t.isPaid).reduce((s, t) => s + (Number(t.total) || 0), 0) * 100) / 100;
+        const offlineRevenue = Math.round(windowOffline.filter(t => t.isPaid).reduce((s, t) => s + (Number(t.total) || 0), 0) * 100) / 100;
+
+        const totalOrders = selectedTx.length;
+        const paidOrders  = paidTx.length;
+        const onlineOrdersCount = windowOnline.length;
+        const offlineOrdersCount = windowOffline.length;
 
         // Unique customers
         const uniqueCustomers = new Set(
-            orders.map(o => o.customerPhone || o.userId || o.customerName)
+            selectedTx.map(t => t.phone || t.customer).filter(Boolean)
         ).size;
 
-        // Cancelled / return proxy (Cancelled orders)
-        const cancelled      = orders.filter(o => o.deliveryStatus === 'Cancelled' || o.status === 'Cancelled').length;
-        const returnRate     = totalOrders > 0 ? ((cancelled / totalOrders) * 100).toFixed(1) : '0.0';
+        // Cancelled (online only)
+        const cancelled = selectedTx.filter(t => t.deliveryStatus === 'Cancelled').length;
+        const returnRate = totalOrders > 0 ? ((cancelled / totalOrders) * 100).toFixed(1) : '0.0';
 
         // ── Revenue trend (grouped by day in the window) ─────────────────
         const dayBuckets = {};
@@ -256,17 +314,16 @@ router.get('/analytics', async (req, res) => {
             const dayStart = fromMs + d * DAY_MS;
             const dayEnd   = dayStart + DAY_MS;
             const dayLabel = new Date(dayStart + IST_OFFSET_MS).toISOString().slice(0, 10);
-            const dayRevenue = paid
-                .filter(o => { const t = new Date(o.createdAt).getTime(); return t >= dayStart && t < dayEnd; })
-                .reduce((s, o) => s + (Number(o.total) || 0), 0);
+            const dayRevenue = paidTx
+                .filter(t => t.timeMs >= dayStart && t.timeMs < dayEnd)
+                .reduce((s, t) => s + (Number(t.total) || 0), 0);
             dayBuckets[dayLabel] = Math.round(dayRevenue * 100) / 100;
         }
 
         // ── Top products ───────────────────────────────────────────────────
         const productMap = {};
-        for (const order of paid) {
-            const items = Array.isArray(order.items) ? order.items : [];
-            for (const item of items) {
+        for (const tx of paidTx) {
+            for (const item of tx.items) {
                 const name = item.name || item.productName || 'Unknown';
                 if (!productMap[name]) productMap[name] = { sold: 0, revenue: 0 };
                 productMap[name].sold    += Number(item.qty) || 1;
@@ -278,51 +335,72 @@ router.get('/analytics', async (req, res) => {
             .sort((a, b) => b.revenue - a.revenue)
             .slice(0, 10);
 
-        // ── Regional breakdown (by district field on order) ────────────────
+        // ── Regional / Channel breakdown ──────────────────────────────────
         const regionMap = {};
-        for (const order of paid) {
-            const region = order.district || order.state || 'Unknown';
+        for (const tx of paidTx) {
+            const region = tx.channel === 'offline' ? 'Counter POS' : (tx.district || tx.state || 'Online Web');
             if (!regionMap[region]) regionMap[region] = { orders: 0, revenue: 0 };
             regionMap[region].orders  += 1;
-            regionMap[region].revenue += Number(order.total) || 0;
+            regionMap[region].revenue += Number(tx.total) || 0;
         }
         const regions = Object.entries(regionMap)
             .map(([region, v]) => ({ region, orders: v.orders, revenue: Math.round(v.revenue * 100) / 100 }))
             .sort((a, b) => b.revenue - a.revenue)
             .slice(0, 10);
 
-        // Compute share %
         const maxOrd = regions[0]?.orders || 1;
         regions.forEach(r => { r.share = Math.round((r.orders / maxOrd) * 100); });
 
-        // ── Delivery status mix ────────────────────────────────────────────
+        // ── Delivery / Status Mix ─────────────────────────────────────────
         const statusMap = {};
-        for (const order of orders) {
-            const s = order.deliveryStatus || order.status || 'Pending';
+        for (const tx of selectedTx) {
+            const s = tx.deliveryStatus || 'Completed';
             statusMap[s] = (statusMap[s] || 0) + 1;
         }
         const deliveryMix = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
+        // ── Channel Breakdown ─────────────────────────────────────────────
+        const channelBreakdown = {
+            online:  { count: onlineOrdersCount, revenue: onlineRevenue },
+            offline: { count: offlineOrdersCount, revenue: offlineRevenue }
+        };
+
         res.json({
             success: true,
             data: {
-                kpi: { totalRevenue, totalOrders, paidOrders, uniqueCustomers, returnRate, cancelled },
+                channel,
+                kpi: {
+                    totalRevenue,
+                    onlineRevenue,
+                    offlineRevenue,
+                    totalOrders,
+                    onlineOrders: onlineOrdersCount,
+                    offlineOrders: offlineOrdersCount,
+                    paidOrders,
+                    uniqueCustomers,
+                    returnRate,
+                    cancelled
+                },
+                channelBreakdown,
                 trend: dayBuckets,
                 topProducts,
                 regions,
                 deliveryMix,
-                // Full order list for "actual data" view (limited to 500 for perf)
-                orders: orders.slice(0, 500).map(o => ({
-                    id:             o.id,
-                    date:           o.createdAt,
-                    customer:       o.customerName || 'Guest',
-                    phone:          o.customerPhone || '',
-                    district:       o.district || '',
-                    state:          o.state || '',
-                    items:          Array.isArray(o.items) ? o.items.map(i => `${i.name||'?'} x${i.qty||1}`).join(', ') : '',
-                    total:          Number(o.total) || 0,
-                    paymentStatus:  o.paymentStatus || '',
-                    deliveryStatus: o.deliveryStatus || o.status || '',
+                // Full order & invoice list for "actual data" view
+                orders: selectedTx.slice(0, 500).map(t => ({
+                    id:             t.id,
+                    date:           t.date,
+                    customer:       t.customer,
+                    phone:          t.phone,
+                    district:       t.district,
+                    state:          t.state,
+                    items:          t.itemSummary,
+                    total:          t.total,
+                    paymentStatus:  t.paymentStatus,
+                    paymentMethod:  t.paymentMethod,
+                    deliveryStatus: t.deliveryStatus,
+                    channel:        t.channel,
+                    cashier:        t.cashier
                 })),
             },
         });

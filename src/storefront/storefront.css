@@ -387,18 +387,18 @@ body.sb-home-active {
   margin-bottom: 20px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .cert-logos-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 14px 22px;
+  width: 100%;
+  min-width: 0;
+  padding: 18px 12px;
   border: 1px solid var(--border-light);
   border-radius: 14px;
   background: #FAF9F6;
@@ -413,18 +413,24 @@ body.sb-home-active {
   box-shadow: 0 6px 18px rgba(11, 122, 75,0.1);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card img {
-  width: 52px;
-  height: 52px;
+  width: 72px;
+  height: 72px;
   object-fit: cover;
   border-radius: 10px;
   filter: grayscale(0.2);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card span {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--primary-dark);
   text-align: center;
   letter-spacing: 0.01em;
+}
+
+@media (max-width: 700px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logos-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* ====================================
@@ -2209,6 +2215,26 @@ body.sb-home-active {
     radial-gradient(circle at 80% 20%, rgba(199, 125, 24,0.1) 0%, transparent 50%);
   pointer-events: none;
 }
+:is(body.sb-home-active .sb-home, .sb-portal) .welcome-poster-header.has-image {
+  height: auto;
+  min-height: 140px;
+  max-height: 380px;
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .welcome-poster-header.has-image::after {
+  display: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .welcome-poster-image {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  object-fit: contain;
+  display: block;
+  z-index: 2;
+  border-radius: 28px 28px 0 0;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) .welcome-poster-leaf {
   font-size: 4rem;
   line-height: 1;
@@ -3982,6 +4008,20 @@ body.sb-home-active {
     justify-content: flex-start;
     gap: 10px;
     padding: 16px 52px 10px 14px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #welcomePosterModal .welcome-poster-header.has-image {
+    padding: 0 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    max-height: 240px !important;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #welcomePosterModal .welcome-poster-header.has-image .welcome-poster-image {
+    max-height: 240px !important;
+    width: 100% !important;
+    object-fit: contain !important;
+    border-radius: 20px 20px 0 0 !important;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #welcomePosterModal .welcome-poster-header::before {
     content: '';

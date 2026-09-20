@@ -1,15 +1,8 @@
-import { Link } from 'react-router-dom'
-import ComingSoon from '../components/ComingSoon'
-
-// Community Blogs is Phase 3 work — not part of this presentation build.
-// Real implementation kept below, commented out, to restore later.
-
-/*
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft, Calendar, User, Clock, Tag, Share2, Youtube,
-  ShoppingCart, BookOpen, ExternalLink, Sprout, ChevronRight
+  ShoppingCart, BookOpen, ExternalLink, Sprout, ChevronRight, Film, Video
 } from 'lucide-react'
 import axios from 'axios'
 
@@ -64,8 +57,13 @@ export default function BlogDetail() {
 
   const getYouTubeId = (url) => {
     if (!url) return null
-    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+    const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
     return match ? match[1] : null
+  }
+
+  const isHtml5Video = (url) => {
+    if (!url) return false
+    return url.startsWith('/api/upload') || url.startsWith('data:video') || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)
   }
 
   const handleShare = () => {
@@ -168,28 +166,47 @@ export default function BlogDetail() {
         )}
 
         {relatedVideos.length > 0 && (
-          <section className="sb-article-section">
+          <section className="sb-article-section" style={{ marginTop: '32px' }}>
             <div className="sb-article-section-head">
-              <h2><Youtube size={20} color="#dc2626" aria-hidden="true" />Watch: Related Videos</h2>
+              <h2><Film size={20} color="#16a34a" aria-hidden="true" />Watch: Video Demonstrations &amp; Guides</h2>
             </div>
-            <div className="sb-article-videos">
+            <div className="sb-article-videos" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
               {relatedVideos.map(video => {
-                const ytId = getYouTubeId(video.url || video.videoUrl)
+                const videoUrl = video.url || video.videoUrl || ''
+                const ytId = getYouTubeId(videoUrl)
+                const isLocal = isHtml5Video(videoUrl)
+
                 return (
-                  <div key={video._id || video.id} className="sb-article-video">
-                    {ytId ? (
-                      <div className="sb-article-video-frame">
-                        <iframe src={`https://www.youtube.com/embed/${ytId}`} title={video.title} allowFullScreen />
+                  <div key={video._id || video.id} className="sb-article-video" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#fff' }}>
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000' }}>
+                      {ytId ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${ytId}`}
+                          title={video.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          style={{ width: '100%', height: '100%', border: 0 }}
+                        />
+                      ) : isLocal ? (
+                        <video
+                          src={videoUrl}
+                          controls
+                          preload="metadata"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        <a className="sb-article-video-link" href={videoUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textDecoration: 'none', color: '#fff' }}>
+                          <Youtube size={40} color="#dc2626" aria-hidden="true" />
+                          <span style={{ marginTop: '8px', fontSize: '0.85rem' }}>Watch Video Guide</span>
+                        </a>
+                      )}
+                    </div>
+                    <div className="sb-article-video-body" style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                        <span className="badge badge-green" style={{ fontSize: '0.68rem' }}>{video.category || 'Guide'}</span>
                       </div>
-                    ) : (
-                      <a className="sb-article-video-link" href={video.url || video.videoUrl} target="_blank" rel="noreferrer">
-                        <Youtube size={32} color="#dc2626" aria-hidden="true" />
-                        <span>Watch on YouTube</span>
-                      </a>
-                    )}
-                    <div className="sb-article-video-body">
-                      <h4>{video.title}</h4>
-                      {video.description && <p>{video.description}</p>}
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>{video.title}</h4>
+                      {video.description && <p style={{ margin: '6px 0 0', fontSize: '0.8rem', color: '#6b7280' }}>{video.description}</p>}
                     </div>
                   </div>
                 )
@@ -236,18 +253,6 @@ export default function BlogDetail() {
           <Link to="/blog">All Articles</Link>
         </div>
       </article>
-    </div>
-  )
-}
-*/
-
-export default function BlogDetail() {
-  return (
-    <div className="sb-article-page animate-fade-in">
-      <div className="sb-article">
-        <ComingSoon title="Blog — coming soon" message="This article will be available once the blog goes live." />
-        <p style={{ textAlign: 'center' }}><Link to="/">Back to the store</Link></p>
-      </div>
     </div>
   )
 }

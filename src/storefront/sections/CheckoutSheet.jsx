@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import axios from 'axios'
 import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
 import { ADDRESS_LABELS, CHECKOUT_STEPS, STATES } from '../../hooks/checkoutRules'
 import { productImage, rupees, useFallbackImage } from '../data'
+import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
 
 // Checkout is open for Cash on Delivery only. Online payment (Razorpay) is
@@ -66,6 +68,70 @@ function Field({ name, label, wide, value, problem, onChange, ...inputProps }) {
   )
 }
 
+// NOT RENDERED YET, AND IT MUST NOT BE until the server applies the discount.
+// /api/orders and /api/payments/create-order both price the basket themselves
+// (priceCart) and know nothing about coupons, so showing this box would take a
+// code, show the shopper a lower total, and then charge them the full amount.
+// Finishing it means applying the validated coupon inside priceCart, on the
+// server, and storing the code on the order - not passing a discount up from
+// here, which anyone could edit.
+function CouponBox({ subtotal, onApplyCoupon, appliedCoupon, onRemoveCoupon }) {
+  const [couponCode, setCouponCode] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleApply = async () => {
+    if (!couponCode.trim()) return
+    setLoading(true)
+    try {
+      const { data } = await axios.post('/api/coupons/validate', {
+        code: couponCode,
+        cartTotal: subtotal
+      })
+      if (data.success && data.data) {
+        onApplyCoupon(data.data)
+        showToast(data.message, 'success')
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Invalid coupon code', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (appliedCoupon) {
+    return (
+      <div style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '8px 12px', borderRadius: '8px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <span style={{ fontWeight: 700, color: '#34d399', fontSize: '0.88rem' }}>🎟️ {appliedCoupon.code} Applied</span>
+          <small style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Discount: {rupees(appliedCoupon.discount)}</small>
+        </div>
+        <button type="button" className="btn btn-ghost" onClick={onRemoveCoupon} style={{ padding: '2px 8px', fontSize: '0.8rem', color: '#ef4444' }}>Remove</button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+      <input
+        type="text"
+        placeholder="Coupon Code (e.g. SATHYA10)"
+        value={couponCode}
+        onChange={e => setCouponCode(e.target.value.toUpperCase())}
+        style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+      />
+      <button
+        type="button"
+        className="btn btn-outline"
+        onClick={handleApply}
+        disabled={loading || !couponCode.trim()}
+        style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+      >
+        {loading ? 'Applying...' : 'Apply'}
+      </button>
+    </div>
+  )
+}
+
 function BasketStep({ cart, cartReady, actions }) {
   if (!cart.length && !cartReady) {
     return <p className="co-loading"><Spinner label="Loading your basket..." /></p>
@@ -89,6 +155,7 @@ function BasketStep({ cart, cartReady, actions }) {
             <h4 className="cart-item-name">{item.name}</h4>
             <div className="cart-item-meta">
               {item.selectedPack && <span className="cart-item-pack">{item.selectedPack}</span>}
+              {item.hsnCode && <span className="badge badge-blue" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>HSN: {item.hsnCode}</span>}
               <span>{rupees(item.price)} each</span>
             </div>
             <div className="cart-item-foot">

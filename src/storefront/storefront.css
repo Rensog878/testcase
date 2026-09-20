@@ -3291,13 +3291,18 @@ body.sb-home-active {
     z-index: 9999 !important;
     border-radius: 24px 24px 0 0 !important;
     padding: 20px 18px calc(24px + env(safe-area-inset-bottom, 0px)) 18px !important;
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25) !important;
     transform: translateY(105%) !important;
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     margin-bottom: 0 !important;
   }
+  /* The shadow belongs to the sheet while it is OPEN. Parked below the
+     fold it still cast `0 -10px 40px` upwards - onto the page - so the
+     bottom of every storefront screen carried a faint smudge from a
+     drawer nobody had opened, and the smudge moved whenever the sheet's
+     own height changed. */
   :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar.drawer-open {
     transform: translateY(0) !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25) !important;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .mobile-filter-drawer-header {
     display: flex !important;

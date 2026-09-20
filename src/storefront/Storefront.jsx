@@ -128,7 +128,16 @@ export default function Storefront() {
 
     // ---- catalogue ----
     const scrollToCatalog = () => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
-    const setFilter = (name, value) => setFilters(current => ({ ...current, [name]: value }))
+    // The sidebar facets combine with each other, but a search does not: the
+    // box lives up in the header, far from the drawer, so a crop or category
+    // left over from browsing would silently hide the very product that was
+    // just typed. Starting a search clears the rest, mirroring how a category
+    // or crop tile clears the search.
+    const setFilter = (name, value) => setFilters(current => (
+      name === 'search' && String(value).trim()
+        ? { ...DEFAULT_FILTERS, search: value }
+        : { ...current, [name]: value }
+    ))
     const resetFilters = () => setFilters(DEFAULT_FILTERS)
     // Entry points from outside the catalogue (nav, mega menu, crop and
     // category tiles) start a fresh browse: the other filters go back to

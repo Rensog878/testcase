@@ -421,16 +421,18 @@ export default function AllProducts() {
     applyBrowseFilter('nutrient', same ? '' : nutName)
   }
 
-  // A search typed here must not sit behind a stale `?search=` left by the
-  // header: the moment any other chip changed, the URL value would come back
-  // and overwrite what was typed. Once the URL carries a search it is kept in
-  // step, replacing the history entry so typing never fills the back button.
+  // Typing a search starts a fresh view, exactly like picking a browse tile:
+  // a category, crop, pest or nutrient left over from browsing is dropped, so
+  // the search never lands on an empty grid because of a filter the shopper
+  // had stopped thinking about. The URL is the one source of truth, so once
+  // anything is in it the box is kept in step there - replacing the history
+  // entry, so typing never fills the back button.
   const handleSearchChange = (value) => {
     setSearchQuery(value)
-    if (!searchParams.has('search')) return
-    const next = new URLSearchParams(searchParams)
+    const browsing = Boolean(activeCategory || activeCrop || activeDisease || activeNutrient)
+    if (!browsing && !searchParams.has('search')) return
+    const next = new URLSearchParams()
     if (value) next.set('search', value)
-    else next.delete('search')
     setSearchParams(next, { replace: true })
   }
 

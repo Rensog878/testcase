@@ -6388,7 +6388,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 9999;
+  /* The app's modal tier (.modal-overlay), above the floating bottom bar at
+     9999 - which otherwise sat over the foot of this sheet on phones. */
+  z-index: 10000;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -7130,6 +7132,18 @@ button.mobile-nav-link {
    or either Categories column - it comes back as a slim icon-only dock with a
    small spring, so the last items sit clear of it. */
 @media (max-width: 767px) {
+  /* A bottom sheet owns the bottom edge while it is open (the catalogue's
+     filter drawer, Storefront.jsx). The bar and the sheet both sit at
+     z-index 9999, so the bar won on DOM order and floated over the sheet's
+     Reset / Apply row - bright, undimmed, and swallowing the taps meant for
+     Apply. It steps aside instead, the way a native tab bar does, and the
+     sheet closing brings it straight back. Its own scroll state is untouched:
+     this is a separate class from .is-hidden, which the bar's script owns. */
+  body.sb-bottom-sheet-open .sathya-mobile-bottom-nav.bighaat-mobile-bottom-nav {
+    transform: translateY(calc(100% + 48px + env(safe-area-inset-bottom, 0px)));
+    box-shadow: none;
+    pointer-events: none;
+  }
   .sathya-mobile-bottom-nav.bighaat-mobile-bottom-nav {
     transition:
       transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),

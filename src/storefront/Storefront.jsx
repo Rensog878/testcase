@@ -312,8 +312,13 @@ export default function Storefront() {
     document.body.classList.toggle('poster-open', modals.welcomePosterModal === 'open')
   }, [modals, filterDrawerOpen])
 
+  // The filter drawer is a bottom sheet, so it owns the bottom edge: the page
+  // behind it stops scrolling, and the floating bottom bar steps aside
+  // (index.css) instead of covering its Reset / Apply row.
   useEffect(() => {
     document.body.style.overflow = filterDrawerOpen ? 'hidden' : ''
+    setBodyFlag('sb-bottom-sheet-open', 'catalog-filters', filterDrawerOpen)
+    return () => setBodyFlag('sb-bottom-sheet-open', 'catalog-filters', false)
   }, [filterDrawerOpen])
 
   // ---- language ----

@@ -12643,3 +12643,67 @@ input[type='password']::-ms-clear {
     background-image: none;
   }
 }
+
+/* The wordmark artwork on the staff sign-in card, sized like the heading it
+   replaces. The image is a block in its own right - setting line-height to 0
+   here collapsed the box and let the line underneath ride up over it. */
+.login-logo-text .brand.has-brand-wordmark {
+  display: block;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+.login-logo-text .brand.has-brand-wordmark .brand-wordmark {
+  height: 30px;
+}
+@media (max-width: 767px) {
+  .login-logo-text .brand.has-brand-wordmark .brand-wordmark {
+    height: 24px;
+  }
+}
+
+/* The staff sign-in card leads with the logo, centred. The language switcher
+   used to share a space-between row with it, which pushed the lockup to the
+   left edge; it sits in the corner now and the brand takes the middle. */
+.login-brand-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 44px;
+}
+/* The language switcher leaves the brand row and pins to the card's own
+   corner. Keeping it in the row meant either the lockup sat off-centre, or
+   the row needed padding wide enough to clear it - and that padding squeezed
+   the flex row until the emblem was half its width. */
+.login-card {
+  position: relative;
+}
+.login-brand-row > :last-child {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+}
+.login-brand-row .login-logo {
+  justify-content: center;
+}
+.login-brand-row .login-logo-text {
+  text-align: center;
+}
+/* The switcher sits in the corner over this row, so the line under the
+   wordmark keeps clear of it. */
+.login-brand-row .login-logo-text .tagline {
+  max-width: 100%;
+  margin: 0 auto;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+.login-brand-row .login-logo-icon,
+.login-brand-row .brand-wordmark {
+  flex-shrink: 0;
+}
+/* Staff card: the wordmark image centres over the line beneath it, rather
+   than sitting flush left in its text block. */
+.login-brand-row .login-logo-text .brand.has-brand-wordmark .brand-wordmark {
+  margin-left: auto;
+  margin-right: auto;
+}

@@ -114,6 +114,35 @@ const isTranslatable = field =>
 // needs to change.
 const TRANSLATION_LANGUAGES = [{ code: 'ta', label: 'Tamil', native: 'தமிழ்' }]
 
+/* The five information pages (src/pages/InformationPage.jsx) read their copy
+   from the CMS under a prefix, so an admin can write the privacy policy, the
+   terms, the refund policy, About and Contact without touching the code.
+   Alagu's work; it was dropped when his branch was merged, because these keys
+   are built from template literals and the field-by-field comparison that
+   checked the merge only saw keys written out as plain strings. */
+const INFO_PAGE_FIELDS = [
+  { prefix: 'privacy', label: 'Privacy Policy', sections: 4 },
+  { prefix: 'terms', label: 'Terms of Sale', sections: 4 },
+  { prefix: 'refund', label: 'Refund Policy', sections: 4 },
+  { prefix: 'about', label: 'About Us', sections: 3 },
+  { prefix: 'contact', label: 'Contact Us', sections: 2 },
+]
+
+function informationPageFields(prefix, label, sectionCount) {
+  const fields = [
+    { key: `${prefix}PageTitle`, label: `${label} — Page Title`, type: 'input' },
+    { key: `${prefix}PageEyebrow`, label: `${label} — Eyebrow`, type: 'input' },
+    { key: `${prefix}PageIntro`, label: `${label} — Introduction`, type: 'textarea' },
+  ]
+  for (let index = 1; index <= sectionCount; index += 1) {
+    fields.push(
+      { key: `${prefix}Section${index}Title`, label: `${label} — Section ${index} Heading`, type: 'input' },
+      { key: `${prefix}Section${index}Text`, label: `${label} — Section ${index} Content`, type: 'textarea', rows: 4 },
+    )
+  }
+  return fields
+}
+
 // ─── Accordion section metadata ───────────────────────────────────────────────
 const SECTIONS = [
   {
@@ -242,6 +271,11 @@ const SECTIONS = [
       { key: 'popupText',     label: '📄 Popup Body Text',   type: 'textarea' },
     ],
   },
+  ...INFO_PAGE_FIELDS.map(page => ({
+    id: page.prefix,
+    label: `📄 ${page.label} Page`,
+    fields: informationPageFields(page.prefix, page.label, page.sections),
+  })),
   {
     id: 'contact-card',
     label: '📞 Contact Page Card',

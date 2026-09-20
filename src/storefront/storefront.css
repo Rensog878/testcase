@@ -10409,3 +10409,45 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     background-image: none;
   }
 }
+
+/* The wordmark artwork on the customer sign-in card. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-text.has-brand-wordmark {
+  display: block;
+  line-height: 0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-text.has-brand-wordmark .brand-wordmark {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+
+/* Sign-in card brand: one line for the emblem and the wordmark, with room
+   between them, and the slogan centred underneath the pair. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand {
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px;
+}
+/* Three columns, so the WORDMARK is what sits on the card's centre line and
+   the slogan beneath it lines up with it exactly. Centring the emblem and the
+   wordmark as one pair instead pushes the wordmark off that line by half the
+   emblem. The emblem hangs at the end of the first column. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-line {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-line .auth-brand-icon {
+  grid-column: 1;
+  justify-self: end;
+  margin-right: 14px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-line .auth-brand-text {
+  grid-column: 2;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-sub {
+  display: block;
+  text-align: center;
+  width: 100%;
+}

@@ -10,16 +10,11 @@ import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop } from '../utils/catalogUtils'
 import axios from 'axios'
-import { 
-  SHOP_CATEGORIES, 
-  TOP_10_PICKS, 
-  CROPS_LIST, 
-  PESTS_AND_DISEASES, 
-  NUTRIENTS_LIST, 
-  TODAYS_OFFERS, 
-  BEST_SELLING, 
-  GROWTH_PROMOTERS, 
-  MASTER_PRODUCTS 
+import {
+  SHOP_CATEGORIES,
+  CROPS_LIST,
+  PESTS_AND_DISEASES,
+  NUTRIENTS_LIST,
 } from '../data/allProductsData'
 
 // One screenful of catalogue cards. The grid grows by this as it is scrolled.
@@ -249,6 +244,29 @@ export default function AllProducts() {
       }))
     }))
   }, [dbProducts])
+
+  // "Best Selling" rendered BEST_SELLING from src/data/allProductsData.js,
+  // which is a fixed empty array - so the section has always been a heading,
+  // a subtitle and a "View All" above an empty carousel, on every device. It
+  // shows the catalogue's own best sellers now, by the same rule the
+  // storefront's Trending row uses, and stands down when there are none.
+  // The card in that carousel reads prod.sizes, which a raw catalogue product
+  // does not carry - the neighbouring rails all build it. Same shape here.
+  const bestSellingList = useMemo(
+    () => dbProducts
+      .filter(p => p.badge === 'Best Seller' || p.badge === '100% Organic' || p.rating >= 4.8)
+      .slice(0, 8)
+      .map(p => ({
+        ...p,
+        sizes: (Array.isArray(p.packSizes) && p.packSizes.length ? p.packSizes : ['Standard']).map(size => ({
+          size: typeof size === 'object' ? size.size : size,
+          price: p.price,
+          originalPrice: p.originalPrice || p.price,
+          save: Math.max(0, (p.originalPrice || p.price) - p.price),
+        })),
+      })),
+    [dbProducts],
+  )
 
   const growthPromotersList = useMemo(() => {
     return dbProducts.filter(p => (p.category || '').toLowerCase().includes('growth') || (p.category || '').toLowerCase().includes('bio-stimulant')).map(p => ({
@@ -956,115 +974,117 @@ export default function AllProducts() {
         )}
 
         {/* 6. BEST SELLING SECTION (Matching Image 4) */}
-        <section className="shop-section best-selling-section">
-          <div className="section-header-row">
-            <div>
-              <h2 className="section-title">Best Selling</h2>
-              <p className="section-subtitle">Best prices available today.</p>
+        {bestSellingList.length > 0 && (
+          <section className="shop-section best-selling-section">
+            <div className="section-header-row">
+              <div>
+                <h2 className="section-title">Best Selling</h2>
+                <p className="section-subtitle">Best prices available today.</p>
+              </div>
+              <button type="button" className="view-all-link" onClick={() => {
+                if (catalogSectionRef.current) catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
+              }}>View All</button>
             </div>
-            <button type="button" className="view-all-link" onClick={() => {
-              if (catalogSectionRef.current) catalogSectionRef.current.scrollIntoView({ behavior: 'smooth' })
-            }}>View All</button>
-          </div>
 
-          <div className="product-cards-carousel">
-            {BEST_SELLING.map(prod => {
-              const activeSize = getProductActiveSize(prod)
-              const isWishlisted = wishlist.has(prod.id)
+            <div className="product-cards-carousel">
+              {bestSellingList.map(prod => {
+                const activeSize = getProductActiveSize(prod)
+                const isWishlisted = wishlist.has(prod.id)
 
-              return (
-                <div key={prod.id} className="agro-product-card" {...cardOpenProps(prod.id, prod.name)}>
-                  <div className="card-top-bar">
-                    <span className="discount-tag">{prod.discount}</span>
+                return (
+                  <div key={prod.id} className="agro-product-card" {...cardOpenProps(prod.id, prod.name)}>
+                    <div className="card-top-bar">
+                      <span className="discount-tag">{prod.discount}</span>
+                      <button 
+                        type="button" 
+                        className={`wishlist-heart-btn ${isWishlisted ? 'active' : ''}`}
+                        onClick={() => toggleWishlist(prod.id, prod.name)}
+                        aria-label="Add to Wishlist"
+                      >
+                        <Heart size={18} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#64748b'} />
+                      </button>
+                    </div>
+
+                    <div className="card-image-box">
+                      <img 
+                        src={prod.image} 
+                        alt={prod.name} 
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = './assets/p1.png'
+                        }}
+                      />
+                    </div>
+
+                    <div className="card-rating-badge">
+                      <span>{prod.rating} ★</span>
+                      <span className="rating-divider">|</span>
+                      <span>{prod.reviewsCount ?? 0}</span>
+                    </div>
+
+                    {user && prod.targetUserId === user.id ? (
+                      <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Star size={11} fill="#fff" /> Recommended for You
+                      </div>
+                    ) : user && user.crop && matchesCrop(prod.crops, user.crop) ? (
+                      <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Sprout size={11} /> Tailored for {user.crop}
+                      </div>
+                    ) : prod.tagBadge ? (
+                      <div className="card-high-demand-banner">{prod.tagBadge}</div>
+                    ) : (
+                      <div className="card-high-demand-placeholder" />
+                    )}
+
+                    <h3 className="card-product-title" title={prod.name}>
+                      {prod.name}
+                    </h3>
+                    <p className="card-brand-name">{prod.brand}</p>
+
+                    <div className="card-pricing-row">
+                      <strong className="card-current-price">₹{activeSize.price}</strong>
+                      {activeSize.originalPrice && (
+                        <span className="card-original-price">₹{activeSize.originalPrice}</span>
+                      )}
+                    </div>
+                    {activeSize.save > 0 && (
+                      <div className="card-savings-pill">
+                        <span className="save-icon">✔</span>
+                        <span>Save ₹ {activeSize.save}</span>
+                      </div>
+                    )}
+
+                    <div className="card-size-selector-row">
+                      <label htmlFor={`size-select-${prod.id}`}>Size</label>
+                      <select 
+                        id={`size-select-${prod.id}`}
+                        value={activeSize.size}
+                        onChange={(e) => handleSizeChange(prod.id, e.target.value)}
+                        className="card-size-dropdown"
+                      >
+                        {prod.sizes.map(s => (
+                          <option key={s.size} value={s.size}>
+                            {s.size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <button 
                       type="button" 
-                      className={`wishlist-heart-btn ${isWishlisted ? 'active' : ''}`}
-                      onClick={() => toggleWishlist(prod.id, prod.name)}
-                      aria-label="Add to Wishlist"
+                      className="card-add-to-cart-btn"
+                      onClick={() => handleAddToCart(prod, activeSize.size)}
                     >
-                      <Heart size={18} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#64748b'} />
+                      <ShoppingCart size={16} />
+                      <span>Add to Cart</span>
                     </button>
                   </div>
-
-                  <div className="card-image-box">
-                    <img 
-                      src={prod.image} 
-                      alt={prod.name} 
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = './assets/p1.png'
-                      }}
-                    />
-                  </div>
-
-                  <div className="card-rating-badge">
-                    <span>{prod.rating} ★</span>
-                    <span className="rating-divider">|</span>
-                    <span>{prod.reviewsCount ?? 0}</span>
-                  </div>
-
-                  {user && prod.targetUserId === user.id ? (
-                    <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <Star size={11} fill="#fff" /> Recommended for You
-                    </div>
-                  ) : user && user.crop && matchesCrop(prod.crops, user.crop) ? (
-                    <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <Sprout size={11} /> Tailored for {user.crop}
-                    </div>
-                  ) : prod.tagBadge ? (
-                    <div className="card-high-demand-banner">{prod.tagBadge}</div>
-                  ) : (
-                    <div className="card-high-demand-placeholder" />
-                  )}
-
-                  <h3 className="card-product-title" title={prod.name}>
-                    {prod.name}
-                  </h3>
-                  <p className="card-brand-name">{prod.brand}</p>
-
-                  <div className="card-pricing-row">
-                    <strong className="card-current-price">₹{activeSize.price}</strong>
-                    {activeSize.originalPrice && (
-                      <span className="card-original-price">₹{activeSize.originalPrice}</span>
-                    )}
-                  </div>
-                  {activeSize.save > 0 && (
-                    <div className="card-savings-pill">
-                      <span className="save-icon">✔</span>
-                      <span>Save ₹ {activeSize.save}</span>
-                    </div>
-                  )}
-
-                  <div className="card-size-selector-row">
-                    <label htmlFor={`size-select-${prod.id}`}>Size</label>
-                    <select 
-                      id={`size-select-${prod.id}`}
-                      value={activeSize.size}
-                      onChange={(e) => handleSizeChange(prod.id, e.target.value)}
-                      className="card-size-dropdown"
-                    >
-                      {prod.sizes.map(s => (
-                        <option key={s.size} value={s.size}>
-                          {s.size}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button 
-                    type="button" 
-                    className="card-add-to-cart-btn"
-                    onClick={() => handleAddToCart(prod, activeSize.size)}
-                  >
-                    <ShoppingCart size={16} />
-                    <span>Add to Cart</span>
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* 7. SHOP BY NUTRIENTS 🧪 (Requested specifically: "shop by nutreicint") */}
         {dynamicNutrientsList.length > 0 && (

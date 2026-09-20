@@ -17,11 +17,11 @@ export const SHOP_CATEGORIES = [
 ];
 
 // Empty arrays — products come from the database only
-export const TOP_10_PICKS = [];
-export const TODAYS_OFFERS = [];
-export const BEST_SELLING = [];
-export const GROWTH_PROMOTERS = [];
-export const MASTER_PRODUCTS = [];
+// The rails these once held are built from the live catalogue in
+// AllProducts.jsx (top10PicksList, todaysOffersList, bestSellingList,
+// growthPromotersList). They were left here as empty arrays, and
+// "Best Selling" still read from one - which is why that section rendered a
+// heading and an empty carousel on every device. Nothing imports them now.
 
 export const CROPS_LIST = [
   { id: 'chilli', name: 'Green Chilli', cropCode: 'Chilli', image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=240&auto=format&fit=crop&q=80', popularIssues: 'Thrips, Mites, Fruit Rot, Dieback' },

@@ -18,6 +18,54 @@ export function normalizeCrop(crop) {
 }
 
 /**
+ * One crop, many names. A shop tags a product "Corn" while the filter tile
+ * says "Maize", or tags "Rice" while the tile says "Paddy", and the two never
+ * met: the names share no word, so a real product was invisible under the
+ * crop its grower calls it. Each group below is one crop; the first name is
+ * only the group's handle, not a preferred spelling - nothing is renamed on
+ * screen. Kept to names that are the same crop in Indian agriculture, never
+ * to ones that are merely related (sweet potato is not potato).
+ */
+const CROP_SYNONYM_GROUPS = [
+  ['corn', 'maize', 'makka'],
+  ['paddy', 'rice'],
+  ['groundnut', 'peanut'],
+  ['brinjal', 'eggplant', 'aubergine'],
+  ['okra', 'lady finger', 'ladies finger', 'bhindi'],
+  ['soybean', 'soyabean', 'soya'],
+  ['sorghum', 'jowar'],
+  ['pearl millet', 'bajra'],
+  ['finger millet', 'ragi'],
+  ['chickpea', 'bengal gram', 'chana'],
+  ['pigeon pea', 'red gram', 'tur', 'arhar'],
+  ['capsicum', 'bell pepper', 'shimla mirch'],
+  ['chilli', 'chili', 'chillies', 'mirchi'],
+  ['turmeric', 'haldi'],
+  ['coriander', 'cilantro', 'dhania'],
+]
+
+const CROP_SYNONYM_OF = new Map()
+for (const group of CROP_SYNONYM_GROUPS) {
+  for (const name of group) CROP_SYNONYM_OF.set(name, group[0])
+}
+
+/**
+ * The handle a single crop name belongs to - the name itself when it has no
+ * other names. Input is one already-normalized name, not a "a / b" label.
+ */
+export function cropHandle(name) {
+  const key = String(name || '').trim().toLowerCase()
+  return CROP_SYNONYM_OF.get(key) || key
+}
+
+/** Every name in a crop label, as handles: "Corn / Maize" -> ['corn']. */
+function cropHandles(value) {
+  const norm = normalizeCrop(value)
+  if (!norm) return []
+  return [...new Set(norm.split('/').filter(Boolean).map(cropHandle))]
+}
+
+/**
  * Resilient check to determine if a product matches a target crop filter.
  * Handles variations like "Paddy / Rice" vs "Paddy/Rice" vs "Paddy".
  */
@@ -27,6 +75,7 @@ export function matchesCrop(productCrops, targetCrop) {
 
   const target = normalizeCrop(targetCrop)
   if (!target) return true
+  const targetParts = cropHandles(targetCrop)
 
   const cropsList = Array.isArray(productCrops)
     ? productCrops
@@ -37,9 +86,9 @@ export function matchesCrop(productCrops, targetCrop) {
     if (!norm) return false
     if (norm === 'all crops') return true
     if (norm === target) return true
-    // Sub-segment matching (e.g. "paddy" matches "paddy/rice")
-    const normParts = norm.split('/')
-    const targetParts = target.split('/')
+    // Sub-name matching, on handles, so "paddy" matches "paddy/rice" and
+    // "Maize" matches a product tagged "Corn".
+    const normParts = cropHandles(crop)
     return normParts.some(np => targetParts.includes(np)) || target.includes(norm) || norm.includes(target)
   })
 }
@@ -118,8 +167,8 @@ export function isSameCrop(a, b) {
   const right = normalizeCrop(b)
   if (!left || !right) return false
   if (left === right) return true
-  const leftParts = left.split('/').filter(Boolean)
-  const rightParts = right.split('/').filter(Boolean)
+  const leftParts = cropHandles(a)
+  const rightParts = cropHandles(b)
   if (leftParts.length === 1) return rightParts.includes(leftParts[0])
   if (rightParts.length === 1) return leftParts.includes(rightParts[0])
   return false

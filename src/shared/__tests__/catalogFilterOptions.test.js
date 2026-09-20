@@ -4,7 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupeCropLabels, matchesCrop } from '../../utils/catalogUtils.js';
+import { cropHandle, dedupeCropLabels, isSameCrop, matchesCrop } from '../../utils/catalogUtils.js';
 
 test('the same crop spelled two ways is offered once, under its fuller name', () => {
   assert.deepEqual(dedupeCropLabels(['Corn / Maize', 'Corn']), ['Corn / Maize']);
@@ -35,4 +35,23 @@ test('the label kept still selects the products the dropped one would have', () 
   const [kept] = dedupeCropLabels(['Corn / Maize', 'Corn']);
   assert.equal(kept, 'Corn / Maize');
   assert.ok(matchesCrop(product.crops, kept));
+});
+
+test('one crop under two names selects the same products', () => {
+  assert.ok(matchesCrop(['Corn'], 'Maize'), 'a Maize filter must find a product tagged Corn');
+  assert.ok(matchesCrop(['Maize'], 'Corn'), 'and the other way round');
+  assert.ok(matchesCrop(['Rice'], 'Paddy'));
+  assert.ok(matchesCrop(['Groundnut'], 'Peanut'));
+  assert.ok(matchesCrop(['Lady Finger'], 'Okra'));
+});
+
+test('crops that are merely related stay apart', () => {
+  assert.equal(matchesCrop(['Corn'], 'Tomato'), false);
+  assert.equal(isSameCrop('Potato', 'Sweet Potato / Yam'), false);
+  assert.equal(cropHandle('sweet potato'), 'sweet potato');
+});
+
+test('the synonyms reach the filter lists too', () => {
+  assert.equal(isSameCrop('Corn / Maize', 'Maize'), true);
+  assert.deepEqual(dedupeCropLabels(['Maize', 'Corn / Maize']), ['Corn / Maize']);
 });

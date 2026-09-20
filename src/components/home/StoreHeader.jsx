@@ -62,10 +62,10 @@ export default function StoreHeader() {
     <header className="sb-store-head">
       <div className="sb-store-head-row">
         <TransitionLink to="/" className="sb-store-logo">
-          <span className="sb-store-logo-icon"><i className="fa-solid fa-leaf" aria-hidden="true"></i></span>
+          <span className="sb-store-logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></span>
           <span className="sb-store-logo-words">
-            <span className="sb-store-logo-text">SATHYAM <span>BIO</span></span>
-            <span className="sb-store-logo-sub">Agro Pesticide Store</span>
+            <span className="sb-store-logo-text">SATHYAM <span>AGRO MART</span></span>
+            <span className="sb-store-logo-sub">From our farms to your home</span>
           </span>
         </TransitionLink>
 

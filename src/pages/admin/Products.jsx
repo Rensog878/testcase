@@ -847,7 +847,7 @@ export default function AdminProducts() {
                     <label>Product Title *</label>
                     <input
                       required
-                      placeholder="e.g. Sathyam Bio BlastShield 75 WP"
+                      placeholder="e.g. Sathyam Agro Mart BlastShield 75 WP"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
                     />

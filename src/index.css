@@ -1,5 +1,5 @@
 /* =========================================
-   SATHYA BIO — Premium Design System
+   SATHYAM AGRO MART — Premium Design System
    MERN Stack Agricultural Platform
    ========================================= */
 
@@ -5090,7 +5090,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 }
 
 /* ==========================================================================
-   ALL PRODUCTS / SHOP PAGE — SATHYA BIO (MATCHING PC & MOBILE REFERENCE DESIGNS)
+   ALL PRODUCTS / SHOP PAGE — SATHYAM AGRO MART (MATCHING PC & MOBILE REFERENCE DESIGNS)
    ========================================================================== */
 
 .all-products-page {
@@ -7200,7 +7200,7 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   }
 }
 
-/* SATHYA BIO UNIFIED MOBILE BOTTOM NAVIGATION BAR
+/* SATHYAM AGRO MART UNIFIED MOBILE BOTTOM NAVIGATION BAR
    Uses the floating pill above (.bighaat-mobile-bottom-nav / .mobile-nav-link),
    which matches the storefront's bottom bar. Phones only. */
 .sathya-mobile-bottom-nav {
@@ -12010,7 +12010,7 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   }
 
   /* /admin/orders at 1280: the address wrapped to 8 lines in 140px while the
-     item names were cut to "Sathyam Bio BlastSh...". Wider address, and item
+     item names were cut to "Sathyam Agro Mart BlastSh...". Wider address, and item
      names wrap instead of being cut. */
   .table-wrap td.order-address-cell {
     min-width: 220px;
@@ -12466,4 +12466,61 @@ input[type='password']::-ms-clear {
   margin: 0;
   padding: 0;
   pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   BRAND MARK
+   The emblem from the Sathyam Agro Mart logo, standing where the leaf glyph
+   used to. The badges it sits in were a green gradient with a white glyph;
+   the emblem is dark green itself, so the badge turns white and keeps only
+   its shape, size and shadow - nothing around it moves. Each selector carries
+   the badge's own class plus .has-brand-mark, so it wins on specificity and
+   no priority override is needed.
+   ------------------------------------------------------------ */
+.brand-mark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* The emblem is a circle already. Boxing it in a rounded square put one
+   shape inside another and shrank the artwork to a green smudge, so the badge
+   keeps only its footprint: no fill, no border, no padding, emblem full size. */
+.sidebar-logo-icon.has-brand-mark,
+.login-logo-icon.has-brand-mark,
+.sb-store-logo-icon.has-brand-mark {
+  background: none;
+  background-image: none;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------
+   BRAND WORDMARK COLOURS
+   Sampled from the logo the client supplied (public/assets/brand/
+   logo-source.jpg): SATHYAM is the deep forest green of the cart, AGRO MART
+   is the bright leaf green, and the wheat ear gives the amber. Setting them
+   here means the two words on screen are the two words on the artwork.
+   ------------------------------------------------------------ */
+:root {
+  --brand-deep: #0b3d20;
+  --brand-leaf: #309315;
+  --brand-wheat: #f0b300;
+}
+.sb-store-logo-text,
+.sidebar-logo-text .brand-name {
+  color: var(--brand-deep);
+}
+.sb-store-logo-text span {
+  color: var(--brand-leaf);
+}
+/* The new name is six characters longer than the old one, and the staff
+   sidebar was sized for the old one: "Sathyam Agro Mart" broke over two lines
+   there, pushing the tagline down and unbalancing the whole panel. It is set
+   a step smaller and kept on one line. */
+.sidebar-logo-text .brand-name {
+  font-size: 0.95rem;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 }

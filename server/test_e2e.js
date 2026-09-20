@@ -1,8 +1,8 @@
-// E2E Verification Script for Sathyam Bio Database, Auth & Product API
+// E2E Verification Script for Sathyam Agro Mart Database, Auth & Product API
 const BASE_URL = 'http://localhost:5000';
 
 async function runTests() {
-  console.log('🧪 Starting Sathyam Bio Full-Stack Database & API Tests...\n');
+  console.log('🧪 Starting Sathyam Agro Mart Full-Stack Database & API Tests...\n');
 
   try {
     // 1. Health check
@@ -64,7 +64,7 @@ async function runTests() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...adminAuth },
       body: JSON.stringify({
-        name: 'Sathyam Bio CottonShield Ultra Max',
+        name: 'Sathyam Agro Mart CottonShield Ultra Max',
         category: 'Insecticide',
         price: 890,
         mrp: 1100,

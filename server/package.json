@@ -1,7 +1,7 @@
 {
   "name": "sathyambio-backend",
   "version": "1.0.0",
-  "description": "Sathyam Bio MERN Stack Backend API with Razorpay, ERP, CMS & Advisory Engine",
+  "description": "Sathyam Agro Mart MERN Stack Backend API with Razorpay, ERP, CMS & Advisory Engine",
   "main": "server.js",
   "type": "module",
   "scripts": {

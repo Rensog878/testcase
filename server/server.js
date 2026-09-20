@@ -1,5 +1,5 @@
 /**
- * Sathyam Bio - Express API Server with Persistent MongoDB-backed DB
+ * Sathyam Agro Mart - Express API Server with Persistent MongoDB-backed DB
  * Integrated E-Commerce, User Management, Admin Products Master,
  * ERP & Multi-Role Engine
  */
@@ -229,7 +229,7 @@ function hashOtp(otp) {
 
 // OTP message text lives in ./otpTemplates.js — it assembles each message
 // from interchangeable parts so no two sends look alike. The sign-up code is
-// the caption of the Sathyam Bio banner, or plain text where there is no public
+// the caption of the Sathyam Agro Mart banner, or plain text where there is no public
 // address for the banner.
 
 async function sendWhatsAppOtp(phone, otp, userName = 'Farmer') {
@@ -581,7 +581,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 // have accounts. (Nothing is sent to an unregistered number.)
 
 const resetOtpKey = (phone) => `reset-otp:${phone}`;
-const RESET_REQUEST_MESSAGE = 'If this number is registered with Sathyam Bio, a 6-digit reset code has been sent to its WhatsApp.';
+const RESET_REQUEST_MESSAGE = 'If this number is registered with Sathyam Agro Mart, a 6-digit reset code has been sent to its WhatsApp.';
 
 app.post('/api/auth/forgot-password/send-otp', async (req, res) => {
   try {
@@ -2026,8 +2026,8 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
     res.json({ success: true, handled: true, status });
 
     const confirmation = status === 'Unsubscribed'
-      ? 'You have been unsubscribed from Sathyam Bio crop advisories. Reply START anytime to get them again.'
-      : 'Welcome back! You will receive Sathyam Bio crop advisories again. Reply STOP to unsubscribe.';
+      ? 'You have been unsubscribed from Sathyam Agro Mart crop advisories. Reply START anytime to get them again.'
+      : 'Welcome back! You will receive Sathyam Agro Mart crop advisories again. Reply STOP to unsubscribe.';
     sendWhatsAppText(reply.phone, confirmation).catch((err) => console.warn('⚠️ Opt-out confirmation not sent:', err.message));
   } catch (err) {
     sendError(res, err, 'WhatsApp webhook');
@@ -2580,7 +2580,7 @@ app.use((err, req, res, _next) => {
 
 if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`🚀 Sathyam Bio Engine running with persistent DB on port ${PORT}`);
+    console.log(`🚀 Sathyam Agro Mart Engine running with persistent DB on port ${PORT}`);
     console.log(`📱 WhatsApp OTP system enabled`);
     if (OTP_LIMITS_OFF) console.log('⚠️  hourly OTP caps OFF (OTP_RATE_LIMITS=off) — local testing only; the 30-60s resend wait still applies');
   });

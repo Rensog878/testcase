@@ -1,5 +1,5 @@
 /**
- * Catalog normalization utilities for Sathyam Bio
+ * Catalog normalization utilities for Sathyam Agro Mart
  * Provides resilient, typo-tolerant crop, category, and disease matching across Admin and Storefront.
  */
 

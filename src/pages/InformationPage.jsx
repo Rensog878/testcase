@@ -6,7 +6,7 @@ const PAGE_CONTENT = {
     prefix: 'privacy',
     title: 'Privacy Policy',
     eyebrow: 'Your trust matters',
-    intro: 'This policy explains how Sathyam Bio collects, uses, and protects information when you shop with us or contact our team.',
+    intro: 'This policy explains how Sathyam Agro Mart collects, uses, and protects information when you shop with us or contact our team.',
     sections: [
       ['Information we collect', 'We collect the details needed to process orders, provide crop advisory support, manage your account, and improve the store. This may include your name, phone number, email address, delivery address, order details, and messages sent to our support team.'],
       ['How we use information', 'Your information is used to fulfil purchases, send order updates, provide relevant agricultural support, prevent misuse, and improve our products and services. We do not sell your personal information.'],
@@ -18,7 +18,7 @@ const PAGE_CONTENT = {
     prefix: 'terms',
     title: 'Terms of Sale',
     eyebrow: 'Clear terms for every order',
-    intro: 'These terms apply to purchases made through the Sathyam Bio online store.',
+    intro: 'These terms apply to purchases made through the Sathyam Agro Mart online store.',
     sections: [
       ['Orders and acceptance', 'An order is confirmed after payment or order verification is successfully completed. We may contact you to confirm delivery details or cancel an order if a product is unavailable, incorrectly listed, or affected by suspected misuse.'],
       ['Product use', 'Always read the product label and follow the recommended crop, dosage, storage, and safety instructions. Products must be used only for their intended agricultural purpose and in accordance with applicable local requirements.'],
@@ -40,9 +40,9 @@ const PAGE_CONTENT = {
   },
   '/about-us': {
     prefix: 'about',
-    title: 'About Sathyam Bio',
+    title: 'About Sathyam Agro Mart',
     eyebrow: 'Better biology for better harvests',
-    intro: 'Sathyam Bio helps farmers find dependable crop protection, bio-stimulant, and soil-health solutions with practical support at every step.',
+    intro: 'Sathyam Agro Mart helps farmers find dependable crop protection, bio-stimulant, and soil-health solutions with practical support at every step.',
     sections: [
       ['Built around the farmer', 'Our store brings essential agricultural inputs into one clear, accessible experience. We pair product information with crop-focused guidance so farmers can make confident choices.'],
       ['Responsible innovation', 'We believe productive farming and responsible stewardship belong together. Our range is selected around efficacy, traceability, and the long-term health of farms and soil.'],
@@ -94,7 +94,7 @@ export default function InformationPage({ path }) {
               <h2>{text('contactCardTitle', 'Reach our team')}</h2>
               <a href={`tel:${text('phone', '1800-425-9999').replace(/[^\d+]/g, '')}`}><Phone size={18} aria-hidden="true" /> {text('phone', '1800-425-9999')}</a>
               <a href={`mailto:${text('email', 'support@sathyabio.com')}`}><Mail size={18} aria-hidden="true" /> {text('email', 'support@sathyabio.com')}</a>
-              <p><MapPin size={18} aria-hidden="true" /> {text('address', 'Sathyam Bio Tech Park, Hyderabad, India')}</p>
+              <p><MapPin size={18} aria-hidden="true" /> {text('address', 'Sathyam Agro Mart, Hyderabad, India')}</p>
             </aside>
           )}
         </div>

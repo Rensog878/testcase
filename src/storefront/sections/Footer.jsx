@@ -11,7 +11,7 @@ const HELP_STYLE = { fontSize: '0.85rem', color: '#DCEFE4', marginBottom: '8px' 
 
 export default memo(function Footer({ t, cms }) {
   const { filterByCategory, filterByCrop } = useStore()
-  const brandLine1 = cmsText(cms, 'footerBrand', "Sathyam Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.")
+  const brandLine1 = cmsText(cms, 'footerBrand', "Sathyam Agro Mart is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.")
   const brandLine2 = cmsText(cms, 'footerBrandMore', 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.')
   return (
     <footer style={{ background: 'var(--primary-dark)', color: '#ffffff', padding: '50px 0 20px' }}>
@@ -19,7 +19,7 @@ export default memo(function Footer({ t, cms }) {
         {/* The grid's margin below is in storefront.css, so phones can drop it. */}
         <div className="footer-grid" style={{ gap: '30px' }}>
           <div>
-            <div className="logo-text" style={{ color: '#ffffff', fontSize: '1.6rem', marginBottom: '10px' }}>SATHYAM <span style={{ color: 'var(--accent-gold)' }}>BIO</span></div>
+            <div className="logo-text" style={{ color: '#ffffff', fontSize: '1.6rem', marginBottom: '10px' }}>SATHYAM <span style={{ color: 'var(--accent-gold)' }}>AGRO MART</span></div>
             {/* Two sentences, each its own key in the language packs; phones
                 show only the first. */}
             <p style={{ fontSize: '0.85rem', color: '#DCEFE4', lineHeight: 1.6, marginBottom: '16px' }}>
@@ -28,7 +28,7 @@ export default memo(function Footer({ t, cms }) {
             </p>
             <div style={{ display: 'flex', gap: '12px', fontSize: '1.2rem' }}>
               {socialLinksFrom(cms).map(({ name, href, fa }) => (
-                <a key={name} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'white' }} aria-label={`Sathyam Bio on ${name} (opens in a new tab)`}><i className={fa} aria-hidden="true"></i></a>
+                <a key={name} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'white' }} aria-label={`Sathyam Agro Mart on ${name} (opens in a new tab)`}><i className={fa} aria-hidden="true"></i></a>
               ))}
             </div>
           </div>
@@ -57,7 +57,7 @@ export default memo(function Footer({ t, cms }) {
             <div className="footer-col-body">
               <p style={HELP_STYLE}><i className="fa-solid fa-phone"></i> Toll Free: {cmsText(cms, 'phone', '1800-425-9999')}</p>
               <p style={HELP_STYLE}><i className="fa-solid fa-envelope"></i> {cmsText(cms, 'email', 'support@sathyabio.com')}</p>
-              <p style={{ ...HELP_STYLE, marginBottom: '12px' }}><i className="fa-solid fa-location-dot"></i> {cmsText(cms, 'address', 'Sathyam Bio Tech Park, Hyderabad, India')}</p>
+              <p style={{ ...HELP_STYLE, marginBottom: '12px' }}><i className="fa-solid fa-location-dot"></i> {cmsText(cms, 'address', 'Sathyam Agro Mart, Hyderabad, India')}</p>
               <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', fontSize: '0.78rem' }}>
                 <i className="fa-solid fa-lock" style={{ color: 'var(--accent-gold)' }}></i> 100% Secure Payment (UPI, COD, NetBanking)
               </div>

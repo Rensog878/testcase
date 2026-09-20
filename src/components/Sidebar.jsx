@@ -20,9 +20,9 @@ export default function Sidebar({ items, roleName, roleEmoji, isOpen, onClose })
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">🌿</div>
+          <div className="sidebar-logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
           <div className="sidebar-logo-text">
-            <div className="brand-name">Sathyam Bio</div>
+            <div className="brand-name">Sathyam Agro Mart</div>
             <div className="brand-tagline">AgriTech Platform</div>
           </div>
         </div>

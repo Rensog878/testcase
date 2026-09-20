@@ -69,7 +69,7 @@ const DEFAULT_CONTENT = {
   // ── Testimonials ──────────────────────────────────────────────────────
   testimonialsTitle:    'Trusted by 15,000+ Indian Farmers',
   testimonialsSubtitle: 'Real results from paddy, cotton, tomato, and fruit growers',
-  testimonial1Quote: '"Sathyam Bio BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!"',
+  testimonial1Quote: '"Sathyam Agro Mart BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!"',
   testimonial1Name:  'K. Venkateswarlu',
   testimonial1Place: 'Paddy Farmer, Guntur (AP)',
   testimonial1Photo: 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=200&q=80',
@@ -93,7 +93,7 @@ const DEFAULT_CONTENT = {
   phone:         '+91-98450-12345',
   email:         'support@sathyabio.com',
   address:       '14, Kavundampalayam, Coimbatore – 641030, Tamil Nadu',
-  footerBrand:   "Sathyam Bio is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.",
+  footerBrand:   "Sathyam Agro Mart is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.",
   footerBrandMore: 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.',
   whatsappUrl:   '',
   facebookUrl:   'https://www.facebook.com/pradeep.sathyambio.7/',

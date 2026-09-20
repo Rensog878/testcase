@@ -72,9 +72,9 @@ export default function Login() {
           {/* Logo & Lang Switcher */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div className="login-logo" style={{ marginBottom: 0 }}>
-              <div className="login-logo-icon">🌿</div>
+              <div className="login-logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
               <div className="login-logo-text">
-                <div className="brand">Sathyam Bio</div>
+                <div className="brand">Sathyam Agro Mart</div>
                 <div className="tagline">Agricultural ERP &amp; E-Commerce Platform</div>
               </div>
             </div>

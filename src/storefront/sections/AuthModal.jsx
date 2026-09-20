@@ -151,9 +151,9 @@ function ResendRow({ textId, buttonId, left, sending, sendingLabel, onResend }) 
 function AuthBrand({ t }) {
   return (
     <div className="auth-brand">
-      <span className="auth-brand-icon" aria-hidden="true"><i className="fa-solid fa-leaf"></i></span>
+      <span className="auth-brand-icon has-brand-mark" aria-hidden="true"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></span>
       <span className="auth-brand-words">
-        <span className="auth-brand-text">SATHYAM <span>BIO</span></span>
+        <span className="auth-brand-text">SATHYAM <span>AGRO MART</span></span>
         <span className="auth-brand-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
       </span>
     </div>
@@ -923,7 +923,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
         {/* STEP 1: the mobile number. The same screen signs in and signs up. */}
         <form id="storefrontLoginForm" className="auth-form" onSubmit={sendCode} noValidate hidden={view !== 'phone'}>
           <header className="auth-head">
-            <h2 id="authPhoneTitle" className="auth-title" tabIndex={-1}>Welcome to Sathyam Bio</h2>
+            <h2 id="authPhoneTitle" className="auth-title" tabIndex={-1}>Welcome to Sathyam Agro Mart</h2>
             <p className="auth-sub">Enter your WhatsApp number and we will send you a 6-digit code.</p>
           </header>
 

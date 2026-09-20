@@ -29,10 +29,10 @@ function replyTo(text, addToCart) {
   )
 
   if (lower.includes('blast') || lower.includes('paddy')) {
-    return <>🌾 <strong>Paddy Blast Defense:</strong> We recommend <strong>Sathyam Bio BlastShield 75 WP</strong> (₹680) or <strong>Pseudomonas 1% WP</strong>.<br />{cartButton('sb-01', 'Add BlastShield to Cart')}</>
+    return <>🌾 <strong>Paddy Blast Defense:</strong> We recommend <strong>Sathyam Agro Mart BlastShield 75 WP</strong> (₹680) or <strong>Pseudomonas 1% WP</strong>.<br />{cartButton('sb-01', 'Add BlastShield to Cart')}</>
   }
   if (lower.includes('whitefly') || lower.includes('cotton')) {
-    return <>🐛 <strong>Cotton Whitefly Defense:</strong> Use <strong>Sathyam Bio FlyKill Ultra</strong> (₹840) or <strong>NeemGuard 10000 PPM</strong> (₹580). Spray early morning.<br />{cartButton('sb-02', 'Add FlyKill Ultra to Cart')}</>
+    return <>🐛 <strong>Cotton Whitefly Defense:</strong> Use <strong>Sathyam Agro Mart FlyKill Ultra</strong> (₹840) or <strong>NeemGuard 10000 PPM</strong> (₹580). Spray early morning.<br />{cartButton('sb-02', 'Add FlyKill Ultra to Cart')}</>
   }
   if (lower.includes('soil')) {
     return <>🌱 <strong>Soil Health:</strong> Send your soil test report to our agronomists on WhatsApp for N-P-K nutrient recommendations.<br />{whatsAppButton('Send it on WhatsApp')}</>
@@ -43,7 +43,7 @@ function replyTo(text, addToCart) {
   if (lower.includes('weed') || lower.includes('herbicide')) {
     return <>🌿 <strong>Weed Control:</strong> Use <strong>WeedClear 24-D</strong> (₹340) for broadleaf weeds or <strong>GrassOut 10 EC</strong> (₹480) for grass weeds.<br />{cartButton('sb-26', 'Add WeedClear to Cart')}</>
   }
-  return <>🌿 <strong>Sathyam Bio Crop Assistant:</strong> We offer 35+ bio-certified pesticides and crop nutrients for Paddy, Cotton, Tomato, Wheat, Sugarcane, and Grapes. Filter products by crop or disease above!</>
+  return <>🌿 <strong>Sathyam Agro Mart Crop Assistant:</strong> We offer 35+ bio-certified pesticides and crop nutrients for Paddy, Cotton, Tomato, Wheat, Sugarcane, and Grapes. Filter products by crop or disease above!</>
 }
 
 function ChatbotReal({ t }) {

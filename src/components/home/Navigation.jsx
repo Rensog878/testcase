@@ -95,10 +95,10 @@ export default function Navigation() {
       <header className="header-main">
         <div className="container header-grid">
           <Link to="/" className="logo-box">
-            <div className="logo-icon"><i className="fa-solid fa-leaf"></i></div>
+            <div className="logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
             <div>
-              <div className="logo-text">SATHYAM <span>BIO</span></div>
-              <span className="logo-sub">Agro Pesticide Store</span>
+              <div className="logo-text">SATHYAM <span>AGRO MART</span></div>
+              <span className="logo-sub">From our farms to your home</span>
             </div>
           </Link>
 

@@ -11,7 +11,7 @@ export const LANGUAGES = [
 
 export const TRANSLATIONS = {
   en: {
-    brand: 'Sathyam Bio',
+    brand: 'Sathyam Agro Mart',
     tagline: 'Agricultural ERP & E-Commerce Platform',
     shopProducts: 'Shop Products',
     myCart: 'My Cart',

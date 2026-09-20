@@ -343,7 +343,7 @@ export default function MobileBottomNav() {
         <div className="mms-account">
           <div className="mms-avatar"><i className="fa-solid fa-user" aria-hidden="true"></i></div>
           <div className="mms-account-text">
-            <strong>{user ? `Hi, ${user.name || 'Farmer'}` : 'Welcome to Sathyam Bio'}</strong>
+            <strong>{user ? `Hi, ${user.name || 'Farmer'}` : 'Welcome to Sathyam Agro Mart'}</strong>
             <span>{accountSub}</span>
           </div>
           <button type="button" className="mms-account-btn" data-account-open onClick={handleAccountClick}>

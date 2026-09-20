@@ -24,7 +24,7 @@
   }
 }
 
-/* Sathyam Bio - Natural E-Commerce Design System */
+/* Sathyam Agro Mart - Natural E-Commerce Design System */
 
 :is(:root:has(> body.sb-home-active), .sb-portal) {
   /* ---- IDENTITY REFRESH (2026) --------------------------------------
@@ -2957,7 +2957,7 @@ body.sb-home-active {
 
 
 /* ============================================================
-   Sathyam Bio — Responsive rules
+   Sathyam Agro Mart — Responsive rules
    Targets: Android & iOS phones, tablets, Windows/Mac desktops.
    Breakpoints: 1200 / 1024 / 900 / 768 / 600 / 480 / 360
    ============================================================ */
@@ -4254,7 +4254,7 @@ body.sb-home-active {
     font-size: 1.05rem;
     line-height: 1.1;
   }
-  /* The "Agro Pesticide Store" tagline stays on phones as a compact second
+  /* The "From our farms to your home" tagline stays on phones as a compact second
      line under the brand. Tight line-heights keep the two lines within the
      38px logo icon, so the sticky header does not grow; min-width: 0 on the
      text column lets a very narrow screen trim it with an ellipsis instead
@@ -10246,5 +10246,65 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
     outline: none;
     border-color: #0B7A4B;
     box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.14);
+  }
+}
+
+/* ------------------------------------------------------------
+   BRAND MARK (store pages)
+   Same idea as index.css: the badge keeps its size and shadow, loses its
+   green fill so the emblem is legible, and the image fills it.
+   ------------------------------------------------------------ */
+/* No box around the emblem: it carries its own circle, and the square badge
+   both competed with it and shrank it. The footprint stays the same, so
+   nothing beside it moves. */
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-icon.has-brand-mark,
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-icon.has-brand-mark {
+  background: none;
+  background-image: none;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .brand-mark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* The welcome poster's mark was an emoji sized by font-size, which says
+   nothing to an image, and its box has no size of its own. It keeps the
+   float animation it always had - now the emblem rises and settles. */
+:is(body.sb-home-active .sb-home, .sb-portal) .welcome-poster-leaf .brand-mark {
+  width: 86px;
+  height: 86px;
+}
+
+/* ------------------------------------------------------------
+   BRAND WORDMARK COLOURS (store pages)
+   The same two greens as the logo: deep forest for SATHYAM, leaf for
+   AGRO MART. Each selector carries the element's own class, so it lands
+   without a priority override.
+   ------------------------------------------------------------ */
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-text,
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-text {
+  color: #0b3d20;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .logo-text span,
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-text span {
+  color: #309315;
+}
+/* The welcome poster's wordmark fits on one line down to 390px and breaks in
+   two at 360 - mid-name, which looks like an accident. The logo itself is
+   stacked, SATHYAM over AGRO MART, so below 380 it breaks there on purpose
+   and reads as the lockup rather than as a wrapping line of text. The
+   selector carries #welcomePosterModal because the phone rule that sets
+   this size does. */
+@media (max-width: 380px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) #welcomePosterModal .welcome-poster-brand {
+    font-size: 1.25rem;
+    line-height: 1.12;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #welcomePosterModal .welcome-poster-brand span {
+    display: block;
   }
 }

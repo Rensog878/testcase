@@ -78,7 +78,7 @@ export default function WelcomeCelebration() {
   if (!welcome) return null
 
   const firstName = welcome.name.split(/\s+/)[0]
-  const greeting = t('Welcome to Sathyam Bio').split(' ')
+  const greeting = t('Welcome to Sathyam Agro Mart').split(' ')
 
   return createPortal(
     <div

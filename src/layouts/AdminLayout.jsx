@@ -62,7 +62,7 @@ export default function AdminLayout() {
             <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu"><Menu size={20} /></button>
             <div className="topbar-heading">
               <div className="topbar-title">{current ? current.label : 'Dashboard'}</div>
-              <div className="topbar-subtitle">Admin · Sathyam Bio Enterprise Management</div>
+              <div className="topbar-subtitle">Admin · Sathyam Agro Mart Enterprise Management</div>
             </div>
           </div>
           <div className="topbar-right">

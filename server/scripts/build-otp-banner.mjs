@@ -11,8 +11,7 @@
  * Needs Chrome or Edge (set CHROME_PATH if it is not found) and internet access
  * for the Plus Jakarta Sans font.
  *
- * Leaf icon: Font Awesome Free 6.5.1, fa-solid fa-leaf. Icons licensed
- * CC BY 4.0, https://fontawesome.com/license/free
+ * The badge shows the emblem from public/assets/brand/logo-mark.png.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -35,13 +34,15 @@ const PRIMARY = '#059669';
 const PRIMARY_DARK = '#064e3b';
 const TEXT_MUTED = '#475569';
 const BG_MAIN = '#f0fdf4';
-const WORDMARK = ['SATHYAM', 'BIO'];
-const TAGLINE = 'Agro Pesticide Store'; // i18n key logo_sub, in English
+const WORDMARK = ['SATHYAM', 'AGRO MART'];
+const TAGLINE = 'From our farms to your home'; // i18n key logo_sub, in English
 
-const LEAF_PATH = 'M272 96c-78.6 0-145.1 51.5-167.7 122.5c33.6-17 71.5-26.5 111.7-26.5h88c8.8 0 16 7.2 16 16s-7.2 16-16 16H288 216s0 0 0 0c-16.6 0-32.7 1.9-48.3 5.4c-25.9 5.9-49.9 16.4-71.4 30.7c0 0 0 0 0 0C38.3 298.8 0 364.9 0 440v16c0 13.3 10.7 24 24 24s24-10.7 24-24V440c0-48.7 20.7-92.5 53.8-123.2C121.6 392.3 190.3 448 272 448l1 0c132.1-.7 239-130.9 239-291.4c0-42.6-7.5-83.1-21.1-119.6c-2.6-6.9-12.7-6.6-16.2-.1C455.9 72.1 418.7 96 376 96L272 96z';
 
 // Google Fonts serves woff2 only to a browser it recognises.
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+
+const MARK_FILE = resolve(ROOT, 'public/assets/brand/logo-mark.png');
+const MARK_URL = `data:image/png;base64,${readFileSync(MARK_FILE).toString('base64')}`;
 
 const px = (cssPx) => `${+(cssPx * SCALE).toFixed(2)}px`;
 
@@ -105,10 +106,11 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: ${px(9)};
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  box-shadow: 0 ${px(4)} ${px(12)} rgba(22, 163, 74, 0.3);
+  background: #ffffff;
+  border: ${px(1)} solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 ${px(4)} ${px(12)} rgba(22, 163, 74, 0.18);
 }
-.icon svg { width: ${px(16)}; height: ${px(16)}; fill: #ffffff; }
+.icon img { width: ${px(28)}; height: ${px(28)}; object-fit: contain; }
 .words { display: flex; flex-direction: column; text-align: left; }
 .text {
   font-size: ${px(20)};
@@ -131,7 +133,7 @@ body {
 }
 </style>
 <div class="brand">
-  <div class="icon"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="${LEAF_PATH}"/></svg></div>
+  <div class="icon"><img src="${MARK_URL}" alt="" /></div>
   <div class="words">
     <div class="text">${WORDMARK[0]} <span>${WORDMARK[1]}</span></div>
     <div class="sub">${TAGLINE}</div>

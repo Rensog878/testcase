@@ -78,7 +78,7 @@ Reply to this message for advice on your {acres} acre(s).`,
 
 export const MESSAGE_MAX_LENGTH = 1500;
 export const TITLE_MAX_LENGTH = 80;
-export const OPT_OUT_FOOTER = '— Sathyam Bio Crop Advisory\nNo longer want these tips? Reply STOP.';
+export const OPT_OUT_FOOTER = '— Sathyam Agro Mart Crop Advisory\nNo longer want these tips? Reply STOP.';
 
 // The crop group a subscriber's crop label belongs to.
 export function cropGroupKey(crop) {

@@ -48,7 +48,7 @@ export default function Blog() {
       <header className="sb-blog-hero">
         <span className="sb-blog-badge">
           <BookOpen size={14} aria-hidden="true" />
-          <span>SATHYAM BIO AGRONOMY &amp; RESEARCH BLOG</span>
+          <span>SATHYAM AGRO MART AGRONOMY &amp; RESEARCH BLOG</span>
         </span>
         <h1>Farmer Guides, Crop Care &amp; Bio Insights</h1>
         <p>Scientific pest management advisories, bio-fungicide guides, and seasonal farm strategies written by our certified agronomy experts.</p>

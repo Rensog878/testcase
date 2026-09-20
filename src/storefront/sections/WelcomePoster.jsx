@@ -49,9 +49,9 @@ export default memo(function WelcomePoster({ state, cms }) {
         {/* Only show default branding overlay if no custom image is uploaded */}
         {!posterImage && (
           <>
-            <div className="welcome-poster-leaf">🌱</div>
-            <div className="welcome-poster-brand">SATHYAM <span>BIO</span></div>
-            <div className="welcome-poster-tagline">Agro Pesticides &amp; Crop Advisory</div>
+            <div className="welcome-poster-leaf"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
+            <div className="welcome-poster-brand">SATHYAM <span>AGRO MART</span></div>
+            <div className="welcome-poster-tagline">From our farms to your home</div>
             <div className="welcome-poster-badge">
               <i className="fa-solid fa-heart" style={{ color: '#f87171' }}></i> We Care For You
             </div>

@@ -5,7 +5,7 @@ import { showToast } from '../toast'
 
 const DEFAULT_TESTIMONIALS = [
   {
-    quote: '"Sathyam Bio BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!"',
+    quote: '"Sathyam Agro Mart BlastShield 75 WP completely saved my 5-acre paddy crop from neck blast after heavy rain. High quality product!"',
     photo: 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=200&q=80',
     name:  'K. Venkateswarlu',
     place: 'Paddy Farmer, Guntur (AP)',

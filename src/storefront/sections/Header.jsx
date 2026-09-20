@@ -12,7 +12,7 @@ export const TICKER_ITEMS = (
     <span className="ticker-item ticker-item--evergreen"><i className="fa-solid fa-truck-fast" style={{ color: '#3FBE86' }}></i> Free express delivery on orders above ₹999 across all 28 states</span>
     <span className="ticker-item"><i className="fa-solid fa-leaf" style={{ color: '#8FD9B6' }}></i> BlastShield 75 WP — #1 Selling Paddy Fungicide this Kharif Season</span>
     <span className="ticker-item"><i className="fa-brands fa-whatsapp" style={{ color: '#25d366' }}></i> WhatsApp us at 9000-425-999 for instant crop advisory in your language</span>
-    <span className="ticker-item"><i className="fa-solid fa-award" style={{ color: '#C77D18' }}></i> Sathyam Bio — Winner of ICAR Best AgriTech 2025 Award</span>
+    <span className="ticker-item"><i className="fa-solid fa-award" style={{ color: '#C77D18' }}></i> Sathyam Agro Mart — Winner of ICAR Best AgriTech 2025 Award</span>
     <span className="ticker-item ticker-item--evergreen"><i className="fa-solid fa-phone-volume" style={{ color: '#3FBE86' }}></i> Missed Call To Order: <strong>1800-425-9999</strong> — 24 hrs, 7 days</span>
   </>
 )
@@ -93,9 +93,9 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
     <header className="header-main">
       <div className="container header-grid">
         <a href="#" className="logo-box">
-          <div className="logo-icon"><i className="fa-solid fa-leaf"></i></div>
+          <div className="logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
           <div>
-            <div className="logo-text">SATHYAM <span>BIO</span></div>
+            <div className="logo-text">SATHYAM <span>AGRO MART</span></div>
             <span className="logo-sub" data-i18n="logo_sub">{t('logo_sub')}</span>
           </div>
         </a>

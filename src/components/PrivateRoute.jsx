@@ -20,7 +20,7 @@ export default function PrivateRoute({ children, allowedRoles = [], signIn }) {
   if (loading) return (
     <div className="loading-screen">
       <div className="spinner spinner-lg" />
-      <p>Loading Sathyam Bio...</p>
+      <p>Loading Sathyam Agro Mart...</p>
     </div>
   )
 

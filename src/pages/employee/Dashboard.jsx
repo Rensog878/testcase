@@ -67,7 +67,7 @@ export default function EmployeeDashboard() {
   return (
     <div className="animate-fade-in employee-dashboard">
       <div className="page-header">
-        <div><p className="employee-eyebrow">OPERATIONS WORKSPACE</p><h1>Good morning</h1><p>Live inventory, order, customer, and task data from the Sathyam Bio database.</p></div>
+        <div><p className="employee-eyebrow">OPERATIONS WORKSPACE</p><h1>Good morning</h1><p>Live inventory, order, customer, and task data from the Sathyam Agro Mart database.</p></div>
         <div className="employee-page-actions"><button className="btn btn-secondary" onClick={() => window.print()}><Download size={16} /> Export report</button><button className="btn btn-primary" onClick={() => setActiveTab('inventory')}><Plus size={17} /> New stock movement</button></div>
       </div>
 

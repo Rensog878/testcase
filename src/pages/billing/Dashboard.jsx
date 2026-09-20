@@ -575,7 +575,7 @@ export default function BillingDashboard() {
       {/* GST Invoice Print View */}
       {invoiceVisible && invoice && (
         <div id="gst-invoice" className="print-invoice">
-          <div className="invoice-brand">SATHYAM <span>BIO</span></div>
+          <div className="invoice-brand">SATHYAM <span>AGRO MART</span></div>
           <h1>GST TAX INVOICE</h1>
           <div className="invoice-meta">
             <span>Invoice #: {invoice.id}</span>

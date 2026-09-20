@@ -12,7 +12,7 @@
 
 const EN_KEYS = {
   topbar_shipping: 'FREE Shipping on Agro Orders over ₹999',
-  logo_sub: 'Agro Pesticide Store',
+  logo_sub: 'From our farms to your home',
   search_placeholder: 'Search by crop, disease or chemical e.g. Blast, Paddy...',
   search_btn: 'Search',
   basket_label: 'Basket',
@@ -36,10 +36,10 @@ const EN_KEYS = {
   footer_nav: 'Store Categories',
   footer_crops: 'Top Crops',
   footer_help: 'Customer Support',
-  footer_copyright: '© 2026 Sathyam Bio Agro Tech Ltd. All rights reserved.',
-  chatbot_title: 'Sathyam Bio Chat Assistant',
+  footer_copyright: '© 2026 Sathyam Agro Mart. All rights reserved.',
+  chatbot_title: 'Sathyam Agro Mart Chat Assistant',
   chat_placeholder: 'Type crop question...',
-  chat_welcome: '👋 Welcome to Sathyam Bio Agro Support! How can I assist your crop today?',
+  chat_welcome: '👋 Welcome to Sathyam Agro Mart Agro Support! How can I assist your crop today?',
   scan_title: 'AI Crop Disease Photo Scanner',
   scan_desc: 'AI will diagnose disease & recommend pesticide',
   advisory_label: 'Account',

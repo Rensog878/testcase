@@ -1,4 +1,4 @@
-// Official Sathyam Bio social profiles, shown in both store footers.
+// Official Sathyam Agro Mart social profiles, shown in both store footers.
 //
 // The href here is the default; an admin can point any of them somewhere else
 // from Admin → CMS → Contact & Footer (keys `whatsappUrl`, `facebookUrl`,

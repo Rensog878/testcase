@@ -1,5 +1,5 @@
 /**
- * Sathyam Bio - password hashing and signed session tokens.
+ * Sathyam Agro Mart - password hashing and signed session tokens.
  * Uses only node:crypto, so there is no extra dependency to install or audit.
  */
 

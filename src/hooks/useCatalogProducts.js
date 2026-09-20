@@ -56,7 +56,7 @@ async function loadOptions() {
 }
 
 /**
- * Unified real-time product catalog hook for Sathyam Bio.
+ * Unified real-time product catalog hook for Sathyam Agro Mart.
  *
  * Features:
  * - Fetches products dynamically from MongoDB via /api/products

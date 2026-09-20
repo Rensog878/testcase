@@ -58,7 +58,7 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     cropDetected: 'Paddy / Rice',
     confidence: '98.2%',
     symptoms: 'Spindle-shaped lesions with greyish center and dark brown margin on leaves.',
-    recommendedProduct: 'Sathyam Bio BlastShield 75 WP (120g/acre)',
+    recommendedProduct: 'Sathyam Agro Mart BlastShield 75 WP (120g/acre)',
   },
   {
     keyword: 'whitefly',
@@ -66,7 +66,7 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     cropDetected: 'Cotton / Tomato',
     confidence: '94.7%',
     symptoms: 'Yellowing of leaves, sticky honeydew secretion with black sooty mold.',
-    recommendedProduct: 'Sathyam Bio FlyKill Ultra (250g/acre)',
+    recommendedProduct: 'Sathyam Agro Mart FlyKill Ultra (250g/acre)',
   },
   {
     keyword: 'blight',
@@ -74,7 +74,7 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     cropDetected: 'Tomato / Potato',
     confidence: '96.4%',
     symptoms: 'Dark brown concentric rings on lower leaves.',
-    recommendedProduct: 'Sathyam Bio BlightStop Pro (500g/acre)',
+    recommendedProduct: 'Sathyam Agro Mart BlightStop Pro (500g/acre)',
   },
 ]
 

@@ -1,20 +1,29 @@
 import { useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
-import { TEXT_PACKS, loadLanguagePack, loadStaffLanguagePack, localizeTree, setPageLanguage, watchPageText } from '../storefront/i18n'
+import { TEXT_PACKS, loadLanguagePack, localizeTree, setPageLanguage, watchPageText } from '../storefront/i18n'
 
-// Every page shows the chosen language (Tamil, Kannada, Telugu, Hindi) using
+// Store pages show the chosen language (Tamil, Kannada, Telugu, Hindi) using
 // the language packs in public/js/lang-*.js: the page text is translated in
 // place, and text that React adds or changes later is translated as it
-// appears. Staff portals (staff = true) also load the staff phrases
-// (public/js/lang-staff-*.js). Rendered once in App.jsx, so it keeps working
-// across page changes.
+// appears. Rendered once in App.jsx, so it keeps working across page changes.
+//
+// The staff portals (staff = true) are English only. They are worked in all
+// day by the same few people, and a language a customer picked on the store
+// would otherwise follow the browser into the admin panel. Arriving here puts
+// the page back into English and stops the watcher.
 export default function PageTranslator({ staff }) {
   const { lang } = useLanguage()
 
   useEffect(() => {
     let cancelled = false
+    if (staff) {
+      setPageLanguage('en')
+      document.documentElement.lang = 'en'
+      localizeTree(document.body)
+      watchPageText(false)
+      return () => { cancelled = true }
+    }
     loadLanguagePack(lang)
-      .then(loaded => (loaded && staff ? loadStaffLanguagePack(lang).then(() => loaded) : loaded))
       .then(loaded => {
       if (cancelled) return
       const applied = loaded ? lang : 'en'

@@ -12671,17 +12671,11 @@ input[type='password']::-ms-clear {
   margin-bottom: 20px;
   min-height: 44px;
 }
-/* The language switcher leaves the brand row and pins to the card's own
-   corner. Keeping it in the row meant either the lockup sat off-centre, or
-   the row needed padding wide enough to clear it - and that padding squeezed
-   the flex row until the emblem was half its width. */
+/* Nothing is pinned to the card corner any more: the staff portals are
+   English only, so the language control that used to sit there is gone and
+   the brand row is simply centred. */
 .login-card {
   position: relative;
-}
-.login-brand-row > :last-child {
-  position: absolute;
-  right: 18px;
-  top: 18px;
 }
 .login-brand-row .login-logo {
   justify-content: center;

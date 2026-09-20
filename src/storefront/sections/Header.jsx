@@ -1,6 +1,9 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useStore } from '../StoreContext'
+import { useStoreActions } from '../useStoreActions'
+import { EN_KEYS } from '../i18n'
+import { useAuth } from '../../context/AuthContext'
+import { useBasket } from '../../hooks/useCheckout'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
@@ -77,8 +80,23 @@ export const TickerBar = memo(function TickerBar({ cms }) {
 
 export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
 
-export const Header = memo(function Header({ t, user, appliedLang, cartCount, cartTotal, searchText }) {
-  const { setFilter, scrollToCatalog, handleAccountClick, handleBasketClick, goTo } = useStore()
+// The English wording, for pages that do not hand in a translator. Store
+// pages are also translated by the runtime page walker (i18n.js), which is
+// how this header has always read in Tamil away from the home page.
+const englishT = key => EN_KEYS[key] || key
+
+export const Header = memo(function Header(props) {
+  const { setFilter, scrollToCatalog, handleAccountClick, handleBasketClick, goTo, searchText: ownSearch } = useStoreActions()
+  const { user: authUser } = useAuth()
+  const { count, totals } = useBasket()
+  // The home page passes these in because it already has them; anywhere else
+  // the header fetches its own, so it can be dropped onto a page as-is.
+  const t = props.t || englishT
+  const user = props.user !== undefined ? props.user : authUser
+  const cartCount = props.cartCount !== undefined ? props.cartCount : count
+  const cartTotal = props.cartTotal !== undefined ? props.cartTotal : totals.total
+  const searchText = props.searchText !== undefined ? props.searchText : (ownSearch || '')
+  const appliedLang = props.appliedLang
 
   const onSearchKey = event => {
     // The keyboard's Search key takes the shopper to the results and closes
@@ -179,8 +197,9 @@ export const Header = memo(function Header({ t, user, appliedLang, cartCount, ca
   )
 })
 
-export const NavBar = memo(function NavBar({ t }) {
-  const { filterByCategory, filterByCrop, setFilter, scrollToCatalog } = useStore()
+export const NavBar = memo(function NavBar({ t: given }) {
+  const t = given || englishT
+  const { filterByCategory, filterByCrop, setFilter, scrollToCatalog } = useStoreActions()
   // Desktop mega-menu. Opens on hover and on keyboard focus, closes on
   // Escape, on blur out of the panel and on choosing an entry. Hidden below
   // 1025px by CSS, where the phone Menu sheet (MobileBottomNav) already

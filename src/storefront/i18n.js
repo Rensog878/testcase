@@ -10,7 +10,7 @@
 // active a MutationObserver translates text as React adds or changes it.
 // Malayalam and Tulu are listed as "coming soon" until their packs exist.
 
-const EN_KEYS = {
+export const EN_KEYS = {
   topbar_shipping: 'FREE Shipping on Agro Orders over ₹999',
   logo_sub: 'From our farms to your home',
   search_placeholder: 'Search by crop, disease or chemical e.g. Blast, Paddy...',

@@ -267,7 +267,11 @@ export function LanguageProvider({ children }) {
     } catch {
       // Storage blocked: the choice lasts for this page only.
     }
-    document.documentElement.lang = lang
+    // <html lang> is set by PageTranslator, not here. It is the piece that
+    // knows whether this page is actually being translated: the staff portals
+    // are English whatever the store is set to, and this effect - a parent's,
+    // so it runs after the translator's - used to overwrite the attribute
+    // with the store's language and leave English text tagged as Tamil.
   }, [lang])
 
   // A language change in another tab (storefront or app) applies here as well.

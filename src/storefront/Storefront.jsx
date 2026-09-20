@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { matchesDisease } from '../utils/catalogUtils'
+import { matchesCategory, matchesCrop, matchesDisease } from '../utils/catalogUtils'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
@@ -93,14 +93,33 @@ export default function Storefront() {
     onlineOnly: true
   })
 
+  // The catalogue's filter lists. db.js keeps /api/catalog-options as an
+  // append-only registry - every crop and disease ever typed on a product is
+  // merged in and nothing is ever taken out - so it still offers values no
+  // product carries any more (a pest left behind by an edited or deleted
+  // product). Picking one of those was a guaranteed "0 Products" with nothing
+  // to explain it, so an option is offered only when something in the live
+  // catalogue actually matches it. The registry is used as-is until the
+  // products arrive, or the lists would flicker empty on a cold load.
   const catalogOptions = useMemo(() => {
     if (!rawCatalogOptions) return null
-    return {
-      categories: ['All', ...(rawCatalogOptions.categories || [])],
-      crops: [{ id: 'all', name: 'All Crops' }, ...(rawCatalogOptions.crops || []).map(crop => ({ id: crop, name: crop }))],
-      diseases: [{ id: 'all', name: 'All Diseases & Pests' }, ...(rawCatalogOptions.diseases || []).map(disease => ({ id: disease, name: disease }))],
+    const keep = (values, matches) => {
+      const list = values || []
+      if (!products.length) return list
+      return list.filter(value => products.some(product => matches(product, value)))
     }
-  }, [rawCatalogOptions])
+    return {
+      categories: ['All', ...keep(rawCatalogOptions.categories, (p, c) => matchesCategory(p.category, c))],
+      crops: [
+        { id: 'all', name: 'All Crops' },
+        ...keep(rawCatalogOptions.crops, (p, c) => matchesCrop(p.crops, c)).map(crop => ({ id: crop, name: crop })),
+      ],
+      diseases: [
+        { id: 'all', name: 'All Diseases & Pests' },
+        ...keep(rawCatalogOptions.diseases, (p, d) => matchesDisease(p.diseases, d)).map(disease => ({ id: disease, name: disease })),
+      ],
+    }
+  }, [rawCatalogOptions, products])
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
@@ -128,21 +147,23 @@ export default function Storefront() {
 
     // ---- catalogue ----
     const scrollToCatalog = () => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
-    // The sidebar facets combine with each other, but a search does not: the
-    // box lives up in the header, far from the drawer, so a crop or category
-    // left over from browsing would silently hide the very product that was
-    // just typed. Starting a search clears the rest, mirroring how a category
-    // or crop tile clears the search.
+    // ONE FILTER AT A TIME. Crop, disease, category and the search box are
+    // four ways of asking the same question, not four conditions to stack: a
+    // shopper who picks a crop while a pest is still set means "now show me
+    // this crop", and the two together mostly land on an empty grid with the
+    // reason two taps away inside the drawer. So choosing any of them starts a
+    // fresh browse, exactly as the category chips and the mega menu already
+    // did. Clearing one back to its default leaves the others alone - there is
+    // nothing to start.
     const setFilter = (name, value) => setFilters(current => (
-      name === 'search' && String(value).trim()
-        ? { ...DEFAULT_FILTERS, search: value }
+      String(value).trim() && value !== DEFAULT_FILTERS[name]
+        ? { ...DEFAULT_FILTERS, [name]: value }
         : { ...current, [name]: value }
     ))
     const resetFilters = () => setFilters(DEFAULT_FILTERS)
     // Entry points from outside the catalogue (nav, mega menu, crop and
-    // category tiles) start a fresh browse: the other filters go back to
-    // their defaults, so a leftover crop or search never hides the results
-    // the shopper just asked for. The sidebar facets below still combine.
+    // category tiles) start a fresh browse, the same as the drawer's own
+    // selects above, and scroll down to the results.
     const filterByCategory = category => {
       setFilters({ ...DEFAULT_FILTERS, category })
       scrollToCatalog()

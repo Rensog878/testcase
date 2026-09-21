@@ -120,7 +120,7 @@ export default function AllProducts() {
   })
 
   // Selected pack sizes for products: { [productId]: sizeString }
-  const [selectedSizes, setSelectedSizes] = useState({})
+  const [selectedSizes] = useState({}) // no size picker on cards: always the default pack
   // Wishlist set of product IDs
   const [wishlist, setWishlist] = useState(() => {
     try {
@@ -211,13 +211,8 @@ export default function AllProducts() {
     }
   }
 
-  // Handle pack size change
-  const handleSizeChange = (productId, newSize) => {
-    setSelectedSizes(prev => ({
-      ...prev,
-      [productId]: newSize
-    }))
-  }
+  // Cards show no pack size or weight: they price and add the product's
+  // default pack. Sizes are chosen on the product page (ProductDetail.jsx).
 
   // Add to cart: one more of this product in its pack size. The price shown
   // here is for the basket only; the server prices the order again.
@@ -919,22 +914,6 @@ export default function AllProducts() {
                       </div>
                     )}
 
-                    {/* Pack Size Selector Dropdown */}
-                    <div className="card-size-selector-row">
-                      <label htmlFor={`size-select-${prod.id}`}>Size</label>
-                      <select 
-                        id={`size-select-${prod.id}`}
-                        value={activeSize.size}
-                        onChange={(e) => handleSizeChange(prod.id, e.target.value)}
-                        className="card-size-dropdown"
-                      >
-                        {prod.sizes.map(s => (
-                          <option key={s.size} value={s.size}>
-                            {s.size}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
                     {/* Add to Basket button */}
                     <button 
@@ -1098,21 +1077,6 @@ export default function AllProducts() {
                       </div>
                     )}
 
-                    <div className="card-size-selector-row">
-                      <label htmlFor={`size-select-${prod.id}`}>Size</label>
-                      <select 
-                        id={`size-select-${prod.id}`}
-                        value={activeSize.size}
-                        onChange={(e) => handleSizeChange(prod.id, e.target.value)}
-                        className="card-size-dropdown"
-                      >
-                        {prod.sizes.map(s => (
-                          <option key={s.size} value={s.size}>
-                            {s.size}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
                     <button 
                       type="button" 
@@ -1243,21 +1207,6 @@ export default function AllProducts() {
                     </div>
                   )}
 
-                  <div className="card-size-selector-row">
-                    <label htmlFor={`size-select-${prod.id}`}>Size</label>
-                    <select 
-                      id={`size-select-${prod.id}`}
-                      value={activeSize.size}
-                      onChange={(e) => handleSizeChange(prod.id, e.target.value)}
-                      className="card-size-dropdown"
-                    >
-                      {prod.sizes.map(s => (
-                        <option key={s.size} value={s.size}>
-                          {s.size}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
                   <button 
                     type="button" 
@@ -1458,21 +1407,6 @@ export default function AllProducts() {
                       </div>
                     )}
 
-                    <div className="card-size-selector-row">
-                      <label htmlFor={`size-select-${prod.id}`}>Size</label>
-                      <select 
-                        id={`size-select-${prod.id}`}
-                        value={activeSize.size}
-                        onChange={(e) => handleSizeChange(prod.id, e.target.value)}
-                        className="card-size-dropdown"
-                      >
-                        {(prod.sizes || (Array.isArray(prod.packSizes) ? prod.packSizes.map(s => ({ size: typeof s === 'object' ? s.size : s })) : [{ size: prod.selectedPack || 'Standard' }])).map(s => (
-                          <option key={s.size || s} value={s.size || s}>
-                            {s.size || s}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
                     <button 
                       type="button" 

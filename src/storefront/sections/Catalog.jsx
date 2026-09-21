@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { memo, useMemo } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
 import { matchesCrop, matchesCategory, matchesDisease, topSelling } from '../../utils/catalogUtils'
@@ -34,7 +34,9 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   const packs = Array.isArray(p.packSizes) && p.packSizes.length
     ? p.packSizes.map(s => typeof s === 'object' ? s.size : s)
     : catalog ? DEFAULT_PACKS : []
-  const [selectedPack, setSelectedPack] = useState(p.selectedPack || packs[0] || '')
+  // Cards show no pack size or weight; they price and add the default pack.
+  // Sizes are chosen on the product page.
+  const selectedPack = p.selectedPack || packs[0] || ''
 
   const packUnits = pack => {
     const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
@@ -125,22 +127,6 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
         <div className="price-row">
           <span className="current-price">₹{currentPrice.toLocaleString()}</span>
           {currentMrp > currentPrice && <span className="original-price">₹{currentMrp.toLocaleString()}</span>}
-        </div>
-
-        <div className="pack-sizes-row">
-          {packs.map((pack, idx) => (
-            <span
-              key={`${pack}-${idx}`}
-              className={`pack-chip ${selectedPack === pack ? 'active' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                setSelectedPack(pack)
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {pack}
-            </span>
-          ))}
         </div>
 
         <div className="card-btn-row">

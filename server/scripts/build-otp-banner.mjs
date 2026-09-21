@@ -22,6 +22,8 @@ const OUTPUT = resolve(process.argv[2] || join(ROOT, 'public/assets/whatsapp-otp
 const WIDTH = 1200;
 const HEIGHT = 628;
 const MAX_BYTES = 300 * 1024;
+// WhatsApp crops the preview's edges, so the logo keeps a wide white margin.
+const LOGO_HEIGHT = 390;
 
 const LOGO_FILE = resolve(ROOT, 'public/assets/brand/logo-full.png');
 const LOGO_URL = `data:image/png;base64,${readFileSync(LOGO_FILE).toString('base64')}`;
@@ -49,7 +51,7 @@ function bannerHtml() {
 <style>
 html, body { margin: 0; width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; background: #ffffff; }
 body { display: flex; align-items: center; justify-content: center; }
-img { height: ${HEIGHT - 80}px; width: auto; }
+img { height: ${LOGO_HEIGHT}px; width: auto; }
 </style>
 <img src="${LOGO_URL}" alt="" />`;
 }

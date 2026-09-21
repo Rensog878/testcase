@@ -39,7 +39,7 @@ export const OTP_BANNER_PATH = '/assets/whatsapp-otp-banner.png';
 // address still arrives as the old picture. The URL carries the first 12 hex
 // characters of the file's SHA-256; build-otp-banner.mjs prints the new value
 // and tests/otp-banner.test.mjs fails if it is left stale.
-export const OTP_BANNER_VERSION = '887879abd639';
+export const OTP_BANNER_VERSION = 'c5813e7d131b';
 
 export function otpBannerUrl() {
   const override = String(process.env.OTP_BANNER_URL || '').trim();

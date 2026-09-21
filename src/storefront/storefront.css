@@ -5517,6 +5517,92 @@ body.sb-home-active {
   transform: translateY(-50%);
 }
 
+/* Crops: a wrapping row of chips, up to six picked (CropPicker in AuthModal.jsx). */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-count {
+  margin-left: auto;
+  color: var(--auth-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-note {
+  margin: -2px 0 10px;
+  color: var(--auth-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-note.is-bumped {
+  color: var(--auth-error);
+  font-weight: 600;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chips.is-invalid .auth-crop-chip:not(.is-on) {
+  border-color: var(--auth-error);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1.5px solid var(--auth-line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--auth-ink);
+  font: 600 0.9375rem/1.25 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip i {
+  flex: none;
+  color: var(--auth-muted);
+  font-size: 0.8rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip:hover {
+  border-color: var(--auth-line-strong);
+  background: var(--auth-tint);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip:focus-visible {
+  outline: var(--auth-focus);
+  outline-offset: 2px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-on {
+  border-color: var(--auth-green);
+  background: var(--auth-green);
+  color: #ffffff;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-on i {
+  color: #ffffff;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-on:hover {
+  border-color: var(--auth-green-deep);
+  background: var(--auth-green-deep);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-blocked {
+  border-style: dashed;
+  color: var(--auth-quiet);
+  cursor: not-allowed;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-blocked:hover {
+  border-color: var(--auth-line);
+  background: #ffffff;
+}
+
 /* Farm size: - [ 3 acres ] + */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-stepper {
   display: grid;

@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { hashPassword, isPasswordHash, passwordProblems, weakPasswordMessage } from './security.js';
 import { matchesCrop, matchesCategory, matchesDisease } from '../src/utils/catalogUtils.js';
-import { DEFAULT_PROFILE_FIELDS, normalizeProfileFields, splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
+import { DEFAULT_PROFILE_FIELDS, cropList, normalizeProfileFields, splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
 
@@ -1097,17 +1097,13 @@ class DatabaseManager {
                         if (aTarget !== bTarget) return bTarget - aTarget;
 
                                 if (targetUser && targetUser.crop && targetUser.crop !== 'All Crops') {
-                                            const userCrop = targetUser.crop.toLowerCase();
-                                            const aCropMatch = a.crops?.some(
-                                                          c => userCrop.includes(c.toLowerCase()) || c.toLowerCase().includes(userCrop)
-                                                        )
-                                              ? 1
-                                                          : 0;
-                                            const bCropMatch = b.crops?.some(
-                                                          c => userCrop.includes(c.toLowerCase()) || c.toLowerCase().includes(userCrop)
-                                                        )
-                                              ? 1
-                                                          : 0;
+                                            // A farmer can grow several crops ("Paddy / Rice, Cotton").
+                                            const userCrops = cropList(targetUser.crop).map(c => c.toLowerCase());
+                                            const forUser = product => product.crops?.some(c => userCrops.some(
+                                                          userCrop => userCrop.includes(c.toLowerCase()) || c.toLowerCase().includes(userCrop)
+                                                        ));
+                                            const aCropMatch = forUser(a) ? 1 : 0;
+                                            const bCropMatch = forUser(b) ? 1 : 0;
                                             if (aCropMatch !== bCropMatch) return bCropMatch - aCropMatch;
                                 }
 

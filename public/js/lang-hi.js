@@ -448,6 +448,7 @@ window.SB_LANG_HI = {
     'Save changes': 'बदलाव सहेजें',
     'Saving': 'सहेजा जा रहा है',
     'Farm size must be 1 to 9999 acres': 'खेत का आकार 1 से 9999 एकड़ होना चाहिए',
+    'Farm size must be 0.1 to 9999 acres, up to 2 decimal places': 'खेत का आकार 0.1 से 9999 एकड़ होना चाहिए, दशमलव के बाद 2 अंकों तक',
     'Profile saved': 'प्रोफ़ाइल सहेजी गई',
     'Could not save your profile. Please try again': 'प्रोफ़ाइल सहेजी नहीं जा सकी। फिर से कोशिश करें',
 
@@ -515,6 +516,11 @@ window.SB_LANG_HI = {
 
     // Passwordless sign-in: one number, one WhatsApp code. Progress labels stay short.
     'Primary crop': 'मुख्य फसल',
+    // Sign-up and Edit profile: the crop chips (up to six).
+    'Your crops': 'आपकी फसलें',
+    'Tap every crop you grow, up to 6.': 'आप जो भी फसलें उगाते हैं, सब पर टैप करें, 6 तक।',
+    'You can pick up to 6. Remove one to add another.': 'आप 6 तक चुन सकते हैं। दूसरी जोड़ने के लिए एक हटाएँ।',
+    'Choose up to 6 crops.': '6 फसलों तक चुनें।',
     'WhatsApp code': 'कोड',
     'Your details': 'विवरण',
     'Enter your WhatsApp number and we will send you a 6-digit code': 'अपना व्हाट्सऐप नंबर डालें; हम 6 अंकों का कोड भेजेंगे',

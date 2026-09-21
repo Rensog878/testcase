@@ -357,6 +357,11 @@ window.SB_LANG_TA = {
     // The Profile Form Builder's own title. Page text is matched exactly, so
     // the lower-case spelling needs its own key.
     'Primary crop': 'முதன்மைப் பயிர்',
+    // Sign-up and Edit profile: the crop chips (up to six).
+    'Your crops': 'உங்கள் பயிர்கள்',
+    'Tap every crop you grow, up to 6.': 'நீங்கள் வளர்க்கும் எல்லாப் பயிர்களையும் தட்டுங்கள், 6 வரை.',
+    'You can pick up to 6. Remove one to add another.': '6 வரை தேர்வு செய்யலாம். வேறொன்றைச் சேர்க்க ஒன்றை நீக்குங்கள்.',
+    'Choose up to 6 crops.': '6 பயிர்கள் வரை தேர்வு செய்யுங்கள்.',
     'Land Size': 'நில அளவு',
     'Acres': 'ஏக்கர்',
     'Village / Farm Address': 'கிராமம் / பண்ணை முகவரி',
@@ -403,6 +408,7 @@ window.SB_LANG_TA = {
     'Save changes': 'மாற்றங்களைச் சேமி',
     'Saving': 'சேமிக்கப்படுகிறது',
     'Farm size must be 1 to 9999 acres': 'பண்ணை அளவு 1 முதல் 9999 ஏக்கர் வரை இருக்க வேண்டும்',
+    'Farm size must be 0.1 to 9999 acres, up to 2 decimal places': 'பண்ணை அளவு 0.1 முதல் 9999 ஏக்கர் வரை, 2 தசம இடங்கள் வரை இருக்க வேண்டும்',
     'Profile saved': 'சுயவிவரம் சேமிக்கப்பட்டது',
     'Could not save your profile. Please try again': 'சுயவிவரத்தைச் சேமிக்க முடியவில்லை. மீண்டும் முயலவும்',
 

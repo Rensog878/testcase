@@ -448,6 +448,7 @@ window.SB_LANG_TE = {
     'Save changes': 'మార్పులు సేవ్ చేయండి',
     'Saving': 'సేవ్ అవుతోంది',
     'Farm size must be 1 to 9999 acres': 'పొలం పరిమాణం 1 నుండి 9999 ఎకరాలు ఉండాలి',
+    'Farm size must be 0.1 to 9999 acres, up to 2 decimal places': 'పొలం పరిమాణం 0.1 నుండి 9999 ఎకరాలు ఉండాలి, దశాంశం తర్వాత 2 అంకెల వరకు',
     'Profile saved': 'ప్రొఫైల్ సేవ్ అయింది',
     'Could not save your profile. Please try again': 'ప్రొఫైల్ సేవ్ కాలేదు. మళ్లీ ప్రయత్నించండి',
 
@@ -515,6 +516,11 @@ window.SB_LANG_TE = {
 
     // Passwordless sign-in: one number, one WhatsApp code. Progress labels stay short.
     'Primary crop': 'ప్రధాన పంట',
+    // Sign-up and Edit profile: the crop chips (up to six).
+    'Your crops': 'మీ పంటలు',
+    'Tap every crop you grow, up to 6.': 'మీరు పండించే ప్రతి పంటను నొక్కండి, 6 వరకు.',
+    'You can pick up to 6. Remove one to add another.': 'మీరు 6 వరకు ఎంచుకోవచ్చు. మరొకటి జోడించడానికి ఒకదాన్ని తీసివేయండి.',
+    'Choose up to 6 crops.': '6 పంటల వరకు ఎంచుకోండి.',
     'WhatsApp code': 'కోడ్',
     'Your details': 'వివరాలు',
     'Enter your WhatsApp number and we will send you a 6-digit code': 'మీ వాట్సాప్ నంబర్ ఇవ్వండి; 6 అంకెల కోడ్ పంపుతాం',

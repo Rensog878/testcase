@@ -9,6 +9,7 @@ import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
+import { cropList } from '../shared/profileFieldRules'
 import axios from 'axios'
 import {
   SHOP_CATEGORIES,
@@ -16,6 +17,9 @@ import {
   PESTS_AND_DISEASES,
   NUTRIENTS_LIST,
 } from '../data/allProductsData'
+
+// The farmer's own crop this product is for, if any (a farmer can grow up to six).
+const myCropFor = (user, prod) => cropList(user?.crop).find(crop => matchesCrop(prod.crops, crop))
 
 // One screenful of catalogue cards. The grid grows by this as it is scrolled.
 const CATALOG_PAGE = 24
@@ -1054,9 +1058,9 @@ export default function AllProducts() {
                       <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                         <Star size={11} fill="#fff" /> Recommended for You
                       </div>
-                    ) : user && user.crop && matchesCrop(prod.crops, user.crop) ? (
+                    ) : myCropFor(user, prod) ? (
                       <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Sprout size={11} /> Tailored for {user.crop}
+                        <Sprout size={11} /> Tailored for {myCropFor(user, prod)}
                       </div>
                     ) : prod.tagBadge ? (
                       <div className="card-high-demand-banner">{prod.tagBadge}</div>
@@ -1414,9 +1418,9 @@ export default function AllProducts() {
                       <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                         <Star size={11} fill="#fff" /> Recommended for You
                       </div>
-                    ) : user && user.crop && matchesCrop(prod.crops, user.crop) ? (
+                    ) : myCropFor(user, prod) ? (
                       <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Sprout size={11} /> Tailored for {user.crop}
+                        <Sprout size={11} /> Tailored for {myCropFor(user, prod)}
                       </div>
                     ) : prod.tagBadge ? (
                       <div className="card-high-demand-banner">{prod.tagBadge}</div>

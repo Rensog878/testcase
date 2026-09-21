@@ -8,6 +8,7 @@ import { useCms } from '../../context/CmsContext'
 import { useBasket } from '../../hooks/useCheckout'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
+import { cropList } from '../../shared/profileFieldRules'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
 import { cmsText, cmsTickerLines } from '../../hooks/useCmsSettings'
 
@@ -80,7 +81,11 @@ export const TickerBar = memo(function TickerBar({ cms }) {
   )
 })
 
-export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
+// Several crops show as "Paddy / Rice +2": the header has room for one name.
+// Two text nodes, so the page translator still translates the crop.
+const cropsOf = user => cropList(user.crop || user.primaryCrop)
+const cropHead = user => cropsOf(user)[0] || 'All Crops'
+const cropMore = user => (cropsOf(user).length > 1 ? ` +${cropsOf(user).length - 1}` : null)
 
 // The English wording, for pages that do not hand in a translator. Store
 // pages are also translated by the runtime page walker (i18n.js), which is
@@ -181,7 +186,7 @@ export const Header = memo(function Header(props) {
             ></i>
             <div>
               {user
-                ? <span className="action-sub" id="headerAccountSub">{cropOf(user)}</span>
+                ? <span className="action-sub" id="headerAccountSub">{cropHead(user)}{cropMore(user)}</span>
                 : <span className="action-sub" id="headerAccountSub" data-i18n="advisory_label">{t('advisory_label')}</span>}
               <span className="action-title" id="headerAccountTitle">{user ? `${user.name ? user.name.split(' ')[0] : 'Farmer'} ▾` : 'Sign In / Register'}</span>
             </div>

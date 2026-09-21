@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useCheckoutActions } from '../../hooks/useCheckout'
 import { useCms, cmsText } from '../../context/CmsContext'
 import TransitionLink from './TransitionLink'
+import { cropList } from '../../shared/profileFieldRules'
 
 // Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
 // it once, outside the routes, so it stays mounted - the same element, icons
@@ -327,10 +328,12 @@ export default function MobileBottomNav() {
   // Crop and place are separate text nodes so the page translator can
   // translate the crop name on its own.
   const place = user && (user.village || user.district)
+  // Several crops show as "Paddy / Rice +2": one line has room for one name.
+  const crops = cropList(user?.crop)
   const accountSub = !user
     ? 'Sign in to track orders & get crop advice'
-    : user.crop || place
-      ? <>{user.crop}{user.crop && place ? ' · ' : null}{place}</>
+    : crops.length || place
+      ? <>{crops[0]}{crops.length > 1 ? ` +${crops.length - 1}` : null}{crops.length && place ? ' · ' : null}{place}</>
       : 'Signed in'
 
   return (

@@ -4,7 +4,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  DEFAULT_PROFILE_FIELDS, normalizeProfileFields, profileValueOf, splitProfileValues, validateProfileValues,
+  ALL_CROPS, DEFAULT_PROFILE_FIELDS, acreInput, stepAcres, MAX_CROPS, cropList, joinCrops, normalizeProfileFields, toggleCrop, profileValueOf, splitProfileValues, validateProfileValues,
 } from '../profileFieldRules.js'
 
 test('name and mobile number are always in the form, with their rules', () => {
@@ -90,4 +90,61 @@ test('answers split into account columns and profile; values are read back the s
   assert.equal(profileValueOf(user, { id: 'crop' }), 'Cotton')
   assert.equal(profileValueOf(user, { id: 'soil' }), 'Red')
   assert.equal(profileValueOf(user, { id: 'missing' }), '')
+})
+
+test('a farmer picks up to six crops, kept as one comma-separated value', () => {
+  assert.deepEqual(cropList(' Cotton ,  paddy / rice,cotton,, '), ['Cotton', 'paddy / rice'])
+  assert.deepEqual(cropList(['Wheat', 'Wheat', '']), ['Wheat'])
+  assert.deepEqual(cropList(null), [])
+  assert.equal(joinCrops(['Wheat', 'Cotton']), 'Wheat, Cotton')
+
+  let value = ''
+  for (const crop of ['Wheat', 'Cotton', 'Tomato', 'Potato', 'Grapes / Fruits', 'Sugarcane', 'Corn / Maize']) value = toggleCrop(value, crop)
+  assert.equal(cropList(value).length, MAX_CROPS)
+  assert.ok(!value.includes('Corn'), 'a seventh crop is not added')
+  assert.equal(toggleCrop(value, 'cotton'), 'Wheat, Tomato, Potato, Grapes / Fruits, Sugarcane')
+})
+
+test('"All Crops" stands alone', () => {
+  assert.equal(toggleCrop('Wheat, Cotton', ALL_CROPS), ALL_CROPS)
+  assert.equal(toggleCrop(ALL_CROPS, 'Wheat'), 'Wheat')
+  assert.equal(toggleCrop(ALL_CROPS, ALL_CROPS), '')
+})
+
+test('crop answers are checked and cleaned on every screen and the server', () => {
+  const form = normalizeProfileFields(DEFAULT_PROFILE_FIELDS)
+  const check = crop => validateProfileValues(form, { crop }, { only: ['crop'] })
+  assert.deepEqual(check(['Cotton', ' Wheat ']).values, { crop: 'Cotton, Wheat' })
+  assert.deepEqual(check('Cotton,Wheat,Cotton').values, { crop: 'Cotton, Wheat' })
+  assert.equal(check('a,b,c,d,e,f,g').errors.crop, 'Choose up to 6 crops.')
+  assert.deepEqual(check('').values, { crop: '' })
+  const required = form.map(field => (field.id === 'crop' ? { ...field, required: true } : field))
+  assert.equal(validateProfileValues(required, { crop: '' }, { only: ['crop'] }).errors.crop, 'Please choose at least one crop.')
+  // Six long names are longer than a plain text answer may be; none is cut.
+  const six = ['Paddy / Rice', 'Citrus / Fruits', 'Grapes / Fruits', 'Corn / Maize', 'Sugarcane', 'Potato']
+  assert.equal(check(six).values.crop, six.join(', '))
+})
+
+test('forms saved when one crop could be picked are relabelled', () => {
+  const form = normalizeProfileFields([{ id: 'crop', title: 'Primary crop', type: 'select' }])
+  assert.equal(form.find(field => field.id === 'crop').title, 'Your crops')
+  const custom = normalizeProfileFields([{ id: 'crop', title: 'Crops grown', type: 'select' }])
+  assert.equal(custom.find(field => field.id === 'crop').title, 'Crops grown')
+})
+
+test('farm size can be part of an acre, to two decimal places', () => {
+  const form = normalizeProfileFields(DEFAULT_PROFILE_FIELDS)
+  const check = acreage => validateProfileValues(form, { acreage }, { only: ['acreage'] })
+  assert.deepEqual(check('2.5').values, { acreage: 2.5 })
+  assert.deepEqual(check('0.75').values, { acreage: 0.75 })
+  assert.deepEqual(check('12').values, { acreage: 12 })
+  for (const bad of ['0', '0.05', '2.555', '10000', '1.2.3', '.']) assert.ok(check(bad).errors.acreage, bad)
+
+  assert.equal(acreInput('2,5'), '2.5')
+  assert.equal(acreInput('12a.3456'), '12.34')
+  assert.equal(acreInput('123456'), '1234')
+  assert.equal(acreInput('1.2.3'), '1.23')
+  assert.equal(stepAcres('2.5', 1), '3.5')
+  assert.equal(stepAcres('0.5', -1), '0.1')
+  assert.equal(stepAcres('9999', 1), '9999')
 })

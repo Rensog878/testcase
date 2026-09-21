@@ -1,9 +1,9 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import { STAFF_HOME } from '../../hooks/checkoutRules'
 import { ResendAnnouncer, resendLabel, useResendCountdown } from '../../shared/useResendCountdown'
-import { ACRE_LIMITS, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, normalizeProfileFields, profileValueOf, validateProfileValues } from '../../shared/profileFieldRules'
+import { ACRE_LIMITS, ALL_CROPS, acreInput, stepAcres, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, MAX_CROPS, cropList, normalizeProfileFields, profileValueOf, toggleCrop, validateProfileValues } from '../../shared/profileFieldRules'
 import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
 import Modal from './Modal'
@@ -19,8 +19,7 @@ import Modal from './Modal'
 
 // What the details form starts with. The mobile number is not here: it is
 // already verified, and is shown rather than asked.
-// regCrop is filled from the shop's own crop list once the form arrives, so
-// nothing here has to guess what the shop sells for.
+// regCrop starts empty: the farmer picks their own crops (CropPicker).
 const REGISTER_DEFAULTS = { regName: '', regEmail: '', regCrop: '', regAcreage: '3', regVillage: '', regDistrict: '', regState: '' }
 // Details input ids for built-in fields; fields an admin adds get regField-<id>.
 const REG_IDS = { name: 'regName', email: 'regEmail', crop: 'regCrop', acreage: 'regAcreage', village: 'regVillage', district: 'regDistrict', state: 'regState' }
@@ -29,7 +28,7 @@ const regIdFor = id => REG_IDS[id] || `regField-${id}`
 const ASKED_ELSEWHERE = ['name', 'phone']
 const INITIAL_FIELDS = { authPhone: '', storefrontOtpInput: '', ...REGISTER_DEFAULTS }
 // Fields that keep only digits, with their length.
-const DIGITS_ONLY = { authPhone: 10, storefrontOtpInput: 6, regAcreage: 4, acctAcreage: 4 }
+const DIGITS_ONLY = { authPhone: 10, storefrontOtpInput: 6 }
 const TITLE_IDS = { phone: 'authPhoneTitle', otp: 'authOtpTitle', details: 'authDetailsTitle' }
 // Three labels share a phone's width, so they are kept to one word where a
 // word will do: "Mobile number" wrapped onto two lines in English and in Tamil.
@@ -71,6 +70,61 @@ function OtpCells({ value, focused }) {
         const className = [digits[index] && 'is-filled', focused && index === Math.min(digits.length, 5) && 'is-active'].filter(Boolean).join(' ')
         return <span key={index} className={className || undefined}>{digits[index] || ''}</span>
       })}
+    </div>
+  )
+}
+
+// Crops as a row of chips, up to MAX_CROPS. The value stays one string
+// ("Paddy / Rice, Cotton"), the way it is saved. onToggle gets the crop tapped
+// and toggles it on the latest value, so two quick taps both count. `id` goes on the first chip so
+// an error can focus the question. Crops saved that the shop's list no longer
+// has are still shown, picked, so saving never drops one silently.
+function CropPicker({ id, title, options, value, onToggle, error }) {
+  const picked = cropList(value)
+  const isPicked = crop => picked.some(item => item.toLowerCase() === crop.toLowerCase())
+  const offered = [...picked.filter(crop => !options.some(option => option.toLowerCase() === crop.toLowerCase())), ...options]
+  const full = picked.filter(crop => crop !== ALL_CROPS).length >= MAX_CROPS
+  const [bumped, setBumped] = useState(false)
+  const labelId = `${id}Label`
+  const noteId = `${id}Note`
+  const pick = crop => {
+    if (full && !isPicked(crop) && crop !== ALL_CROPS) {
+      setBumped(true)
+      return
+    }
+    setBumped(false)
+    onToggle(crop)
+  }
+  return (
+    <div className="auth-field">
+      <div className="auth-label" id={labelId}>
+        <span>{title}</span>
+        <span className="auth-crop-count notranslate" aria-hidden="true">{picked.length}/{MAX_CROPS}</span>
+      </div>
+      <p id={noteId} className={['auth-crop-note', bumped && 'is-bumped'].filter(Boolean).join(' ')} aria-live="polite">
+        {bumped ? `You can pick up to ${MAX_CROPS}. Remove one to add another.` : `Tap every crop you grow, up to ${MAX_CROPS}.`}
+      </p>
+      <div className={['auth-crop-chips', error && 'is-invalid'].filter(Boolean).join(' ')} role="group" aria-labelledby={labelId} aria-describedby={[noteId, error && `${id}Hint`].filter(Boolean).join(' ')}>
+        {offered.map((crop, index) => {
+          const on = isPicked(crop)
+          const blocked = full && !on && crop !== ALL_CROPS
+          return (
+            <button
+              type="button"
+              key={crop}
+              id={index === 0 ? id : undefined}
+              className={['auth-crop-chip', on && 'is-on', blocked && 'is-blocked'].filter(Boolean).join(' ')}
+              aria-pressed={on}
+              aria-disabled={blocked || undefined}
+              onClick={() => pick(crop)}
+            >
+              <i className={`fa-solid ${on ? 'fa-check' : 'fa-plus'}`} aria-hidden="true"></i>
+              <span>{crop}</span>
+            </button>
+          )
+        })}
+      </div>
+      <FieldHint id={id} hint={error && { kind: 'error', message: error }} />
     </div>
   )
 }
@@ -173,15 +227,12 @@ const acctIdFor = id => PROFILE_INPUT[id] || `acctField-${id}`
 const CARD_KEYS = ['name', 'phone', 'crop', 'acreage', 'village', 'district']
 
 const cropOf = user => user.crop || user.primaryCrop || ''
-// The crop choices to show: the shop's list, with the value already saved kept
-// at the front if the list no longer has it.
-const cropOptionsFor = (field, saved) => {
-  const offered = field?.options?.length ? field.options : CROP_CHOICES
-  return offered.includes(saved) || !saved ? offered : [saved, ...offered]
-}
+// The crop choices to show: the shop's own list, served with the form.
+// CropPicker keeps any saved crop the list no longer has.
+const cropOptionsFor = field => (field?.options?.length ? field.options : CROP_CHOICES)
 const profileOf = (user, fields) => Object.fromEntries(fields.map(field => {
   const value = profileValueOf(user, field)
-  if (field.id === 'crop') return [field.id, value || field.options?.[0] || '']
+  if (field.id === 'crop') return [field.id, String(value)]
   // A farm size of 0 means it was never given.
   if (field.id === 'acreage') return [field.id, Number(value) > 0 ? String(value) : '']
   return [field.id, String(value)]
@@ -223,7 +274,10 @@ function AccountCard({ t, user, view, onView, profileForm }) {
   const focusNext = useRef(null)
 
   const portal = STAFF_HOME[user.role]
-  const crop = cropOf(user) || 'All Crops'
+  const crops = cropList(cropOf(user))
+  if (!crops.length) crops.push(ALL_CROPS)
+  // Each crop its own text node, so the page translator can translate it.
+  const cropNames = crops.map((name, index) => <Fragment key={name}>{index ? ', ' : null}<span>{name}</span></Fragment>)
   const acres = user.acreage || user.landAcres
   const place = [user.village, user.district].filter(Boolean).join(', ')
   const phone = user.phone || user.mobile
@@ -268,9 +322,15 @@ function AccountCard({ t, user, view, onView, profileForm }) {
   }
 
   const setField = (key, value) => {
-    const digits = { acreage: 4, tel: 10 }[key === 'acreage' ? key : profileForm.find(field => field.id === key)?.type]
-    setForm(current => ({ ...current, [key]: digits ? value.replace(/\D/g, '').slice(0, digits) : value }))
+    const digits = { tel: 10 }[profileForm.find(field => field.id === key)?.type]
+    const clean = key === 'acreage' ? acreInput(value) : digits ? value.replace(/\D/g, '').slice(0, digits) : value
+    setForm(current => ({ ...current, [key]: clean }))
     setErrors(current => without(current, [key]))
+  }
+
+  const toggleMyCrop = crop => {
+    setForm(current => ({ ...current, crop: toggleCrop(current.crop, crop) }))
+    setErrors(current => without(current, ['crop']))
   }
 
   const saveProfile = async event => {
@@ -311,35 +371,18 @@ function AccountCard({ t, user, view, onView, profileForm }) {
     }
   }
   const hint = key => <FieldHint id={acctIdFor(key)} hint={errors[key] && { kind: 'error', message: errors[key] }} />
-  // The choices are the shop's own crop list, served with the form. One saved
-  // before that list changed stays choosable, so opening Edit profile can never
-  // silently move a farmer off the crop they picked.
-  const cropField = profileForm.find(field => field.id === 'crop')
-  const cropChoices = cropOptionsFor(cropField, form.crop)
 
   const editField = (field, index) => {
     const last = index === editableFields.length - 1
     if (field.id === 'crop') {
-      return (
-        <div className="auth-field" key={field.id}>
-          <label className="auth-label" htmlFor="acctCrop">{field.title}</label>
-          <div className="auth-control auth-control--select">
-            <select {...inputProps('crop')}>
-              {cropChoices.map(value => <option key={value} value={value}>{value}</option>)}
-            </select>
-            <i className="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
-            <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>
-          </div>
-          {hint('crop')}
-        </div>
-      )
+      return <CropPicker key={field.id} id="acctCrop" title={field.title} options={cropOptionsFor(field)} value={form.crop} onToggle={toggleMyCrop} error={errors.crop} />
     }
     if (field.id === 'acreage') {
       return (
         <div className="auth-field" key={field.id}>
           <label className="auth-label" htmlFor="acctAcreage">{field.title}</label>
           <div className="auth-control auth-control--suffix">
-            <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" enterKeyHint={last ? 'done' : 'next'} {...inputProps('acreage', 'acctAcreageUnit')} />
+            <input type="text" inputMode="decimal" autoComplete="off" enterKeyHint={last ? 'done' : 'next'} {...inputProps('acreage', 'acctAcreageUnit')} />
             <span className="auth-suffix" id="acctAcreageUnit">acres</span>
           </div>
           {hint('acreage')}
@@ -407,7 +450,7 @@ function AccountCard({ t, user, view, onView, profileForm }) {
             </h2>
             <span id="loggedInUserRoleBadge" className="acct-role">
               <i className={`fa-solid ${portal ? 'fa-shield-halved' : 'fa-wheat-awn'}`} aria-hidden="true"></i>
-              <span>{portal ? `${user.role.toUpperCase()} Staff` : `${crop} Farmer`}</span>
+              <span>{portal ? `${user.role.toUpperCase()} Staff` : <>{`${crops[0]} Farmer`}{crops.length > 1 ? ` +${crops.length - 1}` : null}</>}</span>
             </span>
           </div>
         </header>
@@ -416,7 +459,7 @@ function AccountCard({ t, user, view, onView, profileForm }) {
           {phone || !user.email
             ? <ProfileRow icon="fa-mobile-screen-button" label="Mobile" id="loggedInUserPhone" value={phone && formatMobile(phone)} keepAsTyped />
             : <ProfileRow icon="fa-envelope" label="Email" id="loggedInUserEmail" value={user.email} keepAsTyped />}
-          {!portal && <ProfileRow icon="fa-seedling" label="Crop & Acreage" id="loggedInUserCrop" value={acres ? `${crop} (${acres} Acres)` : crop} />}
+          {!portal && <ProfileRow icon="fa-seedling" label="Crop & Acreage" id="loggedInUserCrop" value={<>{cropNames}{acres ? ` (${acres} Acres)` : null}</>} />}
           <ProfileRow icon="fa-location-dot" label="Location" id="loggedInUserLocation" value={place} />
           {extraRows.map(field => {
             const value = String(profileValueOf(user, field) ?? '')
@@ -516,14 +559,6 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     if (loginRequest) setView(sentTo.current ? 'otp' : 'phone')
   }, [loginRequest])
 
-  // The crop select starts on the first crop the shop actually sells for, once
-  // the form has said what those are. Only while it is still unset: a farmer
-  // part-way through the details keeps what they chose.
-  const cropOptions = profileForm.find(field => field.id === 'crop')?.options
-  useEffect(() => {
-    if (!fieldsRef.current.regCrop && cropOptions?.length) setField('regCrop', cropOptions[0])
-  }, [cropOptions])
-
   // The profile card opens on the profile, not on an edit left half-done.
   const cardOpen = Boolean(state)
   useEffect(() => {
@@ -568,6 +603,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const onInput = (id, digits = DIGITS_ONLY[id]) => event => {
     let value = event.target.value
     if (digits) value = value.replace(/\D/g, '').slice(0, digits)
+    else if (id === 'regAcreage') value = acreInput(value)
     setField(id, value)
     if (id === 'authPhone') validatePhone(value)
     else if (id === 'storefrontOtpInput') {
@@ -834,9 +870,9 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     showView('phone', { focus: 'authPhone', select: true })
   }
 
-  const acreage = parseInt(fields.regAcreage, 10) || 0
+  const acreage = Number(fields.regAcreage) || 0
   const stepAcreage = delta => {
-    setField('regAcreage', String(Math.min(ACRE_LIMITS.max, Math.max(ACRE_LIMITS.min, acreage + delta))))
+    setField('regAcreage', stepAcres(acreage, delta))
     clearField('regAcreage')
   }
 
@@ -845,19 +881,11 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     const id = regIdFor(field.id)
     const hint = <FieldHint id={id} hint={hints[id]} />
     if (field.id === 'crop') {
-      return (
-        <div className="auth-field" key={field.id}>
-          <label className="auth-label" htmlFor="regCrop">{field.title}</label>
-          <div className="auth-control auth-control--select">
-            <select {...inputProps('regCrop')}>
-              {cropOptionsFor(field, fields.regCrop).map(value => <option key={value} value={value}>{value}</option>)}
-            </select>
-            <i className="fa-solid fa-seedling auth-control-icon" aria-hidden="true"></i>
-            <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>
-          </div>
-          {hint}
-        </div>
-      )
+      const pickCrop = crop => {
+        setField('regCrop', toggleCrop(fieldsRef.current.regCrop, crop))
+        clearField('regCrop')
+      }
+      return <CropPicker key={field.id} id="regCrop" title={field.title} options={cropOptionsFor(field)} value={fields.regCrop} onToggle={pickCrop} error={hints.regCrop?.kind === 'error' && hints.regCrop.message} />
     }
     if (field.id === 'acreage') {
       return (
@@ -868,7 +896,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
               <i className="fa-solid fa-minus" aria-hidden="true"></i><span className="auth-sr">Fewer acres</span>
             </button>
             <div className="auth-control auth-control--suffix">
-              <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" {...inputProps('regAcreage', { describedBy: 'regAcreageUnit' })} />
+              <input type="text" inputMode="decimal" autoComplete="off" {...inputProps('regAcreage', { describedBy: 'regAcreageUnit' })} />
               <span className="auth-suffix" id="regAcreageUnit">acres</span>
             </div>
             <button type="button" className="auth-stepper-btn" data-acre-step="1" aria-controls="regAcreage" aria-disabled={acreage >= ACRE_LIMITS.max} onClick={() => { if (acreage < ACRE_LIMITS.max) stepAcreage(1) }}>

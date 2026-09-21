@@ -448,6 +448,7 @@ window.SB_LANG_KN = {
     'Save changes': 'ಬದಲಾವಣೆ ಉಳಿಸಿ',
     'Saving': 'ಉಳಿಸಲಾಗುತ್ತಿದೆ',
     'Farm size must be 1 to 9999 acres': 'ಜಮೀನಿನ ಗಾತ್ರ 1 ರಿಂದ 9999 ಎಕರೆ ಇರಬೇಕು',
+    'Farm size must be 0.1 to 9999 acres, up to 2 decimal places': 'ಜಮೀನಿನ ಗಾತ್ರ 0.1 ರಿಂದ 9999 ಎಕರೆ ಇರಬೇಕು, ದಶಮಾಂಶದ ನಂತರ 2 ಅಂಕಿಗಳವರೆಗೆ',
     'Profile saved': 'ಪ್ರೊಫೈಲ್ ಉಳಿಸಲಾಗಿದೆ',
     'Could not save your profile. Please try again': 'ಪ್ರೊಫೈಲ್ ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
 
@@ -515,6 +516,11 @@ window.SB_LANG_KN = {
 
     // Passwordless sign-in: one number, one WhatsApp code. Progress labels stay short.
     'Primary crop': 'ಮುಖ್ಯ ಬೆಳೆ',
+    // Sign-up and Edit profile: the crop chips (up to six).
+    'Your crops': 'ನಿಮ್ಮ ಬೆಳೆಗಳು',
+    'Tap every crop you grow, up to 6.': 'ನೀವು ಬೆಳೆಯುವ ಎಲ್ಲಾ ಬೆಳೆಗಳನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ, 6 ರವರೆಗೆ.',
+    'You can pick up to 6. Remove one to add another.': 'ನೀವು 6 ರವರೆಗೆ ಆಯ್ಕೆ ಮಾಡಬಹುದು. ಇನ್ನೊಂದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ತೆಗೆದುಹಾಕಿ.',
+    'Choose up to 6 crops.': '6 ಬೆಳೆಗಳವರೆಗೆ ಆಯ್ಕೆ ಮಾಡಿ.',
     'WhatsApp code': 'ಕೋಡ್',
     'Your details': 'ವಿವರಗಳು',
     'Enter your WhatsApp number and we will send you a 6-digit code': 'ನಿಮ್ಮ ವಾಟ್ಸಾಪ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ; 6 ಅಂಕಿಯ ಕೋಡ್ ಕಳುಹಿಸುತ್ತೇವೆ',

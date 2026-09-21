@@ -517,6 +517,11 @@ window.SB_LANG_HI = {
     // Passwordless sign-in: one number, one WhatsApp code. Progress labels stay short.
     'Primary crop': 'मुख्य फसल',
     // Sign-up and Edit profile: the crop chips (up to six).
+    // Sign-in: the "Paste code" button under the code boxes.
+    'Paste code': 'कोड पेस्ट करें',
+    'Copied it in WhatsApp? Tap to fill it in.': 'WhatsApp में कॉपी किया? भरने के लिए टैप करें।',
+    'No code found. Copy the code in WhatsApp, then tap again.': 'कोई कोड नहीं मिला। WhatsApp में कोड कॉपी करें, फिर दोबारा टैप करें।',
+    'Could not read the copied code. Please type it in.': 'कॉपी किया गया कोड पढ़ा नहीं जा सका। कृपया इसे टाइप करें।',
     'Your crops': 'आपकी फसलें',
     'Tap every crop you grow, up to 6.': 'आप जो भी फसलें उगाते हैं, सब पर टैप करें, 6 तक।',
     'You can pick up to 6. Remove one to add another.': 'आप 6 तक चुन सकते हैं। दूसरी जोड़ने के लिए एक हटाएँ।',

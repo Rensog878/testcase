@@ -6,6 +6,7 @@ import { ResendAnnouncer, resendLabel, useResendCountdown } from '../../shared/u
 import { ACRE_LIMITS, ALL_CROPS, acreInput, stepAcres, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, MAX_CROPS, cropList, normalizeProfileFields, profileValueOf, toggleCrop, validateProfileValues } from '../../shared/profileFieldRules'
 import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
+import { otpFromText } from '../../shared/otpCode'
 import Modal from './Modal'
 
 // One sheet with three views: phone (the mobile number), otp (the WhatsApp
@@ -698,6 +699,29 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   }
 
   // ---- step 2: the code, which is the whole of signing in ----
+  // "Paste code": the code copied in WhatsApp, read from the clipboard, fills
+  // the boxes and is checked at once. Browsers that cannot read the clipboard
+  // (some in-app browsers) never see the button; long-press paste still works.
+  const canPaste = typeof navigator !== 'undefined' && typeof navigator.clipboard?.readText === 'function'
+  const pasteOtp = async () => {
+    let text = ''
+    try {
+      text = await navigator.clipboard.readText()
+    } catch {
+      setFieldError('storefrontOtpInput', 'Could not read the copied code. Please type it in.')
+      document.getElementById('storefrontOtpInput')?.focus()
+      return
+    }
+    const code = otpFromText(text)
+    if (!code) {
+      setFieldError('storefrontOtpInput', 'No code found. Copy the code in WhatsApp, then tap again.')
+      return
+    }
+    setField('storefrontOtpInput', code)
+    clearField('storefrontOtpInput')
+    verifyOtp(code)
+  }
+
   const verifyOtp = async (codeValue = fieldsRef.current.storefrontOtpInput) => {
     const phone = sentTo.current
     if (!phone) {
@@ -994,6 +1018,14 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
               <OtpCells value={fields.storefrontOtpInput} focused={focusedOtp === 'storefrontOtpInput'} />
             </div>
             <FieldHint id="storefrontOtpInput" hint={hints.storefrontOtpInput} />
+            {canPaste && (
+              <div className="auth-paste">
+                <button type="button" id="storefrontOtpPasteBtn" className="auth-paste-btn" onClick={pasteOtp} disabled={busy === 'verify'} aria-describedby="storefrontOtpPasteNote">
+                  <i className="fa-regular fa-paste" aria-hidden="true"></i> Paste code
+                </button>
+                <small id="storefrontOtpPasteNote" className="auth-paste-note">Copied it in WhatsApp? Tap to fill it in.</small>
+              </div>
+            )}
           </div>
 
           <ResendRow textId="storefrontOtpTimer" buttonId="storefrontOtpResendBtn" left={signupResend.secondsLeft} sending={busy === 'resend'} sendingLabel="Sending..." onResend={resendOtp} />

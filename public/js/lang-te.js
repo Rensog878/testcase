@@ -517,6 +517,11 @@ window.SB_LANG_TE = {
     // Passwordless sign-in: one number, one WhatsApp code. Progress labels stay short.
     'Primary crop': 'ప్రధాన పంట',
     // Sign-up and Edit profile: the crop chips (up to six).
+    // Sign-in: the "Paste code" button under the code boxes.
+    'Paste code': 'కోడ్ అతికించండి',
+    'Copied it in WhatsApp? Tap to fill it in.': 'WhatsAppలో కాపీ చేశారా? నింపడానికి నొక్కండి.',
+    'No code found. Copy the code in WhatsApp, then tap again.': 'కోడ్ కనబడలేదు. WhatsAppలో కోడ్ కాపీ చేసి, మళ్లీ నొక్కండి.',
+    'Could not read the copied code. Please type it in.': 'కాపీ చేసిన కోడ్ చదవలేకపోయాం. దయచేసి టైప్ చేయండి.',
     'Your crops': 'మీ పంటలు',
     'Tap every crop you grow, up to 6.': 'మీరు పండించే ప్రతి పంటను నొక్కండి, 6 వరకు.',
     'You can pick up to 6. Remove one to add another.': 'మీరు 6 వరకు ఎంచుకోవచ్చు. మరొకటి జోడించడానికి ఒకదాన్ని తీసివేయండి.',

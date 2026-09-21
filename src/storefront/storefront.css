@@ -5788,6 +5788,68 @@ body.sb-home-active {
   font-size: 1rem;
 }
 
+/* "Paste code" under the code boxes: an outline button, so the green
+   Verify button stays the one main action. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-paste {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 14px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 18px;
+  border: 1.5px solid var(--auth-green);
+  border-radius: var(--auth-radius);
+  background: #ffffff;
+  color: var(--auth-green);
+  font: 700 1rem/1.25 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 0.15s ease;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-btn:hover {
+  background: var(--auth-tint);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-btn:focus-visible {
+  outline: var(--auth-focus);
+  outline-offset: 2px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-note {
+  color: var(--auth-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: center;
+}
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-paste {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-btn {
+    flex: none;
+    white-space: nowrap;
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.9375rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-note {
+    text-align: left;
+  }
+}
+
 /* Hints under fields (FieldHint in sections/AuthModal.jsx) */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-card .sb-field-error,
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-card .sb-field-ok {

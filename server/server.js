@@ -2595,6 +2595,27 @@ app.use('/api', (req, res) => {
   res.status(404).json({ success: false, message: 'Not found' });
 });
 
+// Serve the built front-end. On Vercel the platform served dist/ itself and the
+// API ran as a function; on a plain Node host (Hostinger) this one process has
+// to do both, so anything that is not /api and not /uploads is answered from
+// the Vite build, with index.html as the fallback for client-side routes.
+const DIST_DIR = process.env.DIST_DIR || path.join(__dirname, '..', 'dist');
+if (fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR, {
+    setHeaders: (res, filePath) => {
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
+  }));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+  console.log(`🗂  serving front-end from ${DIST_DIR}`);
+} else {
+  console.warn(`⚠️  ${DIST_DIR} does not exist — run \`npm run build\` before starting. API routes still work.`);
+}
+
 // Malformed JSON and anything thrown outside a route's own try/catch still get
 // a clean JSON response with no stack trace.
 app.use((err, req, res, _next) => {

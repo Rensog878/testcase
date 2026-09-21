@@ -35,10 +35,15 @@ const BRAND = 'Sathyam Agro Mart';
 // image. Returns null, meaning text only, when there is no public HTTPS
 // address for it (local development).
 export const OTP_BANNER_PATH = '/assets/whatsapp-otp-banner.png';
+// WhatsApp keeps a copy of an image per URL, so a new banner at the same
+// address still arrives as the old picture. The URL carries the first 12 hex
+// characters of the file's SHA-256; build-otp-banner.mjs prints the new value
+// and tests/otp-banner.test.mjs fails if it is left stale.
+export const OTP_BANNER_VERSION = '887879abd639';
 
 export function otpBannerUrl() {
   const override = String(process.env.OTP_BANNER_URL || '').trim();
-  if (!override) return publicAssetUrl(OTP_BANNER_PATH);
+  if (!override) return publicAssetUrl(`${OTP_BANNER_PATH}?v=${OTP_BANNER_VERSION}`);
   if (isPublicHttpsUrl(override)) return override;
   console.warn('⚠️ OTP_BANNER_URL is not a public HTTPS URL, so sign-up codes are sent as text.');
   return null;

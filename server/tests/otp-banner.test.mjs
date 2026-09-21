@@ -17,14 +17,14 @@ Object.assign(process.env, {
 for (let slot = 2; slot <= 10; slot++) delete process.env[`WASENDER_API_KEY_${slot}`];
 
 const { sendWhatsAppImage } = await import('../whatsapp.js');
-const { buildOtpMessage, otpBannerUrl, WHATSAPP_CAPTION_LIMIT, OTP_LAYOUT_COUNT } = await import('../otpTemplates.js');
+const { buildOtpMessage, otpBannerUrl, OTP_BANNER_VERSION, WHATSAPP_CAPTION_LIMIT, OTP_LAYOUT_COUNT } = await import('../otpTemplates.js');
 const { isPublicHttpsUrl } = await import('../publicUrl.js');
 
 // Missing-database warnings are expected here.
 console.warn = () => {};
 
 const PHONE = '9876543210';
-const BANNER = 'https://shop.example.com/assets/whatsapp-otp-banner.png';
+const BANNER = `https://shop.example.com/assets/whatsapp-otp-banner.png?v=${OTP_BANNER_VERSION}`;
 const OK = { status: 200, data: { success: true, data: { msgId: 1, status: 'in_progress' } } };
 
 let calls;
@@ -103,7 +103,7 @@ test('the banner URL comes from the public site address', () => {
   assert.equal(otpBannerUrl(), null);
 
   process.env.VERCEL_PROJECT_PRODUCTION_URL = 'sathyabio.vercel.app';
-  assert.equal(otpBannerUrl(), 'https://sathyabio.vercel.app/assets/whatsapp-otp-banner.png');
+  assert.equal(otpBannerUrl(), `https://sathyabio.vercel.app/assets/whatsapp-otp-banner.png?v=${OTP_BANNER_VERSION}`);
 
   process.env.PUBLIC_SITE_URL = 'https://shop.example.com/';
   assert.equal(otpBannerUrl(), BANNER);
@@ -135,4 +135,12 @@ test('every sign-up message fits in a caption and keeps the code in bold', () =>
     assert.ok(caption.length <= WHATSAPP_CAPTION_LIMIT, `${caption.length} characters:\n${caption}`);
     assert.match(caption, /\*482915\*/);
   }
+});
+
+test('the banner URL changes whenever the banner image does', async () => {
+  const { createHash } = await import('node:crypto');
+  const { readFileSync } = await import('node:fs');
+  const file = readFileSync(new URL('../../public/assets/whatsapp-otp-banner.png', import.meta.url));
+  const actual = createHash('sha256').update(file).digest('hex').slice(0, 12);
+  assert.equal(OTP_BANNER_VERSION, actual, 'the banner was rebuilt: update OTP_BANNER_VERSION in otpTemplates.js');
 });

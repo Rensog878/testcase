@@ -87,6 +87,9 @@ async function main() {
   }
   const kb = Math.round(png.length / 1024);
   console.log(`✅ ${OUTPUT} (${width}x${height}, ${kb} KB)`);
+  // WhatsApp caches images by URL: the new file needs a new address.
+  const version = (await import('node:crypto')).createHash('sha256').update(readFileSync(OUTPUT)).digest('hex').slice(0, 12);
+  console.log(`   Set OTP_BANNER_VERSION = '${version}' in server/otpTemplates.js`);
   if (png.length > MAX_BYTES) console.warn(`⚠️ Over ${MAX_BYTES / 1024} KB. WhatsApp will load it slowly on weak connections.`);
 }
 

@@ -1,7 +1,8 @@
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
 import { matchesCrop, matchesCategory, matchesDisease, topSelling } from '../../utils/catalogUtils'
+import { ALL_CROPS, cropList } from '../../shared/profileFieldRules'
 
 const MOBILE_CHIPS = [
   ['All', 'All'],
@@ -34,9 +35,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   const packs = Array.isArray(p.packSizes) && p.packSizes.length
     ? p.packSizes.map(s => typeof s === 'object' ? s.size : s)
     : catalog ? DEFAULT_PACKS : []
-  // Cards show no pack size or weight; they price and add the default pack.
-  // Sizes are chosen on the product page.
-  const selectedPack = p.selectedPack || packs[0] || ''
+  const [selectedPack, setSelectedPack] = useState(p.selectedPack || packs[0] || '')
 
   const packUnits = pack => {
     const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
@@ -66,6 +65,8 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   const currentPrice = getPackPrice(selectedPack)
   const currentMrp = getPackMrp(selectedPack, currentPrice)
 
+  // A farmer grows up to six crops: name the one this product is for.
+  const myCrop = catalog && user ? cropList(user.crop).find(crop => crop !== ALL_CROPS && matchesCrop(p.crops, crop)) : undefined
   let personalBadge = null
   if (catalog && user) {
     if (p.targetUserId === user.id) {
@@ -74,10 +75,10 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
           <i className="fa-solid fa-star"></i> Recommended for You
         </div>
       )
-    } else if (user.crop && matchesCrop(p.crops, user.crop)) {
+    } else if (myCrop) {
       personalBadge = (
         <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#16A46A', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-          <i className="fa-solid fa-seedling"></i> Tailored for {user.crop}
+          <i className="fa-solid fa-seedling"></i> Tailored for {myCrop}
         </div>
       )
     }
@@ -127,6 +128,32 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
         <div className="price-row">
           <span className="current-price">₹{currentPrice.toLocaleString()}</span>
           {currentMrp > currentPrice && <span className="original-price">₹{currentMrp.toLocaleString()}</span>}
+        </div>
+
+        <div className="pack-sizes-row">
+          {packs.map((pack, idx) => (
+            <span
+              key={`${pack}-${idx}`}
+              className={`pack-chip ${selectedPack === pack ? 'active' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-pressed={selectedPack === pack}
+              aria-label={`${pack}, ₹${getPackPrice(pack).toLocaleString()}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setSelectedPack(pack)
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return
+                e.preventDefault()
+                e.stopPropagation()
+                setSelectedPack(pack)
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              {pack}
+            </span>
+          ))}
         </div>
 
         <div className="card-btn-row">

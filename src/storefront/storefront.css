@@ -3834,8 +3834,24 @@ body.sb-home-active {
   :is(body.sb-home-active .sb-home, .sb-portal) .original-price {
     font-size: 0.75rem !important;
   }
+  /* Pack weights, tappable (were hidden on phones). They wrap rather than
+     scroll: a sideways-scrolling row inside a half-width card hid the last
+     size, and cards in a row stretch to one height anyway. */
   :is(body.sb-home-active .sb-home, .sb-portal) .pack-sizes-row {
-    display: none !important;
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 2px 0 8px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .pack-sizes-row .pack-chip {
+    flex: none;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    touch-action: manipulation;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .card-btn-row {
     display: flex !important;

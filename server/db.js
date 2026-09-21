@@ -158,6 +158,17 @@ export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing']
 // placed before this change keep their SB-ORD-... number.
 export const ORDER_ID_PREFIX = 'SAM-ORD';
 
+// { size: price } kept only for sizes the product has and prices above 0.
+export function packPriceMap(input, packSizes) {
+    const out = {};
+    if (!input || typeof input !== 'object') return out;
+    for (const size of packSizes) {
+        const value = Number(input[size]);
+        if (Number.isFinite(value) && value > 0) out[size] = value;
+    }
+    return out;
+}
+
 export function newId(prefix) {
     const time = Date.now().toString(36).toUpperCase();
     const random = crypto.randomInt(0, 36 ** 4).toString(36).toUpperCase().padStart(4, '0');
@@ -1189,6 +1200,9 @@ class DatabaseManager {
 
       const price = Number(prodData.price) || 0;
       const mrp = Number(prodData.originalPrice || prodData.mrp || price * 1.2);
+      const packSizes = Array.isArray(prodData.packSizes) && prodData.packSizes.length
+        ? prodData.packSizes.map(s => String(s).trim()).filter(Boolean)
+        : ['250g', '500g', '1kg'];
       const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
 
       const newProd = {
@@ -1220,11 +1234,14 @@ class DatabaseManager {
         ).filter(Boolean),
         activeIngredient: prodData.activeIngredient || '100% Bio-Active Botanical Extract',
         dosage: prodData.dosage || '250g - 500g per Acre',
-        packSizes:
-          Array.isArray(prodData.packSizes) && prodData.packSizes.length
-            ? prodData.packSizes
-            : ['250g', '500g', '1kg'],
-        selectedPack: prodData.selectedPack || '500g',
+        packSizes,
+        // The size a card starts on: the one asked for if the product has it,
+        // otherwise its first size (a fixed '500g' broke 1kg/5kg/10kg products).
+        selectedPack: packSizes.includes(prodData.selectedPack) ? prodData.selectedPack : packSizes[0],
+        // Each size's own price and MRP, as the admin form sends them. Without
+        // these every size was priced from the first one by weight.
+        packagePrices: packPriceMap(prodData.packagePrices, packSizes),
+        packageMrps: packPriceMap(prodData.packageMrps, packSizes),
         badge: prodData.badge || (prodData.stock > 100 ? 'Best Seller' : 'New Launch'),
         images:
           Array.isArray(prodData.images) && prodData.images.length

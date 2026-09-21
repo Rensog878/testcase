@@ -3,6 +3,7 @@ import { ArrowLeft, ExternalLink, Heart, ShoppingCart, Star, Film, Video } from 
 import axios from 'axios'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCheckoutActions } from '../hooks/useCheckout'
+import { findCachedProduct } from '../hooks/useCatalogProducts'
 
 const getYouTubeId = (url) => {
   if (!url) return null
@@ -40,35 +41,63 @@ export default function ProductDetail() {
   const [cartAdded, setCartAdded] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  // Opened from a card, the product is already in this tab's catalogue: it is
+  // shown at once and a fresh copy from the server replaces it. Only the
+  // product itself is waited for; the heart (wishlist) and related products
+  // load alongside and fill in when they arrive.
   const loadProduct = useCallback(async () => {
-    try {
+    const cached = findCachedProduct(id)
+    const show = loaded => {
+      setProduct(loaded)
+      setSelectedPack(current => (current && (loaded.packSizes || []).includes(current) ? current : loaded.selectedPack || loaded.packSizes?.[0] || ''))
+    }
+    if (cached) {
+      show(cached)
+      setLoading(false)
+    } else {
       setLoading(true)
+    }
+
+    const loadWishlist = async productId => {
+      try {
+        const wishlistParams = new URLSearchParams(getWishlistIdentity())
+        const wishlist = await axios.get(`/api/wishlist?${wishlistParams}`)
+        setWishlisted((wishlist.data.data || []).some(item => item.productId === productId))
+      } catch (wishlistError) {
+        console.warn('Could not load wishlist state:', wishlistError)
+      }
+    }
+    const loadRelated = async ids => {
+      if (!ids.length) { setRelatedProducts([]); return }
+      const known = ids.map(findCachedProduct).filter(Boolean)
+      if (known.length === ids.length) { setRelatedProducts(known); return }
+      try {
+        const { data: related } = await axios.get('/api/products?onlineOnly=true')
+        setRelatedProducts((related.data || []).filter(item => ids.includes(item.id)))
+      } catch (relatedError) {
+        console.warn('Could not load related products:', relatedError)
+      }
+    }
+
+    if (cached) {
+      loadWishlist(cached.id)
+      loadRelated(cached.relatedProductIds || [])
+    }
+    try {
       const { data } = await axios.get(`/api/products/${encodeURIComponent(id)}`)
       if (data.success && data.data) {
         const loadedProduct = data.data
-        setProduct(loadedProduct)
-        setSelectedPack(loadedProduct.selectedPack || loadedProduct.packSizes?.[0] || '')
-
-        try {
-          const wishlistParams = new URLSearchParams(getWishlistIdentity())
-          const wishlist = await axios.get(`/api/wishlist?${wishlistParams}`)
-          setWishlisted((wishlist.data.data || []).some(item => item.productId === loadedProduct.id))
-        } catch (wishlistError) {
-          console.warn('Could not load wishlist state:', wishlistError)
-        }
-
-        try {
-          const { data: related } = await axios.get('/api/products?onlineOnly=true')
-          const ids = loadedProduct.relatedProductIds || []
-          setRelatedProducts((related.data || []).filter(item => ids.includes(item.id)))
-        } catch (relatedError) {
-          console.warn('Could not load related products:', relatedError)
+        show(loadedProduct)
+        if (!cached) {
+          loadWishlist(loadedProduct.id)
+          loadRelated(loadedProduct.relatedProductIds || [])
         }
       } else {
         setProduct(null)
       }
     } catch {
-      setProduct(null)
+      // Keep what the catalogue already showed; only a product we never had is "not found".
+      if (!cached) setProduct(null)
     } finally {
       setLoading(false)
     }

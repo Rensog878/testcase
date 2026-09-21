@@ -23,6 +23,17 @@ const productsInFlight = new Map()
 let optionsCache = null
 let optionsInFlight = null
 
+// A product the home, Shop or Categories page has already loaded, so its page
+// can show it the moment it is opened (ProductDetail.jsx) while a fresh copy
+// is fetched behind it. undefined when this tab has not loaded it yet.
+export function findCachedProduct(id) {
+  for (const list of productsCache.values()) {
+    const hit = list.find(p => String(p.id ?? p._id) === String(id))
+    if (hit) return hit
+  }
+  return undefined
+}
+
 function cacheKey(params) {
   return JSON.stringify(params)
 }

@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { hashPassword, isPasswordHash, passwordProblems, weakPasswordMessage } from './security.js';
 import { matchesCrop, matchesCategory, matchesDisease } from '../src/utils/catalogUtils.js';
+import { findSameNamedProduct } from '../src/shared/productName.js';
 import { DEFAULT_PROFILE_FIELDS, cropList, normalizeProfileFields, splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
@@ -58,7 +59,7 @@ export async function connectDB() {
 
 // ================= SCHEMAS / MODELS =================
 // _id is kept as the existing human-readable string id (USR-1001, sb-01,
-// SB-ORD-8821, etc.) instead of switching to Mongo ObjectIds, and every
+// SAM-ORD-8821, etc.) instead of switching to Mongo ObjectIds, and every
 // schema is permissive (strict:false) so no field present in the original
 // loosely-typed JSON records is ever silently dropped.
 
@@ -153,6 +154,10 @@ export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing']
 
 // Human-readable ids with enough randomness that records created in the same
 // millisecond (or by concurrent serverless instances) cannot collide.
+// Online order numbers: SAM-ORD-<time><random> (Sathyam Agro Mart). Orders
+// placed before this change keep their SB-ORD-... number.
+export const ORDER_ID_PREFIX = 'SAM-ORD';
+
 export function newId(prefix) {
     const time = Date.now().toString(36).toUpperCase();
     const random = crypto.randomInt(0, 36 ** 4).toString(36).toUpperCase().padStart(4, '0');
@@ -597,7 +602,7 @@ const INITIAL_PRODUCTS = [
 
 const INITIAL_ORDERS = [
   {
-        id: 'SB-ORD-8821',
+        id: 'SAM-ORD-8821',
         userId: 'USR-1001',
         customerName: 'Rameshwar Patel',
         customerPhone: '9876543210',
@@ -618,7 +623,7 @@ const INITIAL_ORDERS = [
         createdAt: '2026-08-30T10:00:00.000Z'
   },
   {
-        id: 'SB-ORD-8822',
+        id: 'SAM-ORD-8822',
         userId: 'USR-1007',
         customerName: 'Gurpreet Singh',
         customerPhone: '9814077889',
@@ -1159,6 +1164,15 @@ class DatabaseManager {
         return updated;
   }
 
+  // The product already using this name (same name ignoring capitals,
+  // punctuation and the brand prefix), other than exceptId. Read from the
+  // database, not the product cache, so another server's publish is seen.
+  async findSameNamedProduct(name, exceptId) {
+        await connectDB();
+        const products = (await Product.find({}, { name: 1 }).lean()).map(p => ({ id: p._id, name: p.name }));
+        return findSameNamedProduct(products, name, exceptId);
+  }
+
   async createProduct(prodData) {
         await connectDB();
         const id = newId('sb');
@@ -1479,7 +1493,7 @@ class DatabaseManager {
 
   async createOrder(orderData) {
         await connectDB();
-        const id = newId('SB-ORD');
+        const id = newId(ORDER_ID_PREFIX);
         const newOrder = {
                 _id: id,
                 id,

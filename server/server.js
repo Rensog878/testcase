@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import Razorpay from 'razorpay';
 import { db, connectDB, newId } from './db.js';
+import { productNameKey } from '../src/shared/productName.js';
 import adminRoutes from './adminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
 import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
@@ -943,6 +944,14 @@ app.put('/api/profile', requireAuth(), async (req, res) => {
 // PRODUCTS CRUD
 // ============================================================
 
+const PRODUCT_NAME_LOCK_MS = 15 * 1000;
+const duplicateProductReply = same => ({
+  success: false,
+  code: 'DUPLICATE_PRODUCT',
+  message: `"${same.name}" is already in the catalogue. Edit that product instead of adding it again.`,
+  duplicateOf: { id: same.id, name: same.name },
+});
+
 function productInputError(body, { partial = false } = {}) {
   if (!body || typeof body !== 'object') return 'Product details are required.';
   if (!partial || body.name !== undefined) {
@@ -986,8 +995,23 @@ app.post('/api/products', requireAuth('admin'), async (req, res) => {
     if (problem) return res.status(400).json({ success: false, message: problem });
 
     const { id, _id, ...details } = req.body;
-    const product = await db.createProduct(details);
-    res.json({ success: true, data: product });
+    // One product per name: the store lists every product to everyone, so a
+    // second one with the same name would show twice.
+    const same = await db.findSameNamedProduct(details.name);
+    if (same) return res.status(409).json(duplicateProductReply(same));
+    // Two publishes of one name at the same moment (a double click, two admins)
+    // would both pass the check above; only the first claim goes ahead.
+    const lock = `product-name:${productNameKey(details.name)}`;
+    if (await db.kvClaimSlot(lock, PRODUCT_NAME_LOCK_MS) !== 0) {
+      return res.status(409).json({ success: false, code: 'PRODUCT_BEING_PUBLISHED', message: 'This product is already being published. Refresh the list in a moment.' });
+    }
+    try {
+      const product = await db.createProduct(details);
+      res.json({ success: true, data: product });
+    } catch (err) {
+      await db.kvDelete(lock).catch(() => {});
+      throw err;
+    }
   } catch (err) {
     sendError(res, err, 'Create product');
   }
@@ -999,6 +1023,10 @@ app.put('/api/products/:id', requireAuth('admin'), async (req, res) => {
     if (problem) return res.status(400).json({ success: false, message: problem });
 
     const { id, _id, ...updates } = req.body;
+    if (updates.name !== undefined) {
+      const same = await db.findSameNamedProduct(updates.name, req.params.id);
+      if (same) return res.status(409).json(duplicateProductReply(same));
+    }
     const product = await db.updateProduct(req.params.id, updates);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });

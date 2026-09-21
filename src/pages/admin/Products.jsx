@@ -7,6 +7,7 @@ import {
   IndianRupee, Sprout, Package, Image as ImageIcon, Info, Film, Video
 } from 'lucide-react'
 import { parseImageList } from '../../shared/productImages.js'
+import { duplicateNameGroups, findSameNamedProduct, productNameKey } from '../../shared/productName.js'
 
 const PFORM_SECTIONS = [
   { id: 'pform-basic', label: 'Basic details', hint: 'Title, category, badge' },
@@ -47,6 +48,9 @@ export default function AdminProducts() {
   const [newStorageBatch, setNewStorageBatch] = useState('')
 
   const [isEditing, setIsEditing] = useState(null)
+  const [saving, setSaving] = useState(false) // a publish is on its way: the button waits for it
+  // Every product, whatever the category/search filters show: the duplicate-name check needs them all.
+  const [catalogue, setCatalogue] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState({
     name: '',
@@ -194,7 +198,17 @@ export default function AdminProducts() {
     ? Math.round((1 - Number(form.price) / Number(form.mrp)) * 100)
     : 0
 
+  const fetchCatalogue = async () => {
+    try {
+      const { data } = await axios.get('/api/products')
+      if (data.success) setCatalogue(data.data)
+    } catch {
+      // The server checks names on publish anyway.
+    }
+  }
+
   const fetchProducts = async () => {
+    fetchCatalogue()
     setLoading(true)
     try {
       const { data } = await axios.get('/api/products', {
@@ -352,8 +366,24 @@ export default function AdminProducts() {
     setModalOpen(true)
   }
 
+  // One product per name: the store shows every product to everyone, so a
+  // second one with the same name would appear twice. Checked while typing
+  // here, and again by the server when publishing.
+  const sameNamed = modalOpen ? findSameNamedProduct(catalogue, form.name, isEditing) : null
+  const duplicateGroups = duplicateNameGroups(catalogue)
+  const editExisting = product => {
+    const full = catalogue.find(p => String(p.id) === String(product.id)) || products.find(p => String(p.id) === String(product.id)) || product
+    openEditModal(full)
+  }
+
   const handleSave = async (e) => {
     e.preventDefault()
+    if (saving) return
+    if (sameNamed) {
+      toast.error(`"${sameNamed.name}" is already in the catalogue. Edit that product instead.`)
+      document.getElementById('pformName')?.focus()
+      return
+    }
     if (!form.name || form.stock === '') {
       toast.error('Please fill required fields (Name, Stock)')
       return
@@ -422,6 +452,7 @@ export default function AdminProducts() {
       reviewsEnabled: form.reviewsEnabled
     }
 
+    setSaving(true)
     try {
       if (isEditing) {
         const { data } = await axios.put(`/api/products/${isEditing}`, payload)
@@ -444,8 +475,17 @@ export default function AdminProducts() {
       }
     } catch (err) {
       console.error('Save product error:', err)
-      const msg = err.response?.data?.message || 'Error saving product'
-      toast.error(msg)
+      const reply = err.response?.data
+      const msg = reply?.message || 'Error saving product'
+      if (reply?.code === 'DUPLICATE_PRODUCT' && reply.duplicateOf) {
+        // Published from another screen or by another admin since this list loaded.
+        fetchProducts()
+        toast.error(msg, { action: { label: 'Edit existing', onClick: () => editExisting(reply.duplicateOf) } })
+      } else {
+        toast.error(msg)
+      }
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -670,7 +710,12 @@ export default function AdminProducts() {
                           {p.emoji || '🌿'}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.name}</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                            {p.name}
+                            {duplicateGroups[productNameKey(p.name)] && (
+                              <span className="pform-dup-badge" title={`${duplicateGroups[productNameKey(p.name)].length} products share this name, so the store shows it more than once. Keep one and delete the others.`}>Duplicate</span>
+                            )}
+                          </div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: '240px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.tagline || p.description}
                           </div>
@@ -844,13 +889,23 @@ export default function AdminProducts() {
                     </div>
                   </div>
                   <div className="pform-field">
-                    <label>Product Title *</label>
+                    <label htmlFor="pformName">Product Title *</label>
                     <input
+                      id="pformName"
                       required
                       placeholder="e.g. Sathyam Agro Mart BlastShield 75 WP"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
+                      aria-invalid={sameNamed ? 'true' : undefined}
+                      aria-describedby={sameNamed ? 'pformNameDuplicate' : undefined}
                     />
+                    {sameNamed && (
+                      <div className="pform-duplicate" id="pformNameDuplicate" role="alert">
+                        <ShieldAlert size={16} aria-hidden="true" />
+                        <span><strong>“{sameNamed.name}”</strong> is already in the catalogue. Publishing it again would show it twice in the store.</span>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => editExisting(sameNamed)}>Edit that product</button>
+                      </div>
+                    )}
                   </div>
                   <div className="pform-field pform-grid-2">
                     <div>
@@ -1430,8 +1485,10 @@ export default function AdminProducts() {
                     : <>{requiredChecks.length - requiredDone} required {requiredChecks.length - requiredDone === 1 ? 'field' : 'fields'} left</>}
                 </span>
                 <button type="button" className="btn btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">
-                  {isEditing ? 'Save Product Changes' : 'Save & Publish to Store'}
+                <button type="submit" className="btn btn-primary" disabled={saving || Boolean(sameNamed)} aria-busy={saving || undefined}>
+                  {saving
+                    ? (isEditing ? 'Saving…' : 'Publishing…')
+                    : (isEditing ? 'Save Product Changes' : 'Save & Publish to Store')}
                 </button>
               </div>
             </form>

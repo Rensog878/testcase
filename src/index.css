@@ -1240,6 +1240,37 @@ h6 { font-size: 1rem; }
 .pform-field input::placeholder,
 .pform-field textarea::placeholder { color: var(--text-disabled); }
 
+/* Admin → Products: one product per name (src/shared/productName.js). */
+.pform-duplicate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #f0c36d;
+  border-radius: var(--radius-sm);
+  background: #fff8e6;
+  color: #7a4d00;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.pform-duplicate svg { flex: none; }
+.pform-duplicate span { flex: 1 1 220px; }
+.pform-duplicate .btn { flex: none; }
+.pform-dup-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fde8e8;
+  color: #9b1c1c;
+  font-size: 0.68rem;
+  font-weight: 700;
+  vertical-align: middle;
+  cursor: help;
+}
+
 .pform-hint {
   font-size: 0.72rem;
   color: var(--text-muted);

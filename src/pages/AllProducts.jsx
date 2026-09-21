@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../shared/profileFieldRules'
+import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../shared/productForm'
 import { setBodyFlag } from '../storefront/bodyFlags'
 import axios from 'axios'
 import {
@@ -99,6 +100,7 @@ export default function AllProducts() {
   const [activeCrop, setActiveCrop] = useState(initialCrop)
   const [activeDisease, setActiveDisease] = useState(initialDisease)
   const [activeNutrient, setActiveNutrient] = useState('')
+  const [activeForm, setActiveForm] = useState(searchParams.get('form') || '')
   const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [sortBy, setSortBy] = useState('popular')
@@ -169,6 +171,7 @@ export default function AllProducts() {
     setActiveCrop(searchParams.get('crop') || '')
     setActiveDisease(searchParams.get('disease') || '')
     setActiveNutrient(searchParams.get('nutrient') || '')
+    setActiveForm(searchParams.get('form') || '')
     setSearchQuery(searchParams.get('search') || '')
   }, [searchParams])
 
@@ -391,7 +394,7 @@ export default function AllProducts() {
   // a narrow result would inherit a count grown by scrolling the wide one.
   useEffect(() => {
     setVisibleCount(CATALOG_PAGE)
-  }, [activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
+  }, [activeCategory, activeCrop, activeDisease, activeNutrient, activeForm, searchQuery, sortBy])
 
   const filteredProducts = useMemo(() => {
     let list = [...dbProducts]
@@ -410,6 +413,10 @@ export default function AllProducts() {
 
     if (activeNutrient) {
       list = list.filter(p => matchesNutrientFilter(p, activeNutrient))
+    }
+
+    if (activeForm) {
+      list = list.filter(p => matchesForm(p, activeForm))
     }
 
     if (searchQuery.trim()) {
@@ -434,7 +441,9 @@ export default function AllProducts() {
     }
 
     return list
-  }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, searchQuery, sortBy])
+  }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, activeForm, searchQuery, sortBy])
+
+  const formCountsAll = useMemo(() => formCounts(dbProducts), [dbProducts])
 
   const visibleProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -495,6 +504,15 @@ export default function AllProducts() {
   const selectDisease = (diseaseCode) => {
     const same = activeDisease.toLowerCase() === String(diseaseCode).toLowerCase()
     applyBrowseFilter('disease', same ? '' : diseaseCode)
+  }
+
+  // Form narrows whatever is showing (a category, a crop...) instead of
+  // starting a fresh view, so it keeps the other filters in the URL.
+  const selectForm = (form) => {
+    const next = new URLSearchParams(searchParams)
+    if (!form || activeForm.toLowerCase() === form.toLowerCase()) next.delete('form')
+    else next.set('form', form)
+    setSearchParams(next)
   }
 
   const selectNutrient = (nutName) => {
@@ -903,7 +921,7 @@ export default function AllProducts() {
                         {prod.name}
                       </Link>
                     </h3>
-                    <p className="card-brand-name">{prod.brand}</p>
+                    <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
 
                     {/* Price and Savings */}
                     <div className="card-pricing-row">
@@ -1083,7 +1101,7 @@ export default function AllProducts() {
                     <h3 className="card-product-title" title={prod.name}>
                       {prod.name}
                     </h3>
-                    <p className="card-brand-name">{prod.brand}</p>
+                    <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
 
                     <div className="card-pricing-row">
                       <strong className="card-current-price">₹{activeSize.price}</strong>
@@ -1228,7 +1246,7 @@ export default function AllProducts() {
                   <h3 className="card-product-title" title={prod.name}>
                     {prod.name}
                   </h3>
-                  <p className="card-brand-name">{prod.brand}</p>
+                  <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
 
                   <div className="card-pricing-row">
                     <strong className="card-current-price">₹{activeSize.price}</strong>
@@ -1341,8 +1359,25 @@ export default function AllProducts() {
               ))}
             </div>
 
+            {/* Form: powder, pellets, tablets... (src/shared/productForm.js) */}
+            <div className="catalog-form-filter" role="group" aria-labelledby="catalogFormLabel">
+              <span className="catalog-form-label" id="catalogFormLabel">Form</span>
+              <button type="button" className={`cat-pill-btn ${!activeForm ? 'active' : ''}`} aria-pressed={!activeForm} onClick={() => selectForm('')}>All</button>
+              {PRODUCT_FORMS.map(form => (
+                <button
+                  key={form}
+                  type="button"
+                  className={`cat-pill-btn ${activeForm.toLowerCase() === form.toLowerCase() ? 'active' : ''}${formCountsAll[form] ? '' : ' is-empty'}`}
+                  aria-pressed={activeForm.toLowerCase() === form.toLowerCase()}
+                  onClick={() => selectForm(form)}
+                >
+                  {form} <span className="catalog-form-count">{formCountsAll[form]}</span>
+                </button>
+              ))}
+            </div>
+
             {/* Active Filter Tags */}
-            {(activeCategory || activeCrop || activeDisease || activeNutrient || searchQuery) && (
+            {(activeCategory || activeCrop || activeDisease || activeNutrient || activeForm || searchQuery) && (
               <div className="active-filters-bar">
                 <span className="active-filter-label">Active Filters:</span>
                 {activeCategory && (
@@ -1367,6 +1402,12 @@ export default function AllProducts() {
                   <span className="filter-pill-tag">
                     Nutrient: {activeNutrient}
                     <button type="button" onClick={() => removeFilter('nutrient')}><X size={12} /></button>
+                  </span>
+                )}
+                {activeForm && (
+                  <span className="filter-pill-tag">
+                    Form: {activeForm}
+                    <button type="button" onClick={() => removeFilter('form')} aria-label="Remove form filter"><X size={12} /></button>
                   </span>
                 )}
                 {searchQuery && (
@@ -1443,7 +1484,7 @@ export default function AllProducts() {
                     <h3 className="card-product-title" title={prod.name}>
                       {prod.name}
                     </h3>
-                    <p className="card-brand-name">{prod.brand}</p>
+                    <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
 
                     <div className="card-pricing-row">
                       <strong className="card-current-price">₹{activeSize.price}</strong>
@@ -1498,7 +1539,9 @@ export default function AllProducts() {
                   ? 'Loading real products from database...' 
                   : dbProducts.length === 0 
                     ? 'Only real products added by the administrator appear here. All demo products have been cleared.' 
-                    : "We couldn't find any products matching your current filters."}
+                    : activeForm && !formCountsAll[PRODUCT_FORMS.find(f => f.toLowerCase() === activeForm.toLowerCase())]
+                      ? `No ${activeForm.toLowerCase()} products yet. Try another form.`
+                      : "We couldn't find any products matching your current filters."}
               </p>
               {dbProducts.length === 0 ? (
                 <Link to="/admin/products" style={{ display: 'inline-block', marginTop: '12px', background: '#15803d', color: '#fff', padding: '10px 20px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600 }}>

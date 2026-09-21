@@ -1242,6 +1242,8 @@ class DatabaseManager {
         // these every size was priced from the first one by weight.
         packagePrices: packPriceMap(prodData.packagePrices, packSizes),
         packageMrps: packPriceMap(prodData.packageMrps, packSizes),
+        // Powder, Pellets, Tablets... (src/shared/productForm.js); '' lets the store work it out.
+        form: typeof prodData.form === 'string' ? prodData.form.trim().slice(0, 30) : '',
         badge: prodData.badge || (prodData.stock > 100 ? 'Best Seller' : 'New Launch'),
         images:
           Array.isArray(prodData.images) && prodData.images.length

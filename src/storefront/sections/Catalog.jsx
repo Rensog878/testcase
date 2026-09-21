@@ -3,6 +3,7 @@ import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
 import { matchesCrop, matchesCategory, matchesDisease, topSelling } from '../../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../../shared/profileFieldRules'
+import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../../shared/productForm'
 
 const MOBILE_CHIPS = [
   ['All', 'All'],
@@ -116,7 +117,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
         <img loading="lazy" decoding="async" src={productImage(p)} alt={p.name} onError={useFallbackImage} />
       </div>
       <div className="card-content">
-        <span className="product-category-tag">{p.category}</span>
+        <span className="product-category-tag">{p.category}{productForm(p) ? <> · {productForm(p)}</> : null}</span>
         {personalBadge}
         <h3 className="product-name">{p.name}</h3>
         <p className="product-tagline">{p.tagline || ''}</p>
@@ -177,14 +178,16 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
     const matchCrop = matchesCrop(p.crops, filters.crop)
     const matchDisease = matchesDisease(p.diseases, filters.disease)
     const matchCategory = matchesCategory(p.category, filters.category)
+    const matchForm = matchesForm(p, filters.form)
     const matchSearch = searchQuery === ''
       || String(p.name || '').toLowerCase().includes(searchQuery)
       || String(p.description || '').toLowerCase().includes(searchQuery)
       || String(p.activeIngredient || '').toLowerCase().includes(searchQuery)
-    return matchCrop && matchDisease && matchCategory && matchSearch
-  }), [products, filters.crop, filters.disease, filters.category, searchQuery])
+    return matchCrop && matchDisease && matchCategory && matchForm && matchSearch
+  }), [products, filters.crop, filters.disease, filters.category, filters.form, searchQuery])
 
-  const activeFilterCount = [filters.crop !== 'all', filters.disease !== 'all', filters.category !== 'All', searchQuery !== ''].filter(Boolean).length
+  const activeFilterCount = [filters.crop !== 'all', filters.disease !== 'all', filters.category !== 'All', (filters.form || 'all') !== 'all', searchQuery !== ''].filter(Boolean).length
+  const counts = useMemo(() => formCounts(products), [products])
   const cropOptions = catalogOptions?.crops || CROPS
   const categoryOptions = catalogOptions?.categories || CATEGORIES
   const diseaseOptions = catalogOptions?.diseases || DISEASES
@@ -243,6 +246,14 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
               </select>
             </div>
 
+            <div className="filter-group">
+              <label className="filter-label" htmlFor="formFilter"><i className="fa-solid fa-cubes"></i> <span>Form</span></label>
+              <select className="filter-select" id="formFilter" value={filters.form || 'all'} onChange={e => setFilter('form', e.target.value)}>
+                <option value="all">All forms</option>
+                {PRODUCT_FORMS.map(form => <option key={form} value={form}>{form} ({counts[form]})</option>)}
+              </select>
+            </div>
+
             <button className="btn btn-outline filter-reset-inline" style={{ width: '100%', justifyContent: 'center', fontSize: '0.82rem' }} onClick={resetFilters}>
               <i className="fa-solid fa-rotate-left"></i> <span data-i18n="reset_filters">{t('reset_filters')}</span>
             </button>
@@ -273,7 +284,7 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
                 <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '50px 20px', background: '#ffffff', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
                   <i className="fa-solid fa-leaf" style={{ fontSize: '3rem', color: 'var(--text-dim)', marginBottom: '12px' }}></i>
                   <h3 style={{ color: 'var(--primary-dark)' }}>No products found</h3>
-                  <p style={{ color: 'var(--text-muted)', marginTop: '6px' }}>Try adjusting crop or disease filters.</p>
+                  <p style={{ color: 'var(--text-muted)', marginTop: '6px' }}>Try another crop, disease, category or form.</p>
                   <button className="btn btn-outline" style={{ marginTop: '16px' }} onClick={resetFilters}><i className="fa-solid fa-rotate-left"></i> {t('reset_filters')}</button>
                 </div>
               ) : (

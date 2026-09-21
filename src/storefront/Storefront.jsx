@@ -37,7 +37,7 @@ import './storefront.css'
 // Styles: storefront.css, scoped to this page's wrapper.
 
 const PAGE_TITLE = "Sathyam Agro Mart - India's Largest Online Agro Pesticides & Crop Protection Store"
-const DEFAULT_FILTERS = { crop: 'all', disease: 'all', category: 'All', search: '' }
+const DEFAULT_FILTERS = { crop: 'all', disease: 'all', category: 'All', form: 'all', search: '' }
 
 function readLocalCms() {
   try { return JSON.parse(localStorage.getItem('sathya_cms') || '{}') } catch { return {} }

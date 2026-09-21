@@ -1024,8 +1024,13 @@ app.put('/api/products/:id', requireAuth('admin'), async (req, res) => {
 
     const { id, _id, ...updates } = req.body;
     if (updates.name !== undefined) {
-      const same = await db.findSameNamedProduct(updates.name, req.params.id);
-      if (same) return res.status(409).json(duplicateProductReply(same));
+      // Only a changed name has to be free: a product that already shares its
+      // name with an older copy can still be edited (price, stock...).
+      const current = await db.getProductById(req.params.id);
+      if (current && productNameKey(current.name) !== productNameKey(updates.name)) {
+        const same = await db.findSameNamedProduct(updates.name, req.params.id);
+        if (same) return res.status(409).json(duplicateProductReply(same));
+      }
     }
     const product = await db.updateProduct(req.params.id, updates);
     if (!product) {

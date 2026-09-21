@@ -369,7 +369,11 @@ export default function AdminProducts() {
   // One product per name: the store shows every product to everyone, so a
   // second one with the same name would appear twice. Checked while typing
   // here, and again by the server when publishing.
-  const sameNamed = modalOpen ? findSameNamedProduct(catalogue, form.name, isEditing) : null
+  // Editing a product keeps working under its current name, even while an
+  // older copy with that name still exists; only a new name has to be free.
+  const editingOriginal = isEditing ? catalogue.find(p => String(p.id) === String(isEditing)) : null
+  const renamed = !editingOriginal || productNameKey(editingOriginal.name) !== productNameKey(form.name)
+  const sameNamed = modalOpen && renamed ? findSameNamedProduct(catalogue, form.name, isEditing) : null
   const duplicateGroups = duplicateNameGroups(catalogue)
   const editExisting = product => {
     const full = catalogue.find(p => String(p.id) === String(product.id)) || products.find(p => String(p.id) === String(product.id)) || product

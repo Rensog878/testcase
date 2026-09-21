@@ -1613,6 +1613,8 @@ h6 { font-size: 1rem; }
 .product-detail-summary h1 { margin: 12px 0 8px; font-size: clamp(1.8rem, 4vw, 3rem); }
 .product-detail-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .product-detail-tagline, .product-detail-description { color: var(--text-secondary); }
+/* Long descriptions keep their paragraphs and bullet lines (entered with line breaks in Admin). */
+.product-detail-description { white-space: pre-line; }
 .product-detail-review-summary { display: flex; align-items: center; gap: 6px; margin: 18px 0 10px; color: var(--text-muted); font-size: 0.85rem; }
 .product-detail-price { font-size: 2rem; font-weight: 800; color: var(--brand-700); margin-bottom: 16px; }
 .product-detail-price del { color: var(--text-disabled); font-size: 1rem; margin-left: 8px; font-weight: 500; }

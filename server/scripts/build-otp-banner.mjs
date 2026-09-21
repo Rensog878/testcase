@@ -2,16 +2,12 @@
  * Builds public/assets/whatsapp-otp-banner.png, the image the sign-up code is
  * sent under on WhatsApp.
  *
- * It draws the brand row from the top of the sign-in card (AuthModal.jsx
- * .auth-brand, styled in storefront.css) at banner size, and screenshots it
- * with headless Chrome or Edge. Keep the values below in step with that CSS.
+ * It centres the full brand logo (public/assets/brand/logo-full.png) on a
+ * white banner and screenshots it with headless Chrome or Edge.
  *
  *   node server/scripts/build-otp-banner.mjs [output.png]
  *
- * Needs Chrome or Edge (set CHROME_PATH if it is not found) and internet access
- * for the Plus Jakarta Sans font.
- *
- * The badge shows the emblem from public/assets/brand/logo-mark.png.
+ * Needs Chrome or Edge (set CHROME_PATH if it is not found).
  */
 
 import { execFileSync } from 'node:child_process';
@@ -25,26 +21,10 @@ const OUTPUT = resolve(process.argv[2] || join(ROOT, 'public/assets/whatsapp-otp
 
 const WIDTH = 1200;
 const HEIGHT = 628;
-// The brand row on the sign-in card is 34px tall. The banner draws it this many times larger.
-const SCALE = 4;
 const MAX_BYTES = 300 * 1024;
 
-// storefront.css :root and the desktop .auth-brand rules.
-const PRIMARY = '#059669';
-const PRIMARY_DARK = '#064e3b';
-const TEXT_MUTED = '#475569';
-const BG_MAIN = '#f0fdf4';
-const WORDMARK = ['SATHYAM', 'AGRO MART'];
-const TAGLINE = 'From our farms to your home'; // i18n key logo_sub, in English
-
-
-// Google Fonts serves woff2 only to a browser it recognises.
-const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
-
-const MARK_FILE = resolve(ROOT, 'public/assets/brand/logo-mark.png');
-const MARK_URL = `data:image/png;base64,${readFileSync(MARK_FILE).toString('base64')}`;
-
-const px = (cssPx) => `${+(cssPx * SCALE).toFixed(2)}px`;
+const LOGO_FILE = resolve(ROOT, 'public/assets/brand/logo-full.png');
+const LOGO_URL = `data:image/png;base64,${readFileSync(LOGO_FILE).toString('base64')}`;
 
 function findBrowser() {
   const candidates = [
@@ -63,82 +43,15 @@ function findBrowser() {
   return found;
 }
 
-async function download(url, options) {
-  const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`Download failed (${response.status}): ${url}`);
-  return response;
-}
-
-// Plus Jakarta Sans, inlined so the screenshot cannot be taken before the font arrives.
-async function fontCss() {
-  const letters = `${WORDMARK.join(' ')} ${TAGLINE.toUpperCase()}`;
-  const cssUrl = `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=block&text=${encodeURIComponent(letters)}`;
-  let css = await (await download(cssUrl, { headers: { 'User-Agent': BROWSER_UA } })).text();
-
-  const fontUrls = [...new Set(css.match(/https:\/\/fonts\.gstatic\.com\/[^)\s]+/g) || [])];
-  if (!fontUrls.length) throw new Error('Google Fonts returned no font files');
-  for (const url of fontUrls) {
-    const bytes = Buffer.from(await (await download(url)).arrayBuffer());
-    css = css.replaceAll(url, `data:font/woff2;base64,${bytes.toString('base64')}`);
-  }
-  return css;
-}
-
-function bannerHtml(fonts) {
+function bannerHtml() {
   return `<!doctype html>
 <meta charset="utf-8">
 <style>
-${fonts}
-html, body { margin: 0; width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; }
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(ellipse 75% 85% at 50% 50%, #ffffff 40%, ${BG_MAIN} 100%);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.brand { display: flex; align-items: center; gap: ${px(10)}; }
-.icon {
-  flex-shrink: 0;
-  width: ${px(34)};
-  height: ${px(34)};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: ${px(9)};
-  background: #ffffff;
-  border: ${px(1)} solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 ${px(4)} ${px(12)} rgba(22, 163, 74, 0.18);
-}
-.icon img { width: ${px(28)}; height: ${px(28)}; object-fit: contain; }
-.words { display: flex; flex-direction: column; text-align: left; }
-.text {
-  font-size: ${px(20)};
-  font-weight: 800;
-  line-height: 1.15;
-  color: ${PRIMARY_DARK};
-  letter-spacing: ${px(-0.5)};
-  white-space: nowrap;
-}
-.text span { color: ${PRIMARY}; }
-.sub {
-  margin-top: ${px(1)};
-  font-size: ${px(10.24)};
-  font-weight: 600;
-  line-height: 1.2;
-  color: ${TEXT_MUTED};
-  text-transform: uppercase;
-  letter-spacing: ${px(1.2)};
-  white-space: nowrap;
-}
+html, body { margin: 0; width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; background: #ffffff; }
+body { display: flex; align-items: center; justify-content: center; }
+img { height: ${HEIGHT - 80}px; width: auto; }
 </style>
-<div class="brand">
-  <div class="icon"><img src="${MARK_URL}" alt="" /></div>
-  <div class="words">
-    <div class="text">${WORDMARK[0]} <span>${WORDMARK[1]}</span></div>
-    <div class="sub">${TAGLINE}</div>
-  </div>
-</div>`;
+<img src="${LOGO_URL}" alt="" />`;
 }
 
 async function main() {
@@ -146,7 +59,7 @@ async function main() {
   const workDir = mkdtempSync(join(tmpdir(), 'otp-banner-'));
   try {
     const page = join(workDir, 'banner.html');
-    writeFileSync(page, bannerHtml(await fontCss()));
+    writeFileSync(page, bannerHtml());
     mkdirSync(dirname(OUTPUT), { recursive: true });
 
     execFileSync(browser, [

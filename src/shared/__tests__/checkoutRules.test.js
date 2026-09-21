@@ -121,3 +121,19 @@ test('each address type has its own emoji, and an unknown one a pin', () => {
   assert.equal(addressEmoji('Warehouse'), '📍');
   assert.equal(addressEmoji(undefined), '📍');
 });
+
+test('CGST and SGST split the GST and always add up to it', () => {
+  const t = cartTotals([{ price: 680, qty: 1, gstRate: 18 }]);
+  assert.equal(t.gst, 122);
+  assert.equal(t.cgst + t.sgst, t.gst);
+  assert.equal(t.cgst, 61);
+  assert.equal(t.gstRate, 18);
+  // 683 x 18% = 122.94 -> 123: an odd rupee, still adds up
+  const odd = cartTotals([{ price: 683, qty: 1 }]);
+  assert.equal(odd.gst, 123);
+  assert.equal(odd.cgst + odd.sgst, 123);
+  assert.equal(odd.total, 683 + 123);
+  const mixed = cartTotals([{ price: 100, qty: 1, gstRate: 18 }, { price: 100, qty: 1, gstRate: 5 }]);
+  assert.equal(mixed.gstRate, null, 'mixed rates: no single % to show');
+  assert.equal(mixed.cgst + mixed.sgst, mixed.gst);
+});

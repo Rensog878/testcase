@@ -47,20 +47,23 @@ export const itemCount = items => items.reduce((sum, item) => sum + item.qty, 0)
 
 export function cartTotals(items, appliedDiscount = 0) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const gstAmount = items.reduce((sum, item) => {
-    const rate = Number(item.gstRate !== undefined ? item.gstRate : 18) / 100
-    return sum + (item.price * item.qty * rate)
-  }, 0)
+  const rateOf = item => Number(item.gstRate !== undefined ? item.gstRate : 18)
+  const gstAmount = items.reduce((sum, item) => sum + (item.price * item.qty * rateOf(item) / 100), 0)
 
+  // GST is split equally into CGST and SGST. SGST takes the rupee rounding
+  // leaves, so the two always add up to the GST charged.
   const gst = Math.round(gstAmount)
-  const cgst = Math.round(gstAmount / 2)
-  const sgst = Math.round(gstAmount / 2)
+  const cgst = Math.round(gst / 2)
+  const sgst = gst - cgst
+  // The rate shown beside them: one rate when every item has it, else none.
+  const rates = [...new Set(items.map(rateOf))]
+  const gstRate = rates.length === 1 ? rates[0] : null
   const igst = gst
   const discount = Math.min(subtotal, Math.max(0, Number(appliedDiscount) || 0))
   const finalSubtotal = Math.max(0, subtotal - discount)
   const total = finalSubtotal + gst
 
-  return { subtotal, discount, finalSubtotal, gst, cgst, sgst, igst, total }
+  return { subtotal, discount, finalSubtotal, gst, cgst, sgst, igst, gstRate, total }
 }
 
 export function withItemAdded(items, line, quantity = 1) {

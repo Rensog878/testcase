@@ -37,6 +37,10 @@ const BUSY_TEXT = {
 // translator still sees the plain word.
 const AddressLabel = ({ label }) => <><span className="co-emoji" aria-hidden="true">{addressEmoji(label)}</span>{label}</>
 
+// "CGST 9%": half the GST rate, when the basket has one rate. One text node
+// (tax names are not translated), styled like the other row labels.
+const taxLabel = (name, rate) => (rate !== null ? `${name} ${+(rate / 2).toFixed(2)}%` : name)
+
 const Spinner = ({ label }) => <><i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {label}</>
 
 const itemsLabel = count => `${count} ${count === 1 ? 'item' : 'items'}`
@@ -386,7 +390,8 @@ function SheetFooter({ step, checkout, actions }) {
       <div className="cart-footer co-foot">
         <div className="cart-summary">
           <div className="cart-summary-row"><span>Subtotal</span><span>{rupees(totals.subtotal)}</span></div>
-          <div className="cart-summary-row"><span>GST (18%)</span><span>{rupees(totals.gst)}</span></div>
+          <div className="cart-summary-row"><span className="notranslate">{taxLabel('CGST', totals.gstRate)}</span><span>{rupees(totals.cgst)}</span></div>
+          <div className="cart-summary-row"><span className="notranslate">{taxLabel('SGST', totals.gstRate)}</span><span>{rupees(totals.sgst)}</span></div>
           <div className="cart-summary-row"><span>Delivery</span><span className="cart-free">FREE</span></div>
           <div className="cart-summary-row grand-total"><span>Total</span><span>{rupees(totals.total)}</span></div>
         </div>
@@ -423,7 +428,9 @@ function SheetFooter({ step, checkout, actions }) {
         <p className="co-total-parts">
           <span className="co-part"><span>Subtotal</span> <b>{rupees(totals.subtotal)}</b></span>
           <span className="co-dot" aria-hidden="true"></span>
-          <span className="co-part"><span>GST (18%)</span> <b>{rupees(totals.gst)}</b></span>
+          <span className="co-part"><span className="notranslate">{taxLabel('CGST', totals.gstRate)}</span> <b>{rupees(totals.cgst)}</b></span>
+          <span className="co-dot" aria-hidden="true"></span>
+          <span className="co-part"><span className="notranslate">{taxLabel('SGST', totals.gstRate)}</span> <b>{rupees(totals.sgst)}</b></span>
           <span className="co-dot" aria-hidden="true"></span>
           <span className="co-part"><span>Delivery</span> <b className="cart-free">FREE</b></span>
         </p>

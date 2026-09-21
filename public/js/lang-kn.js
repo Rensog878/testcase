@@ -522,6 +522,8 @@ window.SB_LANG_KN = {
     'Copied it in WhatsApp? Tap to fill it in.': 'WhatsApp ನಲ್ಲಿ ನಕಲಿಸಿದಿರಾ? ತುಂಬಲು ಟ್ಯಾಪ್ ಮಾಡಿ.',
     'No code found. Copy the code in WhatsApp, then tap again.': 'ಕೋಡ್ ಸಿಗಲಿಲ್ಲ. WhatsApp ನಲ್ಲಿ ಕೋಡ್ ನಕಲಿಸಿ, ಮತ್ತೆ ಟ್ಯಾಪ್ ಮಾಡಿ.',
     'Could not read the copied code. Please type it in.': 'ನಕಲಿಸಿದ ಕೋಡ್ ಓದಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ.',
+    // Checkout: the key under Contact details explaining the red *.
+    'Required': 'ಕಡ್ಡಾಯ',
     'Your crops': 'ನಿಮ್ಮ ಬೆಳೆಗಳು',
     'Tap every crop you grow, up to 6.': 'ನೀವು ಬೆಳೆಯುವ ಎಲ್ಲಾ ಬೆಳೆಗಳನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ, 6 ರವರೆಗೆ.',
     'You can pick up to 6. Remove one to add another.': 'ನೀವು 6 ರವರೆಗೆ ಆಯ್ಕೆ ಮಾಡಬಹುದು. ಇನ್ನೊಂದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ತೆಗೆದುಹಾಕಿ.',

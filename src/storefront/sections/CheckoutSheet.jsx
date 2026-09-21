@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
-import { ADDRESS_LABELS, CHECKOUT_STEPS, STATES } from '../../hooks/checkoutRules'
+import { ADDRESS_LABELS, CHECKOUT_STEPS, REQUIRED_DETAILS, STATES } from '../../hooks/checkoutRules'
 import { productImage, rupees, useFallbackImage } from '../data'
 import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
@@ -48,16 +48,23 @@ function FieldError({ id, problem }) {
   return <small id={`${id}-error`} className="co-error"><i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {PROBLEM_TEXT[problem]}</small>
 }
 
+// The * after a required field's label. Screen readers hear "required" from
+// the input's aria-required instead, so the symbol itself is hidden from them.
+const RequiredMark = () => <span className="co-req" aria-hidden="true">*</span>
+const isRequired = name => REQUIRED_DETAILS.includes(name)
+
 function Field({ name, label, wide, value, problem, onChange, ...inputProps }) {
   const id = `co-${name}`
+  const required = isRequired(name)
   return (
     <div className={`co-field${wide ? ' co-field--wide' : ''}`}>
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>{label}{required && <RequiredMark />}</label>
       <input
         id={id}
         name={name}
         className="co-input"
         value={value}
+        aria-required={required || undefined}
         onChange={event => onChange(name, event.target.value)}
         aria-invalid={problem ? 'true' : undefined}
         aria-describedby={problem ? `${id}-error` : undefined}
@@ -195,12 +202,13 @@ function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
         {field('taluk', 'Taluk', { enterKeyHint: 'next' })}
         {field('district', 'District', { enterKeyHint: 'next' })}
         <div className="co-field co-field--wide">
-          <label htmlFor="co-state">State</label>
+          <label htmlFor="co-state">State<RequiredMark /></label>
           <select
             id="co-state"
             name="state"
             className="co-input"
             value={fields.state}
+            aria-required="true"
             disabled={busy}
             onChange={event => actions.setField('state', event.target.value)}
             aria-invalid={errors.state ? 'true' : undefined}
@@ -234,6 +242,7 @@ function AddressStep({ checkout, actions }) {
     <>
       <section className="co-group" aria-labelledby="coContactTitle">
         <h3 id="coContactTitle" className="co-group-title">Contact details</h3>
+        <p className="co-req-key"><RequiredMark /> <span>Required</span></p>
         <div className="co-grid">
           {field('customerName', 'Full name', { wide: true, autoComplete: 'name', autoCapitalize: 'words', enterKeyHint: 'next' })}
           {field('customerPhone', 'Mobile number', { wide: true, type: 'tel', inputMode: 'tel', autoComplete: 'tel', maxLength: 16, enterKeyHint: 'next' })}

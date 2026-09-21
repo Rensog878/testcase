@@ -7492,6 +7492,21 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   background-color: #F4F3EF;
   color: #6B7A73;
 }
+/* Required fields: a red * after the label, explained once at the top. */
+.sb-portal #checkoutSheet .co-req {
+  margin-left: 3px;
+  color: var(--co-error);
+  font-weight: 700;
+}
+.sb-portal #checkoutSheet .co-req-key {
+  margin: -6px 0 0;
+  color: var(--co-muted);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+.sb-portal #checkoutSheet .co-req-key .co-req {
+  margin: 0 2px 0 0;
+}
 .sb-portal #checkoutSheet .co-error {
   display: flex;
   align-items: flex-start;

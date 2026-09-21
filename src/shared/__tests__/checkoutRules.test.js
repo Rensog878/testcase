@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  AUTH_HASHES, SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
+  AUTH_HASHES, REQUIRED_DETAILS, SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
   blankAddress, initialFields, itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withItemAdded,
 } from '../../hooks/checkoutRules.js';
 
@@ -104,5 +104,13 @@ test('each step has a hash, and only those hashes are steps', () => {
   for (const hash of AUTH_HASHES) {
     assert.ok(SHARED_POPUP_HASHES.has(hash));
     assert.equal(stepForHash(hash), null);
+  }
+});
+
+test('every field marked * is one the order cannot go without, and no other', () => {
+  const blank = Object.fromEntries(Object.keys(completeFields).map(key => [key, '']));
+  assert.deepEqual(Object.keys(detailProblems(blank)).sort(), [...REQUIRED_DETAILS].sort());
+  for (const key of REQUIRED_DETAILS) {
+    assert.ok(detailProblems({ ...completeFields, [key]: '' })[key], `${key} left empty must stop the order`);
   }
 });

@@ -363,6 +363,8 @@ window.SB_LANG_TA = {
     'Copied it in WhatsApp? Tap to fill it in.': 'வாட்ஸ்அப்பில் நகலெடுத்தீர்களா? நிரப்ப தட்டுங்கள்.',
     'No code found. Copy the code in WhatsApp, then tap again.': 'குறியீடு இல்லை. வாட்ஸ்அப்பில் குறியீட்டை நகலெடுத்து, மீண்டும் தட்டுங்கள்.',
     'Could not read the copied code. Please type it in.': 'நகலெடுத்த குறியீட்டைப் படிக்க முடியவில்லை. தட்டச்சு செய்யுங்கள்.',
+    // Checkout: the key under Contact details explaining the red *.
+    'Required': 'கட்டாயம்',
     'Your crops': 'உங்கள் பயிர்கள்',
     'Tap every crop you grow, up to 6.': 'நீங்கள் வளர்க்கும் எல்லாப் பயிர்களையும் தட்டுங்கள், 6 வரை.',
     'You can pick up to 6. Remove one to add another.': '6 வரை தேர்வு செய்யலாம். வேறொன்றைச் சேர்க்க ஒன்றை நீக்குங்கள்.',

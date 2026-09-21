@@ -113,6 +113,10 @@ export function blankAddress(fields, user) {
   return blank
 }
 
+// Every delivery detail an order needs; the checkout marks each with *.
+// detailProblems below checks exactly these (a test keeps the two in step).
+export const REQUIRED_DETAILS = ['customerName', 'customerPhone', 'doorNo', 'pincode', 'street', 'area', 'taluk', 'district', 'state']
+
 // The server's checks (readCustomerDetails in server/server.js): a name, a
 // 10-digit mobile number and every address field, with a 6-digit PIN code.
 // Returns { field: 'required' | 'phone' | 'pincode' | 'state' }, empty when

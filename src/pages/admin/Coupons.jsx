@@ -178,7 +178,7 @@ export default function AdminCoupons() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '22px' }}>
         <div className="card" style={{ padding: '16px 18px', borderLeft: '4px solid #3b82f6', background: 'rgba(59, 130, 246, 0.05)' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Active Coupons</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
             {coupons.filter(c => c.active).length} / {coupons.length}
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function AdminCoupons() {
                   <tr key={c.id || idx}>
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
                     <td>
-                      <span style={{ fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '0.5px', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', border: '1px border rgba(255,255,255,0.2)' }}>
+                      <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)', letterSpacing: '0.5px', background: 'var(--surface-subtle, #f1f5f9)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(15, 23, 42, 0.12)' }}>
                         🎟️ {c.code}
                       </span>
                     </td>
@@ -267,7 +267,7 @@ export default function AdminCoupons() {
                     </td>
                     <td>₹{c.minOrder ? c.minOrder.toLocaleString() : '0 (No Min)'}</td>
                     <td>
-                      <span style={{ fontWeight: 700, color: '#fff' }}>{c.usageCount || 0} times</span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{c.usageCount || 0} times</span>
                     </td>
                     <td>
                       <button
@@ -328,7 +328,7 @@ export default function AdminCoupons() {
                     <td>
                       <span style={{ fontWeight: 700, color: '#60a5fa' }}>🎟️ {u.couponCode}</span>
                     </td>
-                    <td style={{ fontWeight: 600, color: '#fff' }}>👤 {u.userName || 'Customer'}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>👤 {u.userName || 'Customer'}</td>
                     <td>
                       <a href={`https://wa.me/91${(u.userPhone || '').replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="badge badge-green" style={{ textDecoration: 'none' }}>
                         📱 {u.userPhone || '—'}

@@ -132,7 +132,7 @@ export default function AdminReferrals() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '22px' }}>
         <div className="card" style={{ padding: '16px 18px', borderLeft: '4px solid #8b5cf6', background: 'rgba(139, 92, 246, 0.08)' }}>
           <div style={{ fontSize: '0.8rem', color: '#c084fc', fontWeight: 600 }}>Total Farmer Referrals</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
             {referrals.length} Referrals
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function AdminReferrals() {
                 {filteredReferrals.map((r, idx) => (
                   <tr key={r.id || idx}>
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                    <td style={{ fontWeight: 700, color: '#fff' }}>👤 {r.referrerName}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>👤 {r.referrerName}</td>
                     <td>
                       <span className="badge badge-green">📱 {r.referrerPhone}</span>
                     </td>
@@ -258,7 +258,7 @@ export default function AdminReferrals() {
                 {filteredUsers.map((u, idx) => (
                   <tr key={u.id || idx}>
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                    <td style={{ fontWeight: 700, color: '#fff' }}>👤 {u.name || 'Farmer'}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>👤 {u.name || 'Farmer'}</td>
                     <td><span className="badge badge-green">📱 {u.phone}</span></td>
                     <td><span className="badge badge-blue">🌾 {u.crop || 'Paddy'}</span></td>
                     <td>
@@ -305,7 +305,7 @@ export default function AdminReferrals() {
                 {filteredLedgers.map((l, idx) => (
                   <tr key={l.id || idx}>
                     <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                    <td style={{ fontWeight: 600, color: '#fff' }}>👤 {l.userName}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>👤 {l.userName}</td>
                     <td style={{ fontWeight: 800, color: l.points >= 0 ? '#34d399' : '#f87171' }}>
                       {l.points >= 0 ? `+${l.points}` : l.points} Pts
                     </td>

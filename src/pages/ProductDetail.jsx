@@ -142,6 +142,11 @@ export default function ProductDetail() {
   const totalPrice = selectedPrice * quantity
   const totalOriginalPrice = selectedOriginalPrice * quantity
 
+  // A different size or quantity is a new choice: "Added to cart" (and
+  // Proceed to checkout skipping the add) only holds for what was added.
+  const choosePack = pack => { setSelectedPack(pack); setCartAdded(false) }
+  const changeQuantity = delta => { setQuantity(q => Math.max(1, q + delta)); setCartAdded(false) }
+
   const addToCart = () => {
     addItem({ ...product, id: product.id || product._id, price: selectedPrice, originalPrice: selectedOriginalPrice, selectedPack }, quantity)
     setCartAdded(true)
@@ -192,10 +197,10 @@ export default function ProductDetail() {
 
           {packSizes.length > 0 && (
             <div className="product-pack-selector">
-              <strong>Package size</strong>
-              <div>
+              <strong id="packSizeLabel">Package size</strong>
+              <div role="group" aria-labelledby="packSizeLabel">
                 {packSizes.map(pack => (
-                  <button type="button" key={pack} className={selectedPack === pack ? 'active' : ''} onClick={() => setSelectedPack(pack)}>
+                  <button type="button" key={pack} className={selectedPack === pack ? 'active' : ''} aria-pressed={selectedPack === pack} onClick={() => choosePack(pack)}>
                     {pack}<small>₹{packagePrice(pack).toLocaleString()}</small>
                   </button>
                 ))}
@@ -203,25 +208,15 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <div style={{ margin: '14px 0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <strong style={{ color: 'var(--text-primary, #fff)' }}>Quantity:</strong>
-            <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', overflow: 'hidden' }}>
-              <button
-                type="button"
-                style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              >-</button>
-              <span style={{ padding: '6px 16px', fontWeight: 'bold', fontSize: '1rem', minWidth: '40px', textAlign: 'center', color: '#fff' }}>{quantity}</span>
-              <button
-                type="button"
-                style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}
-                onClick={() => setQuantity(q => q + 1)}
-              >+</button>
+          <div className="product-qty-row">
+            <strong id="qtyLabel">Quantity</strong>
+            <div className="product-qty" role="group" aria-labelledby="qtyLabel">
+              <button type="button" onClick={() => changeQuantity(-1)} disabled={quantity <= 1} aria-label="Fewer">−</button>
+              <span aria-live="polite">{quantity}</span>
+              <button type="button" onClick={() => changeQuantity(1)} aria-label="More">+</button>
             </div>
             {quantity > 1 && (
-              <span style={{ fontSize: '0.85rem', color: '#34d399' }}>
-                (₹{selectedPrice.toLocaleString()} x {quantity})
-              </span>
+              <span className="product-qty-sum">₹{selectedPrice.toLocaleString()} × {quantity}{selectedPack ? ` · ${selectedPack} each` : ''}</span>
             )}
           </div>
 

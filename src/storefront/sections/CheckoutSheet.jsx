@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
-import { ADDRESS_LABELS, CHECKOUT_STEPS, REQUIRED_DETAILS, STATES } from '../../hooks/checkoutRules'
+import { ADDRESS_LABELS, CHECKOUT_STEPS, addressEmoji, REQUIRED_DETAILS, STATES } from '../../hooks/checkoutRules'
 import { productImage, rupees, useFallbackImage } from '../data'
 import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
@@ -31,6 +31,11 @@ const BUSY_TEXT = {
   pay: 'Opening secure payment...',
   verify: 'Confirming your payment...',
 }
+
+// An address label with its emoji: 🏠 Home, 🏢 Office, 🚜 Farm. The emoji is
+// decoration (hidden from screen readers) and its own node, so the page
+// translator still sees the plain word.
+const AddressLabel = ({ label }) => <><span className="co-emoji" aria-hidden="true">{addressEmoji(label)}</span>{label}</>
 
 const Spinner = ({ label }) => <><i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {label}</>
 
@@ -190,7 +195,7 @@ function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
         {ADDRESS_LABELS.map(label => (
           <label key={label} className={`co-chip${fields.addressLabel === label ? ' is-selected' : ''}`}>
             <input type="radio" name="coAddressLabel" value={label} checked={fields.addressLabel === label} disabled={busy} onChange={() => actions.setField('addressLabel', label)} />
-            {label}
+            <AddressLabel label={label} />
           </label>
         ))}
       </div>
@@ -267,7 +272,7 @@ function AddressStep({ checkout, actions }) {
                   <input type="radio" name="coAddress" value={address.id} checked={selected} disabled={busy} onChange={() => actions.chooseAddress(address.id)} />
                   <span className="co-card-mark" aria-hidden="true"></span>
                   <span className="co-card-body">
-                    <span className="co-card-label">{address.label || 'Home'}</span>
+                    <span className="co-card-label"><AddressLabel label={address.label || 'Home'} /></span>
                     <span className="co-card-line notranslate">{[address.doorNo, address.area].filter(Boolean).join(', ')}</span>
                     <span className="co-card-sub"><span>PIN code</span> <span className="notranslate">{address.pincode}</span></span>
                   </span>
@@ -321,7 +326,7 @@ function PaymentStep({ checkout, actions }) {
         </div>
         <p className="co-summary-line notranslate"><strong>{f.customerName}</strong> · +91 {phone.slice(0, 5)} {phone.slice(5)}</p>
         <p className="co-summary-line">
-          <span className="co-card-label">{f.addressLabel || 'Home'}</span> <span className="notranslate">{address}</span>
+          <span className="co-card-label"><AddressLabel label={f.addressLabel || 'Home'} /></span> <span className="notranslate">{address}</span>
         </p>
       </section>
 

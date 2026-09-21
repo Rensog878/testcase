@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  AUTH_HASHES, REQUIRED_DETAILS, SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
+  ADDRESS_LABELS, AUTH_HASHES, REQUIRED_DETAILS, addressEmoji, SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
   blankAddress, initialFields, itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withItemAdded,
 } from '../../hooks/checkoutRules.js';
 
@@ -113,4 +113,11 @@ test('every field marked * is one the order cannot go without, and no other', ()
   for (const key of REQUIRED_DETAILS) {
     assert.ok(detailProblems({ ...completeFields, [key]: '' })[key], `${key} left empty must stop the order`);
   }
+});
+
+test('each address type has its own emoji, and an unknown one a pin', () => {
+  assert.deepEqual(ADDRESS_LABELS.map(addressEmoji), ['🏠', '🏢', '🚜']);
+  assert.equal(new Set(ADDRESS_LABELS.map(addressEmoji)).size, ADDRESS_LABELS.length);
+  assert.equal(addressEmoji('Warehouse'), '📍');
+  assert.equal(addressEmoji(undefined), '📍');
 });

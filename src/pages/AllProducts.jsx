@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import { cropList } from '../shared/profileFieldRules'
+import { setBodyFlag } from '../storefront/bodyFlags'
 import axios from 'axios'
 import {
   SHOP_CATEGORIES,
@@ -17,6 +18,17 @@ import {
   PESTS_AND_DISEASES,
   NUTRIENTS_LIST,
 } from '../data/allProductsData'
+
+// This page has its own floating button (the advisory one below), bottom
+// right. While it is shown, the floating call button (CallFab) moves up a
+// slot above it instead of sitting on it.
+function PageFabFlag() {
+  useEffect(() => {
+    setBodyFlag('page-fab', 'all-products', true)
+    return () => setBodyFlag('page-fab', 'all-products', false)
+  }, [])
+  return null
+}
 
 // The farmer's own crop this product is for, if any (a farmer can grow up to six).
 const myCropFor = (user, prod) => cropList(user?.crop).find(crop => matchesCrop(prod.crops, crop))
@@ -1529,6 +1541,7 @@ export default function AllProducts() {
         </section>
       </main>
 
+      <PageFabFlag />
       {/* FLOATING GREEN EXPERT HELPLINE / ADVISORY BUTTON (Matching Mobile Screenshot 1 & 2) */}
       <button 
         type="button" 

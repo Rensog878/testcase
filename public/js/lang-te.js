@@ -524,6 +524,8 @@ window.SB_LANG_TE = {
     'Could not read the copied code. Please type it in.': 'కాపీ చేసిన కోడ్ చదవలేకపోయాం. దయచేసి టైప్ చేయండి.',
     // Checkout: the key under Contact details explaining the red *.
     'Required': 'తప్పనిసరి',
+    // The floating call button's desktop label.
+    'Call us': 'మాకు కాల్ చేయండి',
     'Your crops': 'మీ పంటలు',
     'Tap every crop you grow, up to 6.': 'మీరు పండించే ప్రతి పంటను నొక్కండి, 6 వరకు.',
     'You can pick up to 6. Remove one to add another.': 'మీరు 6 వరకు ఎంచుకోవచ్చు. మరొకటి జోడించడానికి ఒకదాన్ని తీసివేయండి.',

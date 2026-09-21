@@ -524,6 +524,8 @@ window.SB_LANG_HI = {
     'Could not read the copied code. Please type it in.': 'कॉपी किया गया कोड पढ़ा नहीं जा सका। कृपया इसे टाइप करें।',
     // Checkout: the key under Contact details explaining the red *.
     'Required': 'आवश्यक',
+    // The floating call button's desktop label.
+    'Call us': 'हमें कॉल करें',
     'Your crops': 'आपकी फसलें',
     'Tap every crop you grow, up to 6.': 'आप जो भी फसलें उगाते हैं, सब पर टैप करें, 6 तक।',
     'You can pick up to 6. Remove one to add another.': 'आप 6 तक चुन सकते हैं। दूसरी जोड़ने के लिए एक हटाएँ।',

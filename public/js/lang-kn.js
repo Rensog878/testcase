@@ -524,6 +524,8 @@ window.SB_LANG_KN = {
     'Could not read the copied code. Please type it in.': 'ನಕಲಿಸಿದ ಕೋಡ್ ಓದಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ.',
     // Checkout: the key under Contact details explaining the red *.
     'Required': 'ಕಡ್ಡಾಯ',
+    // The floating call button's desktop label.
+    'Call us': 'ನಮಗೆ ಕರೆ ಮಾಡಿ',
     'Your crops': 'ನಿಮ್ಮ ಬೆಳೆಗಳು',
     'Tap every crop you grow, up to 6.': 'ನೀವು ಬೆಳೆಯುವ ಎಲ್ಲಾ ಬೆಳೆಗಳನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ, 6 ರವರೆಗೆ.',
     'You can pick up to 6. Remove one to add another.': 'ನೀವು 6 ರವರೆಗೆ ಆಯ್ಕೆ ಮಾಡಬಹುದು. ಇನ್ನೊಂದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ತೆಗೆದುಹಾಕಿ.',

@@ -7759,6 +7759,15 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   color: var(--co-ink);
   overflow-wrap: anywhere;
 }
+.sb-portal #checkoutSheet .co-emoji {
+  margin-right: 6px;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.1em;
+  line-height: 1;
+}
+.sb-portal #checkoutSheet .co-card-label .co-emoji {
+  margin-right: 4px;
+}
 .sb-portal #checkoutSheet .co-summary-line .co-card-label {
   margin-right: 4px;
 }
@@ -10613,4 +10622,126 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   display: block;
   text-align: center;
   width: 100%;
+}
+
+/* ==========================================================================
+   Floating call button (sections/CallFab.jsx, drawn by StorePopups on every
+   store page). It takes the AI chat bubble's corner; where that corner is
+   taken - the chat bubble on the home page, the advisory button on
+   /products (body.page-fab) - it sits one slot above, centred on it, and on
+   the home page back-to-top moves up one.
+   Hidden while any sheet is open (basket, checkout, payment, sign-in,
+   enquiry: body.overlay-open), under the phone Menu and the welcome poster.
+   ========================================================================== */
+.sb-portal .call-fab {
+  position: fixed;
+  right: 12px;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  z-index: 1450;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #cfe3d8;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #096540;
+  font-size: 1.1rem;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(20, 35, 28, 0.16);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.15s ease, color 0.15s ease;
+}
+body.sb-home-active .sb-portal .call-fab {
+  bottom: calc(146px + env(safe-area-inset-bottom, 0px));
+}
+body.page-fab .sb-portal .call-fab {
+  right: 22px;
+  bottom: 148px;
+}
+.sb-portal .call-fab:hover,
+.sb-portal .call-fab:active {
+  background: #096540;
+  color: #ffffff;
+}
+.sb-portal .call-fab:focus-visible {
+  outline: 3px solid rgba(9, 101, 64, 0.55);
+  outline-offset: 3px;
+}
+.sb-portal .call-fab-label {
+  display: none;
+}
+body.overlay-open .sb-portal .call-fab,
+body.menu-open .sb-portal .call-fab,
+body.poster-open .sb-portal .call-fab {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@media (min-width: 769px) {
+  .sb-portal .call-fab {
+    right: 28px;
+    bottom: 28px;
+    width: 52px;
+    height: 52px;
+    font-size: 1.2rem;
+  }
+  body.sb-home-active .sb-portal .call-fab {
+    bottom: 96px;
+  }
+  body.sb-home-active .sb-home .back-to-top {
+    bottom: 160px;
+  }
+  body.page-fab .sb-portal .call-fab {
+    right: 19px;
+    bottom: 150px;
+  }
+}
+@media (min-width: 1025px) {
+  /* The number, on hover or keyboard focus: a desktop has no dialler, so
+     the visitor needs to read it. */
+  body.page-fab .sb-portal .call-fab {
+    right: 22px;
+    bottom: 84px;
+  }
+  .sb-portal .call-fab .call-fab-label {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 10px);
+    display: block;
+    padding: 8px 14px;
+    border: 1px solid #cfe3d8;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #14231C;
+    font: 600 0.875rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(20, 35, 28, 0.12);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(6px, -50%);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    pointer-events: none;
+  }
+  .sb-portal .call-fab .call-fab-label strong {
+    color: #096540;
+  }
+  .sb-portal .call-fab:hover .call-fab-label,
+  .sb-portal .call-fab:focus-visible .call-fab-label {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-portal .call-fab,
+  .sb-portal .call-fab-label {
+    transition: none;
+  }
+}
+@media print {
+  .sb-portal .call-fab {
+    display: none;
+  }
 }

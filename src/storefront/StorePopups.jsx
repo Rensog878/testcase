@@ -6,6 +6,7 @@ import { StoreContext } from './StoreContext'
 import { isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { setBodyFlag } from './bodyFlags'
 import AuthModal from './sections/AuthModal'
+import CallFab from './sections/CallFab'
 import CheckoutSheet from './sections/CheckoutSheet'
 import EnquirySheet from './sections/EnquirySheet'
 import WelcomeCelebration from './sections/WelcomeCelebration'
@@ -117,6 +118,7 @@ export default function StorePopups() {
         <AuthModal t={t} state={authState} user={user} notice={checkout.authNotice} loginRequest={checkout.loginRequest} />
         <EnquirySheet />
         <WelcomeCelebration />
+        <CallFab />
       </div>
     </StoreContext.Provider>
   )

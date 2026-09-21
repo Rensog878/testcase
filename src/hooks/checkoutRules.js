@@ -8,6 +8,10 @@ export const GUEST_CART_KEY = 'sathya_cart_guest'
 export const GST_RATE = 0.18
 export const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 export const ADDRESS_LABELS = ['Home', 'Office', 'Farm']
+// Shown before each address label. An address saved with a label that is not
+// one of these (older data) gets the plain pin.
+export const ADDRESS_EMOJI = { Home: '🏠', Office: '🏢', Farm: '🚜' }
+export const addressEmoji = label => ADDRESS_EMOJI[label] || '📍'
 export const STATES = ['Tamil Nadu', 'Karnataka', 'Kerala', 'Andhra Pradesh', 'Telangana', 'Maharashtra', 'Other']
 const ADDRESS_KEYS = ['doorNo', 'street', 'area', 'taluk', 'pincode', 'district', 'state']
 export const CONTACT_FIELDS = ['customerName', 'customerPhone']

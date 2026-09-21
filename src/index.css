@@ -6802,15 +6802,8 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   font-size: 1.25rem;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
-  /* iOS needed two taps here while Android needed one. `body` sets
-     touch-action: pan-y (index.css, body rule), which allows vertical panning
-     but NOT `manipulation`, so Safari keeps watching for a second tap to
-     zoom - the page is zoomable (viewport has no maximum-scale, which is
-     right for accessibility). While it waits, the first tap on these two
-     icons did not reach the anchor. `manipulation` keeps panning and pinch
-     zoom but drops double-tap-zoom on this control only, so the first tap
-     acts immediately. Chrome dispatches without waiting, which is why the bug
-     only showed on iPhone. */
+  /* No double-tap-zoom wait on the icons. (The iPhone two-tap bug was the
+     popup warm-up on touch-down, removed: see useModalStates.js.) */
   touch-action: manipulation;
 }
 

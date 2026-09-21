@@ -15,7 +15,7 @@ import './storefront.css'
 // whichever page the customer is on: the floating checkout and the sign-in
 // card on top of it. Their state and rules are in hooks/useCheckout.js; this
 // adds what being a popup takes - page scroll locked, Escape, focus kept
-// inside, the touch-down warm-up. They sit in .sb-portal, which the
+// inside. They sit in .sb-portal, which the
 // storefront's styles also cover off the home page (storefront.css).
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -107,21 +107,7 @@ export default function StorePopups() {
       }
     }
     window.addEventListener('keydown', onKey, true)
-
-    // Touch-down on a basket or an account control (the profile icons, Menu →
-    // My Account) warms its popup, so the slide starts without a stutter
-    // (useModalStates.js).
-    const onPointerDown = event => {
-      if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return
-      if (event.target.closest('[data-checkout-open]')) actions.prewarmCheckout()
-      else if (event.target.closest('[data-account-open]')) actions.prewarmSignIn()
-    }
-    document.addEventListener('pointerdown', onPointerDown, { passive: true, capture: true })
-
-    return () => {
-      window.removeEventListener('keydown', onKey, true)
-      document.removeEventListener('pointerdown', onPointerDown, { capture: true })
-    }
+    return () => window.removeEventListener('keydown', onKey, true)
   }, [actions])
 
   return (

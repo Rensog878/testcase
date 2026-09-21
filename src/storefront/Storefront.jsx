@@ -144,7 +144,7 @@ export default function Storefront() {
     // ---- popups ----
     // This page's own (photo scanner, welcome poster) open here; the sign-in
     // card and the checkout are the shared ones.
-    const { openModal, prewarmModal, closeModal } = modal
+    const { openModal, closeModal } = modal
     const openSignIn = notice => checkout.openSignIn(notice)
     const handleAccountClick = event => checkout.showAccount(event)
 
@@ -250,7 +250,7 @@ export default function Storefront() {
 
     return {
       fetchLiveProducts, fetchLiveCatalogOptions,
-      openModal, prewarmModal, closeModal, openSignIn, handleAccountClick,
+      openModal, closeModal, openSignIn, handleAccountClick,
       scrollToCatalog, setFilter, resetFilters, filterByCategory, filterByCrop, toggleFilterDrawer,
       addToCart, handleBasketClick, changeLanguage, openProductPage, goTo, findRemedyProduct,
     }
@@ -292,13 +292,7 @@ export default function Storefront() {
     }
     document.addEventListener('keydown', onKey)
 
-    // Anything marked data-modal-target opens that popup; touch-down warms it.
-    const onPointerDown = event => {
-      if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return
-      const trigger = event.target.closest('.sb-home [data-modal-target]')
-      if (trigger) actions.prewarmModal(trigger.getAttribute('data-modal-target'))
-    }
-    document.addEventListener('pointerdown', onPointerDown, { passive: true, capture: true })
+    // Anything marked data-modal-target opens that popup.
     const onClick = event => {
       const trigger = event.target instanceof Element && event.target.closest('.sb-home [data-modal-target]')
       if (trigger) actions.openModal(trigger.getAttribute('data-modal-target'))
@@ -308,7 +302,6 @@ export default function Storefront() {
     const stopNavDebug = startNavDebugPanel()
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.removeEventListener('pointerdown', onPointerDown, { capture: true })
       document.removeEventListener('click', onClick)
       stopNavDebug()
     }

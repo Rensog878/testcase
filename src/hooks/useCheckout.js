@@ -327,8 +327,6 @@ export function CheckoutProvider({ enabled, children }) {
       }
       live.current.navigate(hereWithHash('#account'), { state: { accountCard: true } })
     }
-    const prewarmSignIn = () => modal.prewarmModal('authModal')
-    const prewarmCheckout = () => modal.prewarmModal('checkout')
     // Closing the card also takes away the hash that opened it: back past the
     // entry showAccount added, or out of the address a #login link opened.
     // Left in place, closing the basket later went Back onto it and opened the
@@ -665,7 +663,7 @@ export function CheckoutProvider({ enabled, children }) {
     return {
       loadCart, showGuestCart, addItem, updateQty, removeLine,
       showStep, openBasket, startCheckout, back, closeCheckout, dropStepHash, trackOrder, browseProducts, restoreFocus,
-      openSignIn, openAccount, showAccount, closeSignIn, leaveSignInFor, requireSignIn, afterSignIn, signOut, prewarmSignIn, prewarmCheckout,
+      openSignIn, openAccount, showAccount, closeSignIn, leaveSignInFor, requireSignIn, afterSignIn, signOut,
       loadAddresses, resetForUser, chooseAddress, addNewAddress, editAddress, setField, setSaveAddress, setPayment,
       continueToPayment, placeOrder,
     }

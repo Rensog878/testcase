@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import Navigation from '../components/home/Navigation'
+import { StoreChrome } from '../storefront/sections/Header'
 import Footer from '../components/home/Footer'
 
 // Shared shell for every storefront page except the home page (Storefront.jsx
@@ -19,7 +19,11 @@ export default function StoreLayout() {
   return (
     <>
       <div className="desktop-only-nav">
-        <Navigation />
+        {/* The same chrome the home page renders. It used to be a second
+            copy (components/home/Navigation.jsx) kept in step by hand. */}
+        <div className="sb-portal">
+          <StoreChrome />
+        </div>
       </div>
       <main className="public-page-shell">
         <Outlet />

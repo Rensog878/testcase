@@ -14,7 +14,7 @@ import { showToast } from './toast'
 import { setBodyFlag } from './bodyFlags'
 import useModalStates from './useModalStates'
 import { startNavDebugPanel } from './navDebug'
-import { Header, NavBar, TickerBar } from './sections/Header'
+import { StoreChrome } from './sections/Header'
 import { DealBanner, Hero, StatsStrip, TrustStrip } from './sections/Hero'
 import { CategoryGrid, Certifications, CropGrid } from './sections/ShopGrids'
 import { Catalog, Trending } from './sections/Catalog'
@@ -388,22 +388,9 @@ export default function Storefront() {
   return (
     <StoreContext.Provider value={actions}>
       <div className="sb-home" id="top">
-        {/* Two shells, so the four chrome rows can collapse into two at
-            >=1025px. Both are `display: contents` below that, which generates
-            no box at all - phones and tablets lay out exactly as if these
-            wrappers were not here. */}
-        <div className="sb-utility-shell">
-          <TickerBar cms={cms} />
-        </div>
-        <div className="sb-header-shell">
-          <Header t={t} user={user} appliedLang={appliedLang} cartCount={count} cartTotal={totals.total} searchText={filters.search} />
-          <NavBar t={t} />
-          {/* A second, smaller header: hangs below the main one and travels
-              with it while the page scrolls. */}
-          <div className="header-slogan header-slogan--store" aria-hidden="true">
-            <span className="header-slogan-text" data-i18n="logo_sub">{t('logo_sub')}</span>
-          </div>
-        </div>
+        {/* Ticker, header and nav - the same component every other store
+            page uses (sections/Header.jsx, StoreChrome). */}
+        <StoreChrome t={t} appliedLang={appliedLang} user={user} cartCount={count} cartTotal={totals.total} searchText={filters.search} />
         <Hero t={t} cms={cms} />
         <DealBanner cms={cms} />
         <TrustStrip t={t} cms={cms} />

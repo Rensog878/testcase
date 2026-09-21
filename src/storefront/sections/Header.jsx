@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useStoreActions } from '../useStoreActions'
 import { EN_KEYS } from '../i18n'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
+import { useCms } from '../../context/CmsContext'
 import { useBasket } from '../../hooks/useCheckout'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { showToast } from '../toast'
@@ -86,7 +88,7 @@ export const cropOf = user => user.crop || user.primaryCrop || 'All Crops'
 const englishT = key => EN_KEYS[key] || key
 
 export const Header = memo(function Header(props) {
-  const { setFilter, scrollToCatalog, handleAccountClick, handleBasketClick, goTo, searchText: ownSearch } = useStoreActions()
+  const { setFilter, scrollToCatalog, handleAccountClick, handleBasketClick, goTo, searchText: ownSearch, offPage } = useStoreActions()
   const { user: authUser } = useAuth()
   const { count, totals } = useBasket()
   // The home page passes these in because it already has them; anywhere else
@@ -96,7 +98,12 @@ export const Header = memo(function Header(props) {
   const cartCount = props.cartCount !== undefined ? props.cartCount : count
   const cartTotal = props.cartTotal !== undefined ? props.cartTotal : totals.total
   const searchText = props.searchText !== undefined ? props.searchText : (ownSearch || '')
-  const appliedLang = props.appliedLang
+  const { lang, setLang } = useLanguage()
+  const appliedLang = props.appliedLang || lang
+  // Off the home page there is no StoreContext for the language control to
+  // reach, so it is handed the app's own setter. That is what `onSelect` on
+  // LanguageQuickSwitch exists for.
+  const onSelectLanguage = offPage ? setLang : undefined
 
   const onSearchKey = event => {
     // The keyboard's Search key takes the shopper to the results and closes
@@ -164,7 +171,7 @@ export const Header = memo(function Header(props) {
 
           {/* The store's only language control at every width now: the utility
               row that used to carry a <select> at >=1025px is gone. */}
-          <LanguageQuickSwitch appliedLang={appliedLang} t={t} />
+          <LanguageQuickSwitch appliedLang={appliedLang} t={t} onSelect={onSelectLanguage} />
 
           <div className="action-item" id="headerAccountBtn" data-account-open onClick={handleAccountClick} style={{ cursor: 'pointer' }}>
             <i
@@ -199,7 +206,13 @@ export const Header = memo(function Header(props) {
 
 export const NavBar = memo(function NavBar({ t: given }) {
   const t = given || englishT
-  const { filterByCategory, filterByCrop, setFilter, scrollToCatalog } = useStoreActions()
+  const { filterByCategory, filterByCrop, setFilter, scrollToCatalog, offPage } = useStoreActions()
+  // The home page has these sections on it, so the nav jumps down to them.
+  // Everywhere else the same entries are routes. One list, two destinations.
+  const toCatalog = offPage ? { as: Link, to: '/products' } : { as: 'a', href: '#catalog' }
+  const toBrands = offPage ? { as: Link, to: '/brands' } : { as: 'a', href: '#brandsSection' }
+  const toCrops = offPage ? { as: Link, to: '/crops' } : { as: 'a', href: '#cropSection' }
+  const Jump = ({ as: As, children, ...rest }) => <As {...rest}>{children}</As>
   // Desktop mega-menu. Opens on hover and on keyboard focus, closes on
   // Escape, on blur out of the panel and on choosing an entry. Hidden below
   // 1025px by CSS, where the phone Menu sheet (MobileBottomNav) already
@@ -257,7 +270,7 @@ export const NavBar = memo(function NavBar({ t: given }) {
     <nav className="navbar" id="navbar" ref={navRef} onBlur={onBlur}>
       <div className="container nav-content">
         <ul className="nav-links" id="navLinks">
-          <li><a href="#catalog" className="active"><i className="fa-solid fa-store"></i> <span data-i18n="nav_all_products">{t('nav_all_products')}</span></a></li>
+          <li><Jump {...toCatalog} className="active"><i className="fa-solid fa-store"></i> <span data-i18n="nav_all_products">{t('nav_all_products')}</span></Jump></li>
 
           {megaItem('cat', 'fa-layer-group', 'Categories', '/categories', (
             <div className="nav-mega-cols">
@@ -311,21 +324,60 @@ export const NavBar = memo(function NavBar({ t: given }) {
                     </li>
                   ))}
                 </ul>
-                <a className="nav-mega-all" href="#cropSection" onClick={close}>All crops <i className="fa-solid fa-arrow-right"></i></a>
+                <Jump {...toCrops} className="nav-mega-all" onClick={close}>All crops <i className="fa-solid fa-arrow-right"></i></Jump>
               </div>
             </div>
           ))}
 
-          <li><a href="#brandsSection"><i className="fa-solid fa-award"></i> Brands</a></li>
+          <li><Jump {...toBrands}><i className="fa-solid fa-award"></i> Brands</Jump></li>
           <li><Link to="/blog"><i className="fa-solid fa-book-open"></i> Blogs</Link></li>
         </ul>
 
         <div className="nav-actions">
-          <button className="btn btn-gold nav-scan-btn" data-modal-target="photoScannerModal" title={t('nav_ai_scanner')}>
-            <i className="fa-solid fa-camera-retro"></i> <span data-i18n="nav_ai_scanner">{t('nav_ai_scanner')}</span>
-          </button>
+          {offPage ? (
+            <Link className="btn btn-gold nav-scan-btn" to="/#scan" title={t('nav_ai_scanner')}>
+              <i className="fa-solid fa-camera-retro"></i> <span data-i18n="nav_ai_scanner">{t('nav_ai_scanner')}</span>
+            </Link>
+          ) : (
+            <button className="btn btn-gold nav-scan-btn" data-modal-target="photoScannerModal" title={t('nav_ai_scanner')}>
+              <i className="fa-solid fa-camera-retro"></i> <span data-i18n="nav_ai_scanner">{t('nav_ai_scanner')}</span>
+            </button>
+          )}
         </div>
       </div>
     </nav>
+  )
+})
+
+/**
+ * THE store chrome: ticker, header and nav, in the two shells that let the
+ * four rows collapse into two at >=1025px.
+ *
+ * This was written twice - once here for the home page and once in
+ * components/home/Navigation.jsx for every other store page - with a comment
+ * in each asking the next person to keep them identical. They are one
+ * component now. What differs between the two kinds of page is where the
+ * controls lead: the home page has the catalogue, the crops and the brands on
+ * it, so its nav jumps down to them and its search filters in place;
+ * elsewhere the same controls go to /products and /crops. useStoreActions
+ * answers that question in one place.
+ */
+export const StoreChrome = memo(function StoreChrome({ t, appliedLang, user, cartCount, cartTotal, searchText }) {
+  const { cms } = useCms()
+  return (
+    <>
+      <div className="sb-utility-shell">
+        <TickerBar cms={cms} />
+      </div>
+      <div className="sb-header-shell">
+        <Header t={t} appliedLang={appliedLang} user={user} cartCount={cartCount} cartTotal={cartTotal} searchText={searchText} />
+        <NavBar t={t} />
+        {/* A second, smaller header: hangs below the main one and travels
+            with it while the page scrolls. */}
+        <div className="header-slogan header-slogan--store" aria-hidden="true">
+          <span className="header-slogan-text" data-i18n="logo_sub">{(t || (key => EN_KEYS[key] || key))('logo_sub')}</span>
+        </div>
+      </div>
+    </>
   )
 })

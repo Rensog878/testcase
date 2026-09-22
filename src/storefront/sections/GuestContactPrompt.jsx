@@ -14,9 +14,10 @@ import Modal from './Modal'
 // Styles: storefront.css, "7m. STAY CONNECTED CARD".
 
 const ID = 'guestContactModal'
-// How far down before it appears: a real scroll, not a nudge.
-const MIN_SCROLL = 500
-const SCROLL_SHARE = 0.3
+// How far down before it appears: about one screen, a real scroll but not a
+// share of the page (the home page is ~9 screens long on a phone).
+const MIN_SCROLL = 400
+const SCREEN_SHARE = 0.8
 
 // Another popup, the welcome poster or the checkout already has the screen.
 const screenBusy = () => {
@@ -42,7 +43,7 @@ export default function GuestContactPrompt() {
     const check = () => {
       frame = 0
       const room = document.documentElement.scrollHeight - window.innerHeight
-      const needed = Math.min(Math.max(MIN_SCROLL, room * SCROLL_SHARE), room - 40)
+      const needed = Math.min(Math.max(MIN_SCROLL, window.innerHeight * SCREEN_SHARE), room - 40)
       if (room <= 0 || window.scrollY < needed || screenBusy()) return
       asked.current = true
       window.removeEventListener('scroll', onScroll)

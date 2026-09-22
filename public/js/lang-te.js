@@ -308,6 +308,14 @@ window.SB_LANG_TE = {
     'Sugarcane Farmer': 'చెరకు రైతు',
     'Mixed Crop Farmer': 'మిశ్రమ పంటల రైతు',
     'Subscribe Free': 'ఉచితంగా చేరండి',
+    "Every week on WhatsApp": "ప్రతి వారం WhatsApp లో",
+    "Crop calendars for Kharif & Rabi": "ఖరీఫ్ & రబీ పంట క్యాలెండర్లు",
+    "Disease & pest alerts": "వ్యాధి & పురుగు హెచ్చరికలు",
+    "Exclusive farmer offers": "రైతులకు ప్రత్యేక ఆఫర్లు",
+    "WhatsApp number": "WhatsApp నంబర్",
+    "Your crop": "మీ పంట",
+    "You're subscribed!": "మీరు సభ్యత్వం పొందారు!",
+    "Subscribing…": "సభ్యత్వం జరుగుతోంది…",
     'No spam. Unsubscribe anytime. Available in 6 South Indian languages': 'అనవసర సందేశాలు లేవు. ఎప్పుడైనా ఆపవచ్చు. 6 దక్షిణ భారత భాషల్లో అందుబాటులో ఉంది',
 
     // Footer

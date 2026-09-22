@@ -308,6 +308,14 @@ window.SB_LANG_HI = {
     'Sugarcane Farmer': 'गन्ना किसान',
     'Mixed Crop Farmer': 'मिश्रित फसल किसान',
     'Subscribe Free': 'मुफ़्त जुड़ें',
+    "Every week on WhatsApp": "हर हफ़्ते WhatsApp पर",
+    "Crop calendars for Kharif & Rabi": "खरीफ़ और रबी फ़सल कैलेंडर",
+    "Disease & pest alerts": "रोग और कीट अलर्ट",
+    "Exclusive farmer offers": "किसानों के लिए ख़ास ऑफ़र",
+    "WhatsApp number": "WhatsApp नंबर",
+    "Your crop": "आपकी फ़सल",
+    "You're subscribed!": "आपकी सदस्यता हो गई!",
+    "Subscribing…": "सदस्यता हो रही है…",
     'No spam. Unsubscribe anytime. Available in 6 South Indian languages': 'कोई फ़ालतू संदेश नहीं। कभी भी बंद करें। 6 दक्षिण भारतीय भाषाओं में उपलब्ध',
 
     // Footer

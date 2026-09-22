@@ -98,53 +98,82 @@ export const Newsletter = memo(function Newsletter({ cms }) {
     }
   }
 
+  // One card: the farm photo with a "weekly on WhatsApp" badge, then the
+  // offer, what farmers get, and a labelled two-field form. Phones stack the
+  // photo (shorter) over the rest. Styles: storefront.css, "NEWSLETTER".
   return (
-    <section className="newsletter-section">
+    <section className="newsletter-section" aria-labelledby="newsletterTitle">
       <div className="container">
         <div className="newsletter-inner">
           <div className="newsletter-left">
             <img
               src={farmImg}
               className="newsletter-farm-img"
-              alt="Farm Newsletter"
+              alt=""
               loading="lazy"
               decoding="async"
               onError={event => { event.currentTarget.style.visibility = 'hidden' }}
             />
+            <span className="newsletter-img-badge">
+              <span className="newsletter-img-badge-icon" aria-hidden="true"><i className="fa-brands fa-whatsapp"></i></span>
+              <span>Every week on WhatsApp</span>
+            </span>
           </div>
           <div className="newsletter-right">
-            <span className="newsletter-tag"><i className="fa-solid fa-seedling"></i> Free Seasonal Advisory</span>
-            <h2 className="newsletter-title">
+            <span className="newsletter-tag"><i className="fa-solid fa-seedling" aria-hidden="true"></i> Free Seasonal Advisory</span>
+            <h2 className="newsletter-title" id="newsletterTitle">
               {cms && typeof cms.advisoryTitle === 'string' && cms.advisoryTitle.trim()
                 ? cms.advisoryTitle
                 : <>Get Weekly Crop &amp; Pesticide<br />Recommendations</>}
             </h2>
             <p className="newsletter-desc">{cmsText(cms, 'advisoryDesc', 'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.')}</p>
-            <form className="newsletter-form" onSubmit={handleSubmit}>
-              {subscribed ? (
-                <div style={{ padding: '12px', color: '#0B7A4B', fontWeight: 600 }}>Thank you! Your advisory subscription is confirmed.</div>
-              ) : (
-                <>
-                  <input
-                    type="tel"
-                    placeholder="Enter your WhatsApp Number"
-                    className="newsletter-input"
-                    value={phone}
-                    onChange={event => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))}
-                    inputMode="numeric"
-                    maxLength={10}
-                    required
-                  />
-                  <select className="newsletter-select" value={crop} onChange={event => setCrop(event.target.value)}>
-                    {CROP_OPTIONS.map(option => <option key={option}>{option}</option>)}
-                  </select>
-                  <button type="submit" className="newsletter-btn" disabled={submitting}>
-                    <i className="fa-brands fa-whatsapp"></i> {submitting ? 'Subscribing…' : 'Subscribe Free'}
-                  </button>
-                </>
-              )}
-            </form>
-            <p className="newsletter-note"><i className="fa-solid fa-lock"></i> No spam. Unsubscribe anytime. Available in 6 South Indian languages.</p>
+            <ul className="newsletter-perks">
+              <li><i className="fa-solid fa-calendar-days" aria-hidden="true"></i><span>Crop calendars for Kharif &amp; Rabi</span></li>
+              <li><i className="fa-solid fa-bell" aria-hidden="true"></i><span>Disease &amp; pest alerts</span></li>
+              <li><i className="fa-solid fa-tag" aria-hidden="true"></i><span>Exclusive farmer offers</span></li>
+            </ul>
+            {subscribed ? (
+              <div className="newsletter-done" role="status">
+                <span className="newsletter-done-icon" aria-hidden="true"><i className="fa-solid fa-check"></i></span>
+                <span>
+                  <strong>You&apos;re subscribed!</strong>
+                  <span>Thank you! Your advisory subscription is confirmed.</span>
+                </span>
+              </div>
+            ) : (
+              <form className="newsletter-form" onSubmit={handleSubmit}>
+                <div className="newsletter-field">
+                  <label className="newsletter-label" htmlFor="newsletterPhone">WhatsApp number</label>
+                  <div className="newsletter-control newsletter-control--phone">
+                    <span className="newsletter-prefix" aria-hidden="true">+91</span>
+                    <input
+                      id="newsletterPhone"
+                      type="tel"
+                      placeholder="9876543210"
+                      className="newsletter-input"
+                      value={phone}
+                      onChange={event => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))}
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      maxLength={10}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="newsletter-field">
+                  <label className="newsletter-label" htmlFor="newsletterCrop">Your crop</label>
+                  <div className="newsletter-control newsletter-control--select">
+                    <select id="newsletterCrop" className="newsletter-select" value={crop} onChange={event => setCrop(event.target.value)}>
+                      {CROP_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="newsletter-btn" disabled={submitting}>
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i> {submitting ? 'Subscribing…' : 'Subscribe Free'}
+                </button>
+              </form>
+            )}
+            <p className="newsletter-note"><i className="fa-solid fa-lock" aria-hidden="true"></i> No spam. Unsubscribe anytime. Available in 6 South Indian languages.</p>
           </div>
         </div>
       </div>

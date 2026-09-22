@@ -330,7 +330,7 @@ export default function Storefront() {
         <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} loading={catalogLoading} />
         <Trending t={t} products={products} loading={catalogLoading} />
         <Testimonials cms={cms} />
-        <Newsletter cms={cms} />
+        <Newsletter cms={cms} crops={rawCatalogOptions?.crops} />
         <Certifications settings={cms} />
         <BackToTop />
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />

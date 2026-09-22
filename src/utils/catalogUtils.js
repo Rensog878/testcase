@@ -210,3 +210,22 @@ export function topSelling(products, count) {
     ))
     .slice(0, count)
 }
+
+/**
+ * The crops the home page advisory form offers: the sign-up list first (the
+ * crops farmers pick for their profile, in that order), then every crop the
+ * admin has added to the catalogue that is not already there, A to Z.
+ * Spellings of one crop ("Corn" / "Corn / Maize", "wheat" / "Wheat") count
+ * once, keeping the fuller one. "All Crops" is left out: the form ends with
+ * its own "Mixed / other crops" choice.
+ */
+export function advisoryCropOptions(profileCrops = [], catalogueCrops = []) {
+  const real = list => (list || []).filter(crop => normalizeCrop(crop) && normalizeCrop(crop) !== normalizeCrop('All Crops'))
+  const base = dedupeCropLabels(real(profileCrops))
+  const extra = dedupeCropLabels(real(catalogueCrops))
+    .filter(crop => !base.some(known => isSameCrop(known, crop)))
+    .sort((a, b) => a.localeCompare(b))
+  // A catalogue spelling longer than the sign-up one still loses: the form
+  // should read like the profile it feeds.
+  return [...base, ...extra]
+}

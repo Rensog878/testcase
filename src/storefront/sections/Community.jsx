@@ -1,7 +1,9 @@
-import { memo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import axios from 'axios'
 import { cmsText } from '../../hooks/useCmsSettings'
 import { showToast } from '../toast'
+import { CROP_CHOICES } from '../../shared/profileFieldRules'
+import { advisoryCropOptions } from '../../utils/catalogUtils'
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -72,12 +74,15 @@ export const Testimonials = memo(function Testimonials({ cms }) {
   )
 })
 
-const CROP_OPTIONS = ['Paddy / Rice Farmer', 'Cotton Farmer', 'Horticulture / Vegetables', 'Sugarcane Farmer', 'Mixed Crop Farmer']
+// Every crop the store knows (the sign-up list, then the admin's catalogue
+// crops), and a last choice for farmers who grow several.
+const MIXED_CROPS = 'Mixed / other crops'
 
-export const Newsletter = memo(function Newsletter({ cms }) {
+export const Newsletter = memo(function Newsletter({ cms, crops }) {
+  const cropOptions = useMemo(() => [...advisoryCropOptions(CROP_CHOICES, crops), MIXED_CROPS], [crops])
   const [subscribed, setSubscribed] = useState(false)
   const [phone, setPhone] = useState('')
-  const [crop, setCrop] = useState(CROP_OPTIONS[0])
+  const [crop, setCrop] = useState(CROP_CHOICES[0])
   const [submitting, setSubmitting] = useState(false)
 
   const farmImg = cmsText(cms, 'advisoryImage', 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1000&q=80&auto=format&fit=crop')
@@ -164,7 +169,7 @@ export const Newsletter = memo(function Newsletter({ cms }) {
                   <label className="newsletter-label" htmlFor="newsletterCrop">Your crop</label>
                   <div className="newsletter-control newsletter-control--select">
                     <select id="newsletterCrop" className="newsletter-select" value={crop} onChange={event => setCrop(event.target.value)}>
-                      {CROP_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                      {cropOptions.map(option => <option key={option}>{option}</option>)}
                     </select>
                   </div>
                 </div>

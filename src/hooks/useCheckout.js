@@ -624,9 +624,8 @@ export function CheckoutProvider({ enabled, children }) {
     // One tap only: the ref is set before the button has re-rendered as busy.
     const placeOrder = () => {
       if (busyRef.current) return
-      // Cash on Delivery only for now; online payment returns in Phase 2.
-      // if (draftRef.current.payment === 'online') payOnline()
-      placeCodOrder()
+      if (draftRef.current.payment === 'online') payOnline()
+      else placeCodOrder()
     }
 
     const trackOrder = () => closeCheckout({ then: () => live.current.navigate('/orders') })

@@ -6,9 +6,6 @@ import { productImage, rupees, useFallbackImage } from '../data'
 import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
 
-// Checkout is open for Cash on Delivery only. Online payment (Razorpay) is
-// Phase 2 work: its payment option is kept below, commented out.
-
 // The floating checkout: Basket → Delivery details → Payment → Order
 // confirmed, in one popup over whichever store page the customer is on
 // (drawn once by StorePopups.jsx). What it does - the basket, addresses,
@@ -307,7 +304,7 @@ function PaymentStep({ checkout, actions }) {
   const f = draft.fields
   const phone = String(f.customerPhone || '').replace(/\D/g, '').slice(-10)
   const address = [f.doorNo, f.street, f.area, f.taluk, f.district, f.state, f.pincode].filter(Boolean).join(', ')
-  const chosen = 'cod' // Phase 2: draft.payment, once online payment is offered again
+  const chosen = draft.payment === 'online' ? 'online' : 'cod'
   const option = (value, icon, title, sub) => (
     <label className={`co-card co-pay${chosen === value ? ' is-selected' : ''}`}>
       <input type="radio" name="coPayment" value={value} checked={chosen === value} disabled={busy} onChange={() => actions.setPayment(value)} />
@@ -348,11 +345,11 @@ function PaymentStep({ checkout, actions }) {
         <h3 id="coPayTitle" className="co-sr">Choose payment</h3>
         <div className="co-cards" role="radiogroup" aria-labelledby="coPayTitle">
           {option('cod', 'fa-money-bill-wave', 'Cash on Delivery', 'Pay when your order arrives')}
-          {/* Phase 2: {option('online', 'fa-shield-halved', 'Pay online (UPI / Card)', 'UPI, cards and net banking via Razorpay')} */}
+          {option('online', 'fa-shield-halved', 'Pay online (UPI / Card)', 'UPI, cards and net banking via Razorpay')}
         </div>
         <p className="co-note">
           <i className="fa-solid fa-lock" aria-hidden="true"></i>
-          <span>Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser.</span>
+          <span>{chosen === 'online' ? 'Pay securely with UPI, card or net banking through Razorpay. The amount is calculated on our server, so it can never be changed in the browser.' : 'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser.'}</span>
         </p>
       </section>
     </>
@@ -399,7 +396,7 @@ function SheetFooter({ step, checkout, actions }) {
           <span><i className="fa-solid fa-lock" aria-hidden="true"></i> Checkout</span>
           <span className="cart-checkout-amount">{rupees(totals.total)}</span>
         </button>
-        <p className="cart-secure-note"><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> Cash on delivery · pay when your order arrives</p>
+        <p className="cart-secure-note"><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> Secure payment · UPI, cards or cash on delivery</p>
       </div>
     )
   }
@@ -416,7 +413,7 @@ function SheetFooter({ step, checkout, actions }) {
   }
 
   const paying = step === 'payment'
-  const online = false // Cash on Delivery only until online payment returns (Phase 2)
+  const online = draft.payment === 'online'
   let label
   if (busy) label = <Spinner label={BUSY_TEXT[busy]} />
   else if (!paying) label = <><span>Continue to payment</span><i className="fa-solid fa-arrow-right" aria-hidden="true"></i></>

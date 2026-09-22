@@ -458,7 +458,7 @@ export default function AdminUsers() {
               <button onClick={() => setCreateModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Create an account with login credentials for Sathyam Agro Mart. The user can immediately log in on <code>sathyambio.com</code> or staff portals.
+              Create an account with login credentials for Sathyam Agro Mart. The user can immediately log in on <code>sathyamagromart.com</code> or staff portals.
             </p>
 
             <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

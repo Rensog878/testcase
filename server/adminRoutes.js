@@ -70,7 +70,8 @@ function matchesSearch(user, search) {
 router.get('/users', async (req, res) => {
     try {
           const { role, sortBy, search } = req.query;
-          let users = await db.getUsers();
+          // Super admin accounts are never listed: not their number, not that they exist.
+          let users = (await db.getUsers()).filter(u => u.role !== 'superadmin');
 
       if (role && role !== 'all') {
               users = users.filter((u) => u.role === role);

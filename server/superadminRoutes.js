@@ -185,7 +185,8 @@ router.delete('/stores/:id', async (req, res) => {
 router.get('/users', async (req, res) => {
   try {
     const { role, storeId, search, status } = req.query;
-    let users = await db.getUsers();
+    // Super admin accounts are never listed: not their number, not that they exist.
+    let users = (await db.getUsers()).filter(u => u.role !== 'superadmin');
 
     // Default: show staff roles unless specific filter requested
     if (role && role !== 'all') {

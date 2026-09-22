@@ -440,7 +440,7 @@ body.sb-home-active {
    right. Every newsletter rule lives here (phones and tablets included).
    ==================================== */
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-section {
-  padding: 72px 0;
+  padding: 48px 0;
   background:
     radial-gradient(700px 320px at 12% 10%, rgba(16, 185, 129, 0.12), transparent 65%),
     radial-gradient(600px 300px at 92% 90%, rgba(251, 191, 36, 0.1), transparent 60%),
@@ -449,7 +449,7 @@ body.sb-home-active {
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.45fr);
   overflow: hidden;
   background: #fff;
   border-radius: 28px;
@@ -469,8 +469,9 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-farm-img {
   display: block;
   width: 100%;
+  position: absolute;
+  inset: 0;
   height: 100%;
-  min-height: 460px;
   object-fit: cover;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-img-badge {
@@ -503,7 +504,7 @@ body.sb-home-active {
   font-size: 1.1rem;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-right {
-  padding: 48px 52px 40px;
+  padding: 32px 40px 28px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-tag {
   display: inline-flex;
@@ -521,23 +522,23 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-title {
   margin: 0 0 12px;
   color: #064E3B;
-  font-size: clamp(1.7rem, 2.3vw, 2.25rem);
+  font-size: clamp(1.45rem, 1.9vw, 1.85rem);
   font-weight: 800;
   line-height: var(--script-leading, 1.18);
   letter-spacing: -0.02em;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-desc {
-  max-width: 58ch;
-  margin: 0 0 18px;
+  max-width: 62ch;
+  margin: 0 0 14px;
   color: var(--text-muted);
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   line-height: 1.6;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-perks {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 24px;
+  gap: 6px;
+  margin: 0 0 18px;
   padding: 0;
   list-style: none;
 }
@@ -545,11 +546,11 @@ body.sb-home-active {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
   background: #F1F7F3;
   color: #14231C;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   line-height: var(--script-leading, 1.35);
 }
@@ -559,10 +560,10 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 14px;
-  padding: 18px;
+  gap: 12px;
+  padding: 14px;
   border: 1px solid #E3EEE7;
-  border-radius: 20px;
+  border-radius: 18px;
   background: #FAFCFB;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-label {
@@ -578,7 +579,7 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-input,
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-select {
   width: 100%;
-  height: 52px;
+  height: 48px;
   padding: 0 16px;
   border: 1.5px solid #D5E3DA;
   border-radius: 14px;
@@ -638,8 +639,8 @@ body.sb-home-active {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 54px;
-  padding: 12px 24px;
+  min-height: 48px;
+  padding: 10px 22px;
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, #25D366, #128C7E);
@@ -701,10 +702,22 @@ body.sb-home-active {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   color: var(--text-dim);
   font-size: 0.78rem;
   line-height: var(--script-leading, 1.45);
+}
+/* Wide desktops, English: phone, crop and the button share one row. The
+   Indian-language labels are too long for that, so they keep two rows. */
+@media (min-width: 1280px) {
+  html:not(:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"])) :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-form {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+    align-items: end;
+  }
+  html:not(:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"])) :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-btn {
+    grid-column: auto;
+    white-space: nowrap;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-btn {
@@ -732,14 +745,24 @@ body.sb-home-active {
     grid-template-columns: minmax(0, 1fr);
     border-radius: 22px;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-farm-img {
-    height: 190px;
-    min-height: 0;
+  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-left {
+    height: 160px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-img-badge {
-    left: 14px;
-    bottom: 14px;
-    font-size: 0.8rem;
+    left: 12px;
+    bottom: 12px;
+    gap: 8px;
+    padding: 5px 12px 5px 5px;
+    font-size: 0.76rem;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-img-badge-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+  /* The description already names all three; phones skip the chips. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-perks {
+    display: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-right {
     padding: 22px 18px 20px;
@@ -749,9 +772,6 @@ body.sb-home-active {
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-desc {
     font-size: 0.9rem;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-perks {
-    margin-bottom: 18px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-form {
     padding: 14px;

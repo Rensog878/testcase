@@ -50,7 +50,7 @@ const DEFAULT_CONTENT = {
   // ── Advisory Newsletter ───────────────────────────────────────────────
   advisoryTitle:  'Get Weekly Crop & Pesticide Recommendations',
   advisoryDesc:   'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.',
-  advisoryImage:  'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=500&q=80',
+  advisoryImage:  'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1000&q=80&auto=format&fit=crop',
 
   // ── Certifications ────────────────────────────────────────────────────
   certificationsTitle:    'Certifications & Recognitions',

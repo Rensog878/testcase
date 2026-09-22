@@ -80,7 +80,7 @@ export const Newsletter = memo(function Newsletter({ cms }) {
   const [crop, setCrop] = useState(CROP_OPTIONS[0])
   const [submitting, setSubmitting] = useState(false)
 
-  const farmImg = cmsText(cms, 'advisoryImage', 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=500&q=80')
+  const farmImg = cmsText(cms, 'advisoryImage', 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1000&q=80&auto=format&fit=crop')
 
   const handleSubmit = async event => {
     event.preventDefault()

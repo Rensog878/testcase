@@ -7,7 +7,7 @@ import { useLanguage } from '../../context/LanguageContext'
 import { useCms } from '../../context/CmsContext'
 import { useBasket } from '../../hooks/useCheckout'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
-import { showToast } from '../toast'
+import { useVoiceInput, voiceSupported } from '../voice'
 import { cropList } from '../../shared/profileFieldRules'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
 import { cmsText, cmsTickerLines } from '../../hooks/useCmsSettings'
@@ -110,6 +110,16 @@ export const Header = memo(function Header(props) {
   // LanguageQuickSwitch exists for.
   const onSelectLanguage = offPage ? setLang : undefined
 
+  // Voice search: always English, because products are matched on their
+  // English names, descriptions and ingredients (Catalog.jsx).
+  const voice = useVoiceInput({
+    lang: 'en-IN',
+    onResult: heard => {
+      setFilter('search', heard)
+      scrollToCatalog()
+    },
+  })
+
   const onSearchKey = event => {
     // The keyboard's Search key takes the shopper to the results and closes
     // the on-screen keyboard.
@@ -143,9 +153,11 @@ export const Header = memo(function Header(props) {
             onChange={event => setFilter('search', event.target.value)}
             onKeyDown={onSearchKey}
           />
-          <button type="button" className="voice-search-btn" title="Voice Search" aria-label="Voice search" onClick={() => showToast('Voice search is coming soon. For now, type a crop or disease name.', 'info')}>
-            <i className="fa-solid fa-microphone"></i>
-          </button>
+          {voiceSupported && (
+            <button type="button" className={`voice-search-btn${voice.listening ? ' is-listening' : ''}`} title={voice.listening ? 'Listening... tap to stop' : 'Voice Search'} aria-label={voice.listening ? 'Stop voice search' : 'Voice search'} aria-pressed={voice.listening} onClick={voice.toggle}>
+              <i className={`fa-solid ${voice.listening ? 'fa-stop' : 'fa-microphone'}`} aria-hidden="true"></i>
+            </button>
+          )}
           <button type="button" id="headerSearchBtn" aria-label="Search" onClick={scrollToCatalog}><i className="fa-solid fa-magnifying-glass"></i> <span data-i18n="search_btn">{t('search_btn')}</span></button>
         </div>
 

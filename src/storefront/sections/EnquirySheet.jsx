@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { showToast } from '../toast'
+import VoiceButton from './VoiceButton'
 
 // A floating "Farmer Enquiry" button and its premium sheet, mounted once
 // (StorePopups.jsx) so it floats over every store page on desktop and tablet (on phones
@@ -195,36 +196,40 @@ export default memo(function EnquirySheet() {
               <form className="auth-form" onSubmit={submit} noValidate>
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="enqName">Name*</label>
-                  <div className="auth-control">
+                  <div className="auth-control has-voice">
                     <input type="text" autoComplete="name" enterKeyHint="next" maxLength={80} {...inputProps('name')} />
                     <i className="fa-solid fa-user auth-control-icon" aria-hidden="true"></i>
+                    <VoiceButton htmlFor="enqName" />
                   </div>
                   {errors.name && <small className="sb-field-error">{errors.name}</small>}
                 </div>
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="enqPhone">Mobile Number*</label>
-                  <div className="auth-control auth-control--prefix">
+                  <div className="auth-control auth-control--prefix has-voice">
                     <input type="tel" inputMode="numeric" maxLength={10} autoComplete="tel-national" enterKeyHint="next" placeholder="9876543210" {...inputProps('phone')} />
                     <span className="auth-prefix" aria-hidden="true">+91</span>
+                    <VoiceButton htmlFor="enqPhone" mode="digits" />
                   </div>
                   {errors.phone && <small className="sb-field-error">{errors.phone}</small>}
                 </div>
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="enqLocation">Location / City*</label>
-                  <div className="auth-control">
+                  <div className="auth-control has-voice">
                     <input type="text" autoComplete="address-level2" enterKeyHint="next" maxLength={80} {...inputProps('location')} />
                     <i className="fa-solid fa-location-dot auth-control-icon" aria-hidden="true"></i>
+                    <VoiceButton htmlFor="enqLocation" mode="latin" />
                   </div>
                   {errors.location && <small className="sb-field-error">{errors.location}</small>}
                 </div>
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="enqCrop">Crop <span className="auth-optional">Optional</span></label>
-                  <div className="auth-control">
+                  <div className="auth-control has-voice">
                     <input type="text" autoComplete="off" enterKeyHint="next" maxLength={60} placeholder="e.g. Cotton" {...inputProps('crop')} />
                     <i className="fa-solid fa-wheat-awn auth-control-icon" aria-hidden="true"></i>
+                    <VoiceButton htmlFor="enqCrop" />
                   </div>
                 </div>
 
@@ -241,7 +246,10 @@ export default memo(function EnquirySheet() {
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="enqMessage">Message / Requirement <span className="auth-optional">Optional</span></label>
-                  <textarea id="enqMessage" className="auth-input enq-textarea" rows={3} maxLength={1000} value={fields.message} onChange={event => setField('message', event.target.value)} />
+                  <div className="sb-voice-wrap has-voice">
+                    <textarea id="enqMessage" className="auth-input enq-textarea" rows={3} maxLength={1000} value={fields.message} onChange={event => setField('message', event.target.value)} />
+                    <VoiceButton htmlFor="enqMessage" />
+                  </div>
                 </div>
 
                 <div className="auth-actions">

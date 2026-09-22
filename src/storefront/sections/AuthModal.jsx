@@ -9,6 +9,7 @@ import { showToast } from '../toast'
 import { otpFromText } from '../../shared/otpCode'
 import { readGuestContact } from '../guestContact'
 import Modal from './Modal'
+import VoiceButton from './VoiceButton'
 
 // One sheet with three views: phone (the mobile number), otp (the WhatsApp
 // code) and details (who they are and where they farm). There is no password
@@ -155,6 +156,14 @@ function useProfileForm(open) {
 const FIELD_ICONS = { name: 'fa-user', email: 'fa-envelope', village: 'fa-location-dot', district: 'fa-map-location-dot', state: 'fa-map' }
 const TYPE_ICONS = { text: 'fa-pen', email: 'fa-envelope', tel: 'fa-phone', number: 'fa-hashtag', date: 'fa-calendar-days', textarea: 'fa-align-left', select: 'fa-list' }
 const AUTOCOMPLETE = { name: 'name', email: 'email', village: 'address-level2', state: 'address-level1' }
+// Voice typing (VoiceButton) per question: places in English, numbers as
+// digits, other text in the site's language. Emails, dates and lists have none.
+const voiceModeFor = field => {
+  if (['village', 'district'].includes(field.id)) return 'latin'
+  if (field.type === 'tel' || field.type === 'number') return 'digits'
+  if (field.type === 'text' || field.type === 'textarea') return 'text'
+  return null
+}
 
 // One question from the builder, drawn like the rest of the sheet. `control`
 // carries id, value, onChange, classes and aria wiring.
@@ -176,7 +185,8 @@ function ProfileFieldInput({ field, control, hint, help, enterKeyHint = 'next' }
     const maxLength = { tel: 10, number: 12, email: 120 }[type] || 80
     input = <input type={type === 'number' ? 'text' : type} inputMode={inputMode} maxLength={maxLength} autoCapitalize={field.id === 'name' ? 'words' : undefined} enterKeyHint={enterKeyHint} {...shared} />
   }
-  const controlClass = ['auth-control', type === 'select' && 'auth-control--select', type === 'textarea' && 'auth-control--textarea'].filter(Boolean).join(' ')
+  const voiceMode = voiceModeFor(field)
+  const controlClass = ['auth-control', type === 'select' && 'auth-control--select', type === 'textarea' && 'auth-control--textarea', voiceMode && 'has-voice'].filter(Boolean).join(' ')
   return (
     <div className="auth-field">
       <label className="auth-label" htmlFor={control.id}>{field.title}{!field.required && <> <span className="auth-optional">Optional</span></>}</label>
@@ -184,6 +194,7 @@ function ProfileFieldInput({ field, control, hint, help, enterKeyHint = 'next' }
         {input}
         <i className={`fa-solid ${FIELD_ICONS[field.id] || TYPE_ICONS[type]} auth-control-icon`} aria-hidden="true"></i>
         {type === 'select' && <i className="fa-solid fa-chevron-down auth-select-chevron" aria-hidden="true"></i>}
+        {voiceMode && <VoiceButton htmlFor={control.id} mode={voiceMode} />}
       </div>
       {help}
       {hint}
@@ -1000,9 +1011,10 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
           <div className="auth-field">
             <label className="auth-label" htmlFor="authPhone">Mobile number</label>
-            <div className="auth-control auth-control--prefix">
+            <div className="auth-control auth-control--prefix has-voice">
               <input type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} enterKeyHint="send" placeholder="9876543210" {...inputProps('authPhone')} />
               <span className="auth-prefix" aria-hidden="true">+91</span>
+              <VoiceButton htmlFor="authPhone" mode="digits" />
             </div>
             <FieldHint id="authPhone" hint={hints.authPhone} />
           </div>
@@ -1071,9 +1083,10 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
           <div className="auth-field">
             <label className="auth-label" htmlFor="regName">{titleOf('name') || 'Your name'}</label>
-            <div className="auth-control">
+            <div className="auth-control has-voice">
               <input type="text" autoComplete="name" autoCapitalize="words" enterKeyHint={farmFields.length ? 'next' : 'go'} placeholder="e.g. Murugan Selvam" {...inputProps('regName')} />
               <i className="fa-solid fa-user auth-control-icon" aria-hidden="true"></i>
+              <VoiceButton htmlFor="regName" />
             </div>
             <FieldHint id="regName" hint={hints.regName} />
           </div>

@@ -8355,6 +8355,84 @@ html.sb-guest-lock {
 }
 
 /* ==========================================================================
+   7n. VOICE TYPING (sections/VoiceButton.jsx, voice.js)
+   A mic at the right end of a field. Idle: a quiet green mic. Listening: a
+   red stop button with a soft pulse, so it is obvious the phone is listening.
+   ========================================================================== */
+.sb-portal .sb-voice-wrap {
+  position: relative;
+}
+.sb-portal .has-voice {
+  position: relative;
+}
+.sb-portal .has-voice > :is(input.auth-input, input.co-input, textarea.auth-input) {
+  padding-right: 50px;
+}
+/* The checkout sets its own padding under an id; the mic needs its room there too. */
+.sb-portal #checkoutSheet .has-voice > .co-input {
+  padding-right: 50px;
+}
+.sb-portal .has-voice > button.sb-voice-btn {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sb-portal .has-voice > textarea + button.sb-voice-btn {
+  top: 6px;
+  transform: none;
+}
+.sb-portal .has-voice > button.sb-voice-btn:hover {
+  background: #EEF6F1;
+}
+.sb-portal .has-voice > button.sb-voice-btn:focus-visible {
+  outline: 3px solid rgba(9, 101, 64, 0.55);
+  outline-offset: 1px;
+}
+.sb-portal .has-voice > button.sb-voice-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.sb-portal .has-voice > button.sb-voice-btn.is-listening,
+:is(body.sb-home-active .sb-home, .sb-portal) .header-main .header-search .voice-search-btn.is-listening {
+  background: #DC2626;
+  color: #ffffff;
+  animation: sb-voice-pulse 1.4s ease-out infinite;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .header-main .header-search .voice-search-btn.is-listening i {
+  color: #ffffff;
+}
+@keyframes sb-voice-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45); }
+  100% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-portal .has-voice > button.sb-voice-btn.is-listening,
+  :is(body.sb-home-active .sb-home, .sb-portal) .header-main .header-search .voice-search-btn.is-listening {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+  }
+}
+
+/* ==========================================================================
    DESKTOP 2026 — THE AUTHORITATIVE LAYER (>=769px / >=1025px)
    --------------------------------------------------------------------------
    One block, last in the file, so it wins over the older scattered

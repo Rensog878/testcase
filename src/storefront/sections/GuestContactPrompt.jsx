@@ -4,6 +4,7 @@ import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
 import { setBodyFlag } from '../bodyFlags'
 import { showToast } from '../toast'
 import { MOBILE_RE, readGuestContact, saveGuestContact } from '../guestContact'
+import VoiceButton from './VoiceButton'
 
 // "Stay connected": a visitor who is not signed in and has not given their
 // details is stopped on their first scroll down any store page by a floating
@@ -146,7 +147,7 @@ export default function GuestContactPrompt() {
         <form className="auth-form guest-form" onSubmit={submit} noValidate>
           <div className="auth-field">
             <label className="auth-label" htmlFor="guestName">Your name</label>
-            <div className="auth-control">
+            <div className="auth-control has-voice">
               <input
                 id="guestName" className={`auth-input${errors.name ? ' sb-input-invalid' : ''}`} type="text" autoComplete="name" autoCapitalize="words"
                 maxLength={80} enterKeyHint="next" placeholder="Your full name" value={name}
@@ -154,13 +155,14 @@ export default function GuestContactPrompt() {
                 onChange={event => { setName(event.target.value); if (errors.name) setErrors(e => ({ ...e, name: undefined })) }}
               />
               <i className="fa-solid fa-user auth-control-icon" aria-hidden="true"></i>
+              <VoiceButton htmlFor="guestName" />
             </div>
             {errors.name && <small id="guestNameHint" className="sb-field-error">{errors.name}</small>}
           </div>
 
           <div className="auth-field">
             <label className="auth-label" htmlFor="guestPhone">Mobile number</label>
-            <div className="auth-control auth-control--prefix">
+            <div className="auth-control auth-control--prefix has-voice">
               <input
                 id="guestPhone" className={`auth-input${errors.phone ? ' sb-input-invalid' : ''}`} type="tel" inputMode="numeric" autoComplete="tel-national"
                 maxLength={10} enterKeyHint="done" placeholder="9876543210" value={phone}
@@ -168,6 +170,7 @@ export default function GuestContactPrompt() {
                 onChange={event => { setPhone(event.target.value.replace(/\D/g, '').slice(-10)); if (errors.phone) setErrors(e => ({ ...e, phone: undefined })) }}
               />
               <span className="auth-prefix" aria-hidden="true">+91</span>
+              <VoiceButton htmlFor="guestPhone" mode="digits" />
             </div>
             {errors.phone && <small id="guestPhoneHint" className="sb-field-error">{errors.phone}</small>}
           </div>

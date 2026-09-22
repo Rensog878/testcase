@@ -5,6 +5,7 @@ import { ADDRESS_LABELS, CHECKOUT_STEPS, addressEmoji, REQUIRED_DETAILS, STATES 
 import { productImage, rupees, useFallbackImage } from '../data'
 import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
+import VoiceButton from './VoiceButton'
 
 // The floating checkout: Basket → Delivery details → Payment → Order
 // confirmed, in one popup over whichever store page the customer is on
@@ -58,6 +59,9 @@ function FieldError({ id, problem }) {
 // the input's aria-required instead, so the symbol itself is hidden from them.
 const RequiredMark = () => <span className="co-req" aria-hidden="true">*</span>
 const isRequired = name => REQUIRED_DETAILS.includes(name)
+// How each field listens (VoiceButton): numbers as digits, the address in
+// English so the courier can read it, the name in the site's language.
+const VOICE_MODE = { customerName: 'text', customerPhone: 'digits', pincode: 'digits', doorNo: 'latin', street: 'latin', area: 'latin', taluk: 'latin', district: 'latin' }
 
 function Field({ name, label, wide, value, problem, onChange, ...inputProps }) {
   const id = `co-${name}`
@@ -65,17 +69,20 @@ function Field({ name, label, wide, value, problem, onChange, ...inputProps }) {
   return (
     <div className={`co-field${wide ? ' co-field--wide' : ''}`}>
       <label htmlFor={id}>{label}{required && <RequiredMark />}</label>
-      <input
-        id={id}
-        name={name}
-        className="co-input"
-        value={value}
-        aria-required={required || undefined}
-        onChange={event => onChange(name, event.target.value)}
-        aria-invalid={problem ? 'true' : undefined}
-        aria-describedby={problem ? `${id}-error` : undefined}
-        {...inputProps}
-      />
+      <div className="sb-voice-wrap has-voice">
+        <input
+          id={id}
+          name={name}
+          className="co-input"
+          value={value}
+          aria-required={required || undefined}
+          onChange={event => onChange(name, event.target.value)}
+          aria-invalid={problem ? 'true' : undefined}
+          aria-describedby={problem ? `${id}-error` : undefined}
+          {...inputProps}
+        />
+        {VOICE_MODE[name] && <VoiceButton htmlFor={id} mode={VOICE_MODE[name]} disabled={inputProps.disabled} />}
+      </div>
       <FieldError id={id} problem={problem} />
     </div>
   )

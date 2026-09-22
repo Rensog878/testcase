@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { parseImageList } from '../../shared/productImages.js'
 import { duplicateNameGroups, findSameNamedProduct, productNameKey } from '../../shared/productName.js'
+import { PRODUCT_FORMS, productForm } from '../../shared/productForm.js'
 
 const PFORM_SECTIONS = [
   { id: 'pform-basic', label: 'Basic details', hint: 'Title, category, badge' },
@@ -61,6 +62,7 @@ export default function AdminProducts() {
   const [form, setForm] = useState({
     name: '',
     category: 'Fungicide',
+    form: '',
     price: '',
     mrp: '',
     stock: '',
@@ -344,6 +346,7 @@ export default function AdminProducts() {
     setForm({
       name: p.name || '',
       category: p.category || 'Fungicide',
+      form: p.form || '',
       price: p.price || '',
       mrp: p.originalPrice || p.mrp || '',
       stock: p.stock !== undefined ? p.stock : '',
@@ -736,6 +739,11 @@ export default function AdminProducts() {
                     {/* Category */}
                     <td style={{ padding: '14px 16px' }}>
                       <span className="badge badge-blue">{p.category}</span>
+                      {productForm(p) && (
+                        <span className="badge badge-gray" style={{ marginLeft: 4 }} title={p.form ? 'Set on the product' : 'Guessed from its name/size — open the product to set it directly'}>
+                          {productForm(p)}
+                        </span>
+                      )}
                     </td>
 
                     {/* Channel Availability */}
@@ -929,19 +937,46 @@ export default function AdminProducts() {
                       </div>
                     </div>
                     <div>
-                      <label>Store Badge</label>
-                      <select value={form.badge} onChange={e => setForm({ ...form, badge: e.target.value })}>
-                        <option value="">None</option>
-                        <option value="Best Seller">Best Seller</option>
-                        <option value="100% Organic">100% Organic</option>
-                        <option value="Top Rated">Top Rated</option>
-                        <option value="Expert Choice">Expert Choice</option>
-                        <option value="New Launch">New Launch</option>
+                      {/* Liquid, Powder, Pellets... - what shoppers filter the shop
+                          by (src/shared/productForm.js). Fixed list, not a free-add
+                          field like Category: the storefront filter matches these
+                          names exactly. Left blank, the store guesses it from the
+                          name and pack size - shown below as a check, not a value
+                          saved to the product. */}
+                      <label htmlFor="pformPhysicalForm">Physical Form</label>
+                      <select
+                        id="pformPhysicalForm"
+                        value={form.form}
+                        onChange={e => setForm({ ...form, form: e.target.value })}
+                      >
+                        <option value="">Auto-detect from name/size</option>
+                        {PRODUCT_FORMS.map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
-                      <p className="pform-hint pform-badge-preview">
-                        Card preview: {form.badge ? <span className="pform-chip">{form.badge}</span> : <em>no badge</em>}
-                      </p>
+                      {!form.form && (() => {
+                        const guessed = productForm({ name: form.name, packSizes: form.packSizes?.split(',').map(s => s.trim()) })
+                        return (
+                          <p className="pform-hint">
+                            {guessed
+                              ? <>Shoppers will see this as <strong>{guessed}</strong>, guessed from the name. Pick one above to set it directly.</>
+                              : 'Shoppers won’t see a Form for this product until you pick one, or its name says what it is (e.g. "... 75 WP").'}
+                          </p>
+                        )
+                      })()}
                     </div>
+                  </div>
+                  <div className="pform-field">
+                    <label>Store Badge</label>
+                    <select value={form.badge} onChange={e => setForm({ ...form, badge: e.target.value })}>
+                      <option value="">None</option>
+                      <option value="Best Seller">Best Seller</option>
+                      <option value="100% Organic">100% Organic</option>
+                      <option value="Top Rated">Top Rated</option>
+                      <option value="Expert Choice">Expert Choice</option>
+                      <option value="New Launch">New Launch</option>
+                    </select>
+                    <p className="pform-hint pform-badge-preview">
+                      Card preview: {form.badge ? <span className="pform-chip">{form.badge}</span> : <em>no badge</em>}
+                    </p>
                   </div>
                 </section>
 

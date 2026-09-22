@@ -122,6 +122,9 @@ export default function AllProducts() {
     userId: user?.id,
     onlineOnly: true
   })
+  // The built-in six plus any an admin has added on a product
+  // (server catalogOptions.physicalForms; src/shared/productForm.js).
+  const formOptions = catalogOptions?.physicalForms?.length ? catalogOptions.physicalForms : PRODUCT_FORMS
 
   // Selected pack sizes for products: { [productId]: sizeString }
   const [selectedSizes, setSelectedSizes] = useState({})
@@ -421,7 +424,7 @@ export default function AllProducts() {
     }
 
     if (activeForm) {
-      list = list.filter(p => matchesForm(p, activeForm))
+      list = list.filter(p => matchesForm(p, activeForm, formOptions))
     }
 
     if (searchQuery.trim()) {
@@ -446,9 +449,9 @@ export default function AllProducts() {
     }
 
     return list
-  }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, activeForm, searchQuery, sortBy])
+  }, [dbProducts, activeCategory, activeCrop, activeDisease, activeNutrient, activeForm, formOptions, searchQuery, sortBy])
 
-  const formCountsAll = useMemo(() => formCounts(dbProducts), [dbProducts])
+  const formCountsAll = useMemo(() => formCounts(dbProducts, formOptions), [dbProducts, formOptions])
 
   const visibleProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -926,7 +929,7 @@ export default function AllProducts() {
                         {prod.name}
                       </Link>
                     </h3>
-                    <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
+                    <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                     {/* Price and Savings */}
                     <div className="card-pricing-row">
@@ -1106,7 +1109,7 @@ export default function AllProducts() {
                     <h3 className="card-product-title" title={prod.name}>
                       {prod.name}
                     </h3>
-                    <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
+                    <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                     <div className="card-pricing-row">
                       <strong className="card-current-price">₹{activeSize.price}</strong>
@@ -1251,7 +1254,7 @@ export default function AllProducts() {
                   <h3 className="card-product-title" title={prod.name}>
                     {prod.name}
                   </h3>
-                  <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
+                  <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                   <div className="card-pricing-row">
                     <strong className="card-current-price">₹{activeSize.price}</strong>
@@ -1368,7 +1371,7 @@ export default function AllProducts() {
             <div className="catalog-form-filter" role="group" aria-labelledby="catalogFormLabel">
               <span className="catalog-form-label" id="catalogFormLabel">Form</span>
               <button type="button" className={`cat-pill-btn ${!activeForm ? 'active' : ''}`} aria-pressed={!activeForm} onClick={() => selectForm('')}>All</button>
-              {PRODUCT_FORMS.map(form => (
+              {formOptions.map(form => (
                 <button
                   key={form}
                   type="button"
@@ -1489,7 +1492,7 @@ export default function AllProducts() {
                     <h3 className="card-product-title" title={prod.name}>
                       {prod.name}
                     </h3>
-                    <p className="card-brand-name">{[prod.brand, productForm(prod)].filter(Boolean).join(' · ')}</p>
+                    <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                     <div className="card-pricing-row">
                       <strong className="card-current-price">₹{activeSize.price}</strong>
@@ -1544,7 +1547,7 @@ export default function AllProducts() {
                   ? 'Loading real products from database...' 
                   : dbProducts.length === 0 
                     ? 'Only real products added by the administrator appear here. All demo products have been cleared.' 
-                    : activeForm && !formCountsAll[PRODUCT_FORMS.find(f => f.toLowerCase() === activeForm.toLowerCase())]
+                    : activeForm && !formCountsAll[formOptions.find(f => f.toLowerCase() === activeForm.toLowerCase())]
                       ? `No ${activeForm.toLowerCase()} products yet. Try another form.`
                       : "We couldn't find any products matching your current filters."}
               </p>

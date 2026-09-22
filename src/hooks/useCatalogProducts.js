@@ -5,7 +5,8 @@ const DEFAULT_OPTIONS = {
   categories: ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant'],
   crops: [],
   storageBatches: [],
-  diseases: []
+  diseases: [],
+  physicalForms: []
 }
 
 // The catalogue is the same catalogue on every page, but the hook is mounted

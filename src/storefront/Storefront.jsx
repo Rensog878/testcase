@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { dedupeCropLabels, matchesCategory, matchesCrop, matchesDisease } from '../utils/catalogUtils'
+import { matchesForm } from '../shared/productForm'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
@@ -85,6 +86,9 @@ export default function Storefront() {
         { id: 'all', name: 'All Diseases & Pests' },
         ...keep(rawCatalogOptions.diseases, (p, d) => matchesDisease(p.diseases, d)).map(disease => ({ id: disease, name: disease })),
       ],
+      // Plain strings, not {id, name}: the Form filter (Catalog.jsx) reads
+      // this the same way it reads its own PRODUCT_FORMS fallback.
+      physicalForms: keep(rawCatalogOptions.physicalForms, (p, f) => matchesForm(p, f, rawCatalogOptions.physicalForms)),
     }
   }, [rawCatalogOptions, products])
 

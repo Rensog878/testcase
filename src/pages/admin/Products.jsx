@@ -48,10 +48,11 @@ export default function AdminProducts() {
   const [customVideoTitle, setCustomVideoTitle] = useState('')
   const [sortBy, setSortBy] = useState('user') // 'user', 'price_asc', 'price_desc', 'stock', 'default'
   const [showDemandSummary, setShowDemandSummary] = useState(false)
-  const [catalogOptions, setCatalogOptions] = useState({ categories: DEFAULT_CATEGORIES, crops: [], storageBatches: [], diseases: [] })
+  const [catalogOptions, setCatalogOptions] = useState({ categories: DEFAULT_CATEGORIES, crops: [], storageBatches: [], diseases: [], physicalForms: PRODUCT_FORMS })
   const [newCategory, setNewCategory] = useState('')
   const [newCrop, setNewCrop] = useState('')
   const [newDisease, setNewDisease] = useState('')
+  const [newPhysicalForm, setNewPhysicalForm] = useState('')
   const [newStorageBatch, setNewStorageBatch] = useState('')
 
   const [isEditing, setIsEditing] = useState(null)
@@ -938,11 +939,15 @@ export default function AdminProducts() {
                     </div>
                     <div>
                       {/* Liquid, Powder, Pellets... - what shoppers filter the shop
-                          by (src/shared/productForm.js). Fixed list, not a free-add
-                          field like Category: the storefront filter matches these
-                          names exactly. Left blank, the store guesses it from the
-                          name and pack size - shown below as a check, not a value
-                          saved to the product. */}
+                          by (src/shared/productForm.js). Same registry as
+                          Category: a form typed here is saved to every store
+                          that shares this database (server catalogOptions.
+                          physicalForms) the next time this product is saved,
+                          and offered on every product after that - so a typo
+                          here becomes a filter option nothing ever matches.
+                          Left blank, the store guesses it from the name and
+                          pack size instead - shown below as a check, not a
+                          value saved to the product. */}
                       <label htmlFor="pformPhysicalForm">Physical Form</label>
                       <select
                         id="pformPhysicalForm"
@@ -950,10 +955,14 @@ export default function AdminProducts() {
                         onChange={e => setForm({ ...form, form: e.target.value })}
                       >
                         <option value="">Auto-detect from name/size</option>
-                        {PRODUCT_FORMS.map(f => <option key={f} value={f}>{f}</option>)}
+                        {(catalogOptions.physicalForms?.length ? catalogOptions.physicalForms : PRODUCT_FORMS).map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
+                      <div className="pform-adder">
+                        <input value={newPhysicalForm} onChange={e => setNewPhysicalForm(e.target.value)} placeholder="New physical form" />
+                        <button type="button" onClick={() => addFormOption('form', newPhysicalForm, setNewPhysicalForm)}><Plus size={14} className="pform-adder-icon" />Add</button>
+                      </div>
                       {!form.form && (() => {
-                        const guessed = productForm({ name: form.name, packSizes: form.packSizes?.split(',').map(s => s.trim()) })
+                        const guessed = productForm({ name: form.name, packSizes: form.packSizes?.split(',').map(s => s.trim()) }, catalogOptions.physicalForms)
                         return (
                           <p className="pform-hint">
                             {guessed

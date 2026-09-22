@@ -173,21 +173,24 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
 export const Catalog = memo(function Catalog({ t, filters, products, catalogOptions, user, filterDrawerOpen, loading = false }) {
   const { setFilter, resetFilters, filterByCategory, toggleFilterDrawer } = useStore()
   const searchQuery = filters.search.toLowerCase().trim()
+  // The built-in six plus any an admin has added on a product
+  // (server catalogOptions.physicalForms; src/shared/productForm.js).
+  const formOptions = catalogOptions?.physicalForms?.length ? catalogOptions.physicalForms : PRODUCT_FORMS
 
   const filtered = useMemo(() => products.filter(p => {
     const matchCrop = matchesCrop(p.crops, filters.crop)
     const matchDisease = matchesDisease(p.diseases, filters.disease)
     const matchCategory = matchesCategory(p.category, filters.category)
-    const matchForm = matchesForm(p, filters.form)
+    const matchForm = matchesForm(p, filters.form, formOptions)
     const matchSearch = searchQuery === ''
       || String(p.name || '').toLowerCase().includes(searchQuery)
       || String(p.description || '').toLowerCase().includes(searchQuery)
       || String(p.activeIngredient || '').toLowerCase().includes(searchQuery)
     return matchCrop && matchDisease && matchCategory && matchForm && matchSearch
-  }), [products, filters.crop, filters.disease, filters.category, filters.form, searchQuery])
+  }), [products, filters.crop, filters.disease, filters.category, filters.form, formOptions, searchQuery])
 
   const activeFilterCount = [filters.crop !== 'all', filters.disease !== 'all', filters.category !== 'All', (filters.form || 'all') !== 'all', searchQuery !== ''].filter(Boolean).length
-  const counts = useMemo(() => formCounts(products), [products])
+  const counts = useMemo(() => formCounts(products, formOptions), [products, formOptions])
   const cropOptions = catalogOptions?.crops || CROPS
   const categoryOptions = catalogOptions?.categories || CATEGORIES
   const diseaseOptions = catalogOptions?.diseases || DISEASES
@@ -250,7 +253,7 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
               <label className="filter-label" htmlFor="formFilter"><i className="fa-solid fa-cubes"></i> <span>Form</span></label>
               <select className="filter-select" id="formFilter" value={filters.form || 'all'} onChange={e => setFilter('form', e.target.value)}>
                 <option value="all">All forms</option>
-                {PRODUCT_FORMS.map(form => <option key={form} value={form}>{form} ({counts[form]})</option>)}
+                {formOptions.map(form => <option key={form} value={form}>{form} ({counts[form] || 0})</option>)}
               </select>
             </div>
 

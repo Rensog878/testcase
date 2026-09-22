@@ -309,7 +309,11 @@ const DEFAULT_CATALOG_OPTIONS = {
           'Potato'
         ],
     storageBatches: ['250g', '500g', '1kg', '250ml', '500ml', '1 Litre', '5 Litres'],
-    diseases: ['Blast', 'Blight', 'Rust', 'Aphids', 'Whitefly', 'Downy Mildew', 'Leaf Miner', 'Pinworm', 'Leaf hopper', 'Thrips', 'Mites', 'Stem Borer', 'Weeds']
+    diseases: ['Blast', 'Blight', 'Rust', 'Aphids', 'Whitefly', 'Downy Mildew', 'Leaf Miner', 'Pinworm', 'Leaf hopper', 'Thrips', 'Mites', 'Stem Borer', 'Weeds'],
+    // Kept in step with src/shared/productForm.js's PRODUCT_FORMS, the
+    // built-in fallback the admin form and storefront filter fall back to
+    // before this registry has loaded, or if it somehow arrives empty.
+    physicalForms: ['Powder', 'Pellets', 'Tablets', 'Granules', 'Liquid', 'Gel']
 };
 
 
@@ -1442,10 +1446,17 @@ class DatabaseManager {
   async getCatalogOptions() {
         await connectDB();
         const settings = await Settings.findById('global').lean();
-        return (settings && settings.catalogOptions) || DEFAULT_CATALOG_OPTIONS;
+        const saved = settings && settings.catalogOptions;
+        if (!saved) return DEFAULT_CATALOG_OPTIONS;
+        // physicalForms was added after catalogOptions was first seeded, so a
+        // settings document saved before this feature has every other list
+        // but not this one - fall back to the built-in six rather than an
+        // empty Physical Form filter on a live site that has never been
+        // resaved.
+        return saved.physicalForms ? saved : { ...saved, physicalForms: DEFAULT_CATALOG_OPTIONS.physicalForms };
   }
 
-  async registerCatalogOptions({ categories = [], crops = [], storageBatches = [], diseases = [] } = {}) {
+  async registerCatalogOptions({ categories = [], crops = [], storageBatches = [], diseases = [], physicalForms = [] } = {}) {
         await connectDB();
         const current = await this.getCatalogOptions();
         const merge = (base, additions) => [
@@ -1455,7 +1466,8 @@ class DatabaseManager {
                 categories: merge(current.categories, categories),
                 crops: merge(current.crops, crops),
                 storageBatches: merge(current.storageBatches, storageBatches),
-                diseases: merge(current.diseases || [], diseases)
+                diseases: merge(current.diseases || [], diseases),
+                physicalForms: merge(current.physicalForms || DEFAULT_CATALOG_OPTIONS.physicalForms, physicalForms)
         };
         await Settings.findByIdAndUpdate('global', { $set: { catalogOptions: updated } }, { upsert: true });
         return updated;
@@ -1566,7 +1578,8 @@ class DatabaseManager {
         categories: [newProd.category],
         crops: newProd.crops,
         storageBatches: newProd.packSizes,
-        diseases: newProd.diseases
+        diseases: newProd.diseases,
+        physicalForms: newProd.form ? [newProd.form] : []
       });
 
       const created = await Product.create(newProd);
@@ -1666,7 +1679,8 @@ class DatabaseManager {
               categories: [merged.category],
               crops: merged.crops,
               storageBatches: merged.packSizes,
-              diseases: merged.diseases
+              diseases: merged.diseases,
+              physicalForms: merged.form ? [merged.form] : []
       });
 
       return merged;

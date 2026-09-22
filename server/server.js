@@ -23,7 +23,7 @@ import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifica
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
-import { cleanGeo } from './geo.js';
+import { cleanGeo, cleanVisitorPing } from './geo.js';
 import {
   HttpError,
   sendError,
@@ -2190,6 +2190,40 @@ app.post('/api/advisory/broadcasts/:id/cancel', requireAuth('admin'), async (req
     res.json({ success: true, data: { ...broadcastSummary(current), counts } });
   } catch (err) {
     sendError(res, err, 'Cancel advisory broadcast');
+  }
+});
+
+// ============================================================
+// VISITOR LOCATION (asked on the store, stored once per visit)
+// ============================================================
+
+// The browser sends its point after the visitor allowed location. Linked to
+// the account when signed in, and to the name and number the visitor gave in
+// the Stay connected card when they are a guest.
+app.post('/api/visitor-location', async (req, res) => {
+  try {
+    const wait = await rateLimit(`visitor-location-ip:${clientIp(req)}`, 30, HOUR_MS);
+    if (wait) return tooManyRequests(res, wait, 'Too many requests. Please try again later.');
+    const ping = cleanVisitorPing(req.body);
+    if (!ping) return res.status(400).json({ success: false, message: 'Location not recognised.' });
+    const user = await getAuthenticatedUser(req);
+    await db.saveVisitorLocation({
+      ...ping,
+      userId: user?.id || '',
+      name: user?.name || cleanText(req.body?.name, 80),
+      phone: user?.phone || normalizePhone(req.body?.phone) || '',
+    });
+    res.json({ success: true });
+  } catch (err) {
+    sendError(res, err, 'Visitor location');
+  }
+});
+
+app.get('/api/visitor-locations', requireAuth('admin'), async (req, res) => {
+  try {
+    res.json({ success: true, data: await db.getVisitorLocations() });
+  } catch (err) {
+    sendError(res, err, 'Visitor locations');
   }
 });
 

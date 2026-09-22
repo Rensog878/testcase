@@ -39,3 +39,19 @@ test('maps link', () => {
   assert.equal(mapsUrl({ lat: 10.5, lng: 77.25 }), 'https://www.google.com/maps/search/?api=1&query=10.5,77.25');
   assert.equal(mapsUrl(null), '');
 });
+
+test('visitor location report: kept only with a proper id and a point in India', async () => {
+  const { cleanVisitorPing } = await import('../geo.js');
+  const ok = cleanVisitorPing({ visitorId: 'v_1a2b3c4d5e', geo: { lat: 11, lng: 77, accuracy: 30 }, page: '/products', lang: 'ta' });
+  assert.equal(ok.visitorId, 'v_1a2b3c4d5e');
+  assert.equal(ok.geo.lat, 11);
+  assert.equal(ok.page, '/products');
+  assert.equal(ok.lang, 'ta');
+  assert.equal(cleanVisitorPing({ visitorId: 'short', geo: { lat: 11, lng: 77 } }), null);
+  assert.equal(cleanVisitorPing({ visitorId: 'bad id with spaces', geo: { lat: 11, lng: 77 } }), null);
+  assert.equal(cleanVisitorPing({ visitorId: 'v_1a2b3c4d5e', geo: { lat: 51.5, lng: -0.1 } }), null);
+  assert.equal(cleanVisitorPing({ visitorId: 'v_1a2b3c4d5e' }), null);
+  const odd = cleanVisitorPing({ visitorId: 'v_1a2b3c4d5e', geo: { lat: 11, lng: 77 }, page: 'https://evil.example', lang: 'xx' });
+  assert.equal(odd.page, '/');
+  assert.equal(odd.lang, 'en');
+});

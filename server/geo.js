@@ -28,3 +28,19 @@ export function mapsUrl(geo) {
     ? `https://www.google.com/maps/search/?api=1&query=${geo.lat},${geo.lng}`
     : '';
 }
+
+// A visitor's location report (POST /api/visitor-location): the browser's own
+// random id, the point, and the store page they were on. null if unusable.
+export function cleanVisitorPing(body) {
+  const visitorId = String(body?.visitorId || '');
+  if (!/^[A-Za-z0-9_-]{8,64}$/.test(visitorId)) return null;
+  const geo = cleanGeo(body?.geo);
+  if (!geo) return null;
+  const page = String(body?.page || '/');
+  return {
+    visitorId,
+    geo,
+    page: page.startsWith('/') ? page.slice(0, 200) : '/',
+    lang: ['en', 'ta', 'hi', 'kn', 'te'].includes(body?.lang) ? body.lang : 'en',
+  };
+}

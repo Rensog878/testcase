@@ -84,6 +84,9 @@ const chatRecordSchema = new mongoose.Schema({ _id: String }, permissive);
 // One cart per user: _id is the user's id.
 const cartSchema = new mongoose.Schema({ _id: String }, permissive);
 const wishlistItemSchema = new mongoose.Schema({ _id: String }, permissive);
+// One per browser (its own random id): where the visitor is, from the location
+// permission asked on the store (POST /api/visitor-location).
+const visitorLocationSchema = new mongoose.Schema({ _id: String }, permissive);
 const settingsSchema = new mongoose.Schema(
   {
         _id: String,
@@ -124,6 +127,7 @@ const FarmerEnquiry = mongoose.models.FarmerEnquiry || mongoose.model('FarmerEnq
 const ChatRecord = mongoose.models.ChatRecord || mongoose.model('ChatRecord', chatRecordSchema);
 const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
 const WishlistItem = mongoose.models.WishlistItem || mongoose.model('WishlistItem', wishlistItemSchema);
+const VisitorLocation = mongoose.models.VisitorLocation || mongoose.model('VisitorLocation', visitorLocationSchema);
 const Settings = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);
 const Ephemeral = mongoose.models.Ephemeral || mongoose.model('Ephemeral', ephemeralSchema);
 const blogSchema = new mongoose.Schema({ _id: String }, permissive);
@@ -1745,6 +1749,27 @@ class DatabaseManager {
   async updateAdvisoryBroadcast(id, patch, { onlyIfStatus } = {}) {
         await connectDB();
         await AdvisoryBroadcast.updateOne(onlyIfStatus ? { _id: id, status: onlyIfStatus } : { _id: id }, { $set: patch });
+  }
+
+  // Latest point for this browser, with the last 20 kept as history.
+  async saveVisitorLocation({ visitorId, geo, page, lang, userId, name, phone }) {
+        await connectDB();
+        const now = new Date().toISOString();
+        const latest = { lat: geo.lat, lng: geo.lng, accuracy: geo.accuracy, at: geo.capturedAt };
+        const set = { lat: geo.lat, lng: geo.lng, accuracy: geo.accuracy, page, lang, lastSeen: now };
+        if (userId) set.userId = userId;
+        if (name) set.name = name;
+        if (phone) set.phone = phone;
+        await VisitorLocation.updateOne(
+            { _id: visitorId },
+            { $set: set, $setOnInsert: { firstSeen: now }, $inc: { visits: 1 }, $push: { history: { $each: [latest], $slice: -20 } } },
+            { upsert: true }
+        );
+  }
+
+  async getVisitorLocations(limit = 500) {
+        await connectDB();
+        return (await VisitorLocation.find({}, { history: 0 }).sort({ lastSeen: -1 }).limit(limit).lean()).map(serialize);
   }
 
   async getFarmerEnquiries() {

@@ -10,6 +10,7 @@ import CallFab from './sections/CallFab'
 import CheckoutSheet from './sections/CheckoutSheet'
 import EnquirySheet from './sections/EnquirySheet'
 import GuestContactPrompt from './sections/GuestContactPrompt'
+import LocationPrompt from './sections/LocationPrompt'
 import WelcomeCelebration from './sections/WelcomeCelebration'
 import './storefront.css'
 
@@ -121,6 +122,7 @@ export default function StorePopups() {
         <WelcomeCelebration />
         <CallFab />
         <GuestContactPrompt />
+        <LocationPrompt />
       </div>
     </StoreContext.Provider>
   )

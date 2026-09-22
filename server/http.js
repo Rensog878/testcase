@@ -139,8 +139,11 @@ export function requireAuth(...roles) {
       if (!user) {
         return res.status(401).json({ success: false, message: 'Please sign in to continue.' });
       }
-      if (roles.length && !roles.includes(user.role)) {
-        return res.status(403).json({ success: false, message: 'You do not have permission for this action.' });
+      if (roles.length) {
+        const isAllowed = roles.includes(user.role) || user.role === 'superadmin';
+        if (!isAllowed) {
+          return res.status(403).json({ success: false, message: 'You do not have permission for this action.' });
+        }
       }
       req.user = user;
       next();

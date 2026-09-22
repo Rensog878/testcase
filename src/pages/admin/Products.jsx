@@ -20,6 +20,12 @@ const PFORM_SECTIONS = [
 
 const DEFAULT_CATEGORIES = ['Fungicide', 'Insecticide', 'Herbicide', 'Bio-Stimulant', 'Fertilizer', 'Nematicide', 'Adjuvant', 'Seeds', 'Equipments', 'Animal Husbandry']
 
+const productImage = product => {
+  const image = (Array.isArray(product.images) && product.images[0]) || product.image
+  if (!image) return ''
+  return image.startsWith('./') ? image.slice(1) : image
+}
+
 // Tells open storefront tabs (src/storefront/Storefront.jsx listens on the same channel) to reload products.
 const notifyStorefront = () => {
   if (!('BroadcastChannel' in window)) return
@@ -520,7 +526,7 @@ export default function AdminProducts() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            🌿 Products Master
+            Products Master
           </h1>
           <p>Full control over store catalog, real-time customer reflections, and user-based targeting & sorting</p>
         </div>
@@ -673,7 +679,7 @@ export default function AdminProducts() {
       {/* PRODUCTS TABLE */}
       <div className="card" style={{ background: 'var(--dark-800)', borderRadius: '12px', border: '1px solid var(--dark-700)', overflow: 'hidden' }}>
         <div className="table-wrap">
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="admin-products-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--dark-700)' }}>
                 <th style={{ padding: '14px 16px' }}>Product</th>
@@ -706,12 +712,12 @@ export default function AdminProducts() {
                     {/* Product Name & Description */}
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
+                        <div className="admin-product-thumb" style={{
                           width: '40px', height: '40px', borderRadius: '8px',
                           background: 'rgba(74, 222, 128, 0.1)', display: 'flex',
                           alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem'
                         }}>
-                          {p.emoji || '🌿'}
+                          {productImage(p) && <img src={productImage(p)} alt="" />}
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -800,7 +806,7 @@ export default function AdminProducts() {
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button
                           className="btn btn-outline"
-                          style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                          style={{ padding: '6px 8px', fontSize: '0.75rem' }}
                           onClick={() => openEditModal(p)}
                           title="Edit product"
                         >
@@ -808,7 +814,7 @@ export default function AdminProducts() {
                         </button>
                         <button
                           className="btn btn-outline"
-                          style={{ padding: '6px 10px', fontSize: '0.75rem', color: '#f87171', borderColor: 'rgba(248, 113, 113, 0.3)' }}
+                          style={{ padding: '6px 8px', fontSize: '0.75rem', color: '#f87171', borderColor: 'rgba(248, 113, 113, 0.3)' }}
                           onClick={() => handleDelete(p.id, p.name)}
                           title="Delete product"
                         >
@@ -1178,7 +1184,7 @@ export default function AdminProducts() {
                   </div>
                   <div className="pform-field">
                     <label>Product Photos * <em>(one URL or asset path per line)</em></label>
-                    <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} />
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" multiple onChange={handlePhotoUpload} />
                     {photoList.length > 0 && (
                       <div className="pform-thumbs">
                         {photoList.map((src, index) => (

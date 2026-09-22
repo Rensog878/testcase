@@ -6,7 +6,7 @@
 export const GUEST_CART_KEY = 'sathya_cart_guest'
 // Must match the server's calculation in priceCart() (server/server.js).
 export const GST_RATE = 0.18
-export const STAFF_HOME = { admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
+export const STAFF_HOME = { superadmin: '/superadmin', admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 export const ADDRESS_LABELS = ['Home', 'Office', 'Farm']
 // Shown before each address label. An address saved with a label that is not
 // one of these (older data) gets the plain pin.

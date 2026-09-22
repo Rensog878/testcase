@@ -8,7 +8,11 @@ import { getWhatsAppSenderStatus } from './whatsapp.js';
 // so req.user is always the signed-in admin.
 const router = express.Router();
 
-const USER_FIELDS = ['name', 'phone', 'email', 'password', 'role', 'crop', 'acreage', 'village', 'district', 'state', 'department', 'status'];
+const USER_FIELDS = [
+  'name', 'phone', 'email', 'password', 'role', 'crop', 'acreage',
+  'village', 'district', 'state', 'department', 'status',
+  'storeId', 'storeName', 'storeLocation', 'assignedAdminId', 'assignedAdminName', 'permissions'
+];
 const USER_STATUSES = ['active', 'inactive'];
 
 // Only known user fields are accepted, so a request cannot set ids, createdBy,
@@ -38,6 +42,22 @@ function pickUserFields(body) {
         throw new HttpError(400, 'Unknown account status.');
     }
     return picked;
+}
+
+// The super admin passes every requireAuth check, so only a super admin may
+// hand that role out, change a super admin's account or set permissions.
+// Without this a store admin could promote themselves through this panel.
+async function guardSuperadmin(req, picked, targetId) {
+    if (req.user.role === 'superadmin') return;
+    if (picked.role === 'superadmin' || picked.permissions !== undefined) {
+        throw new HttpError(403, 'Only the super admin can grant super admin access or permissions.');
+    }
+    if (targetId) {
+        const target = await db.getUserById(targetId);
+        if (target?.role === 'superadmin') {
+            throw new HttpError(403, 'Only the super admin can change this account.');
+        }
+    }
 }
 
 function matchesSearch(user, search) {
@@ -77,7 +97,9 @@ router.post('/users', async (req, res) => {
           if (!req.body?.phone && !req.body?.email) {
                 throw new HttpError(400, 'Please provide a mobile number or email address.');
           }
-          const user = await db.createUser({ ...pickUserFields(req.body), createdBy: 'admin' });
+          const picked = pickUserFields(req.body);
+          await guardSuperadmin(req, picked);
+          const user = await db.createUser({ ...picked, createdBy: req.user.role });
           res.json({ success: true, user });
     } catch (err) {
           sendError(res, userInputError(err), 'Create user');
@@ -87,9 +109,10 @@ router.post('/users', async (req, res) => {
 router.put('/users/:id', async (req, res) => {
     try {
           const updates = pickUserFields(req.body);
+          await guardSuperadmin(req, updates, req.params.id);
 
           // Stop an admin locking themselves out of the admin panel.
-          if (req.params.id === req.user.id && ((updates.role && updates.role !== 'admin') || (updates.status && updates.status !== 'active'))) {
+          if (req.params.id === req.user.id && ((updates.role && updates.role !== req.user.role) || (updates.status && updates.status !== 'active'))) {
                 throw new HttpError(400, 'You cannot remove your own admin access.');
           }
 
@@ -108,6 +131,7 @@ router.delete('/users/:id', async (req, res) => {
           if (req.params.id === req.user.id) {
                 throw new HttpError(400, 'You cannot delete your own account.');
           }
+          await guardSuperadmin(req, {}, req.params.id);
           const ok = await db.deleteUser(req.params.id);
           if (!ok) {
                 return res.status(404).json({ success: false, message: 'User not found' });

@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { toast } from 'sonner'
-import { Check, Eye, EyeOff, LogIn } from 'lucide-react'
+import { Check, Eye, EyeOff, Factory, LockKeyhole, LogIn, ReceiptText, ShieldCheck, Smartphone, Truck } from 'lucide-react'
 
 // Staff sign-in (/login, and /admin when signed out). Farmers sign in on the
 // storefront, so there is no Farmer role here.
 const ROLES = [
-  { key: 'admin',    label: 'Admin',    emoji: '🛡️' },
-  { key: 'employee', label: 'Employee', emoji: '🏭' },
-  { key: 'delivery', label: 'Delivery', emoji: '🚚' },
-  { key: 'billing',  label: 'Billing',  emoji: '🧾' },
+  { key: 'superadmin', label: 'Super Admin', icon: LockKeyhole },
+  { key: 'admin',    label: 'Admin',    icon: ShieldCheck },
+  { key: 'employee', label: 'Employee', icon: Factory },
+  { key: 'delivery', label: 'Delivery', icon: Truck },
+  { key: 'billing',  label: 'Billing',  icon: ReceiptText },
 ]
 
 const withArticle = label => `${/^[AEIOU]/i.test(label) ? 'an' : 'a'} ${label}`
@@ -45,7 +46,7 @@ export default function Login() {
         toast.error(`This is not ${withArticle(roleInfo?.label || selectedRole)} account.`)
         return
       }
-      toast.success(`Welcome back, ${user.name}! 🌿`)
+      toast.success(`Welcome back, ${user.name}!`)
       navigate(ROLE_HOME[user.role] || '/', { replace: true })
     } catch (err) {
       // Customers have no password: the server turns them away here and their
@@ -96,7 +97,7 @@ export default function Login() {
                   className={`role-chip ${active ? 'active' : ''}`}
                   onClick={() => setSelectedRole(r.key)}
                 >
-                  <span className="role-emoji" aria-hidden="true">{r.emoji}</span>
+                  <span className="role-emoji" aria-hidden="true"><r.icon size={22} strokeWidth={2} /></span>
                   <span className="role-label">{r.label}</span>
                   {active && <span className="role-check" aria-hidden="true"><Check size={12} strokeWidth={3} /></span>}
                 </button>
@@ -108,7 +109,7 @@ export default function Login() {
             <div className="form-group">
               <label className="form-label" htmlFor="loginMobile">Mobile Number</label>
               <div className="input-group">
-                <span className="input-icon">📱</span>
+                <span className="input-icon"><Smartphone size={16} strokeWidth={2} aria-hidden="true" /></span>
                 <input
                   id="loginMobile"
                   type="tel"
@@ -127,7 +128,7 @@ export default function Login() {
             <div className="form-group">
               <label className="form-label" htmlFor="loginPassword">Password</label>
               <div className="input-group">
-                <span className="input-icon">🔒</span>
+                <span className="input-icon"><LockKeyhole size={16} strokeWidth={2} aria-hidden="true" /></span>
                 <input
                   id="loginPassword"
                   type={showPass ? 'text' : 'password'}

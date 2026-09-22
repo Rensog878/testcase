@@ -48,7 +48,9 @@ export async function connectDB() {
   }
 
   if (!seedPromise) {
-        seedPromise = seedIfEmpty().catch(err => {
+        seedPromise = seedIfEmpty()
+          .then(() => ensureSuperAdminAndStores())
+          .catch(err => {
                 console.error('Database seed error:', err);
                 seedPromise = null;
         });
@@ -155,7 +157,17 @@ const Upload = mongoose.models.Upload || mongoose.model('Upload', uploadSchema);
 const uploadMetaSchema = new mongoose.Schema({ _id: String }, permissive);
 const UploadMeta = mongoose.models.UploadMeta || mongoose.model('UploadMeta', uploadMetaSchema);
 
-export const USER_ROLES = ['farmer', 'admin', 'employee', 'delivery', 'billing'];
+const storeSchema = new mongoose.Schema({ _id: String }, permissive);
+export const Store = mongoose.models.Store || mongoose.model('Store', storeSchema);
+
+const activityLogSchema = new mongoose.Schema({ _id: String }, permissive);
+export const ActivityLog = mongoose.models.ActivityLog || mongoose.model('ActivityLog', activityLogSchema);
+
+// One profile document per staff user: _id mirrors the User._id.
+const staffProfileSchema = new mongoose.Schema({ _id: String }, permissive);
+export const StaffProfile = mongoose.models.StaffProfile || mongoose.model('StaffProfile', staffProfileSchema);
+
+export const USER_ROLES = ['superadmin', 'farmer', 'admin', 'employee', 'delivery', 'billing'];
 
 // Human-readable ids with enough randomness that records created in the same
 // millisecond (or by concurrent serverless instances) cannot collide.
@@ -789,6 +801,266 @@ async function seedIfEmpty() {
   console.log('Sathyam Agro Mart database seed complete.');
 }
 
+// Demo records (stores, sample invoices, coupons, referrals) are written only
+// when SEED_DEMO_DATA=true. This runs on every API start against whatever
+// database MONGODB_URI names - the live one included - so nothing here may
+// write by default: made-up coupons would be redeemable, made-up invoices would
+// count as sales, and existing staff would be moved into a made-up store.
+const SEED_DEMO_DATA = () => process.env.SEED_DEMO_DATA === 'true';
+
+export async function ensureSuperAdminAndStores() {
+  try {
+    // The first super admin comes from SUPERADMIN_PHONE / SUPERADMIN_PASSWORD.
+    // There is no built-in fallback: a known default password on an account
+    // that passes every role check would be an open door.
+    const superAdmin = await User.findOne({ role: 'superadmin' }).lean();
+    const saPhone = String(process.env.SUPERADMIN_PHONE || '').replace(/\D/g, '');
+    const saPassword = String(process.env.SUPERADMIN_PASSWORD || '');
+    if (!superAdmin && saPhone && saPassword.length >= 12) {
+      console.log('⚡ Creating the Super Admin from SUPERADMIN_PHONE...');
+      const hashedPassword = await hashPassword(saPassword);
+      await User.create({
+        _id: 'USR-0001',
+        id: 'USR-0001',
+        name: process.env.SUPERADMIN_NAME || 'Sathyam Super Admin',
+        phone: saPhone,
+        email: process.env.SUPERADMIN_EMAIL || '',
+        password: hashedPassword,
+        role: 'superadmin',
+        crop: 'All Crops',
+        acreage: 0,
+        village: 'Headquarters',
+        district: 'Coimbatore',
+        state: 'Tamil Nadu',
+        status: 'active',
+        createdBy: 'system',
+        createdAt: new Date().toISOString(),
+        permissions: ['*']
+      });
+      console.log(`✅ Super Admin created for ${saPhone}.`);
+    } else if (!superAdmin) {
+      console.log('ℹ️ No Super Admin account. Set SUPERADMIN_PHONE and SUPERADMIN_PASSWORD (12+ characters) to create one.');
+    }
+
+    if (!SEED_DEMO_DATA()) return;
+
+    const storeCount = await Store.estimatedDocumentCount();
+    if (storeCount === 0) {
+      console.log('⚡ Initializing default stores...');
+      await Store.insertMany([
+        {
+          _id: 'STR-1001',
+          id: 'STR-1001',
+          name: 'Coimbatore Flagship Hub',
+          code: 'CBE-01',
+          location: 'Coimbatore',
+          address: '42 Avinashi Road, Peelamedu, Coimbatore - 641004',
+          phone: '0422-2900100',
+          email: 'cbe-hub@sathyambio.com',
+          adminId: 'USR-1002',
+          adminName: 'Sathyam Admin',
+          status: 'active',
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: 'STR-1002',
+          id: 'STR-1002',
+          name: 'Tiruppur Agri Center',
+          code: 'TPR-01',
+          location: 'Tiruppur',
+          address: '15 Kangeyam Road, Tiruppur - 641604',
+          phone: '0421-2900200',
+          email: 'tpr-store@sathyambio.com',
+          adminId: null,
+          adminName: null,
+          status: 'active',
+          createdAt: new Date().toISOString()
+        }
+      ]);
+
+      await User.updateOne(
+        { _id: 'USR-1002' },
+        {
+          $set: {
+            storeId: 'STR-1001',
+            storeName: 'Coimbatore Flagship Hub',
+            storeLocation: 'Coimbatore'
+          }
+        }
+      );
+
+      await User.updateMany(
+        { _id: { $in: ['USR-1003', 'USR-1004', 'USR-1005'] } },
+        {
+          $set: {
+            storeId: 'STR-1001',
+            storeName: 'Coimbatore Flagship Hub',
+            storeLocation: 'Coimbatore',
+            assignedAdminId: 'USR-1002',
+            assignedAdminName: 'Sathyam Admin'
+          }
+        }
+      );
+      console.log('✅ Default stores initialized and existing users assigned.');
+    }
+
+    const invoiceCount = await Invoice.estimatedDocumentCount();
+    if (invoiceCount === 0) {
+      console.log('⚡ Initializing demo invoices with SAM prefix for default stores...');
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+      await Invoice.insertMany([
+        {
+          _id: 'INV-1001',
+          id: 'INV-1001',
+          invoiceNo: 'SAM CBE-01 1001',
+          documentType: 'TAX INVOICE',
+          date: twoDaysAgo.toISOString(),
+          customerName: 'Vignesh Kumar',
+          customerPhone: '9842111222',
+          storeId: 'STR-1001',
+          storeCode: 'CBE-01',
+          storeName: 'Coimbatore Flagship Hub',
+          paymentMode: 'Cash',
+          paymentTerms: 'Immediate',
+          items: [
+            { id: 'ITM-1', name: 'Sathyam Bio BlastShield 75 WP', qty: 2, price: 680, rate: 680, lineTotal: 1360, gstRate: 18, lineCgst: 122.4, lineSgst: 122.4 },
+            { id: 'ITM-2', name: 'Sathyam Bio RootVigor Gold', qty: 1, price: 990, rate: 990, lineTotal: 990, gstRate: 18, lineCgst: 89.1, lineSgst: 89.1 }
+          ],
+          subtotal: 2350,
+          discountAmount: 0,
+          taxableAmount: 2350,
+          cgst: 211.5,
+          sgst: 211.5,
+          igst: 0,
+          totalGst: 423,
+          roundOff: 0,
+          grandTotal: 2773,
+          cashier: 'Sathyam Admin',
+          status: 'PAID'
+        },
+        {
+          _id: 'INV-1002',
+          id: 'INV-1002',
+          invoiceNo: 'SAM CBE-01 1002',
+          documentType: 'TAX INVOICE',
+          date: yesterday.toISOString(),
+          customerName: 'Selvamurugan R',
+          customerPhone: '9786012345',
+          storeId: 'STR-1001',
+          storeCode: 'CBE-01',
+          storeName: 'Coimbatore Flagship Hub',
+          paymentMode: 'UPI',
+          paymentTerms: 'Immediate',
+          items: [
+            { id: 'ITM-3', name: 'Sathyam Bio WeedClear 24-D', qty: 3, price: 340, rate: 340, lineTotal: 1020, gstRate: 18, lineCgst: 91.8, lineSgst: 91.8 }
+          ],
+          subtotal: 1020,
+          discountAmount: 20,
+          taxableAmount: 1000,
+          cgst: 90,
+          sgst: 90,
+          igst: 0,
+          totalGst: 180,
+          roundOff: 0,
+          grandTotal: 1180,
+          cashier: 'Sathyam Admin',
+          status: 'PAID'
+        },
+        {
+          _id: 'INV-1003',
+          id: 'INV-1003',
+          invoiceNo: 'SAM CBE-01 1003',
+          documentType: 'TAX INVOICE',
+          date: now.toISOString(),
+          customerName: 'Kannan Palanisamy',
+          customerPhone: '9443388776',
+          storeId: 'STR-1001',
+          storeCode: 'CBE-01',
+          storeName: 'Coimbatore Flagship Hub',
+          paymentMode: 'Credit Purchase',
+          paymentTerms: '30 Days Credit',
+          items: [
+            { id: 'ITM-4', name: 'Sathyam Bio AminoBoost Liquid', qty: 3, price: 460, rate: 460, lineTotal: 1380, gstRate: 18, lineCgst: 124.2, lineSgst: 124.2 }
+          ],
+          subtotal: 1380,
+          discountAmount: 0,
+          taxableAmount: 1380,
+          cgst: 124.2,
+          sgst: 124.2,
+          igst: 0,
+          totalGst: 248.4,
+          roundOff: 0.6,
+          grandTotal: 1629,
+          cashier: 'Sathyam Admin',
+          status: 'CREDIT'
+        },
+        {
+          _id: 'INV-1004',
+          id: 'INV-1004',
+          invoiceNo: 'SAM TPR-01 1001',
+          documentType: 'TAX INVOICE',
+          date: yesterday.toISOString(),
+          customerName: 'Dharmalingam P',
+          customerPhone: '9865123987',
+          storeId: 'STR-1002',
+          storeCode: 'TPR-01',
+          storeName: 'Tiruppur Agri Center',
+          paymentMode: 'UPI',
+          paymentTerms: 'Immediate',
+          items: [
+            { id: 'ITM-5', name: 'Sathyam Bio FlyKill Ultra', qty: 2, price: 840, rate: 840, lineTotal: 1680, gstRate: 18, lineCgst: 151.2, lineSgst: 151.2 }
+          ],
+          subtotal: 1680,
+          discountAmount: 0,
+          taxableAmount: 1680,
+          cgst: 151.2,
+          sgst: 151.2,
+          igst: 0,
+          totalGst: 302.4,
+          roundOff: 0.6,
+          grandTotal: 1983,
+          cashier: 'Tiruppur Counter',
+          status: 'PAID'
+        },
+        {
+          _id: 'INV-1005',
+          id: 'INV-1005',
+          invoiceNo: 'SAM TPR-01 1002',
+          documentType: 'TAX INVOICE',
+          date: now.toISOString(),
+          customerName: 'Murugesan K',
+          customerPhone: '9344123890',
+          storeId: 'STR-1002',
+          storeCode: 'TPR-01',
+          storeName: 'Tiruppur Agri Center',
+          paymentMode: 'Cash',
+          paymentTerms: 'Immediate',
+          items: [
+            { id: 'ITM-6', name: 'Sathyam Bio RootVigor Gold', qty: 3, price: 990, rate: 990, lineTotal: 2970, gstRate: 18, lineCgst: 267.3, lineSgst: 267.3 }
+          ],
+          subtotal: 2970,
+          discountAmount: 100,
+          taxableAmount: 2870,
+          cgst: 258.3,
+          sgst: 258.3,
+          igst: 0,
+          totalGst: 516.6,
+          roundOff: 0.4,
+          grandTotal: 3387,
+          cashier: 'Tiruppur Counter',
+          status: 'PAID'
+        }
+      ]);
+      console.log('✅ Demo invoices initialized with SAM prefix for default stores.');
+    }
+  } catch (err) {
+    console.error('Error ensuring superadmin and stores:', err);
+  }
+}
+
 // ================= DATABASE MANAGER (Mongoose-backed) =================
 
 class DatabaseManager {
@@ -996,6 +1268,12 @@ class DatabaseManager {
                 state: userData.state ?? 'Tamil Nadu',
                 department: userData.department || '',
                 status: userData.status || 'active',
+                storeId: userData.storeId || '',
+                storeName: userData.storeName || '',
+                storeLocation: userData.storeLocation || '',
+                assignedAdminId: userData.assignedAdminId || '',
+                assignedAdminName: userData.assignedAdminName || '',
+                permissions: Array.isArray(userData.permissions) ? userData.permissions : [],
                 createdBy: userData.createdBy || 'admin',
                 createdAt: new Date().toISOString(),
                 lastLogin: null
@@ -1999,6 +2277,29 @@ class DatabaseManager {
 
   // ================= BILLING INVOICES =================
 
+  /**
+   * Returns the next sequential invoice number for a store in the format:
+   * "SAM <storeCode> <integer>" (e.g. "SAM CBE-01 1001")
+   * Scans existing invoices to find the highest integer sequence for this store.
+   */
+  async getNextInvoiceNumber(storeCode) {
+        await connectDB();
+        const code = (storeCode || 'GEN').trim().toUpperCase();
+        const prefix = `SAM ${code} `;
+        // Find all invoices for this store code
+        const existing = await Invoice.find(
+          { invoiceNo: { $regex: `^SAM ${code.replace(/-/g, '\\-')} \\d+$` } },
+          { invoiceNo: 1 }
+        ).lean();
+        let maxSeq = 1000;
+        for (const inv of existing) {
+          const parts = (inv.invoiceNo || '').split(' ');
+          const seq = parseInt(parts[parts.length - 1], 10);
+          if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+        }
+        return `${prefix}${maxSeq + 1}`;
+  }
+
   async createInvoice(invoiceData) {
         await connectDB();
         const id = invoiceData.id || newId('INV');
@@ -2006,10 +2307,27 @@ class DatabaseManager {
         return serialize(created.toObject());
   }
 
-  async getInvoices() {
+  async getInvoices(filters = {}) {
         await connectDB();
-        const invoices = await Invoice.find({}).sort({ date: -1 }).lean();
+        const query = {};
+        if (filters.storeId && filters.storeId !== 'all') query.storeId = filters.storeId;
+        if (filters.storeCode && filters.storeCode !== 'all') query.storeCode = filters.storeCode;
+        if (filters.from || filters.to) {
+          query.date = {};
+          if (filters.from) query.date.$gte = new Date(filters.from).toISOString();
+          if (filters.to) {
+            const toDate = new Date(filters.to);
+            toDate.setDate(toDate.getDate() + 1);
+            query.date.$lt = toDate.toISOString();
+          }
+        }
+        const invoices = await Invoice.find(query).sort({ date: -1 }).lean();
         return invoices.map(serialize);
+  }
+
+  /** Fetch invoices across all stores for Super Admin with optional filters */
+  async getInvoicesAllStores(filters = {}) {
+        return this.getInvoices(filters);
   }
 
   // ================= BLOGS TABLE =================
@@ -2173,7 +2491,7 @@ class DatabaseManager {
   async getCoupons() {
     await connectDB();
     let coupons = (await Coupon.find({}).lean()).map(serialize);
-    if (coupons.length === 0) {
+    if (coupons.length === 0 && SEED_DEMO_DATA()) {
       const defaultCoupons = [
         {
           _id: 'CPN-SATHYA10',
@@ -2260,7 +2578,7 @@ class DatabaseManager {
   async getCouponUsages() {
     await connectDB();
     let usages = (await CouponUsage.find({}).lean()).map(serialize);
-    if (usages.length === 0) {
+    if (usages.length === 0 && SEED_DEMO_DATA()) {
       const defaultUsages = [
         {
           _id: 'USG-1',
@@ -2314,7 +2632,7 @@ class DatabaseManager {
   async getReferrals() {
     await connectDB();
     let refs = (await Referral.find({}).lean()).map(serialize);
-    if (refs.length === 0) {
+    if (refs.length === 0 && SEED_DEMO_DATA()) {
       const defaultRefs = [
         {
           _id: 'REF-1',
@@ -2378,7 +2696,245 @@ class DatabaseManager {
     await PointsLedger.create(ledger);
     return { userId, newPoints, ledger };
   }
+
+  // ================= STORES TABLE =================
+
+  async getStores() {
+    await connectDB();
+    const stores = await Store.find({}).lean();
+    const users = await User.find({ storeId: { $exists: true, $ne: '' } }, { storeId: 1, role: 1, status: 1 }).lean();
+    return stores.map(store => {
+      const storeUsers = users.filter(u => u.storeId === store._id);
+      return {
+        ...serialize(store),
+        staffCount: storeUsers.length,
+        adminCount: storeUsers.filter(u => u.role === 'admin').length,
+        employeeCount: storeUsers.filter(u => u.role === 'employee').length,
+        billingCount: storeUsers.filter(u => u.role === 'billing').length,
+        deliveryCount: storeUsers.filter(u => u.role === 'delivery').length,
+      };
+    });
+  }
+
+  async getStoreById(id) {
+    if (!id) return null;
+    await connectDB();
+    const store = await Store.findById(id).lean();
+    return serialize(store);
+  }
+
+  async createStore(storeData) {
+    await connectDB();
+    const id = newId('STR');
+    const newStore = {
+      _id: id,
+      id,
+      name: storeData.name?.trim() || 'New Store',
+      code: storeData.code?.trim().toUpperCase() || id,
+      location: storeData.location?.trim() || '',
+      address: storeData.address?.trim() || '',
+      phone: storeData.phone?.trim() || '',
+      email: storeData.email?.trim().toLowerCase() || '',
+      adminId: storeData.adminId || null,
+      adminName: storeData.adminName || '',
+      status: storeData.status || 'active',
+      createdAt: new Date().toISOString()
+    };
+    const created = await Store.create(newStore);
+    if (newStore.adminId) {
+      await User.findByIdAndUpdate(newStore.adminId, {
+        $set: {
+          storeId: id,
+          storeName: newStore.name,
+          storeLocation: newStore.location
+        }
+      });
+    }
+    return serialize(created.toObject());
+  }
+
+  async updateStore(id, updates) {
+    await connectDB();
+    const store = await Store.findById(id);
+    if (!store) return null;
+    const { _id, id: _ignored, ...rest } = updates || {};
+    Object.assign(store, rest);
+    store.updatedAt = new Date().toISOString();
+    await store.save();
+
+    if (rest.adminId) {
+      await User.findByIdAndUpdate(rest.adminId, {
+        $set: {
+          storeId: id,
+          storeName: store.name,
+          storeLocation: store.location
+        }
+      });
+    }
+    return serialize(store.toObject());
+  }
+
+  async deleteStore(id) {
+    await connectDB();
+    const res = await Store.findByIdAndDelete(id);
+    return !!res;
+  }
+
+  // ================= ACTIVITY LOGS / AUDIT TABLE =================
+
+  async logActivity(data) {
+    try {
+      await connectDB();
+      const logId = newId('LOG');
+      const logEntry = {
+        _id: logId,
+        id: logId,
+        timestamp: new Date().toISOString(),
+        userId: data.userId || 'system',
+        userName: data.userName || 'System',
+        userRole: data.userRole || 'system',
+        storeId: data.storeId || '',
+        storeName: data.storeName || '',
+        module: data.module || 'SYSTEM',
+        action: data.action || 'ACTION',
+        entityId: data.entityId || '',
+        description: data.description || '',
+        details: data.details || {},
+        ip: data.ip || '127.0.0.1'
+      };
+      await ActivityLog.create(logEntry);
+      return serialize(logEntry);
+    } catch (e) {
+      console.error('Failed to write activity log:', e.message);
+      return null;
+    }
+  }
+
+  async getActivityLogs(filters = {}) {
+    await connectDB();
+    const query = {};
+    if (filters.storeId && filters.storeId !== 'all') {
+      query.storeId = filters.storeId;
+    }
+    if (filters.userId && filters.userId !== 'all') {
+      query.userId = filters.userId;
+    }
+    if (filters.role && filters.role !== 'all') {
+      query.userRole = filters.role;
+    }
+    if (filters.module && filters.module !== 'all') {
+      query.module = filters.module;
+    }
+    if (filters.action && filters.action !== 'all') {
+      query.action = filters.action;
+    }
+    if (filters.search) {
+      const needle = filters.search.toLowerCase().trim();
+      query.$or = [
+        { description: { $regex: needle, $options: 'i' } },
+        { userName: { $regex: needle, $options: 'i' } },
+        { entityId: { $regex: needle, $options: 'i' } },
+        { storeName: { $regex: needle, $options: 'i' } }
+      ];
+    }
+    if (filters.startDate || filters.endDate) {
+      query.timestamp = {};
+      if (filters.startDate) query.timestamp.$gte = new Date(filters.startDate).toISOString();
+      if (filters.endDate) query.timestamp.$lte = new Date(filters.endDate).toISOString();
+    }
+
+    const limit = Math.min(Number(filters.limit) || 150, 500);
+    const skip = Math.max(0, (Number(filters.page || 1) - 1) * limit);
+
+    const total = await ActivityLog.countDocuments(query);
+    const logs = await ActivityLog.find(query)
+      .sort({ timestamp: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    return {
+      total,
+      page: Number(filters.page || 1),
+      limit,
+      logs: logs.map(l => serialize(l))
+    };
+  }
+
+  // ─── STAFF PROFILE ──────────────────────────────────────────────────────────
+
+  /**
+   * Fetch a staff member's profile by their user id.
+   * Returns null if the profile has not been filled in yet.
+   */
+  async getStaffProfile(userId) {
+    await connectDB();
+    const doc = await StaffProfile.findById(userId).lean();
+    return doc ? serialize(doc) : null;
+  }
+
+  /**
+   * Create or update the personal-information profile for a staff member.
+   * Only whitelisted fields are written so employees cannot inject extra data.
+   */
+  async upsertStaffProfile(userId, data) {
+    await connectDB();
+    const ALLOWED = [
+      // Personal
+      'fullName', 'dateOfBirth', 'gender', 'bloodGroup', 'fatherName', 'motherName',
+      'maritalStatus', 'nationality',
+      // Contact
+      'personalEmail', 'personalPhone', 'alternatePhone',
+      // Address
+      'currentAddress', 'permanentAddress', 'city', 'state', 'pincode',
+      // Emergency contact
+      'emergencyName', 'emergencyRelation', 'emergencyPhone',
+      // Employment
+      'designation', 'department', 'joiningDate', 'employeeCode',
+      // KYC / Bank
+      'aadharNumber', 'panNumber', 'bankName', 'bankAccountNumber', 'ifscCode',
+      'bankBranch', 'upiId',
+      // Education
+      'qualification', 'institution', 'yearOfPassing',
+      // Extra
+      'profilePhoto', 'bio', 'skills', 'languages',
+    ];
+    const sanitized = {};
+    for (const key of ALLOWED) {
+      if (key in data) sanitized[key] = data[key];
+    }
+    sanitized.updatedAt = new Date().toISOString();
+    const doc = await StaffProfile.findByIdAndUpdate(
+      userId,
+      { $set: sanitized, $setOnInsert: { _id: userId, createdAt: new Date().toISOString() } },
+      { upsert: true, new: true, lean: true }
+    );
+    return serialize(doc);
+  }
+
+  /**
+   * List all staff profiles — used by admin / super-admin employee inspector.
+   * Joins basic user info (name, role, storeId) from the User collection.
+   */
+  async listStaffProfiles(filters = {}) {
+    await connectDB();
+    // Fetch all staff user accounts
+    const staffQuery = { role: { $in: ['employee', 'delivery', 'billing', 'admin'] } };
+    if (filters.storeId) staffQuery.storeId = filters.storeId;
+    const users = await User.find(staffQuery).lean();
+    const userIds = users.map(u => u._id);
+
+    // Fetch matching profile docs
+    const profiles = await StaffProfile.find({ _id: { $in: userIds } }).lean();
+    const profileMap = Object.fromEntries(profiles.map(p => [p._id, serialize(p)]));
+
+    return users.map(u => ({
+      ...serializeUser(u),
+      profile: profileMap[u._id] || null,
+    }));
+  }
 }
+
 
 // Blog and video tags arrive as an array or as "a, b, c" from the admin form.
 function splitTags(tags, fallback) {

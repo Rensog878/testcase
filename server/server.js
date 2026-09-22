@@ -16,6 +16,7 @@ import Razorpay from 'razorpay';
 import { db, connectDB, newId } from './db.js';
 import { productNameKey } from '../src/shared/productName.js';
 import adminRoutes from './adminRoutes.js';
+import superadminRoutes from './superadminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
 import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
 import { selectRecipients, renderAdvisory, parseBroadcastRequest, parseOptOutWebhook, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
@@ -95,12 +96,35 @@ app.use('/uploads', express.static(UPLOADS_DIR, {
 }));
 
 app.use('/api/admin', requireAuth('admin'), adminRoutes);
+app.use('/api/superadmin', requireAuth('superadmin'), superadminRoutes);
 
 // Older alias of /api/admin/users, with the same admin-only rules.
 app.use('/api/users', requireAuth('admin'), (req, res, next) => {
   req.url = `/users${req.url === '/' || req.url.startsWith('/?') ? req.url.slice(1) : req.url}`;
   adminRoutes(req, res, next);
 });
+
+// Activity logging utility for audit monitoring
+export async function recordActivity(req, { module, action, entityId, description, details = {} }) {
+  try {
+    const user = req.user || (await getAuthenticatedUser(req));
+    await db.logActivity({
+      userId: user?.id || 'anonymous',
+      userName: user?.name || user?.email || 'Anonymous',
+      userRole: user?.role || 'system',
+      storeId: user?.storeId || req.body?.storeId || '',
+      storeName: user?.storeName || req.body?.storeName || '',
+      module,
+      action,
+      entityId: entityId || '',
+      description,
+      details,
+      ip: clientIp(req)
+    });
+  } catch (e) {
+    console.error('Activity logging failed:', e.message);
+  }
+}
 
 // ============================================================
 // INPUT HELPERS
@@ -334,6 +358,13 @@ app.post('/api/auth/login', async (req, res) => {
     if (check.needsRehash) updates.password = await hashPassword(password);
     const updated = await db.updateUser(user.id, updates);
     const token = await issueToken(user.id);
+
+    recordActivity(req, {
+      module: 'AUTH',
+      action: 'USER_LOGIN',
+      entityId: user.id,
+      description: `User ${user.name} (${user.role}) logged in`
+    });
 
     res.json({ success: true, user: toSafeUser(updated || user), token });
   } catch (err) {
@@ -1037,6 +1068,13 @@ app.put('/api/products/:id', requireAuth('admin'), async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    recordActivity(req, {
+      module: 'PRODUCTS',
+      action: 'UPDATE_PRODUCT',
+      entityId: req.params.id,
+      description: `Updated product "${product.name}"`,
+      details: { changedKeys: Object.keys(updates) }
+    });
     res.json({ success: true, data: product });
   } catch (err) {
     sendError(res, err, 'Update product');
@@ -1049,6 +1087,12 @@ app.delete('/api/products/:id', requireAuth('admin'), async (req, res) => {
     if (!ok) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    recordActivity(req, {
+      module: 'PRODUCTS',
+      action: 'DELETE_PRODUCT',
+      entityId: req.params.id,
+      description: `Deleted product ${req.params.id}`
+    });
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
     sendError(res, err, 'Delete product');
@@ -1850,6 +1894,12 @@ app.get('/api/cms', async (req, res) => {
 app.put('/api/cms', requireAuth('admin'), async (req, res) => {
   try {
     const updated = await db.updateCMS(req.body);
+    recordActivity(req, {
+      module: 'CMS',
+      action: 'UPDATE_CMS',
+      description: 'Modified website CMS settings / layout options',
+      details: { sectionsUpdated: Object.keys(req.body || {}) }
+    });
     res.json({ success: true, message: 'Website content updated successfully by Admin CMS', data: updated });
   } catch (err) {
     sendError(res, err, 'Update CMS');
@@ -2479,7 +2529,29 @@ app.get('/api/staff-tasks', requireAuth('admin', 'employee'), async (req, res) =
 
 app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, res) => {
   try {
-    const { customerName, customerPhone, discountAmount = 0, couponCode = '', paymentMode } = req.body || {};
+    const {
+      customerName,
+      customerPhone,
+      discountAmount = 0,
+      couponCode = '',
+      paymentMode = 'Cash',
+      paymentTerms = '',
+      buyerRef = '',
+      otherReferences = '',
+      documentType = 'TAX INVOICE',
+      irn = '',
+      ackNo = '',
+      ackDate = '',
+      sellerDetails,
+      consigneeDetails,
+      buyerDetails,
+      despatchDetails,
+      transportDetails,
+      bankDetails,
+      amountInWords = '',
+      taxAmountInWords = ''
+    } = req.body || {};
+
     const items = Array.isArray(req.body?.items) ? req.body.items.slice(0, 200) : [];
 
     // Calculate itemized totals & taxes
@@ -2490,8 +2562,11 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
 
     const enrichedItems = items.map(item => {
       const qty = Math.max(1, Number(item.qty) || 1);
-      const price = Math.max(0, Number(item.price) || 0);
-      const lineTotal = price * qty;
+      const price = Math.max(0, Number(item.price ?? item.rate) || 0);
+      const discPercent = Math.max(0, Number(item.discPercent ?? item.discountPercent) || 0);
+      const rawLine = price * qty;
+      const lineDisc = rawLine * (discPercent / 100);
+      const lineTotal = +(rawLine - lineDisc).toFixed(2);
       subtotal += lineTotal;
 
       const gstRate = Number(item.gstRate ?? item.gst) || 18;
@@ -2499,7 +2574,6 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
       const sgstRate = Number(item.sgstRate) || +(gstRate / 2).toFixed(2);
       const igstRate = Number(item.igstRate) || gstRate;
 
-      // Calculate line tax (assuming tax is calculated on taxable line total after proportional discount)
       const lineCgst = +(lineTotal * (cgstRate / 100)).toFixed(2);
       const lineSgst = +(lineTotal * (sgstRate / 100)).toFixed(2);
       const lineIgst = +(lineTotal * (igstRate / 100)).toFixed(2);
@@ -2509,16 +2583,23 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
       totalIgst += lineIgst;
 
       return {
-        id: item.id,
+        id: item.id || newId('ITM'),
         name: item.name || item.productName || 'Product',
-        hsnCode: item.hsnCode || item.hsn || '380899',
+        batch: cleanText(item.batch || item.batchNo || 'Primary Batch', 50),
+        subText: cleanText(item.subText || '', 200),
+        hsnCode: item.hsnCode || item.hsn || '31010099',
         price,
+        rate: price,
         qty,
+        unit: item.unit || 'Nos',
+        per: item.per || item.unit || 'Nos',
+        discPercent,
         gstRate,
         cgstRate,
         sgstRate,
         igstRate,
         lineTotal,
+        amount: lineTotal,
         lineCgst,
         lineSgst
       };
@@ -2527,13 +2608,82 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
     const discAmt = Math.max(0, Number(discountAmount) || 0);
     const taxableAmount = Math.max(0, subtotal - discAmt);
     const totalGst = +(totalCgst + totalSgst).toFixed(2);
-    const grandTotal = +(taxableAmount + totalGst).toFixed(2);
+    const rawGrandTotal = taxableAmount + totalGst;
+    // Rounded to the rupee here, never taken from the request: a caller-sent
+    // round-off could take any amount off the bill.
+    const computedRoundOff = +(Math.round(rawGrandTotal) - rawGrandTotal).toFixed(2);
+    const grandTotal = +(rawGrandTotal + computedRoundOff).toFixed(2);
+
+    const generatedId = newId('INV');
+
+    // Resolve store information from the authenticated user
+    const userStoreId = req.user.storeId || req.body.storeId || '';
+    const userStoreName = req.user.storeName || req.body.storeName || '';
+    let userStoreCode = req.user.storeCode || req.body.storeCode || '';
+
+    // If storeCode not on user object, try to fetch it from the Store collection
+    if (!userStoreCode && userStoreId) {
+      try {
+        const storeRec = await db.getStoreById(userStoreId);
+        userStoreCode = storeRec?.code || '';
+      } catch (_) {}
+    }
+
+    // Enforce SAM <STORE_CODE> <INTEGER> format
+    // GST invoice numbers must be unique and in sequence, so the server always
+    // assigns the next one. The number the counter showed is only a preview.
+    const finalInvoiceNo = await db.getNextInvoiceNumber(userStoreCode || 'GEN');
+
+    const cleanPaymentMode = cleanText(paymentMode, 40) || 'Cash';
+    const isCreditPurchase = cleanPaymentMode.toLowerCase().includes('credit');
 
     const invoice = {
-      id: newId('INV'),
-      date: new Date().toISOString(),
-      customerName: cleanText(customerName, 80) || 'Walk-in Customer',
-      customerPhone: cleanText(customerPhone, 15),
+      id: generatedId,
+      invoiceNo: finalInvoiceNo,
+      storeId: userStoreId,
+      storeCode: userStoreCode,
+      storeName: userStoreName,
+      documentType: cleanText(documentType, 30) || 'TAX INVOICE',
+      date: req.body.date ? new Date(req.body.date).toISOString() : new Date().toISOString(),
+      irn: cleanText(irn, 120),
+      ackNo: cleanText(ackNo, 50),
+      ackDate: cleanText(ackDate, 30),
+      customerName: cleanText(customerName || buyerDetails?.name, 80) || 'Walk-in Customer',
+      customerPhone: cleanText(customerPhone || buyerDetails?.phone, 20),
+      sellerDetails: sellerDetails || {
+        name: 'Sathyam Bio',
+        line1: 'No.130, Muppar street,',
+        line2: 'Balamurugan Kovil road,',
+        line3: 'Vadipatti',
+        line4: 'Madurai - 625218.',
+        unit: 'Unit 1',
+        pincode: '625218',
+        gstin: '33BAAPS3641C1Z6',
+        pan: 'BAAPS3641C'
+      },
+      buyerDetails: buyerDetails || {
+        name: cleanText(customerName, 80) || 'Walk-in Customer',
+        line1: cleanText(req.body.customerAddress, 200) || 'Retail Counter',
+        cityState: 'Madurai-625016, Tamil Nadu',
+        pincode: '625016',
+        gstin: cleanText(req.body.customerGstin, 20),
+        stateName: 'Tamil Nadu',
+        stateCode: '33',
+        placeOfSupply: 'Tamil Nadu',
+        contactName: cleanText(customerName, 80)
+      },
+      consigneeDetails: consigneeDetails || buyerDetails || {},
+      despatchDetails: despatchDetails || {},
+      transportDetails: transportDetails || {},
+      bankDetails: bankDetails || {
+        bankName: 'HDFC Bank (India)',
+        acNo: '50200112291146',
+        branchIfsc: 'Thirunagar, Madurai & HDFC0009046'
+      },
+      paymentMode: cleanPaymentMode,
+      paymentTerms: cleanText(paymentTerms, 60),
+      buyerRef: cleanText(buyerRef, 60),
+      otherReferences: cleanText(otherReferences, 60),
       items: enrichedItems,
       subtotal: +subtotal.toFixed(2),
       discountAmount: discAmt,
@@ -2543,10 +2693,12 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
       sgst: +totalSgst.toFixed(2),
       igst: +totalIgst.toFixed(2),
       totalGst,
+      roundOff: computedRoundOff,
       grandTotal,
-      paymentMode: cleanText(paymentMode, 30) || 'Cash',
+      amountInWords: cleanText(amountInWords, 250),
+      taxAmountInWords: cleanText(taxAmountInWords, 250),
       cashier: req.user.name,
-      status: 'PAID',
+      status: isCreditPurchase ? 'CREDIT' : 'PAID',
     };
 
     const savedInvoice = await db.createInvoice(invoice);
@@ -2556,9 +2708,26 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
   }
 });
 
+/** GET /api/billing/next-invoice-no
+ *  Returns the next SAM-formatted invoice number for the logged-in user's store.
+ */
+app.get('/api/billing/next-invoice-no', requireAuth('billing', 'admin'), async (req, res) => {
+  try {
+    let storeCode = req.user.storeCode || '';
+    if (!storeCode && req.user.storeId) {
+      const store = await db.getStoreById(req.user.storeId);
+      storeCode = store?.code || 'GEN';
+    }
+    const invoiceNo = await db.getNextInvoiceNumber(storeCode || 'GEN');
+    res.json({ success: true, invoiceNo });
+  } catch (err) {
+    sendError(res, err, 'Next invoice number');
+  }
+});
+
 app.get('/api/billing/invoices', requireAuth('billing', 'admin'), async (req, res) => {
   try {
-    const data = await db.getInvoices();
+    const data = await db.getInvoices({ storeId: req.user.storeId });
     res.json({ success: true, data });
   } catch (err) {
     sendError(res, err, 'Invoice history');
@@ -2622,6 +2791,57 @@ app.get('/api/chat/records', requireAuth('admin', 'employee'), async (req, res) 
     res.json({ success: true, data });
   } catch (err) {
     sendError(res, err, 'Chat records');
+  }
+});
+
+// ============================================================
+// STAFF PROFILE (employee self-service + admin viewer)
+// ============================================================
+
+// GET /api/staff-profile  — logged-in employee fetches their own profile
+app.get('/api/staff-profile', requireAuth('employee', 'admin', 'superadmin', 'delivery', 'billing'), async (req, res) => {
+  try {
+    const profile = await db.getStaffProfile(req.user.id);
+    res.json({ success: true, data: profile || {} });
+  } catch (err) {
+    sendError(res, err, 'Get staff profile');
+  }
+});
+
+// PUT /api/staff-profile  — employee saves / updates their profile
+app.put('/api/staff-profile', requireAuth('employee', 'admin', 'superadmin', 'delivery', 'billing'), async (req, res) => {
+  try {
+    const profile = await db.upsertStaffProfile(req.user.id, req.body || {});
+    await recordActivity(req, {
+      module: 'staff-profile',
+      action: 'update',
+      entityId: req.user.id,
+      description: `${req.user.name} updated their staff profile`,
+    });
+    res.json({ success: true, data: profile });
+  } catch (err) {
+    sendError(res, err, 'Update staff profile');
+  }
+});
+
+// GET /api/admin/staff-profiles  — admin or superadmin views all staff profiles
+app.get('/api/admin/staff-profiles', requireAuth('admin', 'superadmin'), async (req, res) => {
+  try {
+    const storeId = req.query.storeId || (req.user.role === 'admin' ? req.user.storeId : undefined);
+    const profiles = await db.listStaffProfiles(storeId ? { storeId } : {});
+    res.json({ success: true, data: profiles });
+  } catch (err) {
+    sendError(res, err, 'List staff profiles');
+  }
+});
+
+// GET /api/admin/staff-profiles/:userId  — admin views one specific staff profile
+app.get('/api/admin/staff-profiles/:userId', requireAuth('admin', 'superadmin'), async (req, res) => {
+  try {
+    const profile = await db.getStaffProfile(req.params.userId);
+    res.json({ success: true, data: profile || {} });
+  } catch (err) {
+    sendError(res, err, 'Get staff profile by id');
   }
 });
 

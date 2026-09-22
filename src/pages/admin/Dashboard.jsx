@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
+import { Banknote, Package, Leaf, Mail, Heart, Ticket, Truck, Pencil, Video, BarChart3, LifeBuoy, ChartNoAxesCombined } from 'lucide-react'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -17,22 +18,22 @@ export default function AdminDashboard() {
   const show = value => (stats ? String(value ?? 0) : statsError ? '—' : '…')
   const note = text => (stats ? text : statsError ? 'Could not load' : 'Loading')
   const statCards = [
-    { label: 'Total Omnichannel Revenue', value: stats ? `₹${Number(stats.totalRevenue || 0).toLocaleString('en-IN')}` : show(), change: note(stats?.offlineRevenue ? `₹${Number(stats.onlineRevenue || 0).toLocaleString('en-IN')} web + ₹${Number(stats.offlineRevenue || 0).toLocaleString('en-IN')} counter` : `${stats?.paidOrders ?? 0} paid orders`), color: 'green', icon: '💰' },
-    { label: 'Orders & Bills Today', value: show(stats?.ordersToday), change: note(`${stats?.totalOrders ?? 0} total (${stats?.onlineOrders ?? 0} web, ${stats?.offlineOrders ?? 0} counter)`), color: 'blue', icon: '📦' },
-    { label: 'Active Products', value: show(stats?.activeProducts), change: note(`${stats?.totalProducts ?? 0} in catalog, in stock`), color: 'yellow', icon: '🌿' },
-    { label: 'Subscribers', value: show(stats?.subscribers), change: note('Advisory sign-ups'), color: 'orange', icon: '📩' },
-    { label: 'Wishlist Saves', value: show(stats?.wishlistSaves), change: note('Customer interest'), color: 'purple', icon: '❤️' },
-    { label: 'Open Tickets', value: show(stats?.openTickets), change: note('Awaiting a reply'), color: 'red', icon: '🎫' },
-    { label: 'Pending Deliveries', value: show(stats?.pendingDeliveries), change: note('Not yet delivered'), color: 'teal', icon: '🚚' },
+    { label: 'Total Omnichannel Revenue', value: stats ? `₹${Number(stats.totalRevenue || 0).toLocaleString('en-IN')}` : show(), change: note(stats?.offlineRevenue ? `₹${Number(stats.onlineRevenue || 0).toLocaleString('en-IN')} web + ₹${Number(stats.offlineRevenue || 0).toLocaleString('en-IN')} counter` : `${stats?.paidOrders ?? 0} paid orders`), color: 'green', icon: <Banknote size={22} /> },
+    { label: 'Orders & Bills Today', value: show(stats?.ordersToday), change: note(`${stats?.totalOrders ?? 0} total (${stats?.onlineOrders ?? 0} web, ${stats?.offlineOrders ?? 0} counter)`), color: 'blue', icon: <Package size={22} /> },
+    { label: 'Active Products', value: show(stats?.activeProducts), change: note(`${stats?.totalProducts ?? 0} in catalog, in stock`), color: 'yellow', icon: <Leaf size={22} /> },
+    { label: 'Subscribers', value: show(stats?.subscribers), change: note('Advisory sign-ups'), color: 'orange', icon: <Mail size={22} /> },
+    { label: 'Wishlist Saves', value: show(stats?.wishlistSaves), change: note('Customer interest'), color: 'purple', icon: <Heart size={22} /> },
+    { label: 'Open Tickets', value: show(stats?.openTickets), change: note('Awaiting a reply'), color: 'red', icon: <Ticket size={22} /> },
+    { label: 'Pending Deliveries', value: show(stats?.pendingDeliveries), change: note('Not yet delivered'), color: 'teal', icon: <Truck size={22} /> },
   ]
 
   const quickLinks = [
-    { icon: '✏️', label: 'Edit Live Content', sub: 'Hero, banners, advisory text', to: '/admin/cms' },
-    { icon: '🌿', label: 'Manage Products', sub: 'Add, edit, 3-way visibility', to: '/admin/products' },
-    { icon: '🎬', label: 'Video Demos', sub: 'Upload videos, embed in items & blogs', to: '/admin/videos' },
-    { icon: '📦', label: 'Orders & Counter Bills', sub: 'Omnichannel sales & invoices', to: '/admin/orders' },
-    { icon: '📈', label: '3-Mode Analytics', sub: 'Online, Offline & Omnichannel', to: '/admin/analytics' },
-    { icon: '🎫', label: 'Support Tickets', sub: 'Field crop emergencies', to: '/admin/tickets' },
+    { icon: <Pencil size={18} />, label: 'Edit Live Content', sub: 'Hero, banners, advisory text', to: '/admin/cms' },
+    { icon: <Leaf size={18} />, label: 'Manage Products', sub: 'Add, edit, 3-way visibility', to: '/admin/products' },
+    { icon: <Video size={18} />, label: 'Video Demos', sub: 'Upload videos, embed in items & blogs', to: '/admin/videos' },
+    { icon: <Package size={18} />, label: 'Orders & Counter Bills', sub: 'Omnichannel sales & invoices', to: '/admin/orders' },
+    { icon: <ChartNoAxesCombined size={18} />, label: '3-Mode Analytics', sub: 'Online, Offline & Omnichannel', to: '/admin/analytics' },
+    { icon: <LifeBuoy size={18} />, label: 'Support Tickets', sub: 'Field crop emergencies', to: '/admin/tickets' },
   ]
 
   const summaryBars = [42, 62, 58, 80, 74, 96, 88]
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
             <div className="card-title">Demand trend</div>
             <span className="badge badge-purple">7 days</span>
           </div>
-          <div className="empty-state" style={{ padding: '28px 12px' }}><div style={{ fontSize: '2rem' }}>📊</div><p>No demand data available yet</p></div>
+          <div className="empty-state" style={{ padding: '28px 12px' }}><BarChart3 size={32} /><p>No demand data available yet</p></div>
           <div className="mini-graph-labels">
             <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
           </div>

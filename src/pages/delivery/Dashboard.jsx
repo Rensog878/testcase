@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import { gpsMapsUrl } from '../../shared/osmAddress'
+import { Truck } from 'lucide-react'
 
 // API orders use the store's field names; the cards below were written for these.
 const toDeliveryCard = order => ({
@@ -62,7 +63,7 @@ export default function DeliveryDashboard() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <div><h1>🚚 My deliveries</h1><p>Welcome, {user?.name}. {orders.length} deliveries assigned today.</p></div>
+        <div><h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={28} /> My deliveries</h1><p>Welcome, {user?.name}. {orders.length} deliveries assigned today.</p></div>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: 24 }}>

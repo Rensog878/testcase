@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 
 // Farmers have no separate portal - the storefront homepage is their home.
 const ROLE_HOME = {
-  farmer: '/', admin: '/admin', employee: '/employee',
+  superadmin: '/superadmin', farmer: '/', admin: '/admin', employee: '/employee',
   delivery: '/delivery', billing: '/billing'
 }
 

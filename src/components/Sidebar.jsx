@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { LogOut } from 'lucide-react'
 
-export default function Sidebar({ items, roleName, roleEmoji, isOpen, onClose }) {
+export default function Sidebar({ items, roleName, roleIcon: RoleIcon, isOpen, onClose }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -29,7 +29,7 @@ export default function Sidebar({ items, roleName, roleEmoji, isOpen, onClose })
 
         {/* Role Badge */}
         <div className="sidebar-role-badge">
-          <span className="role-icon">{roleEmoji}</span>
+          <span className="role-icon"><RoleIcon size={18} /></span>
           <div>
             <div className="role-name">{roleName} Portal</div>
             <div className="role-email">{user?.name}</div>
@@ -43,7 +43,7 @@ export default function Sidebar({ items, roleName, roleEmoji, isOpen, onClose })
               {section.title && <div className="sidebar-section-title">{section.title}</div>}
               {section.links.map(link => (
                 <NavLink
-                  key={link.to}
+                  key={`${link.to}|${link.label}`}
                   to={link.to}
                   end={link.end}
                   className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}

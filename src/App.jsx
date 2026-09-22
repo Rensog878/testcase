@@ -51,6 +51,7 @@ const AdminReferrals = lazy(() => import('./pages/admin/Referrals'))
 
 const EmployeeLayout    = lazy(() => import('./layouts/EmployeeLayout'))
 const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'))
+const EmployeeProfile   = lazy(() => import('./pages/employee/Profile'))
 
 const DeliveryLayout    = lazy(() => import('./layouts/DeliveryLayout'))
 const DeliveryDashboard = lazy(() => import('./pages/delivery/Dashboard'))
@@ -58,6 +59,15 @@ const DeliveryDashboard = lazy(() => import('./pages/delivery/Dashboard'))
 const BillingLayout    = lazy(() => import('./layouts/BillingLayout'))
 const BillingDashboard = lazy(() => import('./pages/billing/Dashboard'))
 const InvoiceHistory = lazy(() => import('./pages/billing/InvoiceHistory'))
+
+// Super Admin portal (lazy like the other staff portals)
+const SuperAdminLayout = lazy(() => import('./layouts/SuperAdminLayout'))
+const SuperAdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
+const SuperAdminStores = lazy(() => import('./pages/superadmin/Stores'))
+const SuperAdminUsers = lazy(() => import('./pages/superadmin/Users'))
+const SuperAdminPermissions = lazy(() => import('./pages/superadmin/Permissions'))
+const SuperAdminWorkLog = lazy(() => import('./pages/superadmin/WorkLog'))
+const SuperAdminShopAnalytics = lazy(() => import('./pages/superadmin/ShopAnalytics'))
 
 // Tickets & Chat (shared between admin/employee)
 const Tickets     = lazy(() => import('./pages/shared/Tickets'))
@@ -140,8 +150,18 @@ export default function App() {
           <Route path="/contact-us" element={<InformationPage path="/contact-us" />} />
         </Route>
 
+        {/* Super Admin Routes */}
+        <Route path="/superadmin" element={<PrivateRoute allowedRoles={['superadmin']} signIn={<Login />}><SuperAdminLayout /></PrivateRoute>}>
+          <Route index element={<SuperAdminDashboard />} />
+          <Route path="analytics" element={<SuperAdminShopAnalytics />} />
+          <Route path="stores" element={<SuperAdminStores />} />
+          <Route path="users" element={<SuperAdminUsers />} />
+          <Route path="permissions" element={<SuperAdminPermissions />} />
+          <Route path="logs" element={<SuperAdminWorkLog />} />
+        </Route>
+
         {/* Admin Routes — signed-out visitors get the admin sign-in here */}
-        <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>
+        <Route path="/admin" element={<PrivateRoute allowedRoles={['admin', 'superadmin']} signIn={<Login />}><AdminLayout /></PrivateRoute>}>
           <Route index             element={<AdminDashboard />} />
           <Route path="cms"        element={<AdminCMS />} />
           <Route path="users"      element={<AdminUsers />} />
@@ -164,18 +184,21 @@ export default function App() {
         {/* Employee Routes */}
         <Route path="/employee" element={<PrivateRoute allowedRoles={['employee']}><EmployeeLayout /></PrivateRoute>}>
           <Route index element={<EmployeeDashboard />} />
+          <Route path="profile" element={<EmployeeProfile />} />
           <Route path="tickets" element={<Tickets />} />
         </Route>
 
         {/* Delivery Routes */}
         <Route path="/delivery" element={<PrivateRoute allowedRoles={['delivery']}><DeliveryLayout /></PrivateRoute>}>
           <Route index element={<DeliveryDashboard />} />
+          <Route path="profile" element={<EmployeeProfile />} />
         </Route>
 
         {/* Billing Routes */}
-        <Route path="/billing" element={<PrivateRoute allowedRoles={['billing']}><BillingLayout /></PrivateRoute>}>
+        <Route path="/billing" element={<PrivateRoute allowedRoles={['billing', 'admin']}><BillingLayout /></PrivateRoute>}>
           <Route index element={<BillingDashboard />} />
           <Route path="history" element={<InvoiceHistory />} />
+          <Route path="profile" element={<EmployeeProfile />} />
         </Route>
 
         {/* Catch all */}

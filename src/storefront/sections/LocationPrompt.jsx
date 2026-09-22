@@ -1,25 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useLanguage } from '../../context/LanguageContext'
 import { currentPosition, locationSupported } from '../location'
 import { readGuestContact } from '../guestContact'
+import { setBodyFlag } from '../bodyFlags'
 import { showToast } from '../toast'
 
-// Every store visitor is asked for their location, and where it is allowed it
-// is stored (POST /api/visitor-location, one record per browser).
-// - Not decided yet: a small card explains why, and its Allow button opens the
-//   browser's own permission prompt. Asking from a tap, not on page load, is
-//   what keeps Chrome from switching the site to its hidden "quiet" prompt.
-//   "Not now" asks again on the next visit.
-// - Already allowed: the point is sent once per visit with no card at all.
-// - Blocked: nothing is shown; the browser would not ask again anyway.
-// Non-blocking (the page scrolls under it) and never over another popup.
-// Styles: storefront.css, "7p. LOCATION CARD".
+// Every store visitor's location is collected (POST /api/visitor-location,
+// one record per browser). Until it has been collected on this visit, a popup
+// asks for it - on arrival, and again on every page opened after "Not now":
+// - not decided yet: why we ask, and Allow opens the browser's own prompt
+//   (from a tap, not on page load, which keeps Chrome from hiding the prompt);
+// - blocked in the browser: how to unblock it, then "I've turned it on";
+// - GPS off or too slow: what to do, then Try again.
+// Already allowed: collected silently on arrival, no popup unless GPS fails.
+// Never over another popup (Stay connected, sign-in, checkout).
+// Styles: storefront.css, "7p. LOCATION POPUP".
 
 const VISITOR_KEY = 'sb_visitor_id'
-const SENT_KEY = 'sb_location_sent' // this visit (sessionStorage)
-const ASKED_KEY = 'sb_location_asked' // this visit (sessionStorage)
-const SHOW_AFTER_MS = 4000
+const SENT_KEY = 'sb_location_sent' // collected on this visit (sessionStorage)
+const FIRST_DELAY_MS = 3000
+const PAGE_DELAY_MS = 1200
+const LOCK_CLASS = 'sb-loc-lock'
 
 function visitorId() {
   try {
@@ -34,10 +37,8 @@ function visitorId() {
   }
 }
 
-const session = {
-  get: key => { try { return sessionStorage.getItem(key) === '1' } catch { return false } },
-  set: key => { try { sessionStorage.setItem(key, '1') } catch { /* private mode */ } },
-}
+const collected = () => { try { return sessionStorage.getItem(SENT_KEY) === '1' } catch { return false } }
+const markCollected = () => { try { sessionStorage.setItem(SENT_KEY, '1') } catch { /* private mode */ } }
 
 async function permissionState() {
   try {
@@ -52,10 +53,21 @@ const screenBusy = () => document.body.classList.contains('overlay-open')
   || document.documentElement.classList.contains('sb-guest-lock')
   || document.documentElement.classList.contains('sb-scroll-lock')
 
+const BLOCKED_STEPS = [
+  'Tap the lock or settings icon next to the website address at the top.',
+  'Open Permissions (or Site settings), then Location, and choose Allow.',
+  'On iPhone: Settings, then Safari, then Location, and choose Allow.',
+]
+
 export default function LocationPrompt() {
   const { lang } = useLanguage()
-  const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
+  const [view, setView] = useState(null) // null | 'ask' | 'blocked' | 'error'
+  const [problem, setProblem] = useState('')
   const [busy, setBusy] = useState(false)
+  const firstCheck = useRef(true)
+  const mainButton = useRef(null)
+  const open = Boolean(view)
 
   const send = async point => {
     const id = visitorId()
@@ -66,68 +78,121 @@ export default function LocationPrompt() {
         visitorId: id, geo: point, page: window.location.pathname, lang,
         name: guest?.name || '', phone: guest?.phone || '',
       })
-      session.set(SENT_KEY)
+      markCollected()
       return true
     } catch {
       return false
     }
   }
 
-  useEffect(() => {
-    if (!locationSupported || session.get(SENT_KEY)) return undefined
-    let cancelled = false
-    let timer = 0
-    permissionState().then(state => {
-      if (cancelled) return
-      if (state === 'granted') {
-        currentPosition().then(point => { if (!cancelled) send(point) }).catch(() => {})
-        return
-      }
-      if (state === 'denied' || session.get(ASKED_KEY)) return
-      // Shown once nothing else is on screen (the Stay connected card, sign-in, checkout).
-      const tryShow = () => {
-        if (cancelled) return
-        if (screenBusy()) { timer = setTimeout(tryShow, 2000); return }
-        setOpen(true)
-      }
-      timer = setTimeout(tryShow, SHOW_AFTER_MS)
-    })
-    return () => { cancelled = true; clearTimeout(timer) }
-  }, [])
-
-  const allow = async () => {
+  // Collects the point now; on failure the popup explains what to do.
+  const collect = async ({ thankYou = true } = {}) => {
     setBusy(true)
-    session.set(ASKED_KEY)
     try {
       const point = await currentPosition()
-      await send(point)
-      setOpen(false)
-      showToast('Thank you! We will show delivery and crop advice for your area.', 'success')
+      // Not saved (server unreachable): asked again on the next page.
+      const saved = await send(point)
+      setView(null)
+      if (saved && thankYou) showToast('Thank you! We will show delivery and crop advice for your area.', 'success')
     } catch (err) {
-      setOpen(false)
-      showToast(err.message, 'info')
+      if ((await permissionState()) === 'denied') {
+        setProblem('')
+        setView('blocked')
+      } else {
+        setProblem(err.message)
+        setView('error')
+      }
     } finally {
       setBusy(false)
     }
   }
 
-  const later = () => {
-    session.set(ASKED_KEY)
-    setOpen(false)
+  // On arrival and on every page change: not collected yet -> ask.
+  useEffect(() => {
+    if (!locationSupported || collected()) return undefined
+    let cancelled = false
+    let timer = 0
+    const decide = async () => {
+      if (cancelled || collected()) return
+      if (screenBusy()) { timer = setTimeout(decide, 2000); return }
+      const state = await permissionState()
+      if (cancelled) return
+      if (state === 'granted') collect({ thankYou: false })
+      else setView(state === 'denied' ? 'blocked' : 'ask')
+    }
+    timer = setTimeout(decide, firstCheck.current ? FIRST_DELAY_MS : PAGE_DELAY_MS)
+    firstCheck.current = false
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [pathname])
+
+  // A popup: the page behind does not scroll, other popups wait for it.
+  useEffect(() => {
+    document.documentElement.classList.toggle(LOCK_CLASS, open)
+    setBodyFlag('overlay-open', 'location-prompt', open)
+    return () => {
+      document.documentElement.classList.remove(LOCK_CLASS)
+      setBodyFlag('overlay-open', 'location-prompt', false)
+    }
+  }, [open])
+
+  // Escape is "Not now"; the main button is focused where there is a keyboard.
+  useEffect(() => {
+    if (!open) return undefined
+    if (window.matchMedia('(hover: hover)').matches) mainButton.current?.focus({ preventScroll: true })
+    const onKey = event => {
+      if (event.key !== 'Escape' || busy) return
+      event.preventDefault()
+      event.stopPropagation()
+      setView(null)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [open, view, busy])
+
+  const retryBlocked = async () => {
+    if ((await permissionState()) === 'denied') {
+      setProblem('Location is still blocked. Please follow the steps above, then try again.')
+      return
+    }
+    setProblem('')
+    collect()
   }
 
   if (!open) return null
+
+  const titles = { ask: 'Share your location', blocked: 'Location is turned off for this site', error: "We couldn't get your location" }
+  const leads = {
+    ask: 'We use it for faster delivery and crop advice for your area. Your browser will ask you to allow it.',
+    blocked: 'To get faster delivery and crop advice for your area, please allow location:',
+    error: problem,
+  }
+  const action = {
+    ask: { label: 'Allow location', icon: 'fa-location-crosshairs', run: () => collect() },
+    blocked: { label: "I've turned it on", icon: 'fa-rotate-right', run: retryBlocked },
+    error: { label: 'Try again', icon: 'fa-rotate-right', run: () => { setProblem(''); collect() } },
+  }[view]
+
   return (
-    <div className="sb-locate-card" role="dialog" aria-labelledby="sbLocateTitle" aria-describedby="sbLocateText">
-      <span className="sb-locate-icon" aria-hidden="true"><i className="fa-solid fa-location-dot"></i></span>
-      <div className="sb-locate-body">
-        <p id="sbLocateTitle" className="sb-locate-title">Share your location</p>
-        <p id="sbLocateText" className="sb-locate-text">For faster delivery and crop advice for your area.</p>
-        <div className="sb-locate-actions">
-          <button type="button" className="sb-locate-allow" onClick={allow} disabled={busy}>
-            {busy ? <><i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Finding your location...</> : <><i className="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Allow location</>}
+    <div className="sb-loc-overlay" id="locationModal">
+      <div className="sb-loc-card" role="dialog" aria-modal="true" aria-labelledby="sbLocTitle" aria-describedby="sbLocLead">
+        <span className={`sb-loc-icon${view !== 'ask' ? ' is-warning' : ''}`} aria-hidden="true">
+          <i className={`fa-solid ${{ ask: 'fa-location-dot', blocked: 'fa-location-pin-lock', error: 'fa-satellite-dish' }[view]}`}></i>
+        </span>
+        <h2 id="sbLocTitle" className="sb-loc-title">{titles[view]}</h2>
+        <p id="sbLocLead" className="sb-loc-lead">{leads[view]}</p>
+        {view === 'blocked' && (
+          <ol className="sb-loc-steps">
+            {BLOCKED_STEPS.map(step => <li key={step}>{step}</li>)}
+          </ol>
+        )}
+        {view === 'blocked' && problem && <p className="sb-loc-problem" role="alert">{problem}</p>}
+        <div className="sb-loc-actions">
+          <button ref={mainButton} type="button" className="sb-loc-main" onClick={action.run} disabled={busy}>
+            {busy
+              ? <><i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Finding your location...</>
+              : <><i className={`fa-solid ${action.icon}`} aria-hidden="true"></i> {action.label}</>}
           </button>
-          <button type="button" className="sb-locate-later" onClick={later} disabled={busy}>Not now</button>
+          <button type="button" className="sb-loc-later" onClick={() => setView(null)} disabled={busy}>Not now</button>
         </div>
       </div>
     </div>

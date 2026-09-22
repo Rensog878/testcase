@@ -7,6 +7,7 @@ import { ACRE_LIMITS, ALL_CROPS, acreInput, stepAcres, CROP_CHOICES, DEFAULT_PRO
 import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
 import { otpFromText } from '../../shared/otpCode'
+import { readGuestContact } from '../guestContact'
 import Modal from './Modal'
 
 // One sheet with three views: phone (the mobile number), otp (the WhatsApp
@@ -562,6 +563,16 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
   // The profile card opens on the profile, not on an edit left half-done.
   const cardOpen = Boolean(state)
+  // Signing in, the number from the "Stay connected" card is filled in.
+  useEffect(() => {
+    if (!cardOpen || user) return
+    const guest = readGuestContact()
+    if (guest && !fieldsRef.current.authPhone) {
+      setField('authPhone', guest.phone)
+      validatePhone(guest.phone)
+    }
+  }, [cardOpen, user])
+
   useEffect(() => {
     if (cardOpen) setAccountView('profile')
   }, [cardOpen])
@@ -753,6 +764,12 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
       // know who they are and where they farm before an account can exist.
       if (data.isNewUser) {
         verifiedPhone.current = phone
+        // Their name from the "Stay connected" card, when it is this same number.
+        const guest = readGuestContact()
+        if (guest?.name && guest.phone === phone && !fieldsRef.current.regName.trim()) {
+          setField('regName', guest.name)
+          validateName(guest.name)
+        }
         showView('details', { focus: 'regName' })
         return
       }

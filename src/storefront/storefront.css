@@ -5041,7 +5041,7 @@ body.sb-home-active {
    while a long step scrolls.
    ------------------------------------------------------------ */
 
-:is(body.sb-home-active .sb-home, .sb-portal) #authModal {
+:is(body.sb-home-active .sb-home, .sb-portal) :is(#authModal, #guestContactModal) {
   --auth-pad: 32px;
   --auth-pad-top: 28px;
   --auth-pad-bottom: 32px;
@@ -8238,6 +8238,91 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 @media (max-width: 767px) {
   :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   7m. STAY CONNECTED CARD (#guestContactModal, sections/GuestContactPrompt.jsx)
+   Asked once while a signed-out visitor scrolls. Fields and button reuse the
+   sign-in card's .auth-* styles, so the two feel like one product.
+   ========================================================================== */
+.sb-portal #guestContactModal .guest-card {
+  max-width: 420px;
+  padding: 28px 24px 20px;
+  border-radius: 20px;
+}
+.sb-portal #guestContactModal .guest-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.sb-portal #guestContactModal .guest-badge {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: var(--primary);
+  background: #EEF6F1;
+}
+.sb-portal #guestContactModal .guest-title {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #14231C;
+}
+.sb-portal #guestContactModal .guest-lead {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #56675E;
+}
+.sb-portal #guestContactModal .auth-input {
+  height: 46px;
+  font-size: 16px;
+}
+.sb-portal #guestContactModal .auth-input::placeholder {
+  font-size: 14px;
+}
+.sb-portal #guestContactModal .auth-cta {
+  width: 100%;
+  min-height: 48px;
+  font-size: 0.95rem;
+}
+.sb-portal #guestContactModal .guest-form .auth-actions {
+  position: static;
+  align-items: stretch;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.sb-portal #guestContactModal .guest-form .auth-actions::before {
+  content: none;
+}
+.sb-portal #guestContactModal .guest-later {
+  align-self: center;
+  min-height: 44px;
+  padding: 0 16px;
+}
+.sb-portal #guestContactModal .guest-privacy {
+  margin: 6px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #6B7B72;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  .sb-portal #guestContactModal .guest-card {
+    padding: 24px 18px calc(16px + env(safe-area-inset-bottom));
+  }
+  .sb-portal #guestContactModal .guest-title {
+    font-size: 1.18rem;
   }
 }
 

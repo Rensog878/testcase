@@ -259,6 +259,8 @@ window.SB_LANG_TA = {
     'Sugarcane Farmer': 'கரும்பு விவசாயி',
     'Mixed Crop Farmer': 'கலப்புப் பயிர் விவசாயி',
     'Subscribe Free': 'இலவசமாகப் பதிவு செய்',
+    "Popular crops": "பிரபலமான பயிர்கள்",
+    "More crops": "மேலும் பயிர்கள்",
     "Arecanut": "பாக்கு",
     "Banana": "வாழை",
     "Coconut": "தென்னை",

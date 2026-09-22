@@ -308,6 +308,8 @@ window.SB_LANG_TE = {
     'Sugarcane Farmer': 'చెరకు రైతు',
     'Mixed Crop Farmer': 'మిశ్రమ పంటల రైతు',
     'Subscribe Free': 'ఉచితంగా చేరండి',
+    "Popular crops": "ప్రసిద్ధ పంటలు",
+    "More crops": "మరిన్ని పంటలు",
     "Arecanut": "వక్క",
     "Banana": "అరటి",
     "Coconut": "కొబ్బరి",

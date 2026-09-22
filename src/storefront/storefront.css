@@ -450,14 +450,17 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-inner {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.45fr);
-  overflow: hidden;
   background: #fff;
   border-radius: 28px;
   box-shadow: 0 30px 70px -32px rgba(6, 78, 59, 0.35), 0 0 0 1px rgba(6, 78, 59, 0.06);
 }
+/* The photo column carries the card's rounded corners itself, so the card
+   need not clip: the crop picker's list may reach past its edge. */
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-left {
   position: relative;
   min-height: 100%;
+  overflow: hidden;
+  border-radius: 28px 0 0 28px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-left::after {
   content: '';
@@ -576,8 +579,7 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-control {
   position: relative;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-input,
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-select {
+:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-input {
   width: 100%;
   height: 48px;
   padding: 0 16px;
@@ -590,8 +592,7 @@ body.sb-home-active {
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-input:focus,
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-select:focus {
+:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(11, 122, 75, 0.12);
 }
@@ -613,25 +614,159 @@ body.sb-home-active {
   font-weight: 700;
   pointer-events: none;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-select {
-  padding-right: 44px;
-  appearance: none;
-  -webkit-appearance: none;
+/* Crop picker (sections/CropSelect.jsx): a field-styled button and a
+   floating card of grouped options. */
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select {
+  position: relative;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-btn {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 8px;
+  border: 1.5px solid #D5E3DA;
+  border-radius: 14px;
+  outline: none;
+  background: #fff;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-btn:hover {
+  border-color: #A7CDB6;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-btn:focus-visible,
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select.is-open .crop-select-btn {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(11, 122, 75, 0.12);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-lead {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #F1F7F3;
+  color: #0B7A4B;
+  font-size: 0.85rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #14231C;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-chev {
+  flex: none;
+  color: #0B7A4B;
+  font-size: 0.72rem;
+  transition: transform 0.2s ease;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select.is-open .crop-select-chev {
+  transform: rotate(180deg);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  min-width: 240px;
+  padding: 6px;
+  border: 1px solid rgba(6, 78, 59, 0.08);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 48px -12px rgba(6, 78, 59, 0.28), 0 4px 12px rgba(6, 78, 59, 0.06);
+  transform-origin: top center;
+  animation: crop-select-in 0.16s ease-out;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select.opens-up .crop-select-pop {
+  top: auto;
+  bottom: calc(100% + 8px);
+  transform-origin: bottom center;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-pop[hidden] {
+  display: none;
+}
+@keyframes crop-select-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-list {
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: #C9DDD0 transparent;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-group + .crop-select-group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #EEF4F0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-group-title {
+  display: block;
+  padding: 8px 12px 4px;
+  color: #6B8577;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: #14231C;
+  font-size: 0.92rem;
+  line-height: var(--script-leading, 1.35);
   cursor: pointer;
 }
-/* The chevron is drawn, not read out. */
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-control--select::after {
-  content: '\f078';
-  content: '\f078' / '';
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  transform: translateY(-50%);
-  color: #0B7A4B;
-  font-family: 'Font Awesome 6 Free';
-  font-size: 0.72rem;
-  font-weight: 900;
-  pointer-events: none;
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-option.is-active {
+  background: #F1F7F3;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-option.is-selected {
+  color: #064E3B;
+  font-weight: 700;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-tick {
+  flex: none;
+  color: #10B981;
+  font-size: 0.8rem;
+  opacity: 0;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .crop-select-option.is-selected .crop-select-tick {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .crop-select-pop {
+    animation: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .crop-select-chev {
+    transition: none;
+  }
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-btn {
   grid-column: 1 / -1;
@@ -747,6 +882,7 @@ body.sb-home-active {
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-left {
     height: 160px;
+    border-radius: 22px 22px 0 0;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .newsletter-img-badge {
     left: 12px;
@@ -1152,7 +1288,8 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) #tickets,
 :is(body.sb-home-active .sb-home, .sb-portal) #experts,
 :is(body.sb-home-active .sb-home, .sb-portal) .testimonials-section,
-:is(body.sb-home-active .sb-home, .sb-portal) .newsletter-section,
+/* Not .newsletter-section: content-visibility clips paint to the section, and
+   its crop picker list must be able to reach past the bottom edge. */
 :is(body.sb-home-active .sb-home, .sb-portal) .site-footer,
 :is(body.sb-home-active .sb-home, .sb-portal) footer {
   content-visibility: auto;

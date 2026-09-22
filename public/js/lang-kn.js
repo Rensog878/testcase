@@ -308,6 +308,8 @@ window.SB_LANG_KN = {
     'Sugarcane Farmer': 'ಕಬ್ಬು ರೈತ',
     'Mixed Crop Farmer': 'ಮಿಶ್ರ ಬೆಳೆ ರೈತ',
     'Subscribe Free': 'ಉಚಿತವಾಗಿ ಸೇರಿ',
+    "Popular crops": "ಜನಪ್ರಿಯ ಬೆಳೆಗಳು",
+    "More crops": "ಇನ್ನಷ್ಟು ಬೆಳೆಗಳು",
     "Arecanut": "ಅಡಿಕೆ",
     "Banana": "ಬಾಳೆ",
     "Coconut": "ತೆಂಗು",

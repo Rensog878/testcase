@@ -4,6 +4,7 @@ import { cmsText } from '../../hooks/useCmsSettings'
 import { showToast } from '../toast'
 import { CROP_CHOICES } from '../../shared/profileFieldRules'
 import { advisoryCropOptions } from '../../utils/catalogUtils'
+import CropSelect from './CropSelect'
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -79,7 +80,16 @@ export const Testimonials = memo(function Testimonials({ cms }) {
 const MIXED_CROPS = 'Mixed / other crops'
 
 export const Newsletter = memo(function Newsletter({ cms, crops }) {
-  const cropOptions = useMemo(() => [...advisoryCropOptions(CROP_CHOICES, crops), MIXED_CROPS], [crops])
+  // Popular: the sign-up crops. More: what only the catalogue has.
+  const cropGroups = useMemo(() => {
+    const popular = advisoryCropOptions(CROP_CHOICES, [])
+    const more = advisoryCropOptions(CROP_CHOICES, crops).slice(popular.length)
+    return [
+      { title: 'Popular crops', options: popular },
+      ...(more.length ? [{ title: 'More crops', options: more }] : []),
+      { title: 'Other', options: [MIXED_CROPS] },
+    ]
+  }, [crops])
   const [subscribed, setSubscribed] = useState(false)
   const [phone, setPhone] = useState('')
   const [crop, setCrop] = useState(CROP_CHOICES[0])
@@ -166,12 +176,8 @@ export const Newsletter = memo(function Newsletter({ cms, crops }) {
                   </div>
                 </div>
                 <div className="newsletter-field">
-                  <label className="newsletter-label" htmlFor="newsletterCrop">Your crop</label>
-                  <div className="newsletter-control newsletter-control--select">
-                    <select id="newsletterCrop" className="newsletter-select" value={crop} onChange={event => setCrop(event.target.value)}>
-                      {cropOptions.map(option => <option key={option}>{option}</option>)}
-                    </select>
-                  </div>
+                  <label className="newsletter-label" id="newsletterCropLabel" htmlFor="newsletterCrop">Your crop</label>
+                  <CropSelect id="newsletterCrop" labelId="newsletterCropLabel" value={crop} onChange={setCrop} groups={cropGroups} />
                 </div>
                 <button type="submit" className="newsletter-btn" disabled={submitting}>
                   <i className="fa-brands fa-whatsapp" aria-hidden="true"></i> {submitting ? 'Subscribing…' : 'Subscribe Free'}

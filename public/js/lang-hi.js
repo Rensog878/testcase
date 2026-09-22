@@ -308,6 +308,8 @@ window.SB_LANG_HI = {
     'Sugarcane Farmer': 'गन्ना किसान',
     'Mixed Crop Farmer': 'मिश्रित फसल किसान',
     'Subscribe Free': 'मुफ़्त जुड़ें',
+    "Popular crops": "लोकप्रिय फ़सलें",
+    "More crops": "और फ़सलें",
     "Arecanut": "सुपारी",
     "Banana": "केला",
     "Coconut": "नारियल",

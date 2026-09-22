@@ -4134,6 +4134,15 @@ body.sb-home-active {
   body.sb-home-active.menu-open .sb-home .chatbot-trigger-btn::after {
     animation-play-state: paused;
   }
+  /* The header slogan's sheen animates background-position, which only the
+     main thread can draw: it was restyled on every frame on every store page,
+     and when a Menu tap landed in its 1.8s sweep the whole page was repainted
+     on each frame of the slide (traced: twice the paint and style work of a
+     slide outside the sweep). It holds still while the sheet or popup is up. */
+  body.overlay-open :is(body.sb-home-active .sb-home, .sb-portal) .header-slogan-text,
+  body.menu-open :is(body.sb-home-active .sb-home, .sb-portal) .header-slogan-text {
+    animation-play-state: paused;
+  }
 
   /* Floating Buttons repositioned safely above bottom nav. Back-to-top is
      hidden on phones: it sat over the right column's "Add to Cart" button,

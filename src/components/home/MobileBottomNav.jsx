@@ -215,12 +215,32 @@ export default function MobileBottomNav() {
 
   // Closed, the sheet sits painted just below the screen: keep it out of focus
   // order, and back at the top for next time once the slide-out has finished.
+  // Inert goes back on only then: it is inherited, so setting it restyles
+  // everything inside the sheet (traced: ~90 elements, 60-100ms on a 4x slower
+  // CPU), which on the first frame of the slide-out made closing stutter. Until
+  // then the sheet is aria-hidden; focus still inside it by then (Escape from
+  // the keyboard) goes back to Menu. A tile that opened a popup has already
+  // handed focus to it.
+  const sheetEverOpened = useRef(false)
   useEffect(() => {
     const sheet = sheetRef.current
     if (!sheet) return undefined
-    sheet.toggleAttribute('inert', !isMenuOpen)
-    if (isMenuOpen) return undefined
-    const timer = setTimeout(() => { sheet.scrollTop = 0 }, 450)
+    if (isMenuOpen) {
+      sheetEverOpened.current = true
+      clearTimeout(warmTimer.current)
+      sheet.removeAttribute('inert')
+      return undefined
+    }
+    const settle = () => {
+      if (sheet.contains(document.activeElement)) document.getElementById('mobileNavMenu')?.focus()
+      sheet.setAttribute('inert', '')
+      sheet.scrollTop = 0
+    }
+    if (!sheetEverOpened.current) {
+      settle()
+      return undefined
+    }
+    const timer = setTimeout(settle, 450)
     return () => clearTimeout(timer)
   }, [isMenuOpen])
 

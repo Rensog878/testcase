@@ -22,6 +22,17 @@ const TransitionLink = forwardRef(function TransitionLink({ to, onClick, ...prop
     const next = new URL(event.currentTarget.href, window.location.href)
     if (next.pathname === window.location.pathname && next.search === window.location.search) return
     event.preventDefault()
+    // From the open Menu, the sheet's own slide-out is the transition. As a
+    // view transition the open sheet was frozen into the old page's snapshot
+    // and stayed on screen, not moving, until the next page had rendered
+    // (filmed: ~750ms at full speed), then vanished without sliding away.
+    // The slide starts on the next frame and the page changes on the one
+    // after: once started it runs off the main thread, so rendering the new
+    // page no longer holds it back.
+    if (document.body.classList.contains('menu-open')) {
+      requestAnimationFrame(() => requestAnimationFrame(() => navigate(to)))
+      return
+    }
     startPageTransition(() => flushSync(() => navigate(to)))
   }
 

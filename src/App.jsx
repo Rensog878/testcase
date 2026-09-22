@@ -14,6 +14,7 @@ import IngredientDetail from './pages/IngredientDetail'
 import MobileBottomNav from './components/home/MobileBottomNav'
 import StoreTopChrome from './components/home/StoreTopChrome'
 import PageTranslator from './components/PageTranslator'
+import VoiceAnywhere from './components/VoiceAnywhere'
 import Storefront from './storefront/Storefront'
 import StoreLayout from './layouts/StoreLayout'
 import StorePopups from './storefront/StorePopups'
@@ -184,6 +185,7 @@ export default function App() {
       {storePage && <StorePopups />}
       <StoreBottom />
       <StoreTranslation />
+      {storePage && <VoiceAnywhere />}
     </CheckoutProvider>
     </CmsProvider>
   )

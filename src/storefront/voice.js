@@ -18,12 +18,14 @@ export const speechLang = (mode, siteLang) => (mode === 'text' && siteLang === '
 const WORD_DIGITS = { zero: '0', oh: '0', o: '0', one: '1', two: '2', to: '2', too: '2', three: '3', four: '4', for: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9' }
 const REPEAT = { double: 2, triple: 3 }
 
-// "nine eight double seven 6 5" -> "987765". Keeps only digits.
-export function spokenDigits(text) {
-  const words = String(text).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)
+// "nine eight double seven 6 5" -> "987765". Keeps only digits, and with
+// decimal one point too ("two point five", "2.5" -> "2.5").
+export function spokenDigits(text, { decimal = false } = {}) {
+  const words = String(text).toLowerCase().replace(/(\d)\.(\d)/g, '$1 point $2').replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)
   let out = ''
   let repeat = 1
   for (const word of words) {
+    if (decimal && (word === 'point' || word === 'dot')) { if (!out.includes('.')) out += '.'; continue }
     if (REPEAT[word]) { repeat = REPEAT[word]; continue }
     const digits = /^\d+$/.test(word) ? word : WORD_DIGITS[word]
     if (!digits) continue

@@ -1,0 +1,45 @@
+/* The floating mic of VoiceAnywhere.jsx, on the right edge of whichever text
+   field has focus, on every page. Unlayered and on <body>, so neither the
+   store's nor the staff dashboards' styles reach it. Above popups and sheets. */
+.sb-voice-float {
+  position: fixed;
+  z-index: 2147483000;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d3ddd8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0B7A4B;
+  font-size: 0.9rem;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(20, 35, 28, 0.14);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.sb-voice-float:hover {
+  background: #EEF6F1;
+}
+.sb-voice-float:focus-visible {
+  outline: 3px solid rgba(9, 101, 64, 0.55);
+  outline-offset: 1px;
+}
+.sb-voice-float.is-listening {
+  border-color: #DC2626;
+  background: #DC2626;
+  color: #ffffff;
+  animation: sb-voice-float-pulse 1.4s ease-out infinite;
+}
+@keyframes sb-voice-float-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45); }
+  100% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-voice-float.is-listening {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+  }
+}

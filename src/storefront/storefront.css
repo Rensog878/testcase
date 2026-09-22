@@ -8433,6 +8433,108 @@ html.sb-guest-lock {
 }
 
 /* ==========================================================================
+   7o. USE MY CURRENT LOCATION (checkout address, LocateButton in CheckoutSheet.jsx)
+   A dashed call-to-action card above the address fields; once a point is
+   attached it becomes a quiet green confirmation row.
+   ========================================================================== */
+.sb-portal #checkoutSheet .co-locate {
+  margin: 4px 0 14px;
+}
+.sb-portal #checkoutSheet .co-locate-btn {
+  width: 100%;
+  min-height: 56px;
+  margin: 0;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px dashed var(--co-green);
+  border-radius: 12px;
+  background: #F2F8F4;
+  color: var(--co-green);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.sb-portal #checkoutSheet .co-locate-btn:hover:not(:disabled) {
+  background: #E6F2EA;
+}
+.sb-portal #checkoutSheet .co-locate-btn:focus-visible {
+  outline: var(--co-focus);
+  outline-offset: 2px;
+}
+.sb-portal #checkoutSheet .co-locate-btn:disabled {
+  cursor: default;
+}
+.sb-portal #checkoutSheet .co-locate-btn > i {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 1.05rem;
+}
+.sb-portal #checkoutSheet .co-locate-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.3;
+}
+.sb-portal #checkoutSheet .co-locate-text strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.sb-portal #checkoutSheet .co-locate-sub {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--co-muted);
+}
+.sb-portal #checkoutSheet .co-locate-sub .notranslate {
+  white-space: nowrap;
+}
+.sb-portal #checkoutSheet .co-locate-done {
+  min-height: 52px;
+  padding: 6px 8px 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--co-line-soft);
+  border-radius: 12px;
+  background: #F2F8F4;
+  color: var(--co-ink);
+}
+.sb-portal #checkoutSheet .co-locate-done > i {
+  flex: none;
+  color: var(--co-green);
+  font-size: 1.15rem;
+}
+.sb-portal #checkoutSheet .co-locate-done .co-locate-text {
+  flex: 1;
+}
+.sb-portal #checkoutSheet .co-locate-done .co-link {
+  align-self: center;
+  flex: none;
+  padding: 0 6px;
+}
+.sb-portal #checkoutSheet .co-locate-error {
+  margin: 8px 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--co-error);
+}
+.sb-portal #checkoutSheet .co-locate-error i {
+  margin-top: 3px;
+}
+
+/* ==========================================================================
    DESKTOP 2026 — THE AUTHORITATIVE LAYER (>=769px / >=1025px)
    --------------------------------------------------------------------------
    One block, last in the file, so it wins over the older scattered

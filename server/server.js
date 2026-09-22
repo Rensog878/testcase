@@ -23,6 +23,7 @@ import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifica
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
+import { cleanGeo } from './geo.js';
 import {
   HttpError,
   sendError,
@@ -1355,6 +1356,9 @@ function readCustomerDetails(source) {
     district: cleanText(source?.district, 80),
     state: cleanText(source?.state, 80),
   };
+  // Optional: the GPS point from "Use my current location" (geo.js).
+  const geo = cleanGeo(source?.geo);
+  if (geo) addressDetails.geo = geo;
   const address = [addressDetails.doorNo, addressDetails.street, addressDetails.area, addressDetails.taluk, addressDetails.district, addressDetails.state, addressDetails.pincode].filter(Boolean).join(', ');
   if (!customerName || !customerPhone || !addressDetails.doorNo || !addressDetails.street || !addressDetails.area || !addressDetails.taluk || !/^\d{6}$/.test(addressDetails.pincode) || !addressDetails.district || !addressDetails.state) {
     throw new HttpError(400, 'Please complete your name, mobile number, and every delivery address field.');

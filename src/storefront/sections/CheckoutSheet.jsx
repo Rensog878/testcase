@@ -6,6 +6,7 @@ import { productImage, rupees, useFallbackImage } from '../data'
 import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
 import VoiceButton from './VoiceButton'
+import { addressAt, currentPosition, locationSupported } from '../location'
 
 // The floating checkout: Basket → Delivery details → Payment → Order
 // confirmed, in one popup over whichever store page the customer is on
@@ -196,6 +197,65 @@ function BasketStep({ cart, cartReady, actions }) {
   )
 }
 
+// "Use my current location": the GPS point goes on the address (and the
+// order), and the address found there fills the fields. The door number is
+// never guessed, and a street already typed is kept. Styles: storefront.css 7o.
+function LocateButton({ fields, busy, actions }) {
+  const [status, setStatus] = useState('') // '' | 'gps' | 'lookup'
+  const [problem, setProblem] = useState('')
+  if (!locationSupported) return null
+  const working = Boolean(status)
+
+  const locate = async () => {
+    if (working) return
+    setProblem('')
+    setStatus('gps')
+    try {
+      const point = await currentPosition()
+      actions.setField('geo', point)
+      setStatus('lookup')
+      const found = await addressAt(point)
+      Object.entries(found).forEach(([key, value]) => {
+        if (key === 'street' && String(fields.street || '').trim()) return
+        actions.setField(key, value)
+      })
+      if (Object.keys(found).length) showToast('Address filled from your location. Please check it and add your door number.', 'success')
+      else showToast('Location saved. Please type your address below.', 'info')
+      requestAnimationFrame(() => document.getElementById('co-doorNo')?.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+    } catch (err) {
+      setProblem(err.message)
+    } finally {
+      setStatus('')
+    }
+  }
+
+  const geo = fields.geo
+  return (
+    <div className="co-locate">
+      {geo && !working ? (
+        <div className="co-locate-done" role="status">
+          <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
+          <span className="co-locate-text">
+            <strong>Location added</strong>
+            {Number.isFinite(geo.accuracy) && <span className="co-locate-sub"> Accurate to about <span className="notranslate">{geo.accuracy} m</span></span>}
+          </span>
+          <button type="button" className="co-link" disabled={busy} onClick={locate}>Update</button>
+          <button type="button" className="co-link" disabled={busy} onClick={() => actions.setField('geo', null)}>Remove</button>
+        </div>
+      ) : (
+        <button type="button" className="co-locate-btn" disabled={busy || working} onClick={locate} aria-busy={working || undefined}>
+          <i className={`fa-solid ${working ? 'fa-spinner fa-spin' : 'fa-location-crosshairs'}`} aria-hidden="true"></i>
+          <span className="co-locate-text">
+            <strong>{status === 'gps' ? 'Finding your location...' : status === 'lookup' ? 'Getting your address...' : 'Use my current location'}</strong>
+            {!working && <span className="co-locate-sub">Fills your address from GPS and helps our delivery team find you</span>}
+          </span>
+        </button>
+      )}
+      {problem && <p className="co-locate-error" role="alert"><i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {problem}</p>}
+    </div>
+  )
+}
+
 function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
   return (
     <div className="co-form">
@@ -207,6 +267,7 @@ function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
           </label>
         ))}
       </div>
+      <LocateButton fields={fields} busy={busy} actions={actions} />
       <div className="co-grid">
         {field('doorNo', 'Door no. / house no.', { enterKeyHint: 'next' })}
         {field('pincode', 'PIN code', { inputMode: 'numeric', autoComplete: 'postal-code', enterKeyHint: 'next' })}

@@ -11,6 +11,7 @@ import { hashPassword, isPasswordHash, passwordProblems, weakPasswordMessage } f
 import { matchesCrop, matchesCategory, matchesDisease } from '../src/utils/catalogUtils.js';
 import { findSameNamedProduct } from '../src/shared/productName.js';
 import { DEFAULT_PROFILE_FIELDS, cropList, normalizeProfileFields, splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
+import { cleanGeo } from './geo.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
 
@@ -916,6 +917,9 @@ class DatabaseManager {
             state: String(address.state || '').trim().slice(0, 80),
             updatedAt: new Date().toISOString()
         };
+        // Optional GPS point ("Use my current location"), checked in geo.js.
+        const geo = cleanGeo(address.geo);
+        if (geo) cleaned.geo = geo;
         // Same fields checkout requires, so a saved address can always be used to order.
         if (!cleaned.doorNo || !cleaned.street || !cleaned.area || !cleaned.taluk || !/^\d{6}$/.test(cleaned.pincode) || !cleaned.district || !cleaned.state) {
             throw inputError('INVALID_ADDRESS', 'Please complete every delivery address field.');

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
+import { gpsMapsUrl } from '../../shared/osmAddress'
 
 // API orders use the store's field names; the cards below were written for these.
 const toDeliveryCard = order => ({
@@ -117,7 +118,7 @@ export default function DeliveryDashboard() {
                   <span className={`badge ${order.status === 'Delivered' ? 'badge-green' : order.status === 'Out for Delivery' ? 'badge-orange' : 'badge-blue'}`}>{order.status}</span>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>{order.farmer}</div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '4px' }}>📍 {order.address}</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '4px' }}>📍 {order.address}{gpsMapsUrl(order) && <span className="badge badge-green" style={{ marginLeft: 6, fontSize: '0.68rem' }}>GPS pin</span>}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontWeight: 800, color: 'var(--brand-400)', fontSize: '1.1rem' }}>₹{order.amount.toLocaleString()}</div>
@@ -140,7 +141,8 @@ export default function DeliveryDashboard() {
               <div className="delivery-card-actions">
                 <div className="delivery-btn-group">
                   <a href={`tel:+91${order.phone}`} className="btn btn-secondary btn-sm">📞 Call Farmer</a>
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(order.address)}`} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm">🗺️ Navigate</a>
+                  {/* The customer's GPS pin when they shared it (exact), else the address text. */}
+                  <a href={gpsMapsUrl(order) || `https://maps.google.com/?q=${encodeURIComponent(order.address)}`} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm">🗺️ Navigate</a>
                 </div>
                 <div className="delivery-otp-row">
                   <input

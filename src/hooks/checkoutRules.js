@@ -101,6 +101,8 @@ export const initialFields = user => ({
   pincode: '',
   district: user?.district || '',
   state: STATES.includes(user?.state) ? user.state : '',
+  // { lat, lng, accuracy } from "Use my current location"; optional.
+  geo: null,
 })
 
 // A saved address in the form, keeping the contact details already there.
@@ -109,6 +111,7 @@ export function fieldsFromAddress(fields, address) {
   return {
     ...fields,
     ...Object.fromEntries(ADDRESS_KEYS.map(key => [key, address[key] || ''])),
+    geo: address.geo || null,
     addressLabel: ADDRESS_LABELS.includes(label) ? label : fields.addressLabel,
   }
 }
@@ -149,6 +152,7 @@ export function customerDetails(fields) {
   const addressDetails = {
     label: f.addressLabel || 'Home', doorNo: f.doorNo, street: f.street, area: f.area,
     taluk: f.taluk, pincode: f.pincode, district: f.district, state: f.state,
+    ...(f.geo && { geo: f.geo }),
   }
   const address = [f.doorNo, f.street, f.area, f.taluk, f.district, f.state, f.pincode].filter(Boolean).join(', ')
   return { ...f, addressDetails, address }

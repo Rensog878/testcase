@@ -1,52 +1,50 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { StoreContext } from '../StoreContext'
+import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
 import { setBodyFlag } from '../bodyFlags'
 import { showToast } from '../toast'
-import { MOBILE_RE, guestPromptSnoozed, readGuestContact, saveGuestContact, snoozeGuestPrompt } from '../guestContact'
-import Modal from './Modal'
+import { MOBILE_RE, readGuestContact, saveGuestContact } from '../guestContact'
 
-// "Stay connected": a visitor who is not signed in, scrolling down any store
-// page, is asked once for their name and mobile number. It never blocks the
-// page: closing it (×, "Maybe later", Escape, a tap outside, a swipe down)
-// lets them carry on and it stays away for a week. What they give is kept on
-// this device (guestContact.js) and fills in the sign-in card later.
+// "Stay connected": a visitor who is not signed in and has not given their
+// details is stopped on their first scroll down any store page by a floating
+// card asking for their name and mobile number. It is compulsory: there is no
+// close button, Escape, tap-outside or swipe, and the page stays locked
+// (html.sb-guest-lock) until the details are valid. Someone who already has an
+// account can open the sign-in card from it instead; closing that without
+// signing in brings this card back. What they give is kept on this device
+// (guestContact.js) and fills in the sign-in card later.
 // Styles: storefront.css, "7m. STAY CONNECTED CARD".
 
-const ID = 'guestContactModal'
-// How far down before it appears: about one screen, a real scroll but not a
-// share of the page (the home page is ~9 screens long on a phone).
-const MIN_SCROLL = 400
-const SCREEN_SHARE = 0.8
+// A real scroll, not the few pixels a tap can nudge the page.
+const TRIGGER_SCROLL = 60
+const LOCK_CLASS = 'sb-guest-lock'
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled])'
 
-// Another popup or the checkout already has the screen.
-const screenBusy = () => {
-  const body = document.body.classList
-  return body.contains('overlay-open') || document.documentElement.classList.contains('sb-scroll-lock')
-}
+// The checkout or another popup already has the screen: ask once it closes.
+const screenBusy = () => document.body.classList.contains('overlay-open') || document.documentElement.classList.contains('sb-scroll-lock')
 
 export default function GuestContactPrompt() {
   const { user, loading } = useAuth()
+  const { modals } = useCheckout()
+  const { openSignIn } = useCheckoutActions()
   const [state, setState] = useState(undefined) // undefined | 'opening' | 'open'
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [errors, setErrors] = useState({})
-  const asked = useRef(false) // once per page load at most
+  const cardRef = useRef(null)
 
   const open = Boolean(state)
-  const eligible = !loading && !user && !asked.current
+  const guest = !loading && !user
+  // The sign-in card opened from here sits on top; this one waits under it.
+  const signingIn = Boolean(modals.authModal)
 
-  // Wait for a real scroll down, then ask when nothing else is on screen.
+  // The first real scroll down, with nothing else on screen, opens the card.
   useEffect(() => {
-    if (!eligible || readGuestContact() || guestPromptSnoozed()) return undefined
+    if (!guest || open || readGuestContact()) return undefined
     let frame = 0
     const check = () => {
       frame = 0
-      const room = document.documentElement.scrollHeight - window.innerHeight
-      const needed = Math.min(Math.max(MIN_SCROLL, window.innerHeight * SCREEN_SHARE), room - 40)
-      if (room <= 0 || window.scrollY < needed || screenBusy()) return
-      asked.current = true
-      window.removeEventListener('scroll', onScroll)
+      if (window.scrollY < TRIGGER_SCROLL || screenBusy()) return
       setState('opening')
       requestAnimationFrame(() => requestAnimationFrame(() => setState(s => (s ? 'open' : s))))
     }
@@ -56,39 +54,56 @@ export default function GuestContactPrompt() {
       window.removeEventListener('scroll', onScroll)
       if (frame) cancelAnimationFrame(frame)
     }
-  }, [eligible])
+  }, [guest, open])
 
-  // Signed in meanwhile (another tab, the sign-in card): nothing left to ask.
+  // Signed in (from this card, another tab or a checkout link): nothing to ask.
   useEffect(() => { if (user) setState(undefined) }, [user])
 
+  // While open the page does not scroll, and the rest of the store knows a popup is up.
   useEffect(() => {
-    setBodyFlag('overlay-open', 'guest-contact', open)
-    return () => setBodyFlag('overlay-open', 'guest-contact', false)
-  }, [open])
+    document.documentElement.classList.toggle(LOCK_CLASS, open)
+    setBodyFlag('overlay-open', 'guest-contact', open && !signingIn)
+    return () => {
+      document.documentElement.classList.remove(LOCK_CLASS)
+      setBodyFlag('overlay-open', 'guest-contact', false)
+    }
+  }, [open, signingIn])
 
-  const close = ({ saved = false } = {}) => {
-    if (!saved) snoozeGuestPrompt()
-    setState(undefined)
-  }
-
+  // Escape does nothing and Tab stays inside the card; it cannot be left, only filled in.
   useEffect(() => {
-    if (!open) return undefined
+    if (!open || signingIn) return undefined
     const onKey = event => {
-      if (event.key !== 'Escape') return
-      event.preventDefault()
-      event.stopPropagation()
-      close()
+      const card = cardRef.current
+      if (!card) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = [...card.querySelectorAll(FOCUSABLE)]
+      if (!items.length) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (!card.contains(document.activeElement)) {
+        event.preventDefault()
+        first.focus()
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [open])
+  }, [open, signingIn])
 
-  // First field focused once it has slid in (not on phones: no keyboard jump).
+  // First field focused once it has appeared (not on phones: no keyboard jump).
   useEffect(() => {
-    if (state === 'open' && window.matchMedia('(hover: hover)').matches) document.getElementById('guestName')?.focus({ preventScroll: true })
-  }, [state])
-
-  const store = useMemo(() => ({ closeModal: () => close() }), [])
+    if (state === 'open' && !signingIn && window.matchMedia('(hover: hover)').matches) document.getElementById('guestName')?.focus({ preventScroll: true })
+  }, [state, signingIn])
 
   const check = () => {
     const next = {}
@@ -106,25 +121,20 @@ export default function GuestContactPrompt() {
       return
     }
     saveGuestContact({ name, phone })
-    close({ saved: true })
+    setState(undefined)
     showToast(`Thank you, ${name.trim()}!`, 'success')
   }
 
   if (!state) return null
 
+  const overlayClass = ['modal-overlay', state === 'opening' && 'is-opening', state === 'open' && !signingIn && 'active'].filter(Boolean).join(' ')
   return (
-    <StoreContext.Provider value={store}>
-      <Modal
-        id={ID}
-        state={state}
-        cardClassName="modal-card guest-card"
-        cardProps={{ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'guestTitle' }}
-        closeProps={{ 'aria-label': 'Close' }}
-      >
+    <div className={overlayClass} id="guestContactModal">
+      <div ref={cardRef} className="modal-card guest-card" role="dialog" aria-modal="true" aria-labelledby="guestTitle" aria-describedby="guestLead">
         <div className="guest-head">
           <span className="guest-badge" aria-hidden="true"><i className="fa-solid fa-seedling"></i></span>
           <h2 id="guestTitle" className="guest-title">Stay connected with us</h2>
-          <p className="guest-lead">Share your name and mobile number. Next time you sign in or create an account, we fill them in for you.</p>
+          <p id="guestLead" className="guest-lead">Share your name and mobile number to continue browsing.</p>
         </div>
 
         <form className="auth-form guest-form" onSubmit={submit} noValidate>
@@ -160,11 +170,14 @@ export default function GuestContactPrompt() {
             <button type="submit" className="auth-cta">
               <i className="fa-solid fa-check" aria-hidden="true"></i> Continue browsing
             </button>
-            <button type="button" className="auth-link guest-later" onClick={() => close()}>Maybe later</button>
           </div>
+          <p className="guest-signin">
+            <span>Already have an account?</span>{' '}
+            <button type="button" className="auth-link" onClick={() => openSignIn()}>Sign In</button>
+          </p>
           <p className="guest-privacy"><i className="fa-solid fa-lock" aria-hidden="true"></i> Saved only on this device. No messages are sent.</p>
         </form>
-      </Modal>
-    </StoreContext.Provider>
+      </div>
+    </div>
   )
 }

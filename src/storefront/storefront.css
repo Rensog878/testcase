@@ -3881,12 +3881,12 @@ body.sb-home-active {
      floating centred card (see "ENQUIRY SHEET" below), and it cannot be swiped
      down to close, so it also skips the grab handle. :where() carries no
      specificity, so excluding it leaves every other modal's cascade untouched. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay:where(:not(#enquiryModal)) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay:where(:not(#enquiryModal, #guestContactModal)) {
     align-items: flex-end !important;
     padding: 0 !important;
     transition: opacity 0.2s ease, visibility 0.2s ease;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card:where(:not(.enq-card)) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card:where(:not(.enq-card, .guest-card)) {
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 22px 22px 0 0 !important;
@@ -3897,11 +3897,11 @@ body.sb-home-active {
     transition: transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) !important;
     overscroll-behavior: contain;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay.active .modal-card:where(:not(.enq-card)) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-overlay.active .modal-card:where(:not(.enq-card, .guest-card)) {
     transform: translateY(0) !important;
   }
   /* Grab handle: signals the sheet can be swiped down to close. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card:where(:not(.enq-card))::before {
+  :is(body.sb-home-active .sb-home, .sb-portal) .modal-card:where(:not(.enq-card, .guest-card))::before {
     content: '';
     position: absolute;
     top: 8px;
@@ -8302,10 +8302,20 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 .sb-portal #guestContactModal .guest-form .auth-actions::before {
   content: none;
 }
-.sb-portal #guestContactModal .guest-later {
-  align-self: center;
+.sb-portal #guestContactModal .guest-signin {
+  margin: 12px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2px 6px;
+  font-size: 0.88rem;
+  color: #56675E;
+}
+.sb-portal #guestContactModal .guest-signin .auth-link {
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 6px;
+  font-weight: 700;
 }
 .sb-portal #guestContactModal .guest-privacy {
   margin: 6px 0 0;
@@ -8317,9 +8327,27 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   color: #6B7B72;
   text-align: center;
 }
+/* Compulsory: the page behind does not scroll until the card is filled in. */
+html.sb-guest-lock {
+  overflow: hidden;
+}
+.sb-portal #guestContactModal {
+  z-index: 10001;
+  overscroll-behavior: contain;
+}
+/* A floating card on phones too (not the bottom sheet other popups use):
+   those sheet rules skip #guestContactModal / .guest-card. */
 @media (max-width: 768px) {
+  .sb-portal #guestContactModal {
+    align-items: center;
+    padding: 16px;
+  }
   .sb-portal #guestContactModal .guest-card {
-    padding: 24px 18px calc(16px + env(safe-area-inset-bottom));
+    width: 100%;
+    max-height: calc(100dvh - 32px);
+    padding: 24px 18px 18px;
+    border-radius: 20px;
+    overscroll-behavior: contain;
   }
   .sb-portal #guestContactModal .guest-title {
     font-size: 1.18rem;

@@ -1,13 +1,10 @@
-// A visitor's name and mobile number, given in the "Stay connected" card
+// A visitor's name and mobile number, required by the "Stay connected" card
 // (sections/GuestContactPrompt.jsx) before they have an account. Kept on this
 // device only, so the sign-in card can fill them in later: the number on its
 // first step, the name on "Your details". Nothing is sent to the server here;
 // the number is proved by the WhatsApp code at sign-in, as always.
 
 const CONTACT_KEY = 'sb_guest_contact'
-const SNOOZE_KEY = 'sb_guest_prompt_snoozed_until'
-// Closed without filling it in: asked again after this long.
-const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000
 
 export const MOBILE_RE = /^[6-9]\d{9}$/
 
@@ -29,10 +26,3 @@ export function saveGuestContact({ name, phone }) {
   } catch { /* private mode: the card simply asks again next visit */ }
 }
 
-export function snoozeGuestPrompt() {
-  try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + SNOOZE_MS)) } catch { /* private mode */ }
-}
-
-export function guestPromptSnoozed() {
-  try { return Number(localStorage.getItem(SNOOZE_KEY) || 0) > Date.now() } catch { return false }
-}

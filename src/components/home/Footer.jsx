@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Facebook, Instagram, MessageCircle, Youtube, ShieldCheck, Truck, LockKeyhole, Headphones, Leaf, ArrowUpRight } from 'lucide-react'
+import { Mail, Phone, MapPin, Facebook, Instagram, MessageCircle, Youtube, ShieldCheck, Truck, LockKeyhole, Headphones, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FooterColumn from '../FooterColumn'
 import { socialLinksFrom } from '../../shared/socialLinks'
@@ -122,9 +122,9 @@ export default function Footer() {
 
       <div className="public-footer-grid">
         <div className="public-footer-brand">
-          <Link to="/" className="public-footer-logo" aria-label="Sathyam Agro Mart home">
-            <span className="public-footer-logo-mark" aria-hidden="true"><Leaf size={22} strokeWidth={2.2} /></span>
-            <span className="public-footer-logo-name">SATHYAM <span>AGRO MART</span></span>
+          <Link to="/" className="public-footer-logo">
+            <img className="public-footer-logo-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" />
+            <img className="public-footer-logo-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" />
           </Link>
           <p>{brandLine}</p>
           <p className="public-footer-brand-more">{brandMore}</p>

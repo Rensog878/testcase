@@ -10,6 +10,7 @@ import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
 import { useVoiceInput, voiceSupported } from '../voice'
 import { cropList } from '../../shared/profileFieldRules'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
+import HomeLogoLink from '../../components/home/HomeLogoLink'
 import { cmsText, cmsTickerLines } from '../../hooks/useCmsSettings'
 
 export const TICKER_ITEMS = (
@@ -132,13 +133,13 @@ export const Header = memo(function Header(props) {
   return (
     <header className="header-main">
       <div className="container header-grid">
-        <a href="#" className="logo-box">
+        <HomeLogoLink className="logo-box">
           <div className="logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></div>
           <div>
             <div className="logo-text has-brand-wordmark"><img className="brand-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" /></div>
 
           </div>
-        </a>
+        </HomeLogoLink>
 
         <div className="header-search">
           <input

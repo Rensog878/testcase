@@ -23,6 +23,13 @@ export const SHOP_CATEGORIES = [
 // "Best Selling" still read from one - which is why that section rendered a
 // heading and an empty carousel on every device. Nothing imports them now.
 
+// Pictures for categories that have no SHOP_CATEGORIES tile of their own.
+// Nematicide used to borrow the fungicide picture, so the two looked the same.
+export const EXTRA_CATEGORY_ICONS = {
+  nematicide: 'https://media.bighaat.com/categories/bio_nematicides_ct.webp',
+}
+export const FALLBACK_CATEGORY_ICON = 'https://media.bighaat.com/categories/Brands_icon.webp'
+
 export const CROPS_LIST = [
   { id: 'chilli', name: 'Green Chilli', cropCode: 'Chilli', image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=240&auto=format&fit=crop&q=80', popularIssues: 'Thrips, Mites, Fruit Rot, Dieback' },
   { id: 'tomato', name: 'Tomato', cropCode: 'Tomato', image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=240&auto=format&fit=crop&q=80', popularIssues: 'Early/Late Blight, Pinworm, Leaf Miner' },

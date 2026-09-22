@@ -1,6 +1,7 @@
 import { Mail, Phone, MapPin, Facebook, Instagram, MessageCircle, Youtube, ShieldCheck, Truck, LockKeyhole, Headphones, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FooterColumn from '../FooterColumn'
+import HomeLogoLink from './HomeLogoLink'
 import { socialLinksFrom } from '../../shared/socialLinks'
 import { useCms } from '../../context/CmsContext'
 import { cmsText } from '../../hooks/useCmsSettings'
@@ -122,10 +123,10 @@ export default function Footer() {
 
       <div className="public-footer-grid">
         <div className="public-footer-brand">
-          <Link to="/" className="public-footer-logo">
+          <HomeLogoLink className="public-footer-logo">
             <img className="public-footer-logo-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" />
             <img className="public-footer-logo-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" />
-          </Link>
+          </HomeLogoLink>
           <p>{brandLine}</p>
           <p className="public-footer-brand-more">{brandMore}</p>
           <p className="public-footer-follow">Follow us</p>

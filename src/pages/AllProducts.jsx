@@ -18,6 +18,8 @@ import {
   CROPS_LIST,
   PESTS_AND_DISEASES,
   NUTRIENTS_LIST,
+  EXTRA_CATEGORY_ICONS,
+  FALLBACK_CATEGORY_ICON,
 } from '../data/allProductsData'
 
 // This page has its own floating button (the advisory one below), bottom
@@ -317,10 +319,13 @@ export default function AllProducts() {
   // Dynamic categories merging admin categories with default shop categories
   const dynamicCategories = useMemo(() => {
     const adminCats = catalogOptions?.categories || []
-    const existing = new Set(SHOP_CATEGORIES.map(c => c.filterCategory.toLowerCase()))
-    
+    // A tile already covers an admin category when its filter would list those
+    // products (aliases included): "Fertilizer" is Nutrients' Crop Nutrition,
+    // and used to get a second tile of its own showing the same products.
+    const covered = cat => SHOP_CATEGORIES.some(c => matchesCategory(cat, c.filterCategory))
+
     const customAdminItems = adminCats
-      .filter(cat => cat && cat !== 'All' && !existing.has(cat.toLowerCase()))
+      .filter(cat => cat && cat !== 'All' && !covered(cat))
       .map(cat => ({
         id: `admin-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`,
         name: cat,
@@ -328,7 +333,7 @@ export default function AllProducts() {
         bg: '#ecfdf5',
         border: '#a7f3d0',
         textColor: '#047857',
-        image: 'https://media.bighaat.com/categories/fungicides_ct.webp'
+        image: EXTRA_CATEGORY_ICONS[cat.toLowerCase()] || FALLBACK_CATEGORY_ICON
       }))
 
     return [...SHOP_CATEGORIES, ...customAdminItems]

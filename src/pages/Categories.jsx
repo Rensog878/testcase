@@ -6,7 +6,7 @@ import {
   ShieldCheck, PhoneCall
 } from 'lucide-react'
 import { CATEGORIES } from '../storefront/data'
-import { SHOP_CATEGORIES } from '../data/allProductsData'
+import { SHOP_CATEGORIES, EXTRA_CATEGORY_ICONS, FALLBACK_CATEGORY_ICON } from '../data/allProductsData'
 import { matchesCategory } from '../utils/catalogUtils'
 import useCatalogProducts from '../hooks/useCatalogProducts'
 
@@ -19,7 +19,8 @@ import useCatalogProducts from '../hooks/useCatalogProducts'
 // products in each of those categories.
 
 const iconFor = name => SHOP_CATEGORIES.find(c => matchesCategory(c.filterCategory, name))?.image
-  || 'https://media.bighaat.com/categories/fungicides_ct.webp'
+  || EXTRA_CATEGORY_ICONS[name.toLowerCase()]
+  || FALLBACK_CATEGORY_ICON
 
 const CATEGORIES_DATA = CATEGORIES.filter(value => value !== 'All').map(value => ({
   id: value,

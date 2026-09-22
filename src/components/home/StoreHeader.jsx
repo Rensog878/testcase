@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useBasket, useCheckoutActions } from '../../hooks/useCheckout'
-import TransitionLink from './TransitionLink'
+import HomeLogoLink from './HomeLogoLink'
 
 // Phones: the header row - logo, language, account, basket - drawn once above
 // every store page (StoreTopChrome in App.jsx), so it stays in place between
@@ -61,12 +61,12 @@ export default function StoreHeader() {
   return (
     <header className="sb-store-head">
       <div className="sb-store-head-row">
-        <TransitionLink to="/" className="sb-store-logo">
+        <HomeLogoLink className="sb-store-logo">
           <span className="sb-store-logo-icon has-brand-mark"><img className="brand-mark" src="/assets/brand/logo-mark.png" alt="" width="512" height="512" /></span>
           <span className="sb-store-logo-words">
             <span className="sb-store-logo-text has-brand-wordmark"><img className="brand-wordmark" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart" width="1200" height="254" /></span>
           </span>
-        </TransitionLink>
+        </HomeLogoLink>
 
         <div className="sb-store-head-actions">
           <button

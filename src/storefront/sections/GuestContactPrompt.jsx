@@ -56,8 +56,14 @@ export default function GuestContactPrompt() {
     }
   }, [guest, open])
 
-  // Signed in (from this card, another tab or a checkout link): nothing to ask.
-  useEffect(() => { if (user) setState(undefined) }, [user])
+  // Signed in (from this card, another tab or a checkout link): nothing to ask,
+  // and this phone counts as collected, so signing out never locks it again.
+  useEffect(() => {
+    if (!user) return
+    setState(undefined)
+    const phone = String(user.phone || user.mobile || '').replace(/\D/g, '').slice(-10)
+    if (!readGuestContact() && MOBILE_RE.test(phone)) saveGuestContact({ name: user.name || '', phone })
+  }, [user])
 
   // While open the page does not scroll, and the rest of the store knows a popup is up.
   useEffect(() => {

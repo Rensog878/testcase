@@ -904,6 +904,7 @@ window.SB_LANG_TA = {
     'Cash on Delivery': 'டெலிவரியின் போது பணம்',
     'Pay online (UPI / Card': 'ஆன்லைனில் செலுத்து (UPI / கார்டு',
     'Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser': 'ஆன்லைன் பணம் Razorpay மூலம் செயலாக்கப்படுகிறது. தொகை எங்கள் சர்வரில் கணக்கிடப்படுவதால் உலாவியில் மாற்ற முடியாது',
+    'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser': 'à®à¯à®²à®¿à®µà®°à®¿à®¯à®¿à®©à¯ à®ªà¯à®¤à¯ à®ªà®£à®®à®¾à®à®à¯ à®à¯à®²à¯à®¤à¯à®¤à¯à®à¯à®à®³à¯. à®¤à¯à®à¯ à®à®à¯à®à®³à¯ à®à®°à¯à®µà®°à®¿à®²à¯ à®à®£à®à¯à®à®¿à®à®ªà¯à®ªà®à¯à®à®¿à®±à®¤à¯, à®à®©à®µà¯ à®à®¤à¯ à®ªà®¿à®°à®µà¯à®à®°à®¿à®²à¯ à®®à®¾à®±à¯à®± à®®à¯à®à®¿à®¯à®¾à®¤à¯',
     'Please complete your name, mobile number, and every delivery address field': 'பெயர், மொபைல் எண் மற்றும் அனைத்து முகவரி விவரங்களையும் நிரப்புங்கள்',
     'Could not save this address': 'இந்த முகவரியைச் சேமிக்க முடியவில்லை',
     'Order placed': 'ஆர்டர் செய்யப்பட்டது',

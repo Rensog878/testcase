@@ -871,6 +871,7 @@ window.SB_LANG_HI = {
     'Cash on Delivery': 'डिलीवरी पर नकद',
     'Pay online (UPI / Card': 'ऑनलाइन भुगतान (UPI / कार्ड',
     'Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser': 'ऑनलाइन भुगतान Razorpay से होता है। राशि हमारे सर्वर पर तय होती है, इसलिए ब्राउज़र में बदली नहीं जा सकती',
+    'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser': 'à¤à¤°à¥à¤¡à¤° à¤ªà¤¹à¥à¤à¤à¤¨à¥ à¤ªà¤° à¤¨à¤à¤¦ à¤­à¥à¤à¤¤à¤¾à¤¨ à¤à¤°à¥à¤à¥¤ à¤°à¤¾à¤¶à¤¿ à¤¹à¤®à¤¾à¤°à¥ à¤¸à¤°à¥à¤µà¤° à¤ªà¤° à¤¤à¤¯ à¤¹à¥à¤¤à¥ à¤¹à¥, à¤à¤¸à¤²à¤¿à¤ à¤¬à¥à¤°à¤¾à¤à¤à¤¼à¤° à¤®à¥à¤ à¤à¤¸à¥ à¤¬à¤¦à¤²à¤¾ à¤¨à¤¹à¥à¤ à¤à¤¾ à¤¸à¤à¤¤à¤¾',
     'Please complete your name, mobile number, and every delivery address field': 'नाम, मोबाइल नंबर और पते की सभी जानकारी भरें',
     'Could not save this address': 'यह पता सहेजा नहीं जा सका',
     'Order placed': 'ऑर्डर हो गया',

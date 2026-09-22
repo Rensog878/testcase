@@ -871,6 +871,7 @@ window.SB_LANG_TE = {
     'Cash on Delivery': 'డెలివరీ సమయంలో నగదు',
     'Pay online (UPI / Card': 'ఆన్‌లైన్ చెల్లింపు (UPI / కార్డు',
     'Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser': 'ఆన్‌లైన్ చెల్లింపులను Razorpay నిర్వహిస్తుంది. మొత్తం మా సర్వర్‌లో లెక్కించబడుతుంది కాబట్టి బ్రౌజర్‌లో మార్చలేరు',
+    'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser': 'à°à°°à±à°¡à°°à± à°à±à°°à°¿à°¨à°ªà±à°ªà±à°¡à± à°¨à°à°¦à± à°à±à°²à±à°²à°¿à°à°à°à°¡à°¿. à°®à±à°¤à±à°¤à° à°®à°¾ à°¸à°°à±à°µà°°à±âà°²à± à°²à±à°à±à°à°¿à°à°à°¬à°¡à±à°¤à±à°à°¦à°¿, à°à°¾à°¬à°à±à°à°¿ à°¦à°¾à°¨à±à°¨à°¿ à°¬à±à°°à±à°à°°à±âà°²à± à°®à°¾à°°à±à°à°²à±à°°à±',
     'Please complete your name, mobile number, and every delivery address field': 'పేరు, మొబైల్ నంబర్ మరియు అన్ని చిరునామా వివరాలు నింపండి',
     'Could not save this address': 'ఈ చిరునామా దాచలేకపోయాం',
     'Order placed': 'ఆర్డర్ చేయబడింది',

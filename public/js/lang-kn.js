@@ -871,6 +871,7 @@ window.SB_LANG_KN = {
     'Cash on Delivery': 'ಡೆಲಿವರಿ ವೇಳೆ ನಗದು',
     'Pay online (UPI / Card': 'ಆನ್‌ಲೈನ್ ಪಾವತಿ (UPI / ಕಾರ್ಡ್',
     'Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser': 'ಆನ್‌ಲೈನ್ ಪಾವತಿಗಳನ್ನು Razorpay ನಿರ್ವಹಿಸುತ್ತದೆ. ಮೊತ್ತವನ್ನು ನಮ್ಮ ಸರ್ವರ್‌ನಲ್ಲಿ ಲೆಕ್ಕಹಾಕುವುದರಿಂದ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಬದಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ',
+    'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser': 'à²à²°à³à²¡à²°à³ à²¤à²²à³à²ªà²¿à²¦à²¾à² à²¨à²à²¦à³ à²ªà²¾à²µà²¤à²¿à²¸à²¿. à²®à³à²¤à³à²¤à²µà²¨à³à²¨à³ à²¨à²®à³à²® à²¸à²°à³à²µà²°à³âà²¨à²²à³à²²à²¿ à²²à³à²à³à² à²¹à²¾à²à²²à²¾à²à³à²¤à³à²¤à²¦à³, à²à²¦à³à²¦à²°à²¿à²à²¦ à²à²¦à²¨à³à²¨à³ à²¬à³à²°à³à²¸à²°à³âà²¨à²²à³à²²à²¿ à²¬à²¦à²²à²¾à²¯à²¿à²¸à²²à³ à²¸à²¾à²§à³à²¯à²µà²¿à²²à³à²²',
     'Please complete your name, mobile number, and every delivery address field': 'ಹೆಸರು, ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಮತ್ತು ಎಲ್ಲಾ ವಿಳಾಸ ವಿವರಗಳನ್ನು ತುಂಬಿರಿ',
     'Could not save this address': 'ಈ ವಿಳಾಸ ಉಳಿಸಲು ಆಗಲಿಲ್ಲ',
     'Order placed': 'ಆರ್ಡರ್ ಮಾಡಲಾಗಿದೆ',

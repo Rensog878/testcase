@@ -349,7 +349,7 @@ function PaymentStep({ checkout, actions }) {
         </div>
         <p className="co-note">
           <i className="fa-solid fa-lock" aria-hidden="true"></i>
-          <span>{chosen === 'online' ? 'Pay securely with UPI, card or net banking through Razorpay. The amount is calculated on our server, so it can never be changed in the browser.' : 'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser.'}</span>
+          <span>{chosen === 'online' ? 'Online payments are processed by Razorpay. The amount is calculated on our server, so it can never be changed in the browser.' : 'Pay in cash when your order arrives. The amount is calculated on our server, so it can never be changed in the browser.'}</span>
         </p>
       </section>
     </>

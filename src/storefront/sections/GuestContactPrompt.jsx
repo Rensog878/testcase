@@ -5,6 +5,7 @@ import { setBodyFlag } from '../bodyFlags'
 import { showToast } from '../toast'
 import { MOBILE_RE, readGuestContact, saveGuestContact } from '../guestContact'
 import VoiceButton from './VoiceButton'
+import { AuthBrand } from './AuthModal'
 
 // "Stay connected": a visitor who is not signed in and has not given their
 // details is stopped on their first scroll down any store page by a floating
@@ -24,7 +25,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled])'
 // The checkout or another popup already has the screen: ask once it closes.
 const screenBusy = () => document.body.classList.contains('overlay-open') || document.documentElement.classList.contains('sb-scroll-lock')
 
-export default function GuestContactPrompt() {
+export default function GuestContactPrompt({ t }) {
   const { user, loading } = useAuth()
   const { modals } = useCheckout()
   const { openSignIn } = useCheckoutActions()
@@ -139,7 +140,7 @@ export default function GuestContactPrompt() {
     <div className={overlayClass} id="guestContactModal">
       <div ref={cardRef} className="modal-card guest-card" role="dialog" aria-modal="true" aria-labelledby="guestTitle" aria-describedby="guestLead">
         <div className="guest-head">
-          <span className="guest-badge" aria-hidden="true"><i className="fa-solid fa-seedling"></i></span>
+          <AuthBrand t={t} />
           <h2 id="guestTitle" className="guest-title">Stay connected with us</h2>
           <p id="guestLead" className="guest-lead">Share your name and mobile number to continue browsing.</p>
         </div>

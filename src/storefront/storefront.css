@@ -8255,17 +8255,12 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   text-align: center;
   margin-bottom: 18px;
 }
-.sb-portal #guestContactModal .guest-badge {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 12px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  color: var(--primary);
-  background: #EEF6F1;
+/* The sign-in card's brand block (AuthBrand), set off from the question by
+   a hairline. */
+.sb-portal #guestContactModal .guest-head .auth-brand {
+  margin: 0 0 16px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid #E6EEE9;
 }
 .sb-portal #guestContactModal .guest-title {
   margin: 0 0 6px;

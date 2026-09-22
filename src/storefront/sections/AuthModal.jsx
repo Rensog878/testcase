@@ -215,7 +215,8 @@ function ResendRow({ textId, buttonId, left, sending, sendingLabel, onResend }) 
 }
 
 // The store brand, as in the header. Not a link, so it takes no Tab stop.
-function AuthBrand({ t }) {
+// Also heads the "Stay connected" card (GuestContactPrompt.jsx).
+export function AuthBrand({ t }) {
   return (
     <div className="auth-brand">
       {/* Emblem and wordmark share a line, as they do on the header; the

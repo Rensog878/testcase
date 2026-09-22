@@ -121,7 +121,7 @@ export default function StorePopups() {
         <EnquirySheet />
         <WelcomeCelebration />
         <CallFab />
-        <GuestContactPrompt />
+        <GuestContactPrompt t={t} />
         <LocationPrompt />
       </div>
     </StoreContext.Provider>

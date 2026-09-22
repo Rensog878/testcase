@@ -103,7 +103,7 @@ export default function Footer() {
   const brandLine = cmsText(cms, 'footerBrand', "India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.")
   const brandMore = cmsText(cms, 'footerBrandMore', 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.')
   const phone = cmsText(cms, 'phone', '1800-425-9999')
-  const email = cmsText(cms, 'email', 'support@sathyabio.com')
+  const email = cmsText(cms, 'email', 'support@sathyamagromart.com')
   const address = cmsText(cms, 'address', 'Sathyam Agro Mart, Hyderabad, India')
   const dial = `tel:${phone.replace(/[^\d+]/g, '')}`
   const map = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`

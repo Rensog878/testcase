@@ -84,7 +84,7 @@ const DEFAULT_CONTENT = {
 
   // ── Contact & Footer ──────────────────────────────────────────────────
   phone:         '+91-98450-12345',
-  email:         'support@sathyabio.com',
+  email:         'support@sathyamagromart.com',
   address:       '14, Kavundampalayam, Coimbatore – 641030, Tamil Nadu',
   footerBrand:   "Sathyam Agro Mart is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.",
   footerBrandMore: 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.',

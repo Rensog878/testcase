@@ -8680,6 +8680,512 @@ html.sb-loc-lock {
 }
 
 /* ==========================================================================
+   7q. FOOTER 2026 (components/home/Footer.jsx, every store page)
+   Mounted outside .sb-home, so these are the footer's only rules (the old
+   ones in index.css are gone). Deep green with two soft glows, a gold
+   hairline on top, then: promise band, brand + link groups + contact cards,
+   payment chips and copyright. Phones fold the link groups (FooterColumn).
+   ========================================================================== */
+.public-site-footer {
+  --ft-gold: #fbbf24;
+  --ft-text: #d1fae5;
+  --ft-muted: #9fd8bf;
+  --ft-line: rgba(255, 255, 255, 0.1);
+  --ft-glass: rgba(255, 255, 255, 0.05);
+  --ft-width: min(1320px, calc(100% - 64px));
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--ft-text);
+  background:
+    radial-gradient(900px 420px at 8% 0%, rgba(16, 185, 129, 0.2), transparent 62%),
+    radial-gradient(720px 380px at 96% 100%, rgba(251, 191, 36, 0.09), transparent 60%),
+    linear-gradient(180deg, #064e3b 0%, #043d2f 48%, #022c22 100%);
+  font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.public-site-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, var(--ft-gold) 50%, #10b981);
+  opacity: 0.85;
+}
+.public-site-footer :where(ul) {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.public-site-footer :where(p) {
+  margin: 0;
+}
+.public-site-footer :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+.public-site-footer a:focus-visible,
+.public-footer-col-title:focus-visible {
+  outline: 2px solid var(--ft-gold);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Promise band */
+.public-footer-promises {
+  width: var(--ft-width);
+  margin: 0 auto;
+  padding: 44px 0 36px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  border-bottom: 1px solid var(--ft-line);
+}
+.public-footer-promises > li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--ft-line);
+  border-radius: 16px;
+  background: var(--ft-glass);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.public-footer-promise-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  color: #064e3b;
+  background: linear-gradient(145deg, #fde68a, #f59e0b);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.25);
+}
+.public-footer-promises strong {
+  display: block;
+  color: #fff;
+  font-family: 'Outfit', var(--script-font, sans-serif), sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: var(--script-leading, 1.3);
+}
+.public-footer-promises li > span:last-child > span {
+  display: block;
+  color: var(--ft-muted);
+  font-size: 0.8rem;
+  line-height: var(--script-leading, 1.45);
+}
+
+/* Brand, link groups, contact cards */
+.public-footer-grid {
+  width: var(--ft-width);
+  margin: 0 auto;
+  padding: 44px 0 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)) minmax(0, 1.7fr);
+  gap: 36px;
+}
+.public-footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.public-footer-logo-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #064e3b;
+  background: linear-gradient(145deg, #6ee7b7, #10b981);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+}
+.public-footer-logo-name {
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+}
+.public-footer-logo-name span {
+  color: var(--ft-gold);
+}
+.public-footer-brand p {
+  max-width: 34ch;
+  color: var(--ft-text);
+  opacity: 0.9;
+}
+.public-footer-brand .public-footer-brand-more {
+  margin-top: 8px;
+  color: var(--ft-muted);
+  font-size: 0.82rem;
+}
+.public-footer-brand .public-footer-follow {
+  margin: 22px 0 10px;
+  color: var(--ft-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.public-social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.public-social-links a {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--ft-glass);
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.public-social-links a:hover {
+  color: #064e3b;
+  background: var(--ft-gold);
+  border-color: var(--ft-gold);
+  transform: translateY(-2px);
+}
+
+.public-footer-col-title,
+.public-footer-support-title {
+  position: relative;
+  margin: 0 0 18px;
+  padding-bottom: 10px;
+  color: #fff;
+  font-family: 'Outfit', var(--script-font, sans-serif), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: var(--script-leading, 1.4);
+}
+.public-footer-col-title::before,
+.public-footer-support-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 28px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ft-gold);
+}
+.public-footer-col-body {
+  display: grid;
+  gap: 4px;
+}
+.public-footer-col-body a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+  color: var(--ft-text);
+  line-height: var(--script-leading, 1.45);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.public-footer-col-body a::before {
+  content: '';
+  width: 0;
+  height: 1.5px;
+  background: var(--ft-gold);
+  transition: width 0.2s ease;
+}
+.public-footer-col-body a:hover {
+  color: var(--ft-gold);
+}
+.public-footer-col-body a:hover::before {
+  width: 10px;
+}
+
+.public-footer-contact {
+  display: grid;
+  gap: 10px;
+}
+.public-footer-contact-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid var(--ft-line);
+  border-radius: 14px;
+  background: var(--ft-glass);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.public-footer-contact-card:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+.public-footer-contact-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.16);
+}
+.public-footer-contact-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.public-footer-contact-label {
+  color: var(--ft-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: var(--script-leading, 1.4);
+}
+.public-footer-contact-value {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: var(--script-leading, 1.4);
+  overflow-wrap: break-word;
+}
+.public-footer-contact-go {
+  flex: none;
+  color: var(--ft-muted);
+  opacity: 0.6;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.public-footer-contact-card:hover .public-footer-contact-go {
+  color: var(--ft-gold);
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+/* Payments and copyright */
+.public-footer-bottom {
+  width: var(--ft-width);
+  margin: 0 auto;
+  padding: 20px 0 26px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  border-top: 1px solid var(--ft-line);
+  color: var(--ft-muted);
+  font-size: 0.8rem;
+}
+.public-footer-pay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.public-footer-pay-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.public-footer-pay ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.public-footer-pay li {
+  padding: 4px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: var(--ft-glass);
+  color: #ecfdf5;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: var(--script-leading, 1.5);
+}
+.public-footer-credit {
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-site-footer *,
+  .public-site-footer *::before {
+    transition: none;
+  }
+  .public-social-links a:hover,
+  .public-footer-contact-card:hover,
+  .public-footer-contact-card:hover .public-footer-contact-go {
+    transform: none;
+  }
+}
+
+/* Tablets: brand across the top, three link groups, contact cards in a row. */
+@media (max-width: 1024px) {
+  .public-footer-promises {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .public-footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 28px;
+  }
+  .public-footer-brand,
+  .public-footer-support {
+    grid-column: 1 / -1;
+  }
+  .public-footer-brand p {
+    max-width: 60ch;
+  }
+  .public-footer-contact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* Touch screens: 40px link rows. */
+  .public-footer-col-body {
+    gap: 0;
+  }
+  .public-footer-col-body a {
+    min-height: 40px;
+  }
+}
+
+/* Phones: 16px sides, promises 2x2, link groups fold into 52px rows, contact
+   cards stacked. The bottom bar's room (--bottom-bar-room, the body's
+   padding) is drawn inside the footer so no light strip shows under it. */
+@media (max-width: 768px) {
+  .public-site-footer {
+    --ft-width: calc(100% - 32px);
+    padding-bottom: var(--bottom-bar-room, 0px);
+    margin-bottom: calc(-1 * var(--bottom-bar-room, 0px));
+  }
+  .public-footer-promises {
+    padding: 28px 0 24px;
+    gap: 10px;
+  }
+  .public-footer-promises > li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .public-footer-promise-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+  .public-footer-promise-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+  .public-footer-promises strong {
+    font-size: 0.9rem;
+  }
+  .public-footer-promises li > span:last-child > span {
+    font-size: 0.75rem;
+  }
+
+  .public-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 28px 0 24px;
+  }
+  .public-footer-brand {
+    padding-bottom: 22px;
+  }
+  .public-footer-brand .public-footer-brand-more {
+    display: none;
+  }
+  .public-footer-brand .public-footer-follow {
+    margin-top: 18px;
+  }
+
+  .public-footer-col {
+    border-top: 1px solid var(--ft-line);
+  }
+  .public-footer-col .public-footer-col-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 52px;
+    margin: 0;
+    padding: 12px 2px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .public-footer-col .public-footer-col-title::before {
+    display: none;
+  }
+  .public-footer-col-title:focus-visible {
+    outline-offset: -2px;
+  }
+  /* The chevron is drawn, not read out. */
+  .public-footer-col-title::after {
+    content: '\f078';
+    content: '\f078' / '';
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ft-glass);
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.68rem;
+    color: var(--ft-gold);
+    transition: transform 0.25s ease;
+  }
+  .public-footer-col.open .public-footer-col-title::after {
+    transform: rotate(180deg);
+  }
+  .public-footer-col .public-footer-col-body {
+    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+    padding: 0 2px 14px;
+  }
+  .public-footer-col.open .public-footer-col-body {
+    display: grid;
+  }
+  .public-footer-col-body a {
+    display: flex;
+    min-height: 40px;
+    padding: 8px 0;
+  }
+  .public-footer-col-body a::before {
+    display: none;
+  }
+
+  .public-footer-support {
+    padding-top: 22px;
+    border-top: 1px solid var(--ft-line);
+  }
+  .public-footer-support-title {
+    margin-bottom: 14px;
+  }
+  .public-footer-contact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Kept clear of the floating call and chat buttons on the right. */
+  .public-footer-bottom {
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 64px 24px;
+    text-align: center;
+  }
+  .public-footer-pay {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .public-footer-pay ul {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
    DESKTOP 2026 — THE AUTHORITATIVE LAYER (>=769px / >=1025px)
    --------------------------------------------------------------------------
    One block, last in the file, so it wins over the older scattered

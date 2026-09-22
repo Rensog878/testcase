@@ -1,39 +1,99 @@
-import { Mail, Phone, MapPin, Facebook, Instagram, MessageCircle, Youtube } from 'lucide-react'
+import { Mail, Phone, MapPin, Facebook, Instagram, MessageCircle, Youtube, ShieldCheck, Truck, LockKeyhole, Headphones, Leaf, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import FooterColumn from '../FooterColumn'
 import { socialLinksFrom } from '../../shared/socialLinks'
 import { useCms } from '../../context/CmsContext'
 import { cmsText } from '../../hooks/useCmsSettings'
 
-// THE footer. One copy, on every store page including the home page.
+// THE footer. One copy, on every store page including the home page, mounted
+// outside .sb-home (see Storefront.jsx). Contact details come from the CMS so
+// an admin's edits appear everywhere.
 //
-// There used to be two - this one and storefront/sections/Footer.jsx - built
-// from different markup, and they had drifted: they showed different phone
-// numbers and different addresses, so the shop gave two answers depending on
-// which page a farmer happened to be reading. This one keeps its markup and
-// takes over the other's CMS wiring, so the contact details an admin types
-// appear everywhere.
-//
-// Phones get the brand on top, the link groups as tap-to-open rows and a
-// centred bottom row. Styles: index.css, .public-site-footer.
+// Top to bottom: a band of four promises, then the brand, three link groups
+// and the contact cards, then payment methods and the copyright line.
+// Phones fold the link groups into tap-to-open rows (FooterColumn); the
+// contact cards stay open there because calling is what farmers come for.
+// Styles: storefront.css, "Footer 2026".
 
 const ICONS = { WhatsApp: MessageCircle, Facebook, YouTube: Youtube, Instagram }
 
-// Drawn in the brand block on phones and in the bottom row on wider screens;
-// the hidden copy is display: none, so each is announced once.
-function SocialLinks({ className }) {
+const PROMISES = [
+  { Icon: ShieldCheck, title: 'Genuine Products', text: '100% bio-certified' },
+  { Icon: Truck, title: 'Express Delivery', text: 'Fast dispatch across India' },
+  { Icon: LockKeyhole, title: 'Secure Payment', text: 'UPI, Cards, NetBanking, COD' },
+  { Icon: Headphones, title: '24/7 Support', text: 'Call, WhatsApp or email us' },
+]
+
+const CATEGORIES = [
+  ['Bio-Fungicides', '/categories?category=Fungicide'],
+  ['Insecticides', '/categories?category=Insecticide'],
+  ['Herbicides', '/categories?category=Herbicide'],
+  ['Bio-Stimulants', '/categories?category=Bio-Stimulant'],
+  ['Nematicides', '/categories?category=Nematicide'],
+  ['All Products', '/products'],
+]
+
+const CROPS = [
+  ['Paddy / Rice Care', '/crops?crop=Paddy%20%2F%20Rice'],
+  ['Cotton Protection', '/crops?crop=Cotton'],
+  ['Tomato & Vegetables', '/crops?crop=Vegetables'],
+  ['Sugarcane Care', '/crops?crop=Sugarcane'],
+  ['Horticulture & Fruits', '/crops?crop=Horticulture'],
+]
+
+const HELP = [
+  ['About Us', '/about-us'],
+  ['Contact Us', '/contact-us'],
+  ['My Orders', '/orders'],
+  ['Blog', '/blog'],
+  ['Privacy Policy', '/privacy-policy'],
+  ['Terms of Sale', '/terms-of-sale'],
+  ['Refund Policy', '/refund-policy'],
+]
+
+const PAYMENTS = ['UPI', 'Cards', 'NetBanking', 'Cash on Delivery']
+
+function LinkGroup({ title, links }) {
+  return (
+    <FooterColumn base="public-footer-col" title={title}>
+      <ul className="public-footer-col-body">
+        {links.map(([label, to]) => (
+          <li key={to}><Link to={to}>{label}</Link></li>
+        ))}
+      </ul>
+    </FooterColumn>
+  )
+}
+
+function SocialLinks() {
   const { cms } = useCms()
   return (
-    <div className={`public-social-links ${className}`}>
+    <div className="public-social-links">
       {socialLinksFrom(cms).map(({ name, href }) => {
         const Icon = ICONS[name]
         return (
           <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`Sathyam Agro Mart on ${name} (opens in a new tab)`}>
-            <Icon size={20} aria-hidden="true" />
+            <Icon size={18} aria-hidden="true" />
           </a>
         )
       })}
     </div>
+  )
+}
+
+// A contact row that is also the action: dial, write, or open the map.
+function ContactCard({ Icon, label, value, href, external }) {
+  return (
+    <li>
+      <a className="public-footer-contact-card" href={href} {...(external && { target: '_blank', rel: 'noopener noreferrer' })}>
+        <span className="public-footer-contact-icon" aria-hidden="true"><Icon size={18} /></span>
+        <span className="public-footer-contact-text">
+          <span className="public-footer-contact-label">{label}</span>
+          <span className="public-footer-contact-value">{value}</span>
+        </span>
+        <ArrowUpRight className="public-footer-contact-go" size={16} aria-hidden="true" />
+      </a>
+    </li>
   )
 }
 
@@ -44,96 +104,57 @@ export default function Footer() {
   const phone = cmsText(cms, 'phone', '1800-425-9999')
   const email = cmsText(cms, 'email', 'support@sathyabio.com')
   const address = cmsText(cms, 'address', 'Sathyam Agro Mart, Hyderabad, India')
+  const dial = `tel:${phone.replace(/[^\d+]/g, '')}`
+  const map = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
   return (
     <footer className="public-site-footer">
-      {/* Main Footer */}
+      <ul className="public-footer-promises">
+        {PROMISES.map(({ Icon, title, text }) => (
+          <li key={title}>
+            <span className="public-footer-promise-icon" aria-hidden="true"><Icon size={22} strokeWidth={1.8} /></span>
+            <span>
+              <strong>{title}</strong>
+              <span>{text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
       <div className="public-footer-grid">
-        {/* Brand */}
         <div className="public-footer-brand">
-          <h3>SATHYAM <span>AGRO MART</span></h3>
+          <Link to="/" className="public-footer-logo" aria-label="Sathyam Agro Mart home">
+            <span className="public-footer-logo-mark" aria-hidden="true"><Leaf size={22} strokeWidth={2.2} /></span>
+            <span className="public-footer-logo-name">SATHYAM <span>AGRO MART</span></span>
+          </Link>
           <p>{brandLine}</p>
           <p className="public-footer-brand-more">{brandMore}</p>
-          <SocialLinks className="public-footer-brand-social" />
+          <p className="public-footer-follow">Follow us</p>
+          <SocialLinks />
         </div>
 
-        <FooterColumn base="public-footer-col" title="Store Categories">
-          <ul className="public-footer-col-body">
-            <li><Link to="/categories?category=Fungicide">Bio-Fungicides</Link></li>
-            <li><Link to="/categories?category=Insecticide">Insecticides</Link></li>
-            <li><Link to="/categories?category=Herbicide">Herbicides</Link></li>
-            <li><Link to="/categories?category=Bio-Stimulant">Bio-Stimulants</Link></li>
-            <li><Link to="/categories?category=Nematicide">Nematicides</Link></li>
-          </ul>
-        </FooterColumn>
+        <LinkGroup title="Store Categories" links={CATEGORIES} />
+        <LinkGroup title="Top Crops" links={CROPS} />
+        <LinkGroup title="Help & Info" links={HELP} />
 
-        <FooterColumn base="public-footer-col" title="Top Crops">
-          <ul className="public-footer-col-body">
-            <li><Link to="/crops?crop=Paddy%20%2F%20Rice">Paddy / Rice Care</Link></li>
-            <li><Link to="/crops?crop=Cotton">Cotton Protection</Link></li>
-            <li><Link to="/crops?crop=Vegetables">Tomato & Vegetables</Link></li>
-            <li><Link to="/crops?crop=Sugarcane">Sugarcane Care</Link></li>
-            <li><Link to="/crops?crop=Horticulture">Horticulture & Fruits</Link></li>
+        <div className="public-footer-support">
+          <h4 className="public-footer-support-title">Customer Support</h4>
+          <ul className="public-footer-contact">
+            <ContactCard Icon={Phone} label="Toll Free" value={phone} href={dial} />
+            <ContactCard Icon={Mail} label="Email" value={email} href={`mailto:${email}`} />
+            <ContactCard Icon={MapPin} label="Address" value={address} href={map} external />
           </ul>
-        </FooterColumn>
-
-        <FooterColumn base="public-footer-col" title="Customer Support">
-          <ul className="public-footer-col-body public-footer-contact">
-            <li>
-              <Phone size={16} aria-hidden="true" />
-              <div>
-                <p className="public-footer-contact-label">Toll Free</p>
-                <p>{phone}</p>
-              </div>
-            </li>
-            <li>
-              <Mail size={16} aria-hidden="true" />
-              <div>
-                <p className="public-footer-contact-label">Email</p>
-                <p>{email}</p>
-              </div>
-            </li>
-            <li>
-              <MapPin size={16} aria-hidden="true" />
-              <div>
-                <p className="public-footer-contact-label">Address</p>
-                <p>{address}</p>
-              </div>
-            </li>
-          </ul>
-        </FooterColumn>
+        </div>
       </div>
 
-      <hr />
-
-      {/* Bottom Footer */}
       <div className="public-footer-bottom">
-        <div>
-          <p>© 2026 Sathyam Agro Mart. All rights reserved.</p>
+        <div className="public-footer-pay">
+          <span className="public-footer-pay-label">We accept</span>
+          <ul>
+            {PAYMENTS.map(method => <li key={method}>{method}</li>)}
+          </ul>
         </div>
-
-        <div>
-          <Link to="/privacy-policy">Privacy Policy</Link>
-          <Link to="/terms-of-sale">Terms of Sale</Link>
-          <Link to="/refund-policy">Refund Policy</Link>
-          <Link to="/about-us">About Us</Link>
-          <Link to="/contact-us">Contact Us</Link>
-          <span className="public-footer-credit">Designed by cupnsaucer</span>
-        </div>
-
-        <SocialLinks className="public-footer-bottom-social" />
-      </div>
-
-      {/* Payment Methods. One span per promise, so phones wrap between them
-          rather than start a line with "|". The ticks and bars are drawn, not
-          read out, and each promise is its own key in the language packs. */}
-      <div className="public-payment-strip">
-        <p>
-          <span><span aria-hidden="true">{'✓ '}</span>100% Secure Payment (UPI, COD, NetBanking)</span>
-          <span className="public-payment-sep" aria-hidden="true">{' | '}</span>
-          <span><span aria-hidden="true">{'✓ '}</span>Express Delivery</span>
-          <span className="public-payment-sep" aria-hidden="true">{' | '}</span>
-          <span><span aria-hidden="true">{'✓ '}</span>24/7 Support</span>
-        </p>
+        <p className="public-footer-copy">© 2026 Sathyam Agro Mart. All rights reserved.</p>
+        <p className="public-footer-credit">Designed by cupnsaucer</p>
       </div>
     </footer>
   )

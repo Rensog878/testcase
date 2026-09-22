@@ -107,20 +107,24 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" htmlFor="loginMobile">Mobile Number</label>
+              <label className="form-label" htmlFor="loginMobile">Mobile Number or Email</label>
               <div className="input-group">
                 <span className="input-icon"><Smartphone size={16} strokeWidth={2} aria-hidden="true" /></span>
+                {/* Some staff accounts have only an email, so both are accepted
+                    (the server looks either up). Digits stay a 10-digit number. */}
                 <input
                   id="loginMobile"
-                  type="tel"
-                  inputMode="numeric"
+                  type="text"
                   autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   className="form-input"
-                  placeholder="Enter your mobile number"
+                  placeholder="Mobile number or email"
                   value={mobile}
-                  onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  maxLength="10"
-                  pattern="[0-9]{10}"
+                  onChange={e => {
+                    const v = e.target.value
+                    setMobile(/^[\d\s+-]*$/.test(v) ? v.replace(/\D/g, '').slice(0, 10) : v.trim().slice(0, 120))
+                  }}
                 />
               </div>
             </div>

@@ -24,11 +24,10 @@ import Footer from '../components/home/Footer'
 import BackToTop from './sections/BackToTop'
 import PhotoScannerModal from './sections/PhotoScannerModal'
 import Chatbot from './sections/Chatbot'
-import WelcomePoster from './sections/WelcomePoster'
 import './storefront.css'
 
 // The storefront home page (/): the catalogue and this page's own popups
-// (photo scanner, welcome poster). The basket, the floating checkout and the
+// (photo scanner). The basket, the floating checkout and the
 // sign-in card are shared with every store page (hooks/useCheckout.js, drawn
 // by StorePopups.jsx), as are the phone bottom bar and its Menu sheet
 // (MobileBottomNav) - all drawn once in App.jsx, so they stay in place when
@@ -38,41 +37,6 @@ import './storefront.css'
 
 const PAGE_TITLE = "Sathyam Agro Mart - India's Largest Online Agro Pesticides & Crop Protection Store"
 const DEFAULT_FILTERS = { crop: 'all', disease: 'all', category: 'All', form: 'all', search: '' }
-
-function readLocalCms() {
-  try { return JSON.parse(localStorage.getItem('sathya_cms') || '{}') } catch { return {} }
-}
-
-// Two things need the CMS settings; they share one request per visit.
-let cmsSettingsRequest = null
-function loadCmsSettings() {
-  if (!cmsSettingsRequest) {
-    cmsSettingsRequest = fetch('/api/cms')
-      .then(response => (response.ok ? response.json() : null))
-      .then(json => (json && json.data) || {})
-      .catch(() => ({})) // local CMS settings remain available offline
-  }
-  return cmsSettingsRequest
-}
-
-// Whether the welcome poster opens on this visit (CMS audience and frequency,
-// and at most once per browser session).
-async function shouldShowWelcomePoster() {
-  const settings = { ...readLocalCms(), ...(await loadCmsSettings()) }
-  let user = null
-  try { user = JSON.parse(localStorage.getItem('sathya_user') || 'null') } catch {}
-  if (settings.popupAudience === 'farmer' && user?.role !== 'farmer') return false
-  let seen = false
-  try { seen = localStorage.getItem('sathya_popup_seen') === '1' } catch {}
-  if (settings.popupBehavior === 'firstVisit' && seen) return false
-  if (settings.popupBehavior === 'returning' && !seen) return false
-  try {
-    if (sessionStorage.getItem('sathya_popup_session') === '1') return false
-    sessionStorage.setItem('sathya_popup_session', '1')
-  } catch {}
-  try { localStorage.setItem('sathya_popup_seen', '1') } catch {}
-  return true
-}
 
 export default function Storefront() {
   const { user } = useAuth()
@@ -142,7 +106,7 @@ export default function Storefront() {
 
   const actions = useMemo(() => {
     // ---- popups ----
-    // This page's own (photo scanner, welcome poster) open here; the sign-in
+    // This page's own (photo scanner) open here; the sign-in
     // card and the checkout are the shared ones.
     const { openModal, closeModal } = modal
     const openSignIn = notice => checkout.openSignIn(notice)
@@ -263,22 +227,11 @@ export default function Storefront() {
     const previousTitle = document.title
     document.title = PAGE_TITLE
     return () => {
-      body.classList.remove('sb-home-active', 'has-bottom-nav', 'poster-open')
+      body.classList.remove('sb-home-active', 'has-bottom-nav')
       setBodyFlag('overlay-open', 'storefront', false)
       body.style.overflow = ''
       document.title = previousTitle
     }
-  }, [])
-
-  // The welcome poster decides whether to open from its own cached copy of the
-  // CMS (shouldShowWelcomePoster, above). Clearing the memo on mount keeps that
-  // decision fresh for this visit; the content itself now comes from
-  // useCmsSettings, so nothing is stored in component state here any more.
-  const loaded = useRef(false)
-  useEffect(() => {
-    if (loaded.current) return
-    loaded.current = true
-    cmsSettingsRequest = null
   }, [])
 
   useEffect(() => {
@@ -307,21 +260,6 @@ export default function Storefront() {
     }
   }, [actions])
 
-  // The welcome poster, a moment after the page appears - never on top of a
-  // popup the visitor is already using (such as sign-in from a checkout link).
-  useEffect(() => {
-    let cancelled = false
-    const timer = setTimeout(async () => {
-      if (!(await shouldShowWelcomePoster()) || cancelled) return
-      if (Object.keys(modal.modalsRef.current).length || document.body.classList.contains('overlay-open')) return
-      actions.openModal('welcomePosterModal')
-    }, 1800)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [actions, modal])
-
   // Links into the page: #scan, a section id, and ?category= / ?crop= from
   // the shared Menu sheet. #login, #account and the checkout steps belong to
   // the shared popups (hooks/useCheckout.js). Each history entry is handled
@@ -349,9 +287,8 @@ export default function Storefront() {
 
   // Body classes other styles key off (pausing the ticker behind a popup).
   useEffect(() => {
-    const blocking = filterDrawerOpen || Object.entries(modals).some(([id, value]) => id !== 'welcomePosterModal' && value)
+    const blocking = filterDrawerOpen || Object.values(modals).some(Boolean)
     setBodyFlag('overlay-open', 'storefront', blocking)
-    document.body.classList.toggle('poster-open', modals.welcomePosterModal === 'open')
   }, [modals, filterDrawerOpen])
 
   // The filter drawer is a bottom sheet, so it owns the bottom edge: the page
@@ -398,7 +335,6 @@ export default function Storefront() {
         <BackToTop />
         <PhotoScannerModal state={modals.photoScannerModal} t={t} />
         <Chatbot t={t} />
-        <WelcomePoster state={modals.welcomePosterModal} cms={cms} />
       </div>
       {/* Outside .sb-home on purpose. The footer's styles live in index.css,
           which is inside @layer app, so anything unlayered in storefront.css

@@ -82,13 +82,6 @@ const DEFAULT_CONTENT = {
   testimonial3Place: 'Horticulture Farmer, Salem (TN)',
   testimonial3Photo: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=200&q=80',
 
-  // ── Welcome Popup ─────────────────────────────────────────────────────
-  popupImage:     '',
-  popupAudience:  'all',
-  popupBehavior:  'firstVisit',
-  popupTitle:     'Welcome to the Personalized Farming Experience!',
-  popupText:      '"Welcome to the personalized farming experience that you can do farming with our expert with daily updates. We care for you!"',
-
   // ── Contact & Footer ──────────────────────────────────────────────────
   phone:         '+91-98450-12345',
   email:         'support@sathyabio.com',
@@ -258,17 +251,6 @@ const SECTIONS = [
       { key: 'testimonial3Name',  label: '👤 Testimonial 3 — Name',     type: 'input' },
       { key: 'testimonial3Place', label: '📍 Testimonial 3 — Location', type: 'input' },
       { key: 'testimonial3Photo', label: '🖼️ Testimonial 3 — Photo URL', type: 'input' },
-    ],
-  },
-  {
-    id: 'popup',
-    label: '🖼️ Welcome Popup',
-    fields: [
-      { key: 'popupImage',    label: '🖼️ Popup Image',       type: 'input' },
-      { key: 'popupAudience', label: '👨‍🌾 Popup Audience',   type: 'select', options: [['all', 'All visitors'], ['farmer', 'Farmers only']] },
-      { key: 'popupBehavior', label: '🎯 Popup Behavior',    type: 'select', options: [['firstVisit', 'First visit only'], ['returning', 'Returning visitors'], ['always', 'Every visit']] },
-      { key: 'popupTitle',    label: '📝 Popup Heading',     type: 'input' },
-      { key: 'popupText',     label: '📄 Popup Body Text',   type: 'textarea' },
     ],
   },
   ...INFO_PAGE_FIELDS.map(page => ({

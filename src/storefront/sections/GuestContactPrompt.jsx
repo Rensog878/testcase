@@ -19,10 +19,10 @@ const ID = 'guestContactModal'
 const MIN_SCROLL = 400
 const SCREEN_SHARE = 0.8
 
-// Another popup, the welcome poster or the checkout already has the screen.
+// Another popup or the checkout already has the screen.
 const screenBusy = () => {
   const body = document.body.classList
-  return body.contains('overlay-open') || body.contains('poster-open') || document.documentElement.classList.contains('sb-scroll-lock')
+  return body.contains('overlay-open') || document.documentElement.classList.contains('sb-scroll-lock')
 }
 
 export default function GuestContactPrompt() {

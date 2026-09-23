@@ -6045,6 +6045,8 @@ body.sb-home-active {
 /* The checklist opens in the flow of the form, so the sheet's own scroll
    never clips it on a short phone screen. */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-list {
+  /* Room for the sheet's pinned Save / Create button when it scrolls into view. */
+  scroll-margin-bottom: 120px;
   max-height: 248px;
   margin: 6px 0 0;
   padding: 6px;

@@ -107,6 +107,11 @@ function CropPicker({ id, title, options, value, onToggle, error }) {
     return () => document.removeEventListener('pointerdown', onOutside)
   }, [open])
   useEffect(() => { setActive(0) }, [needle])
+  // On opening, scroll the sheet so the whole list clears its pinned Save /
+  // Create button (scroll-margin-bottom in storefront.css); once, not per hover.
+  useEffect(() => {
+    if (open) requestAnimationFrame(() => listRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
+  }, [open])
   // Keeps the keyboard's option in view by scrolling the list alone:
   // scrollIntoView would scroll the sheet too and move the list under the finger.
   const revealOption = index => {

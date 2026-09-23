@@ -67,6 +67,8 @@ export default function AdminProducts() {
     price: '',
     mrp: '',
     stock: '',
+    hsnCode: '',
+    gstRate: 18,
     badge: '',
     crops: '',
     diseases: '',
@@ -198,9 +200,15 @@ export default function AdminProducts() {
   const photoList = parseImageList(form.images)
   const requiredChecks = [
     { label: 'Product title', done: Boolean(String(form.name).trim()) },
+    { label: 'Category', done: Boolean(String(form.category).trim()) },
     { label: 'Selling price', done: form.price !== '' },
     { label: 'Stock quantity', done: form.stock !== '' },
+    { label: 'HSN code', done: Boolean(String(form.hsnCode || '').trim()) },
+    { label: 'GST rate', done: form.gstRate !== undefined && form.gstRate !== '' },
+    { label: 'Suitable crops', done: Boolean(String(form.crops).trim()) },
+    { label: 'Target pests / diseases', done: Boolean(String(form.diseases).trim()) },
     { label: 'At least one photo', done: photoList.length > 0 },
+    { label: 'Product description', done: Boolean(String(form.description).trim()) },
   ]
   const requiredDone = requiredChecks.filter(c => c.done).length
   const discountPercent = Number(form.mrp) > Number(form.price) && Number(form.price) > 0
@@ -398,8 +406,8 @@ export default function AdminProducts() {
       document.getElementById('pformName')?.focus()
       return
     }
-    if (!form.name || form.stock === '') {
-      toast.error('Please fill required fields (Name, Stock)')
+    if (requiredDone < requiredChecks.length) {
+      toast.error(`Please fill required fields (${requiredChecks.filter(c => !c.done).map(c => c.label).join(', ')})`)
       return
     }
 
@@ -928,8 +936,8 @@ export default function AdminProducts() {
                   </div>
                   <div className="pform-field pform-grid-2">
                     <div>
-                      <label>Category</label>
-                      <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                      <label>Category *</label>
+                      <select required value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                         {catalogOptions.categories.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <div className="pform-adder">
@@ -1027,11 +1035,11 @@ export default function AdminProducts() {
                   <div className="pform-grid-2" style={{ marginTop: '12px' }}>
                     <div className="pform-field">
                       <label>HSN Code * <em>(Tax Classification)</em></label>
-                      <input type="text" placeholder="e.g. 3808, 3105" value={form.hsnCode || ''} onChange={e => setForm({ ...form, hsnCode: e.target.value })} />
+                      <input type="text" required placeholder="e.g. 3808, 3105" value={form.hsnCode || ''} onChange={e => setForm({ ...form, hsnCode: e.target.value })} />
                     </div>
                     <div className="pform-field">
                       <label>GST Rate (%) *</label>
-                      <select value={form.gstRate} onChange={e => setForm({ ...form, gstRate: Number(e.target.value) })}>
+                      <select required value={form.gstRate} onChange={e => setForm({ ...form, gstRate: Number(e.target.value) })}>
                         <option value={18}>18% GST (Standard Bio-Pesticide)</option>
                         <option value={12}>12% GST (Fertilizers / Micronutrients)</option>
                         <option value={5}>5% GST (Bio-Seeds / Agro Inputs)</option>
@@ -1056,8 +1064,9 @@ export default function AdminProducts() {
                   </div>
 
                   <div className="pform-field">
-                    <label>Suitable Crops <em>(comma separated)</em></label>
+                    <label>Suitable Crops * <em>(comma separated)</em></label>
                     <input
+                      required
                       placeholder="e.g. Paddy/Rice, Wheat, Cotton, Tomato"
                       value={form.crops}
                       onChange={e => setForm({ ...form, crops: e.target.value })}
@@ -1074,8 +1083,9 @@ export default function AdminProducts() {
                   </div>
 
                   <div className="pform-field">
-                    <label>Target Pests / Diseases <em>(comma separated)</em></label>
+                    <label>Target Pests / Diseases * <em>(comma separated)</em></label>
                     <input
+                      required
                       placeholder="e.g. Blast, Whitefly, Leaf Miner"
                       value={form.diseases}
                       onChange={e => setForm({ ...form, diseases: e.target.value })}
@@ -1243,8 +1253,9 @@ export default function AdminProducts() {
                     <p className="pform-hint">Use at least one photo. Select multiple files or add URLs/asset paths for the detail-page gallery and hover zoom.</p>
                   </div>
                   <div className="pform-field">
-                    <label>Product Description</label>
+                    <label>Product Description *</label>
                     <textarea
+                      required
                       rows="3"
                       placeholder="Key farmer benefits, disease target, application instructions..."
                       value={form.description}

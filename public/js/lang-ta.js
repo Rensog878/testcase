@@ -14,7 +14,7 @@ window.SB_LANG_TA = {
   keys: {
     topbar_shipping: '₹999-க்கு மேல் ஆர்டர்களுக்கு இலவச டெலிவரி',
     // Short: on phones this sits under the brand name, beside the header buttons.
-    logo_sub: 'பண்ணையிலிருந்து வீட்டிற்கு',
+    logo_sub: 'எங்கள் பண்ணைகளில் இருந்து உங்கள் வீட்டிற்கு',
     search_placeholder: 'பயிர், நோய் அல்லது மருந்து பெயரில் தேடுங்கள்...',
     search_btn: 'தேடு',
     basket_label: 'கூடை',
@@ -37,7 +37,7 @@ window.SB_LANG_TA = {
     filter_category: 'வகை',
     reset_filters: 'வடிகட்டிகளை நீக்கு',
     // Sits beside a cart icon in a narrow two-column card button.
-    add_to_cart: 'சேர்',
+    add_to_cart: 'கூடையில் சேர்',
     reviews: 'மதிப்புரைகள்',
     soil_title: 'மண் பரிசோதனை அறிக்கை ஆய்வு',
     soil_desc: 'உங்கள் ஆய்வக மண் பரிசோதனை ஆவணத்தை (PDF அல்லது படம்) பதிவேற்றுங்கள். எங்கள் AI நைட்ரஜன், பாஸ்பரஸ், பொட்டாசியம் அளவுகளைப் படித்து, ஏற்ற Sathyam Agro Mart உயிர் ஊக்கிகளைப் பரிந்துரைக்கும்.',
@@ -1102,7 +1102,7 @@ window.SB_LANG_TA = {
     'Stay updated with the latest field research, crop protection strategies, and seasonal advisories': 'சமீபத்திய வயல் ஆராய்ச்சி, பயிர் பாதுகாப்பு உத்திகள் மற்றும் பருவகால ஆலோசனைகளைத் தெரிந்துகொள்ளுங்கள்',
     'Watch on YouTube': 'யூடியூபில் பாருங்கள்',
     'Watch: Related Videos': 'பாருங்கள்: தொடர்புடைய வீடியோக்கள்',
-    'From our farms to your home': 'பண்ணையிலிருந்து வீட்டிற்கு',
+    'From our farms to your home': 'எங்கள் பண்ணைகளில் இருந்து உங்கள் வீட்டிற்கு',
     'AGRO PESTICIDE STORE': 'பண்ணையிலிருந்து வீட்டிற்கு',
     'Coming soon': 'விரைவில்',
     'Language': 'மொழி',

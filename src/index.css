@@ -12618,6 +12618,19 @@ input[type='password']::-ms-clear {
   0%, 72%  { background-position: 120% 0; }
   92%, 100% { background-position: -20% 0; }
 }
+/* Indian scripts are never letter-spaced: it pulls a letter's parts apart
+   ("எ ங் க ள்") and widens the line until the ellipsis cuts it. sloganIn
+   animates letter-spacing, and an animation beats a plain declaration, so
+   these scripts fade in without it. */
+@keyframes sloganInPlain {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: none; }
+}
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .header-slogan-text {
+  letter-spacing: 0;
+  font-size: 0.64rem;
+  animation-name: sloganInPlain, sloganSheen;
+}
 /* Nobody needs the shimmer to read the line. */
 @media (prefers-reduced-motion: reduce) {
   .header-slogan-text {

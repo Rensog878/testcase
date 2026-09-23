@@ -93,7 +93,7 @@ export const TRANSLATIONS = {
     gst: 'ஜிஎஸ்டி (18%)',
     total: 'மொத்தம்',
     freeDelivery: 'இலவச டெலிவரி',
-    addToCart: 'கூடையில் சேர்க்க',
+    addToCart: 'கூடையில் சேர்',
     inStock: 'இருப்பில் உள்ளது',
     outOfStock: 'இருப்பு இல்லை',
     searchPlaceholder: 'மருந்துகள், பயிர்களைத் தேட...',

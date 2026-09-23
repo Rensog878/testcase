@@ -12054,6 +12054,13 @@ html.sb-loc-lock {
   animation: sloganIn 900ms cubic-bezier(0.22, 1, 0.36, 1) both,
              sloganSheen 9s ease-in-out 1.6s infinite;
 }
+/* Indian scripts are never letter-spaced: it pulls a letter's parts apart
+   ("எ ங் க ள்") and widens the line until the ellipsis cuts it. */
+html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .header-slogan-text {
+  letter-spacing: 0;
+  font-size: 0.64rem;
+  animation-name: sloganInPlain, sloganSheen; /* index.css: no letter-spacing */
+}
 @media (prefers-reduced-motion: reduce) {
   :is(body.sb-home-active .sb-home, .sb-portal) .header-slogan-text {
     animation: none;

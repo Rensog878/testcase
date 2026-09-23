@@ -9806,21 +9806,15 @@ html.sb-loc-lock {
     color: var(--text-muted);
   }
 
-  /* Pack-size pills: the old row never wrapped and had no white-space
-     guard, so 2-3 longer sizes (e.g. "1 Litre", "5 Litres") ran past the
-     card's right edge into the grid gutter. Wrapping onto a second line
-     fixed the overflow but grew the card taller with every extra size;
-     scrolling keeps it to one line regardless of how many packs a product
-     has, same as a swatch row. */
+  /* Pack-size pills wrap, as on phones. A one-line row that scrolled with a
+     hidden scrollbar cut the last size ("1 Litre") at the card edge with no
+     sign there was more, so it could not be seen or chosen. Cards in a row
+     stretch to one height and keep Add to Cart at the bottom, so a second
+     line of pills does not unsettle the grid. */
   :is(body.sb-home-active .sb-home, .sb-portal) .pack-sizes-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-wrap: wrap;
     gap: var(--space-1);
     margin-bottom: var(--space-2);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .pack-sizes-row::-webkit-scrollbar {
-    display: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .pack-chip {
     flex: none;

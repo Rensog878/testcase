@@ -741,7 +741,7 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
     // weak password leaves the code usable for another try within its attempts.
     const passwordIssues = passwordProblems(password, { role: user.role || 'farmer', phone });
     if (passwordIssues.length) {
-      return res.status(400).json({ success: false, message: weakPasswordMessage(passwordIssues), passwordIssues });
+      return res.status(400).json({ success: false, message: weakPasswordMessage(passwordIssues), passwordIssues, field: 'password' });
     }
     if ((await verifyPassword(password, user.password)).ok) {
       return res.status(400).json({ success: false, message: 'Please choose a password different from your current one.' });

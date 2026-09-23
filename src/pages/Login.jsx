@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth, ROLE_HOME } from '../context/AuthContext'
 import { toast } from 'sonner'
+import PasswordError, { passwordBoxStyle } from '../components/PasswordError'
 import { Check, Eye, EyeOff, Factory, LockKeyhole, LogIn, ReceiptText, ShieldCheck, Smartphone, Truck } from 'lucide-react'
 
 // Staff sign-in (/login, and /admin when signed out). Farmers sign in on the
@@ -25,6 +26,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading]   = useState(false)
+  // Why the last sign-in failed, shown under the password box.
+  const [passwordError, setPasswordError] = useState('')
 
   useEffect(() => {
     if (location.state?.message) {
@@ -36,20 +39,23 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!mobile || !password) { toast.error('Please fill in all fields'); return }
+    if (!mobile) { toast.error('Please enter your mobile number or email'); return }
+    if (!password) { setPasswordError('Please enter your password.'); document.getElementById('loginPassword')?.focus(); return }
+    setPasswordError('')
     setLoading(true)
     try {
       const user = await login(mobile.trim(), password)
       // Right password, wrong role: do not leave that account signed in.
       if (user.role !== selectedRole) {
         logout(false)
-        toast.error(`This is not ${withArticle(roleInfo?.label || selectedRole)} account.`)
+        setPasswordError(`This is not ${withArticle(roleInfo?.label || selectedRole)} account.`)
         return
       }
       toast.success(`Welcome back, ${user.name}!`)
       navigate(ROLE_HOME[user.role] || '/', { replace: true })
     } catch (err) {
-      toast.error(err?.message || err?.response?.data?.message || 'Invalid credentials')
+      setPasswordError(err?.message || err?.response?.data?.message || 'Invalid credentials')
+      document.getElementById('loginPassword')?.focus()
     } finally {
       setLoading(false)
     }
@@ -88,7 +94,7 @@ export default function Login() {
                   role="radio"
                   aria-checked={active}
                   className={`role-chip ${active ? 'active' : ''}`}
-                  onClick={() => setSelectedRole(r.key)}
+                  onClick={() => { setSelectedRole(r.key); setPasswordError('') }}
                 >
                   <span className="role-emoji" aria-hidden="true"><r.icon size={22} strokeWidth={2} /></span>
                   <span className="role-label">{r.label}</span>
@@ -116,7 +122,7 @@ export default function Login() {
                   value={mobile}
                   onChange={e => {
                     const v = e.target.value
-                    setMobile(/^[\d\s+-]*$/.test(v) ? v.replace(/\D/g, '').slice(0, 10) : v.trim().slice(0, 120))
+                    setMobile(/^[\d\s+-]*$/.test(v) ? v.replace(/\D/g, '').slice(0, 10) : v.trim().slice(0, 120)); setPasswordError('')
                   }}
                 />
               </div>
@@ -132,13 +138,17 @@ export default function Login() {
                   className="form-input"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={e => { setPassword(e.target.value); setPasswordError('') }}
                   autoComplete="current-password"
+                  aria-invalid={passwordError ? 'true' : undefined}
+                  aria-describedby={passwordError ? 'loginPassword-error' : undefined}
+                  style={passwordBoxStyle(undefined, passwordError)}
                 />
                 <button type="button" className="input-icon input-icon-right" aria-label={showPass ? 'Hide password' : 'Show password'} onClick={() => setShowPass(!showPass)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              <PasswordError id="loginPassword" message={passwordError} />
               <div className="forgot-link-row">
                 <Link to="/forgot-password" state={{ phone: /^[6-9]\d{9}$/.test(mobile) ? mobile : '', backTo: '/admin' }} className="forgot-text-btn">
                   Forgot password?

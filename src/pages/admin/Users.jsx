@@ -6,6 +6,7 @@ import {
   Edit2, Trash2, CheckCircle2, XCircle, RefreshCw, Eye, EyeOff, MapPin, Phone, Mail
 } from 'lucide-react'
 import PasswordChecklist from '../../components/PasswordChecklist'
+import PasswordError, { passwordBoxStyle, passwordErrorFrom } from '../../components/PasswordError'
 import { generateStrongPassword, isPasswordValid, passwordPlaceholder } from '../../utils/passwordRules'
 import { normalizeProfileFields, profileValueOf } from '../../shared/profileFieldRules'
 
@@ -32,6 +33,8 @@ export default function AdminUsers() {
   const [viewOnly, setViewOnly] = useState(false)
   const [profileFields, setProfileFields] = useState([])
   const [showPassword, setShowPassword] = useState(false)
+  // Password problems show under the password box of the open form.
+  const [passwordError, setPasswordError] = useState('')
 
   // Create form state
   const [form, setForm] = useState({
@@ -106,17 +109,24 @@ export default function AdminUsers() {
       department: 'Customer Care'
     })
     setShowPassword(true)
+    setPasswordError('')
     setCreateModalOpen(true)
   }
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name || (!form.phone && !form.email) || !form.password) {
-      toast.error('Please provide name, phone/email, and password')
+    if (!form.name || (!form.phone && !form.email)) {
+      toast.error('Please provide name and phone/email')
+      return
+    }
+    if (!form.password) {
+      setPasswordError('Please enter a password for this account.')
+      document.getElementById('newUserPassword')?.focus()
       return
     }
     if (!isPasswordValid(form.password, { role: form.role, phone: form.phone })) {
-      toast.error('Password does not meet the rules listed under it')
+      setPasswordError('This password does not meet the rules listed under it.')
+      document.getElementById('newUserPassword')?.focus()
       return
     }
 
@@ -128,6 +138,8 @@ export default function AdminUsers() {
         fetchUsers()
       }
     } catch (err) {
+      const onPassword = passwordErrorFrom(err)
+      if (onPassword) { setPasswordError(onPassword); document.getElementById('newUserPassword')?.focus(); return }
       const msg = err.response?.data?.message || 'Error creating user credentials'
       toast.error(msg)
     }
@@ -151,6 +163,7 @@ export default function AdminUsers() {
       status: user.status || 'active'
     })
     setShowPassword(false)
+    setPasswordError('')
     setEditModalOpen(true)
   }
 
@@ -162,7 +175,8 @@ export default function AdminUsers() {
       if (!updates.password) {
         delete updates.password // keep existing password if blank
       } else if (!isPasswordValid(updates.password, { role: updates.role, phone: updates.phone })) {
-        toast.error('New password does not meet the rules listed under it')
+        setPasswordError('This password does not meet the rules listed under it.')
+        document.getElementById('editUserPassword')?.focus()
         return
       }
 
@@ -173,6 +187,8 @@ export default function AdminUsers() {
         fetchUsers()
       }
     } catch (err) {
+      const onPassword = passwordErrorFrom(err)
+      if (onPassword) { setPasswordError(onPassword); document.getElementById('editUserPassword')?.focus(); return }
       const msg = err.response?.data?.message || 'Error updating user'
       toast.error(msg)
     }
@@ -498,7 +514,7 @@ export default function AdminUsers() {
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Login Password *</label>
+                  <label htmlFor="newUserPassword" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Login Password *</label>
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <button
                       type="button"
@@ -517,14 +533,17 @@ export default function AdminUsers() {
                   </div>
                 </div>
                 <input
-                  required
+                  id="newUserPassword"
                   type={showPassword ? 'text' : 'password'}
                   placeholder={passwordPlaceholder(form.role)}
                   value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  onChange={e => { setForm({ ...form, password: e.target.value }); setPasswordError('') }}
                   autoComplete="new-password"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff', letterSpacing: showPassword ? 'normal' : '2px' }}
+                  aria-invalid={passwordError ? 'true' : undefined}
+                  aria-describedby={passwordError ? 'newUserPassword-error' : undefined}
+                  style={passwordBoxStyle({ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff', letterSpacing: showPassword ? 'normal' : '2px' }, passwordError)}
                 />
+                <PasswordError id="newUserPassword" message={passwordError} />
                 <PasswordChecklist password={form.password} role={form.role} phone={form.phone} />
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Copy this password before saving: it cannot be viewed again afterwards.</div>
               </div>
@@ -684,17 +703,21 @@ export default function AdminUsers() {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="editUserPassword" style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
                   Reset Login Password (leave empty to keep current)
                 </label>
                 <input
+                  id="editUserPassword"
                   type="text"
                   placeholder={`New password (${passwordPlaceholder(editForm.role)})`}
                   value={editForm.password}
-                  onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                  onChange={e => { setEditForm({ ...editForm, password: e.target.value }); setPasswordError('') }}
                   autoComplete="new-password"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }}
+                  aria-invalid={passwordError ? 'true' : undefined}
+                  aria-describedby={passwordError ? 'editUserPassword-error' : undefined}
+                  style={passwordBoxStyle({ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'var(--dark-900)', border: '1px solid var(--dark-700)', color: '#fff' }, passwordError)}
                 />
+                <PasswordError id="editUserPassword" message={passwordError} />
                 {editForm.password && <PasswordChecklist password={editForm.password} role={editForm.role} phone={editForm.phone} />}
               </div>
 

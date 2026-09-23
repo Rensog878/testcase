@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
+import PasswordChecklist from '../../components/PasswordChecklist'
+import PasswordError, { passwordBoxStyle, passwordErrorFrom } from '../../components/PasswordError'
+import { isPasswordValid } from '../../utils/passwordRules'
 import { Users, Plus, Search, Filter, ShieldCheck, MapPin, UserCheck, Key, Edit2, Trash2, CheckCircle, XCircle, ArrowRight } from 'lucide-react'
 
 export default function PersonnelManagement() {
@@ -18,6 +21,7 @@ export default function PersonnelManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
 
   // Form State
   const [formData, setFormData] = useState({
@@ -76,6 +80,7 @@ export default function PersonnelManagement() {
       department: '',
       status: 'active'
     })
+    setPasswordError('')
     setIsModalOpen(true)
   }
 
@@ -95,6 +100,7 @@ export default function PersonnelManagement() {
       department: u.department || '',
       status: u.status || 'active'
     })
+    setPasswordError('')
     setIsModalOpen(true)
   }
 
@@ -136,8 +142,15 @@ export default function PersonnelManagement() {
       toast.error('Please enter personnel name.')
       return
     }
+    // Password problems go under the password box, not in a pop-up.
     if (!editingUser && !formData.password) {
-      toast.error('Please enter initial password.')
+      setPasswordError('Please enter a password for this account.')
+      document.getElementById('personnelPassword')?.focus()
+      return
+    }
+    if (formData.password && !isPasswordValid(formData.password, { role: formData.role, phone: formData.phone })) {
+      setPasswordError('This password does not meet the rules listed under it.')
+      document.getElementById('personnelPassword')?.focus()
       return
     }
 
@@ -160,7 +173,11 @@ export default function PersonnelManagement() {
       setIsModalOpen(false)
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save personnel')
+      const onPassword = passwordErrorFrom(err)
+      if (onPassword) {
+        setPasswordError(onPassword)
+        document.getElementById('personnelPassword')?.focus()
+      } else toast.error(err.response?.data?.message || 'Failed to save personnel')
     } finally {
       setSaving(false)
     }
@@ -610,16 +627,22 @@ export default function PersonnelManagement() {
 
               {/* Password */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                <label htmlFor="personnelPassword" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                   {editingUser ? 'New Password (leave empty to keep current)' : 'Login Password *'}
                 </label>
                 <input
+                  id="personnelPassword"
                   type="password"
+                  autoComplete="new-password"
                   placeholder={editingUser ? 'Enter new password or leave blank' : 'Enter account password'}
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                  onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPasswordError('') }}
+                  aria-invalid={passwordError ? 'true' : undefined}
+                  aria-describedby={passwordError ? 'personnelPassword-error' : undefined}
+                  style={passwordBoxStyle({ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }, passwordError)}
                 />
+                <PasswordError id="personnelPassword" message={passwordError} />
+                {(formData.password || !editingUser) && <PasswordChecklist password={formData.password} role={formData.role} phone={formData.phone} />}
               </div>
 
               {/* Store Location Assignment */}

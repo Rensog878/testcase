@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
+import PasswordError, { passwordBoxStyle, passwordErrorFrom } from '../components/PasswordError'
 import { ArrowLeft, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { ROLE_HOME } from '../context/AuthContext'
 import { passwordChecks, isPasswordValid } from '../utils/passwordRules'
@@ -17,6 +18,9 @@ export default function ForgotPassword() {
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  // Shown under the new-password and confirm boxes rather than as pop-ups.
+  const [passwordError, setPasswordError] = useState('')
+  const [confirmError, setConfirmError] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const resend = useResendCountdown()
@@ -47,8 +51,16 @@ export default function ForgotPassword() {
 
   const resetPassword = async () => {
     if (!/^\d{6}$/.test(otp)) { toast.error('Enter the 6-digit code from WhatsApp.'); return }
-    if (!isPasswordValid(password, { phone })) { toast.error('Your new password does not meet all the rules.'); return }
-    if (password !== confirm) { toast.error('Passwords do not match.'); return }
+    if (!isPasswordValid(password, { phone })) {
+      setPasswordError(password ? 'Your new password does not meet all the rules.' : 'Please enter a new password.')
+      document.getElementById('fp-pass')?.focus()
+      return
+    }
+    if (password !== confirm) {
+      setConfirmError(confirm ? 'Passwords do not match.' : 'Please type the new password again.')
+      document.getElementById('fp-confirm')?.focus()
+      return
+    }
     setLoading(true)
     try {
       const { data } = await axios.post('/api/auth/forgot-password/reset', { phone, otp, password })
@@ -58,6 +70,8 @@ export default function ForgotPassword() {
       // A full load lets the auth provider pick up the new session.
       window.location.assign(ROLE_HOME[data.user?.role] || '/')
     } catch (err) {
+      const onPassword = passwordErrorFrom(err)
+      if (onPassword) { setPasswordError(onPassword); document.getElementById('fp-pass')?.focus(); return }
       toast.error(err.response?.data?.message || 'Could not reset your password. Please try again.')
       if (/expired|request a new code/i.test(err.response?.data?.message || '')) setOtp('')
     } finally {
@@ -146,7 +160,10 @@ export default function ForgotPassword() {
                     className="form-input"
                     placeholder="8+ characters: letters & numbers"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={e => { setPassword(e.target.value); setPasswordError('') }}
+                    aria-invalid={passwordError ? 'true' : undefined}
+                    aria-describedby={passwordError ? 'fp-pass-error' : undefined}
+                    style={passwordBoxStyle(undefined, passwordError)}
                   />
                   <button
                     type="button"
@@ -158,6 +175,7 @@ export default function ForgotPassword() {
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                <PasswordError id="fp-pass" message={passwordError} />
                 {password && (
                   <ul className="forgot-rules" aria-live="polite">
                     {checks.map(check => (
@@ -176,8 +194,12 @@ export default function ForgotPassword() {
                   className="form-input"
                   placeholder="Type it again"
                   value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
+                  onChange={e => { setConfirm(e.target.value); setConfirmError('') }}
+                  aria-invalid={confirmError ? 'true' : undefined}
+                  aria-describedby={confirmError ? 'fp-confirm-error' : undefined}
+                  style={passwordBoxStyle(undefined, confirmError)}
                 />
+                <PasswordError id="fp-confirm" message={confirmError} />
               </div>
 
               <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>

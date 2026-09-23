@@ -254,15 +254,15 @@ function hashOtp(otp) {
 // ============================================================
 
 // OTP message text lives in ./otpTemplates.js — it assembles each message
-// from interchangeable parts so no two sends look alike. The sign-up code is
-// the caption of the Sathyam Agro Mart banner, or plain text where there is no public
-// address for the banner.
+// from interchangeable parts so no two sends look alike. A new number's
+// sign-up code is the caption of the Sathyam Agro Mart banner (or plain text
+// where there is no public address for the banner); a returning customer's
+// sign-in code is plain text, without the banner.
 
-async function sendWhatsAppOtp(phone, otp, userName = 'Farmer') {
-  return sendWhatsAppImage(phone, {
-    imageUrl: otpBannerUrl(),
-    caption: buildOtpMessage(otp, userName, phone, OTP_EXPIRY_MS),
-  });
+async function sendWhatsAppOtp(phone, otp, userName = 'Farmer', { banner = true } = {}) {
+  const text = buildOtpMessage(otp, userName, phone, OTP_EXPIRY_MS);
+  if (!banner) return sendWhatsAppText(phone, text);
+  return sendWhatsAppImage(phone, { imageUrl: otpBannerUrl(), caption: text });
 }
 
 // ============================================================
@@ -445,7 +445,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const otp = generateOtp();
     console.log(`📱 Sending OTP to +91 ${phone}`);
 
-    await sendWhatsAppOtp(phone, otp, cleanText(req.body?.name, 60) || 'Farmer');
+    // The banner welcomes a new customer only. The HTTP reply is the same either
+    // way, so it still does not reveal whether the number is registered.
+    const customer = await db.getUserByIdentifier(phone, { roles: ['farmer'] });
+    await sendWhatsAppOtp(phone, otp, customer?.name || cleanText(req.body?.name, 60) || 'Farmer', { banner: !customer });
 
     // Pick this send's cooldown and tell the client, so its countdown matches
     // exactly what the server will enforce.

@@ -76,12 +76,14 @@ Object.assign(db, {
 // The code itself never leaves the server, so the test reads it out of the
 // WhatsApp message the same way a farmer would read it off their phone.
 let lastOtp = '';
+let lastMessage = null; // the whole WhatsApp request: { to, text, imageUrl? }
 let sendFails = false; // stands in for the provider being down
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, init) => {
   if (!String(url).startsWith('https://wasender.test/')) return realFetch(url, init);
   if (sendFails) return new Response(JSON.stringify({ success: false, message: 'upstream down' }), { status: 503 });
   lastOtp = (String(init?.body || '').match(/\b\d{6}\b/) || [''])[0];
+  lastMessage = JSON.parse(init?.body || 'null');
   return new Response(JSON.stringify({ success: true, data: { msgId: 1, status: 'in_progress' } }), { status: 200 });
 };
 
@@ -104,6 +106,7 @@ beforeEach(() => {
   users.clear();
   created = null;
   lastOtp = '';
+  lastMessage = null;
   sendFails = false;
 });
 
@@ -350,4 +353,34 @@ test('a crop an admin offers can be chosen at sign-up', async () => {
 
   assert.equal(status, 200);
   assert.equal(created.crop, 'Potato');
+});
+
+// The banner welcomes a new customer; a returning one just gets the code.
+test('a new number gets the sign-up code on the banner image', async () => {
+  process.env.PUBLIC_SITE_URL = 'https://shop.example.com';
+  try {
+    const sent = await post('/api/auth/send-otp', { phone: '9876543210', purpose: 'auth' });
+    assert.equal(sent.status, 200);
+    assert.match(lastMessage.imageUrl || '', /^https:\/\/shop\.example\.com\/.+whatsapp-otp-banner/);
+    assert.match(lastMessage.text, /\b\d{6}\b/, 'the code is the caption');
+  } finally {
+    delete process.env.PUBLIC_SITE_URL;
+  }
+});
+
+test('a returning customer gets the sign-in code as text, without the banner, and the reply is the same', async () => {
+  process.env.PUBLIC_SITE_URL = 'https://shop.example.com';
+  try {
+    const fresh = await post('/api/auth/send-otp', { phone: '9876500001', purpose: 'auth' });
+    users.set('9876543210', farmer('9876543210', { name: 'Selvi' }));
+    const known = await post('/api/auth/send-otp', { phone: '9876543210', purpose: 'auth' });
+
+    assert.equal(known.status, 200);
+    assert.equal(lastMessage.imageUrl, undefined, 'no banner');
+    assert.match(lastMessage.text, /\b\d{6}\b/);
+    assert.match(lastMessage.text, /Selvi/, 'greeted by the name on the account');
+    assert.deepEqual(Object.keys(known.data).sort(), Object.keys(fresh.data).sort(), 'the reply does not reveal the account');
+  } finally {
+    delete process.env.PUBLIC_SITE_URL;
+  }
 });

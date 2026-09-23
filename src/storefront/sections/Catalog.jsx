@@ -161,9 +161,6 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
           <button className={`btn btn-primary ${catalog ? 'add-to-cart-btn' : 'trending-add-btn'}`} data-id={p.id} style={{ flex: 1 }} onClick={() => addToCart(p.id, selectedPack)}>
             <i className="fa-solid fa-cart-shopping"></i> {t('add_to_cart')}
           </button>
-          <button className={`btn btn-outline ${catalog ? 'view-details-btn' : 'trending-view-btn'}`} data-id={p.id} onClick={() => openProductPage(p.id)} aria-label={`View ${p.name}`}>
-            <i className="fa-solid fa-eye"></i>
-          </button>
         </div>
       </div>
     </div>

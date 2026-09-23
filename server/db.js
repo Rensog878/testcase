@@ -68,11 +68,22 @@ export async function connectDB() {
 
 const permissive = { strict: false, minimize: false, versionKey: '__v' };
 
-// phone is unique: sparse so accounts without a number are still allowed.
-// The index only builds once existing duplicates are removed (dedupe-phones.js).
+// phone+role is unique, not phone alone: a staff account and a farmer account
+// may share a number (one person, two separate identities), but the same
+// person cannot hold two accounts of the same role on one number. A partial
+// index, not sparse: sparse on a COMPOUND index only skips a document that is
+// missing every indexed field, so an admin with no phone but a role would
+// still collide with every other phone-less admin on { phone: null, role:
+// "admin" }. The partial filter excludes any document missing phone, full
+// stop. The index only builds once existing duplicates are removed
+// (dedupe-phones.js, migrate-phone-role-index.mjs).
 const userSchema = new mongoose.Schema(
-    { _id: String, phone: { type: String, unique: true, sparse: true } },
+    { _id: String, phone: String, role: String },
     permissive
+);
+userSchema.index(
+    { phone: 1, role: 1 },
+    { unique: true, partialFilterExpression: { phone: { $exists: true } } }
 );
 const productSchema = new mongoose.Schema({ _id: String }, permissive);
 const orderSchema = new mongoose.Schema({ _id: String }, permissive);
@@ -86,8 +97,11 @@ const chatRecordSchema = new mongoose.Schema({ _id: String }, permissive);
 // One cart per user: _id is the user's id.
 const cartSchema = new mongoose.Schema({ _id: String }, permissive);
 const wishlistItemSchema = new mongoose.Schema({ _id: String }, permissive);
-// One per browser (its own random id): where the visitor is, from the location
-// permission asked on the store (POST /api/visitor-location).
+// One per browser (its own random id): the guest's self-reported name/phone
+// (POST /api/visitor-contact) and, once asked, their location - granted (with
+// a point, POST /api/visitor-location), denied, or still pending
+// (locationStatus). Registered visitors are the same doc plus userId; their
+// identity of record stays the User collection, not this one.
 const visitorLocationSchema = new mongoose.Schema({ _id: String }, permissive);
 const settingsSchema = new mongoose.Schema(
   {
@@ -168,6 +182,8 @@ const staffProfileSchema = new mongoose.Schema({ _id: String }, permissive);
 export const StaffProfile = mongoose.models.StaffProfile || mongoose.model('StaffProfile', staffProfileSchema);
 
 export const USER_ROLES = ['superadmin', 'farmer', 'admin', 'employee', 'delivery', 'billing'];
+// Every role except farmer: the accounts that sign in with a password at /login.
+export const STAFF_ROLES = USER_ROLES.filter(role => role !== 'farmer');
 
 // Human-readable ids with enough randomness that records created in the same
 // millisecond (or by concurrent serverless instances) cannot collide.
@@ -1115,6 +1131,18 @@ class DatabaseManager {
         return serializeUser(u, options);
   }
 
+  // The one active session id for this account (server.js's issueToken, on
+  // every login/register). Overwriting it here is what signs out whichever
+  // other device was holding the previous token.
+  async setUserSessionId(id, sessionId) {
+        await connectDB();
+        await User.updateOne({ _id: id }, { $set: { sessionId } });
+  }
+
+  // options.roles restricts the match to those roles - required wherever the
+  // caller cares which account it gets: a phone number can now hold both a
+  // staff account and a separate farmer account, so an unscoped lookup could
+  // return either one.
   async getUserByIdentifier(identifier, options = {}) {
         // Coerce defensively: callers may pass a non-string from a JSON body.
         if (!identifier || typeof identifier !== 'string') return null;
@@ -1122,12 +1150,13 @@ class DatabaseManager {
         const clean = identifier.trim().toLowerCase();
         if (!clean) return null;
         const escaped = clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const query = { $or: [{ phone: clean }, { email: new RegExp(`^${escaped}$`, 'i') }] };
+        if (Array.isArray(options.roles) && options.roles.length) query.role = { $in: options.roles };
         // Fetch only the matching accounts instead of loading every user.
-        const matches = (await User.find({
-                $or: [{ phone: clean }, { email: new RegExp(`^${escaped}$`, 'i') }]
-        }).lean()).map(u => serializeUser(u, options));
+        const matches = (await User.find(query).lean()).map(u => serializeUser(u, options));
 
-        // Legacy data can hold several accounts on one number; the newest one wins.
+        // Legacy data can hold several accounts of the same role on one number;
+        // the newest one wins.
         matches.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
         return matches[0] || null;
   }
@@ -2048,13 +2077,51 @@ class DatabaseManager {
         await connectDB();
         const now = new Date().toISOString();
         const latest = { lat: geo.lat, lng: geo.lng, accuracy: geo.accuracy, at: geo.capturedAt };
-        const set = { lat: geo.lat, lng: geo.lng, accuracy: geo.accuracy, page, lang, lastSeen: now };
+        const set = { lat: geo.lat, lng: geo.lng, accuracy: geo.accuracy, page, lang, lastSeen: now, locationStatus: 'granted' };
         if (userId) set.userId = userId;
         if (name) set.name = name;
         if (phone) set.phone = phone;
         await VisitorLocation.updateOne(
             { _id: visitorId },
             { $set: set, $setOnInsert: { firstSeen: now }, $inc: { visits: 1 }, $push: { history: { $each: [latest], $slice: -20 } } },
+            { upsert: true }
+        );
+  }
+
+  // The browser reported the visitor was asked and said no (or the site is
+  // blocked): no point, just the fact, so a granted report later still wins.
+  async markVisitorLocationDenied({ visitorId, userId, name, phone }) {
+        await connectDB();
+        const now = new Date().toISOString();
+        const set = { lastSeen: now };
+        if (userId) set.userId = userId;
+        if (name) set.name = name;
+        if (phone) set.phone = phone;
+        try {
+            await VisitorLocation.updateOne(
+                { _id: visitorId, locationStatus: { $ne: 'granted' } },
+                { $set: { ...set, locationStatus: 'denied' }, $setOnInsert: { firstSeen: now }, $inc: { visits: 1 } },
+                { upsert: true }
+            );
+        } catch (err) {
+            // Already granted (matched nothing above, so upsert tried to insert
+            // into an existing _id): a real location report always wins.
+            if (err?.code !== 11000) throw err;
+        }
+  }
+
+  // The "Stay connected" name and number, sent as soon as they are given -
+  // independent of whether location is ever asked or answered.
+  async saveVisitorContact({ visitorId, userId, name, phone }) {
+        await connectDB();
+        const now = new Date().toISOString();
+        const set = { lastSeen: now };
+        if (userId) set.userId = userId;
+        if (name) set.name = name;
+        if (phone) set.phone = phone;
+        await VisitorLocation.updateOne(
+            { _id: visitorId },
+            { $set: set, $setOnInsert: { firstSeen: now, locationStatus: 'pending' }, $inc: { visits: 1 } },
             { upsert: true }
         );
   }

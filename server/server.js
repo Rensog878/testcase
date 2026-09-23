@@ -13,7 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import Razorpay from 'razorpay';
-import { db, connectDB, newId } from './db.js';
+import { db, connectDB, newId, STAFF_ROLES } from './db.js';
 import { productNameKey } from '../src/shared/productName.js';
 import adminRoutes from './adminRoutes.js';
 import superadminRoutes from './superadminRoutes.js';
@@ -24,7 +24,7 @@ import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifica
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
-import { cleanGeo, cleanVisitorPing } from './geo.js';
+import { cleanGeo, cleanVisitorPing, cleanVisitorDenied, validVisitorId } from './geo.js';
 import {
   HttpError,
   sendError,
@@ -287,9 +287,15 @@ const LOGIN_WINDOW_MS = 15 * MINUTE_MS;
 const LOGIN_FAILURE_LIMIT = 5; // wrong passwords per account per window
 const LOGIN_ATTEMPT_LIMIT = 30; // sign-in attempts per client IP per window
 
+// One active session per account, on any device or role - a fresh login here
+// replaces the session id on the user record, so whichever token was issued
+// before this one stops verifying (getAuthenticatedUser in http.js) the next
+// time that other device makes a request.
 async function issueToken(userId) {
   const record = await db.getUserById(userId, { includePassword: true });
-  return signToken(userId, record?.password);
+  const sessionId = crypto.randomUUID();
+  await db.setUserSessionId(userId, sessionId);
+  return signToken(userId, record?.password, sessionId);
 }
 
 // Checking a password takes a noticeable moment; doing the same work for
@@ -323,7 +329,9 @@ app.post('/api/auth/login', async (req, res) => {
       return tooManyRequests(res, lockWait, `Too many failed sign-in attempts. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`);
     }
 
-    const user = await db.getUserByIdentifier(identifier, { includePassword: true });
+    // Staff only: a number or email may also hold a separate farmer account,
+    // so the lookup is scoped to staff roles rather than "whichever is newest".
+    const user = await db.getUserByIdentifier(identifier, { includePassword: true, roles: STAFF_ROLES });
     let check = { ok: false, needsRehash: false };
     if (user) check = await verifyPassword(password, user.password);
     else await spendPasswordCheck(password);
@@ -335,18 +343,6 @@ app.post('/api/auth/login', async (req, res) => {
 
     if (user.status && user.status !== 'active') {
       return res.status(403).json({ success: false, message: 'This account has been disabled. Please contact support.' });
-    }
-
-    // Customers are OTP-only. This door is for staff, who keep passwords so an
-    // outage at the WhatsApp provider cannot lock admins out of the shop.
-    // Farmers registered before the change still hold a usable password hash,
-    // so the role is checked rather than the presence of one.
-    if (user.role === 'farmer') {
-      return res.status(403).json({
-        success: false,
-        message: 'Please sign in with the OTP sent to your WhatsApp number.',
-        otpOnly: true,
-      });
     }
 
     await clearRateLimit(`login-fail:${accountKey}`, LOGIN_WINDOW_MS);
@@ -417,7 +413,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
     // Older callers that only ever sign up still get the early 409.
     const authPurpose = req.body?.purpose === 'auth' || req.body?.purpose === 'login';
     if (!authPurpose && !isTestPhone(phone)) {
-      const alreadyRegistered = await db.getUserByIdentifier(phone);
+      // A staff account on this number does not block a separate farmer signup.
+      const alreadyRegistered = await db.getUserByIdentifier(phone, { roles: ['farmer'] });
       if (alreadyRegistered) {
         await giveBackAllowance();
         return res.status(409).json({
@@ -557,21 +554,14 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
     console.log(`✅ OTP verified for +91 ${phone}`);
 
-    // A correct code proves the number. For a number we already know that is
-    // the whole sign-in — there is nothing left to ask. A number we do not know
-    // still has to tell us who they are and where they farm before an account
-    // exists, so it is only marked verified here and /register finishes the job
-    // within VERIFIED_PHONE_TTL_MS. Staff sign in with a password at /login, so
-    // a staff number is not signed in here.
-    const existing = await db.getUserByIdentifier(phone);
-
-    if (existing && existing.role !== 'farmer') {
-      return res.status(403).json({
-        success: false,
-        message: 'This number belongs to a staff account. Please sign in with your password.',
-        staffAccount: true,
-      });
-    }
+    // A correct code proves the number. For a farmer account we already know
+    // that is the whole sign-in — there is nothing left to ask. A number with
+    // no farmer account yet still has to tell us who they are and where they
+    // farm before one exists, so it is only marked verified here and /register
+    // finishes the job within VERIFIED_PHONE_TTL_MS. A staff account on this
+    // same number (its own login at /login, with a password) is a separate
+    // identity and does not affect this at all.
+    const existing = await db.getUserByIdentifier(phone, { roles: ['farmer'] });
 
     if (existing) {
       if (existing.status && existing.status !== 'active') {
@@ -644,11 +634,12 @@ app.post('/api/auth/forgot-password/send-otp', async (req, res) => {
     }
 
     const resendAfterMs = nextResendCooldownMs();
-    const user = await db.getUserByIdentifier(phone);
     // Farmers have no password to reset — their WhatsApp code IS the sign-in.
-    // They are treated exactly like an unknown number here, so the reply cannot
-    // be used to tell a farmer's number from one that has never shopped.
-    const canReset = Boolean(user) && user.role !== 'farmer' && (!user.status || user.status === 'active');
+    // Scoped to staff roles so a farmer account on the same number (its own,
+    // separate identity) cannot be mistaken for the staff account here, and an
+    // unknown number is answered exactly the same way either way.
+    const user = await db.getUserByIdentifier(phone, { roles: STAFF_ROLES });
+    const canReset = Boolean(user) && (!user.status || user.status === 'active');
 
     let otpHash = null;
     if (canReset) {
@@ -740,8 +731,8 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
       });
     }
 
-    const user = await db.getUserByIdentifier(phone, { includePassword: true });
-    if (!user || user.role === 'farmer' || (user.status && user.status !== 'active')) {
+    const user = await db.getUserByIdentifier(phone, { includePassword: true, roles: STAFF_ROLES });
+    if (!user || (user.status && user.status !== 'active')) {
       await db.kvDelete(resetOtpKey(phone));
       return res.status(403).json({ success: false, message: 'This account cannot be reset online. Please contact support.' });
     }
@@ -831,7 +822,9 @@ app.post('/api/auth/register', async (req, res) => {
       });
     }
 
-    const existing = await db.getUserByIdentifier(phone);
+    // A staff account on this number is a separate identity and does not block
+    // this farmer signup: one farmer account per number, not one account overall.
+    const existing = await db.getUserByIdentifier(phone, { roles: ['farmer'] });
 
     if (isTestPhone(phone)) {
       // Test number: clear every account on it (there may be historical
@@ -839,7 +832,7 @@ app.post('/api/auth/register', async (req, res) => {
       const removed = await db.deleteUsersByPhone(phone);
       if (removed) console.log(`🧪 Test number +91 ${phone}: cleared ${removed} previous account(s)`);
     } else if (existing) {
-      // One account per mobile number — otherwise nothing can tell duplicates apart.
+      // One farmer account per mobile number — otherwise nothing can tell duplicates apart.
       return res.status(409).json({
         success: false,
         message: 'This mobile number is already registered. Please sign in instead.',
@@ -2266,6 +2259,46 @@ app.post('/api/visitor-location', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     sendError(res, err, 'Visitor location');
+  }
+});
+
+// The browser reporting that location was asked and refused (or is blocked
+// for the site): no point, just the fact - so "denied" is queryable too.
+app.post('/api/visitor-location-denied', async (req, res) => {
+  try {
+    const wait = await rateLimit(`visitor-location-ip:${clientIp(req)}`, 30, HOUR_MS);
+    if (wait) return tooManyRequests(res, wait, 'Too many requests. Please try again later.');
+    const ping = cleanVisitorDenied(req.body);
+    if (!ping) return res.status(400).json({ success: false, message: 'Visitor not recognised.' });
+    const user = await getAuthenticatedUser(req);
+    await db.markVisitorLocationDenied({
+      ...ping,
+      userId: user?.id || '',
+      name: user?.name || cleanText(req.body?.name, 80),
+      phone: user?.phone || normalizePhone(req.body?.phone) || '',
+    });
+    res.json({ success: true });
+  } catch (err) {
+    sendError(res, err, 'Visitor location denied');
+  }
+});
+
+// The "Stay connected" card: name and number, sent as soon as they are given,
+// unverified (no OTP) - independent of whether location is ever asked.
+app.post('/api/visitor-contact', async (req, res) => {
+  try {
+    const wait = await rateLimit(`visitor-contact-ip:${clientIp(req)}`, 30, HOUR_MS);
+    if (wait) return tooManyRequests(res, wait, 'Too many requests. Please try again later.');
+    const visitorId = validVisitorId(req.body?.visitorId);
+    if (!visitorId) return res.status(400).json({ success: false, message: 'Visitor not recognised.' });
+    const user = await getAuthenticatedUser(req);
+    const name = user?.name || cleanText(req.body?.name, 80);
+    const phone = user?.phone || normalizePhone(req.body?.phone) || '';
+    if (!name || !phone) return res.status(400).json({ success: false, message: 'Name and phone are required.' });
+    await db.saveVisitorContact({ visitorId, userId: user?.id || '', name, phone });
+    res.json({ success: true });
+  } catch (err) {
+    sendError(res, err, 'Visitor contact');
   }
 });
 

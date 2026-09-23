@@ -117,16 +117,16 @@ return () => axios.interceptors.response.eject(interceptor)
 }, [])
 
 // Staff only. Customers have no password: they sign in with a WhatsApp code on
-// the storefront, and the server answers otpOnly if one arrives here.
+// the storefront - a farmer account is never a candidate for this login, even
+// on the same number as a staff account, so the server never turns one away
+// here for being a customer.
 const login = async (identifier, password) => {
 try {
 const { data } = await axios.post('/api/auth/login', { identifier: identifier.trim(), password })
 saveSession(data.token, data.user)
 return data.user
 } catch (err) {
-const failed = new Error(err.response?.data?.message || 'Could not reach the server. Please try again.')
-failed.otpOnly = Boolean(err.response?.data?.otpOnly)
-throw failed
+throw new Error(err.response?.data?.message || 'Could not reach the server. Please try again.')
 }
 }
 

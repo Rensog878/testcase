@@ -44,8 +44,6 @@ const BasketContext = createContext(null)
 const StateContext = createContext(null)
 
 // Stable functions: add to the basket, open the pop-up, sign in.
-// Pages a farmer stays on after signing in (see afterSignIn).
-const STAY_AFTER_SIGN_IN = /^\/(product\/|orders|wishlist|blog\/)/
 
 export const useCheckoutActions = () => useContext(ActionsContext)
 // { cart, cartReady, count, totals }
@@ -148,7 +146,6 @@ export function CheckoutProvider({ enabled, children }) {
   const serverCartRef = useRef(false) // the signed-in basket has loaded
   const saveQueue = useRef({ latest: null, running: null })
   const addressesLoading = useRef(false)
-  const resumeRef = useRef(false) // sign-in was asked for by Checkout
   const closingRef = useRef(null) // { then } while the pop-up closes
   const dismissPaymentNote = useRef(null) // "Payment not completed", gone once paying again or ordered
   const openerRef = useRef(null)
@@ -332,7 +329,6 @@ export function CheckoutProvider({ enabled, children }) {
     // Left in place, closing the basket later went Back onto it and opened the
     // card again.
     const closeSignIn = ({ keepHash = false } = {}) => {
-      resumeRef.current = false
       modal.closeModal('authModal')
       setAuthNotice('')
       if (keepHash || live.current.step || !onAuthHash()) return
@@ -348,7 +344,6 @@ export function CheckoutProvider({ enabled, children }) {
     }
     const requireSignIn = () => {
       openSignIn(CHECKOUT_LOGIN_MSG)
-      resumeRef.current = true
     }
 
     // Checkout, on the basket step (and "Proceed to checkout" on a product page).
@@ -366,42 +361,21 @@ export function CheckoutProvider({ enabled, children }) {
     }
 
     // `celebrate` is the sign-in sheet telling us this account was just created,
-    // so the full welcome is worth playing. Someone coming back gets their name
-    // said back to them instead, and nobody mid-checkout is interrupted at all.
+    // so the full welcome is worth playing. Every sign-in - staff or farmer,
+    // mid-checkout or not - lands on that role's home page: one rule, no
+    // per-page carve-outs.
     const afterSignIn = async (signedInUser, { celebrate = false } = {}) => {
-      const resume = resumeRef.current
       // Staff roles each have their own portal.
       const home = STAFF_HOME[signedInUser?.role]
+      closeSignIn({ keepHash: true })
+      // Anything added as a guest joins this farmer's basket.
+      await loadCart(signedInUser)
       if (home) {
-        closeSignIn({ keepHash: true })
-        await loadCart(signedInUser)
         leaveSignInFor(home)
-        return
-      }
-      // A farmer who signed in in the middle of something carries on with it:
-      // finishing a checkout, the basket filled as a guest, or the page being
-      // read (a product, orders, wishlist, an article). Otherwise they go
-      // shopping, and the sign-in card's history entry becomes that page.
-      const guestItems = readGuestCart().length
-      // Two different questions. `midTask` decides where they land: anything in
-      // flight means stay put. `midCheckout` decides whether the welcome would
-      // interrupt - and a basket filled as a guest is not an interruption, it
-      // is just a basket waiting to be merged, so a new farmer still gets
-      // their welcome. Only a checkout actually under way skips it.
-      const midCheckout = resume || Boolean(live.current.step)
-      const midTask = midCheckout || guestItems > 0
-      if (midTask || STAY_AFTER_SIGN_IN.test(live.current.location.pathname)) {
-        closeSignIn()
-        if (celebrate && !midCheckout) celebrateSignIn(signedInUser)
-        // Anything added as a guest joins this farmer's basket.
-        const items = await loadCart(signedInUser)
-        if (resume && items.length) showStep('address')
-        else if (guestItems && !live.current.step) showStep('basket')
         return
       }
       if (celebrate) celebrateSignIn(signedInUser)
       leaveSignInFor(farmerLandingPath())
-      loadCart(signedInUser)
     }
 
     // ---- delivery details ----

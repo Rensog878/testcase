@@ -794,12 +794,6 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
     } catch (err) {
       const answer = err?.response?.data
       const message = answer?.message || 'Could not reach the server. Please try again.'
-      // A staff number is never signed in by a code: send them to the staff door
-      // rather than marking their code wrong.
-      if (answer?.staffAccount) {
-        showToast(message, 'info', 7000)
-        return
-      }
       setFieldError('storefrontOtpInput', message)
       document.getElementById('storefrontOtpInput')?.focus()
     } finally {

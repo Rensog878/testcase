@@ -120,8 +120,10 @@ export async function getAuthenticatedUser(req) {
   if (claims) {
     const record = await db.getUserById(claims.sub, { includePassword: true });
     const active = record && (!record.status || record.status === 'active');
-    // The fingerprint no longer matches once the password has changed.
-    if (active && safeEqual(passwordFingerprint(record.password), claims.pv)) {
+    // The fingerprint no longer matches once the password has changed, and the
+    // session id no longer matches once a later login (any device) replaced
+    // it - one signed-in session per account.
+    if (active && safeEqual(passwordFingerprint(record.password), claims.pv) && safeEqual(record.sessionId, claims.sid)) {
       user = toSafeUser(record);
     }
   }

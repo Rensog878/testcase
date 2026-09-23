@@ -116,9 +116,12 @@ export function passwordFingerprint(storedPassword) {
   return sign(`pw:${storedPassword || ''}`).slice(0, 16);
 }
 
-export function signToken(userId, storedPassword) {
+// sessionId ties the token to one login. Issuing a new one (every login,
+// server.js's issueToken) and storing it on the user record retires every
+// older token immediately: one signed-in session per account, on any device.
+export function signToken(userId, storedPassword, sessionId) {
   const now = Date.now();
-  const claims = { sub: userId, pv: passwordFingerprint(storedPassword), iat: now, exp: now + TOKEN_TTL_MS };
+  const claims = { sub: userId, pv: passwordFingerprint(storedPassword), sid: sessionId, iat: now, exp: now + TOKEN_TTL_MS };
   const body = `${TOKEN_PREFIX}.${Buffer.from(JSON.stringify(claims)).toString('base64url')}`;
   return `${body}.${sign(body)}`;
 }

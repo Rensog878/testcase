@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useLanguage } from '../../context/LanguageContext'
 import { currentPosition, locationSupported } from '../location'
 import { readGuestContact } from '../guestContact'
+import { visitorId } from '../visitorId'
 import { setBodyFlag } from '../bodyFlags'
 import { showToast } from '../toast'
 
@@ -18,27 +19,17 @@ import { showToast } from '../toast'
 // Never over another popup (Stay connected, sign-in, checkout).
 // Styles: storefront.css, "7p. LOCATION POPUP".
 
-const VISITOR_KEY = 'sb_visitor_id'
 const SENT_KEY = 'sb_location_sent' // collected on this visit (sessionStorage)
+const DENIED_KEY = 'sb_location_denied_sent' // denial reported on this visit (sessionStorage)
 const FIRST_DELAY_MS = 3000
 const PAGE_DELAY_MS = 1200
 const LOCK_CLASS = 'sb-loc-lock'
 
-function visitorId() {
-  try {
-    let id = localStorage.getItem(VISITOR_KEY)
-    if (!id) {
-      id = `v_${(crypto.randomUUID?.() || `${Date.now()}${Math.random()}`).replace(/[^A-Za-z0-9]/g, '').slice(0, 24)}`
-      localStorage.setItem(VISITOR_KEY, id)
-    }
-    return id
-  } catch {
-    return ''
-  }
-}
-
 const collected = () => { try { return sessionStorage.getItem(SENT_KEY) === '1' } catch { return false } }
 const markCollected = () => { try { sessionStorage.setItem(SENT_KEY, '1') } catch { /* private mode */ } }
+const deniedSent = () => { try { return sessionStorage.getItem(DENIED_KEY) === '1' } catch { return false } }
+const markDeniedSent = () => { try { sessionStorage.setItem(DENIED_KEY, '1') } catch { /* private mode */ } }
+const unmarkDeniedSent = () => { try { sessionStorage.removeItem(DENIED_KEY) } catch { /* private mode */ } }
 
 async function permissionState() {
   try {
@@ -85,6 +76,19 @@ export default function LocationPrompt() {
     }
   }
 
+  // Recorded once per visit: the visitor was asked (or the site is blocked)
+  // and said no. A later grant always overrides this server-side.
+  const reportDenied = () => {
+    if (deniedSent()) return
+    const id = visitorId()
+    if (!id) return
+    const guest = readGuestContact()
+    markDeniedSent()
+    axios.post('/api/visitor-location-denied', {
+      visitorId: id, name: guest?.name || '', phone: guest?.phone || '',
+    }).catch(unmarkDeniedSent)
+  }
+
   // Collects the point now; on failure the popup explains what to do.
   const collect = async ({ thankYou = true } = {}) => {
     setBusy(true)
@@ -98,6 +102,7 @@ export default function LocationPrompt() {
       if ((await permissionState()) === 'denied') {
         setProblem('')
         setView('blocked')
+        reportDenied()
       } else {
         setProblem(err.message)
         setView('error')
@@ -118,7 +123,8 @@ export default function LocationPrompt() {
       const state = await permissionState()
       if (cancelled) return
       if (state === 'granted') collect({ thankYou: false })
-      else setView(state === 'denied' ? 'blocked' : 'ask')
+      else if (state === 'denied') { setView('blocked'); reportDenied() }
+      else setView('ask')
     }
     timer = setTimeout(decide, firstCheck.current ? FIRST_DELAY_MS : PAGE_DELAY_MS)
     firstCheck.current = false

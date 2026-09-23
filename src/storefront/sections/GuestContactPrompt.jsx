@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
 import { setBodyFlag } from '../bodyFlags'
 import { showToast } from '../toast'
 import { MOBILE_RE, readGuestContact, saveGuestContact } from '../guestContact'
+import { visitorId } from '../visitorId'
 import VoiceButton from './VoiceButton'
 import { AuthBrand } from './AuthModal'
 
@@ -129,6 +131,10 @@ export default function GuestContactPrompt({ t }) {
       return
     }
     saveGuestContact({ name, phone })
+    const id = visitorId()
+    // Self-reported, not OTP-verified. Sent so the lead is not lost if this
+    // visitor never grants (or is never asked about) location.
+    if (id) axios.post('/api/visitor-contact', { visitorId: id, name: name.trim(), phone }).catch(() => {})
     setState(undefined)
     showToast(`Thank you, ${name.trim()}!`, 'success')
   }

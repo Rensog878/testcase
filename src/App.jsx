@@ -182,20 +182,20 @@ export default function App() {
         </Route>
 
         {/* Employee Routes */}
-        <Route path="/employee" element={<PrivateRoute allowedRoles={['employee']}><EmployeeLayout /></PrivateRoute>}>
+        <Route path="/employee" element={<PrivateRoute allowedRoles={['employee']} signIn={<Login />}><EmployeeLayout /></PrivateRoute>}>
           <Route index element={<EmployeeDashboard />} />
           <Route path="profile" element={<EmployeeProfile />} />
           <Route path="tickets" element={<Tickets />} />
         </Route>
 
         {/* Delivery Routes */}
-        <Route path="/delivery" element={<PrivateRoute allowedRoles={['delivery']}><DeliveryLayout /></PrivateRoute>}>
+        <Route path="/delivery" element={<PrivateRoute allowedRoles={['delivery']} signIn={<Login />}><DeliveryLayout /></PrivateRoute>}>
           <Route index element={<DeliveryDashboard />} />
           <Route path="profile" element={<EmployeeProfile />} />
         </Route>
 
         {/* Billing Routes */}
-        <Route path="/billing" element={<PrivateRoute allowedRoles={['billing', 'admin']}><BillingLayout /></PrivateRoute>}>
+        <Route path="/billing" element={<PrivateRoute allowedRoles={['billing', 'admin']} signIn={<Login />}><BillingLayout /></PrivateRoute>}>
           <Route index element={<BillingDashboard />} />
           <Route path="history" element={<InvoiceHistory />} />
           <Route path="profile" element={<EmployeeProfile />} />

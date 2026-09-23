@@ -29,11 +29,16 @@ export function mapsUrl(geo) {
     : '';
 }
 
+export function validVisitorId(value) {
+  const visitorId = String(value || '');
+  return /^[A-Za-z0-9_-]{8,64}$/.test(visitorId) ? visitorId : '';
+}
+
 // A visitor's location report (POST /api/visitor-location): the browser's own
 // random id, the point, and the store page they were on. null if unusable.
 export function cleanVisitorPing(body) {
-  const visitorId = String(body?.visitorId || '');
-  if (!/^[A-Za-z0-9_-]{8,64}$/.test(visitorId)) return null;
+  const visitorId = validVisitorId(body?.visitorId);
+  if (!visitorId) return null;
   const geo = cleanGeo(body?.geo);
   if (!geo) return null;
   const page = String(body?.page || '/');
@@ -43,4 +48,11 @@ export function cleanVisitorPing(body) {
     page: page.startsWith('/') ? page.slice(0, 200) : '/',
     lang: ['en', 'ta', 'hi', 'kn', 'te'].includes(body?.lang) ? body.lang : 'en',
   };
+}
+
+// The browser reporting that the visitor was asked and said no (or the
+// browser itself has location blocked for the site): no point, just the fact.
+export function cleanVisitorDenied(body) {
+  const visitorId = validVisitorId(body?.visitorId);
+  return visitorId ? { visitorId } : null;
 }

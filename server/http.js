@@ -55,8 +55,17 @@ export function toSafeUser(user) {
   return safe;
 }
 
+// The client writes the start of X-Forwarded-For itself, so only the entries
+// our own proxies append can be trusted. Each proxy in front of Node adds one
+// entry at the end; TRUSTED_PROXY_HOPS says how many there are (Hostinger's
+// LiteSpeed = 1). The entry that many places from the end is the address the
+// outermost proxy saw, which a client cannot fake.
 export function clientIp(req) {
-  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const hops = Math.max(0, Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? '1', 10) || 0);
+  const chain = String(req.headers['x-forwarded-for'] || '')
+    .split(',').map((part) => part.trim()).filter(Boolean);
+  // Fewer entries than hops only happens when the proxies wrote all of them.
+  const forwarded = hops > 0 ? chain[Math.max(0, chain.length - hops)] : '';
   return forwarded || req.socket?.remoteAddress || 'unknown';
 }
 

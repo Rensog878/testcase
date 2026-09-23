@@ -1,6 +1,6 @@
 import express from 'express';
 import { db, USER_ROLES } from './db.js';
-import { HttpError, sendError, userInputError } from './http.js';
+import { HttpError, sendError, userInputError, clientIp } from './http.js';
 import { orderWhatsAppEnabled, sendOrderConfirmation } from './orderNotifications.js';
 import { getWhatsAppSenderStatus } from './whatsapp.js';
 
@@ -194,6 +194,18 @@ router.get('/whatsapp/senders', async (req, res) => {
     } catch (err) {
           sendError(res, err, 'WhatsApp sender status');
     }
+});
+
+// Which address the rate limits see for the caller, next to the raw proxy
+// chain, so TRUSTED_PROXY_HOPS can be checked against the real hosting setup.
+router.get('/client-ip', (req, res) => {
+    res.json({
+          success: true,
+          ip: clientIp(req),
+          forwardedFor: req.headers['x-forwarded-for'] || '',
+          socket: req.socket?.remoteAddress || '',
+          hops: process.env.TRUSTED_PROXY_HOPS ?? '1',
+    });
 });
 
 // Live numbers for the admin dashboard cards.

@@ -101,7 +101,7 @@ export function acreInput(value) {
 }
 
 // What one tap of the farm-size + / − buttons adds or takes away.
-export const ACRE_STEP = 0.15
+export const ACRE_STEP = 0.25
 
 // direction 1 or -1: ACRE_STEP more or fewer, keeping the part of an acre
 // already typed, rounded to the 2 decimals the server accepts.

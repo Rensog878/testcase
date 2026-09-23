@@ -144,15 +144,15 @@ test('farm size can be part of an acre, to two decimal places', () => {
   assert.equal(acreInput('12a.3456'), '12.34')
   assert.equal(acreInput('123456'), '1234')
   assert.equal(acreInput('1.2.3'), '1.23')
-  assert.equal(stepAcres('3', 1), '3.15')
-  assert.equal(stepAcres('3.15', 1), '3.3')
-  assert.equal(stepAcres('3', -1), '2.85')
-  assert.equal(stepAcres('2.5', 1), '2.65')
+  assert.equal(stepAcres('3', 1), '3.25')
+  assert.equal(stepAcres('3.25', 1), '3.5')
+  assert.equal(stepAcres('3', -1), '2.75')
+  assert.equal(stepAcres('5.3', 1), '5.55', 'a typed part of an acre is kept')
   assert.equal(stepAcres('0.2', -1), '0.1', 'never below the 0.1 acre minimum')
   assert.equal(stepAcres('9999', 1), '9999')
   let v = '0.1'
   for (let i = 0; i < 20; i++) v = stepAcres(v, 1)
-  assert.equal(v, '3.1', 'twenty taps from 0.1 add exactly 3 acres, no float drift')
+  assert.equal(v, '5.1', 'twenty taps from 0.1 add exactly 5 acres, no float drift')
 })
 
 test('sign-up offers the crops the server sends (the admin product-form list), not only the built-in ones', () => {

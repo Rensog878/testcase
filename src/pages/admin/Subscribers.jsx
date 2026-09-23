@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import {
-  ADVISORY_TEMPLATES, CROP_GROUPS, MESSAGE_MAX_LENGTH, OTHER_GROUP, SEASONS,
+  CROP_GROUPS, MESSAGE_MAX_LENGTH, OTHER_GROUP, SEASONS,
   cropGroupKey, cropGroupLabel, isActiveSubscriber, renderAdvisory, selectRecipients,
 } from '../../shared/advisoryRules.js'
 
@@ -274,12 +274,6 @@ function BroadcastComposer({ subscribers, onClose, onStarted }) {
     setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value])
   }
 
-  const useTemplate = () => {
-    const key = crops.length === 1 ? crops[0] : crops.length ? 'mixed' : 'other'
-    setMessage(ADVISORY_TEMPLATES[key])
-    if (!title) setTitle(`${crops.length ? crops.map(cropGroupLabel).join(', ') : 'Crop'} advisory`)
-  }
-
   const insertPlaceholder = (token) => {
     const el = textRef.current
     const start = el?.selectionStart ?? message.length
@@ -343,7 +337,6 @@ function BroadcastComposer({ subscribers, onClose, onStarted }) {
             <div className="form-group">
               <div className="adv-label-row">
                 <label className="form-label" htmlFor="adv-message">3. Message</label>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={useTemplate}>Use crop template</button>
               </div>
               <textarea id="adv-message" ref={textRef} className="form-textarea adv-textarea" value={message}
                 onChange={e => { setMessage(e.target.value); setConfirming(false) }} placeholder="Write the advisory. Use {name} and {crop} to personalise it." />

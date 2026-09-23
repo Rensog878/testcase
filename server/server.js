@@ -260,7 +260,9 @@ function hashOtp(otp) {
 // sign-in code is plain text, without the banner.
 
 async function sendWhatsAppOtp(phone, otp, userName = 'Farmer', { banner = true } = {}) {
-  const text = buildOtpMessage(otp, userName, phone, OTP_EXPIRY_MS);
+  // A new customer (the banner) is welcomed and asked to save the number; a
+  // returning one is welcomed back.
+  const text = buildOtpMessage(otp, userName, phone, OTP_EXPIRY_MS, { isNew: banner });
   if (!banner) return sendWhatsAppText(phone, text);
   return sendWhatsAppImage(phone, { imageUrl: otpBannerUrl(), caption: text });
 }

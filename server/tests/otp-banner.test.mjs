@@ -144,3 +144,37 @@ test('the banner URL changes whenever the banner image does', async () => {
   const actual = createHash('sha256').update(file).digest('hex').slice(0, 12);
   assert.equal(OTP_BANNER_VERSION, actual, 'the banner was rebuilt: update OTP_BANNER_VERSION in otpTemplates.js');
 });
+
+// Customer codes: Tamil first, then English; welcome vs welcome back.
+test('customer codes are Tamil + English, with no Hindi greeting', () => {
+  for (let i = 0; i < OTP_LAYOUT_COUNT * 100; i++) {
+    for (const isNew of [true, false]) {
+      const text = buildOtpMessage('482915', 'Selvi', `98700${String(i).padStart(5, '0')}`, 5 * 60 * 1000, { isNew });
+      assert.doesNotMatch(text, /namaste|नमस्ते/i, 'no Hindi greeting');
+      assert.match(text, /[\u0B80-\u0BFF]/, 'has Tamil');
+      assert.ok(text.indexOf('━') > 0 && /[\u0B80-\u0BFF]/.test(text.slice(0, text.indexOf('━'))), 'Tamil comes first');
+      assert.equal((text.match(/\*482915\*/g) || []).length >= 2, true, 'the code in bold in both languages');
+      assert.ok(text.length <= WHATSAPP_CAPTION_LIMIT, `${text.length} characters`);
+    }
+  }
+});
+
+test('only a new customer is asked to save the number; a returning one reads no sign-up wording', () => {
+  for (let i = 0; i < OTP_LAYOUT_COUNT * 50; i++) {
+    const fresh = buildOtpMessage('482915', 'Selvi', `98711${String(i).padStart(5, '0')}`, 5 * 60 * 1000, { isNew: true });
+    const back = buildOtpMessage('482915', 'Selvi', `98722${String(i).padStart(5, '0')}`, 5 * 60 * 1000, { isNew: false });
+    assert.equal((fresh.match(/📌/g) || []).length, 2, 'save line in Tamil and English');
+    assert.match(fresh, /Save this number as|Add this number to your contacts|save this number as/i);
+    assert.doesNotMatch(back, /📌/, 'no save line when they already have an account');
+    assert.doesNotMatch(back, /sign.?up|signing up|welcome to/i);
+    assert.match(back, /மீண்டும்/, 'welcomed back in Tamil');
+    assert.doesNotMatch(fresh + back, /do not reply|no reply needed/i, 'replies are welcome');
+  }
+});
+
+test('a name written in Tamil is kept, and a missing name reads naturally in Tamil', () => {
+  const text = buildOtpMessage('482915', 'செல்வி முருகன்', '9873300001', 5 * 60 * 1000, { isNew: false });
+  assert.match(text, /செல்வி/);
+  const noName = buildOtpMessage('482915', '12345', '9873300002', 5 * 60 * 1000, { isNew: true });
+  assert.match(noName, /விவசாயி நண்பரே/);
+});

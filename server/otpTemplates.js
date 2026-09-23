@@ -64,8 +64,6 @@ const decap = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 // ---------------------------------------------------------------
 
 const GREETINGS = [
-  (n) => `Namaste ${n},`,
-  (n) => `Namaste ${n} 🙏`,
   (n) => `Hello ${n},`,
   (n) => `Hello ${n} 👋`,
   (n) => `Hi ${n},`,
@@ -140,9 +138,7 @@ const FOOTERS = [
   '_If you did not request this, you can safely ignore this message._',
   '_Not you? No action is needed — simply ignore this message._',
   `_This is an automated message from ${BRAND}._`,
-  '_Please do not reply to this message._',
   '_Did not request a code? You can ignore this message._',
-  `_Sent automatically by ${BRAND}. No reply needed._`,
   '_If this was not you, no further action is required._',
   '_This message was sent because someone entered this number to sign up._',
   `_Need help? Contact ${BRAND} support._`,
@@ -173,91 +169,91 @@ const HEADERS = [
 
 const LAYOUTS = [
   // 1 — header, greeting, lead, code, details, footer
-  ({ name, otp, mins }) => [
-    pick(HEADERS), '',
+  ({ name, otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(GREETINGS)(name),
-    pick(LEAD_INS), '',
+    lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
     pick(WARNINGS),
-    maybe('\n' + pick(FOOTERS), 0.5),
+    maybe('\n' + footer(), 0.5),
   ],
 
   // 2 — code first, then explanation
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     `*${otp}* is your *${BRAND}* verification code.`, '',
-    `${pick(GREETINGS)(name)} ${decap(pick(LEAD_INS).replace(/:$/, '.'))}`,
+    `${pick(GREETINGS)(name)} ${decap(lead().replace(/:$/, '.'))}`,
     pick(VALIDITY)(mins), '',
     `_${pick(WARNINGS)}_`,
-    maybe('\n' + pick(FOOTERS), 0.3),
+    maybe('\n' + footer(), 0.3),
   ],
 
   // 3 — compact, brand inline
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name),
     `Your *${BRAND}* code is *${otp}*.`,
     `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`,
-    maybe('\n' + pick(FOOTERS), 0.4),
+    maybe('\n' + footer(), 0.4),
   ],
 
   // 4 — labelled block
-  ({ name, otp, mins }) => [
-    pick(HEADERS), '',
+  ({ name, otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(GREETINGS)(name), '',
     `Verification code: *${otp}*`,
     `Valid for: ${mins} minutes`, '',
     pick(WARNINGS),
-    maybe('\n' + pick(FOOTERS), 0.4),
+    maybe('\n' + footer(), 0.4),
   ],
 
   // 5 — greeting first, brand as sign-off
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name), '',
-    pick(LEAD_INS), '',
+    lead(), '',
     pick(CODE_LINES)(otp), '',
     `${pick(WARNINGS)} ${pick(VALIDITY)(mins)}`, '',
     `— *${BRAND}*`,
   ],
 
   // 6 — short, header-led
-  ({ otp, mins }) => [
-    pick(HEADERS), '',
+  ({ otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(CODE_LINES)(otp), '',
     `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`,
-    maybe('\n' + pick(FOOTERS), 0.5),
+    maybe('\n' + footer(), 0.5),
   ],
 
   // 7 — welcoming tone
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     `${pick(GREETINGS)(name)} welcome to *${BRAND}* 🌱`, '',
-    pick(LEAD_INS), '',
+    lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
     pick(WARNINGS),
-    maybe('\n' + pick(FOOTERS), 0.3),
+    maybe('\n' + footer(), 0.3),
   ],
 
   // 8 — header, code, details on separate lines
-  ({ otp, mins }) => [
-    pick(HEADERS), '',
+  ({ otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
     pick(WARNINGS),
-    maybe('\n' + pick(FOOTERS), 0.6),
+    maybe('\n' + footer(), 0.6),
   ],
 
   // 9 — sentence style, code inline
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name),
     `Please enter *${otp}* to verify your mobile number with *${BRAND}*.`,
     pick(VALIDITY)(mins), '',
     pick(WARNINGS),
-    maybe('\n' + pick(FOOTERS), 0.4),
+    maybe('\n' + footer(), 0.4),
   ],
 
   // 10 — bulleted details
-  ({ name, otp, mins }) => [
-    pick(HEADERS), '',
+  ({ name, otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(GREETINGS)(name), '',
     pick(CODE_LINES)(otp), '',
     `• ${pick(VALIDITY)(mins)}`,
@@ -266,19 +262,19 @@ const LAYOUTS = [
   ],
 
   // 11 — question opener
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name),
     `Signing up with *${BRAND}*?`,
-    pick(LEAD_INS), '',
+    lead(), '',
     pick(CODE_LINES)(otp), '',
     `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`,
-    maybe('\n' + pick(FOOTERS), 0.3),
+    maybe('\n' + footer(), 0.3),
   ],
 
   // 12 — footer-branded
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name), '',
-    pick(LEAD_INS), '',
+    lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
     pick(WARNINGS), '',
@@ -286,29 +282,29 @@ const LAYOUTS = [
   ],
 
   // 13 — warning emphasised first
-  ({ name, otp, mins }) => [
-    pick(HEADERS), '',
+  ({ name, otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(GREETINGS)(name),
     `${pick(WARNINGS)}`, '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
-    maybe('\n' + pick(FOOTERS), 0.4),
+    maybe('\n' + footer(), 0.4),
   ],
 
   // 14 — two-line body, footer required
-  ({ name, otp, mins }) => [
-    `${pick(GREETINGS)(name)} ${decap(pick(LEAD_INS))}`, '',
+  ({ name, otp, mins, lead, footer, header }) => [
+    `${pick(GREETINGS)(name)} ${decap(lead())}`, '',
     pick(CODE_LINES)(otp), '',
     `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`, '',
     `— *${BRAND}*`,
-    pick(FOOTERS),
+    footer(),
   ],
 
   // 15 — brand header plus closing signature
-  ({ name, otp, mins }) => [
-    pick(HEADERS), '',
+  ({ name, otp, mins, lead, footer, header }) => [
+    header(), '',
     pick(GREETINGS)(name),
-    pick(LEAD_INS), '',
+    lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins), '',
     `_${pick(WARNINGS)}_`, '',
@@ -316,9 +312,9 @@ const LAYOUTS = [
   ],
 
   // 16 — minimal, single detail line
-  ({ name, otp, mins }) => [
+  ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name),
-    pick(LEAD_INS), '',
+    lead(), '',
     `*${otp}*`, '',
     `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`, '',
     `*${BRAND}*`,
@@ -339,25 +335,121 @@ export function forgetOtpLayout(phone) {
  */
 export function safeFirstName(userName) {
   const first = String(userName || '').trim().split(/\s+/)[0] || '';
-  const letters = first.replace(/[^A-Za-zÀ-ɏ]/g, '');
+  const letters = first.replace(/[^\p{L}\p{M}]/gu, '');
   if (letters.length < 2) return 'Farmer';
   return first.slice(0, 24);
 }
 
-export function buildOtpMessage(otp, userName = 'Farmer', phone = '', expiryMs = 5 * 60 * 1000) {
+// ---------------------------------------------------------------
+// Tamil, above the English
+// Customers read Tamil first; the English below carries the same facts. The
+// Tamil lines vary as the English ones do, so the message never settles into
+// one fixed shape.
+// ---------------------------------------------------------------
+
+const TA_BRAND = 'சத்யம் அக்ரோ மார்ட்'
+// Used when there is no usable name ("Farmer" in English).
+const TA_NO_NAME = 'விவசாயி நண்பரே'
+
+const TA_GREETINGS = [
+  (n) => `வணக்கம் ${n} 🙏`,
+  (n) => `வணக்கம் ${n},`,
+  (n) => `அன்புள்ள ${n},`,
+  (n) => `வணக்கம் ${n} 🌾`,
+]
+
+// A new customer is welcomed; a returning one is welcomed back.
+const TA_WELCOME = [
+  `*${TA_BRAND}*-க்கு உங்களை அன்புடன் வரவேற்கிறோம் 🌱`,
+  `*${TA_BRAND}* குடும்பத்திற்கு உங்களை வரவேற்கிறோம் 🌾`,
+  `*${TA_BRAND}*-இல் இணைந்ததற்கு நன்றி 🌱`,
+]
+const TA_WELCOME_BACK = [
+  'மீண்டும் வருக! 🌾',
+  'உங்களை மீண்டும் காண்பதில் மகிழ்ச்சி 🌱',
+  `*${TA_BRAND}*-க்கு மீண்டும் வருக 🙏`,
+]
+
+const TA_LEAD_INS = [
+  'உங்கள் சரிபார்ப்புக் குறியீடு:',
+  'உங்கள் ஒருமுறை கடவுச்சொல் (OTP):',
+  'கீழே உள்ள குறியீட்டை உள்ளிடுங்கள்:',
+  'உங்கள் எண்ணை உறுதிப்படுத்த இந்தக் குறியீடு:',
+]
+
+const TA_VALIDITY = [
+  (m) => `இந்தக் குறியீடு ${m} நிமிடங்களுக்கு மட்டுமே செல்லும்.`,
+  (m) => `${m} நிமிடங்களுக்குள் பயன்படுத்துங்கள்.`,
+  (m) => `இது ${m} நிமிடங்களில் காலாவதியாகும்.`,
+]
+
+const TA_WARNINGS = [
+  'இந்தக் குறியீட்டை யாரிடமும் பகிர வேண்டாம்.',
+  'எங்கள் ஊழியர்கள் ஒருபோதும் இந்தக் குறியீட்டைக் கேட்க மாட்டார்கள்.',
+  'உங்கள் பாதுகாப்புக்காக இதை ரகசியமாக வைத்திருங்கள்.',
+]
+
+// Asked once, on the first message: a customer who saves the number is far
+// less likely to report it, and WhatsApp trusts a saved contact.
+const TA_SAVE = [
+  `📌 ஆர்டர் விவரங்களும் விவசாய ஆலோசனைகளும் தவறாமல் கிடைக்க, இந்த எண்ணை *${BRAND}* என்று சேமித்துக்கொள்ளுங்கள்.`,
+  `📌 இந்த எண்ணை *${BRAND}* என்று உங்கள் தொடர்புகளில் சேமியுங்கள்; ஆர்டர் தகவல்கள் இதே எண்ணில் வரும்.`,
+]
+const EN_SAVE = [
+  `📌 Save this number as *${BRAND}* so you never miss order updates and crop tips.`,
+  `📌 Please save this number as *${BRAND}* — your order updates will come from here.`,
+  `📌 Add this number to your contacts as *${BRAND}* to keep getting order updates.`,
+]
+
+function tamilBlock({ name, otp, mins, isNew }) {
+  const who = name === 'Farmer' ? TA_NO_NAME : name
+  return [
+    pick(TA_GREETINGS)(who),
+    pick(isNew ? TA_WELCOME : TA_WELCOME_BACK), '',
+    pick(TA_LEAD_INS),
+    `*${otp}*`, '',
+    pick(TA_VALIDITY)(mins),
+    pick(TA_WARNINGS),
+    isNew ? '\n' + pick(TA_SAVE) : '',
+  ]
+}
+
+// Wording that only makes sense while signing up.
+const SIGN_UP_WORDING = /sign.?up|signing up/i
+// Layouts 7 ("welcome to") and 11 ("Signing up with") are for new customers.
+const NEW_CUSTOMER_LAYOUTS = new Set([6, 10])
+
+const clean = (lines) => lines
+  .filter((line) => line !== null && line !== undefined)
+  .join('\n')
+  .replace(/\n{3,}/g, '\n\n')
+  .trim()
+
+/**
+ * The sign-in code for a customer: Tamil first, then English.
+ * isNew: a number with no account yet - welcomed, and asked to save the number.
+ * A returning customer is welcomed back and reads no sign-up wording.
+ */
+export function buildOtpMessage(otp, userName = 'Farmer', phone = '', expiryMs = 5 * 60 * 1000, { isNew = true } = {}) {
   const mins = Math.round(expiryMs / 60000);
   const name = safeFirstName(userName);
 
   const previous = lastLayout.get(phone);
-  const choices = LAYOUTS.map((_, i) => i).filter((i) => i !== previous);
+  const choices = LAYOUTS.map((_, i) => i).filter((i) => i !== previous && (isNew || !NEW_CUSTOMER_LAYOUTS.has(i)));
   const index = choices[crypto.randomInt(0, choices.length)];
   if (phone) lastLayout.set(phone, index);
 
-  return LAYOUTS[index]({ name, otp, mins })
-    .filter((line) => line !== null && line !== undefined)
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  const leadIns = isNew ? LEAD_INS : LEAD_INS.filter((line) => !SIGN_UP_WORDING.test(line));
+  const footers = isNew ? FOOTERS : FOOTERS.filter((line) => !SIGN_UP_WORDING.test(line));
+  const headers = isNew ? HEADERS : HEADERS.filter((line) => !SIGN_UP_WORDING.test(line));
+  const english = clean(LAYOUTS[index]({ name, otp, mins, lead: () => pick(leadIns), footer: () => pick(footers), header: () => pick(headers) }));
+
+  return clean([
+    clean(tamilBlock({ name, otp, mins, isNew })), '',
+    '━━━━━━━━━━', '',
+    english,
+    isNew ? '\n' + pick(EN_SAVE) : '',
+  ]);
 }
 
 export const OTP_LAYOUT_COUNT = LAYOUTS.length;

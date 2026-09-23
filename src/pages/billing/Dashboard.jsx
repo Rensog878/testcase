@@ -242,6 +242,10 @@ export default function BillingDashboard() {
 
     const newItem = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      // The catalogue product this line was picked from, if any - a custom,
+      // freely-typed line has none. The server uses this, not the line's own
+      // id above, to take the sale out of that product's online stock.
+      productId: product?.id || '',
       name,
       batch: itemBatch || 'Primary Batch',
       hsnCode: itemHsn || '31010099',

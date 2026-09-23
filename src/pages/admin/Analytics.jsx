@@ -166,6 +166,12 @@ export default function AdminAnalytics() {
   }, [period, fromDate, toDate, channel])
 
   useEffect(() => { fetchAnalytics() }, [fetchAnalytics])
+  // A store-scoped admin's request is always answered with channel:'offline'
+  // regardless of what was asked for (see server/adminRoutes.js); reflect
+  // that back so the toggle doesn't show a disabled option as selected.
+  useEffect(() => {
+    if (data?.storeScoped && data.channel && data.channel !== channel) setChannel(data.channel)
+  }, [data, channel])
 
   const kpi      = data?.kpi      || {}
   const trend    = data?.trend    || {}
@@ -260,6 +266,16 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
+      {/* A branch admin has no online data of their own to switch to - there
+          is one storefront, not one per store - so Online and Both are
+          disabled rather than silently returning offline data under an
+          "Omnichannel"/"Online" label that would no longer be true. */}
+      {data?.storeScoped && (
+        <p className="bi-store-scope-note" style={{ margin: '0 0 12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+          Showing this store's billing counter only. Online store sales are company-wide and shown on the main Analytics view, not per store.
+        </p>
+      )}
+
       {/* ── 3-Mode Channel Switcher (Online, Offline, Both) ── */}
       <div className="bi-channel-selector" style={{
         display: 'grid',
@@ -269,10 +285,13 @@ export default function AdminAnalytics() {
       }}>
         {CHANNEL_MODES.map(m => {
           const isActive = channel === m.key
+          const disabled = data?.storeScoped && m.key !== 'offline'
           return (
             <button
               key={m.key}
               type="button"
+              disabled={disabled}
+              title={disabled ? "Not available for a single store's admin" : undefined}
               onClick={() => setChannel(m.key)}
               style={{
                 display: 'flex',
@@ -282,7 +301,8 @@ export default function AdminAnalytics() {
                 borderRadius: '12px',
                 background: isActive ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%)' : 'var(--dark-800)',
                 border: isActive ? '2px solid #22c55e' : '1px solid var(--dark-700)',
-                cursor: 'pointer',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                opacity: disabled ? 0.45 : 1,
                 textAlign: 'left',
                 color: 'inherit',
                 transition: 'all 0.2s ease',

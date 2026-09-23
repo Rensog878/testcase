@@ -2584,6 +2584,10 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
 
       return {
         id: item.id || newId('ITM'),
+        // The catalogue product this line came from, if any (a hand-typed
+        // line has none) - kept separate from the line's own id above, and
+        // used only to take the sale out of that product's stock.
+        productId: cleanText(item.productId || '', 40),
         name: item.name || item.productName || 'Product',
         batch: cleanText(item.batch || item.batchNo || 'Primary Batch', 50),
         subText: cleanText(item.subText || '', 200),
@@ -2700,6 +2704,14 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
       cashier: req.user.name,
       status: isCreditPurchase ? 'CREDIT' : 'PAID',
     };
+
+    // Cash is already in the till, so the invoice is issued either way; a
+    // shortfall (a line not in stock, or a hand-typed line with no catalogue
+    // product to take stock from) only gets flagged on the invoice, the same
+    // as an online order that outran its stock.
+    const stockLines = enrichedItems.filter(it => it.productId).map(it => ({ id: it.productId, qty: it.qty }));
+    const reserved = stockLines.length ? await db.reserveStock(stockLines) : { ok: true };
+    invoice.stockShortfall = !reserved.ok;
 
     const savedInvoice = await db.createInvoice(invoice);
     res.json({ success: true, message: 'POS GST Tax Invoice Generated', invoice: savedInvoice });

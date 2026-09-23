@@ -199,7 +199,9 @@ router.get('/whatsapp/senders', async (req, res) => {
 // Live numbers for the admin dashboard cards.
 router.get('/stats', async (req, res) => {
     try {
-          const data = await db.getAdminStats();
+          // superadmin never has a storeId, so this always resolves to the
+          // company-wide view for them, whichever store they last opened.
+          const data = await db.getAdminStats(req.user.role === 'admin' ? (req.user.storeId || '') : '');
           res.json({ success: true, data });
     } catch (err) {
           sendError(res, err, 'Admin stats');
@@ -227,7 +229,11 @@ router.get('/wishlist-summary', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/analytics', async (req, res) => {
     try {
-        const channel = (req.query.channel || req.query.mode || 'both').toLowerCase();
+        // A store-scoped admin has no online data to show (one storefront,
+        // not one per branch - see getAdminStats) and their offline side is
+        // their own store's invoices only, not every branch's.
+        const storeId = req.user.role === 'admin' ? (req.user.storeId || '') : '';
+        const channel = storeId ? 'offline' : (req.query.channel || req.query.mode || 'both').toLowerCase();
 
         // Resolve the date window.
         const IST_OFFSET_MS = 330 * 60 * 1000;
@@ -256,8 +262,8 @@ router.get('/analytics', async (req, res) => {
         }
 
         const [allOrders, allInvoices] = await Promise.all([
-            db.getOrders(),
-            db.getInvoices()
+            storeId ? [] : db.getOrders(),
+            db.getInvoices(storeId ? { storeId } : {})
         ]);
 
         const onlineTx = allOrders.map(o => ({
@@ -394,6 +400,7 @@ router.get('/analytics', async (req, res) => {
             success: true,
             data: {
                 channel,
+                storeScoped: Boolean(storeId),
                 kpi: {
                     totalRevenue,
                     onlineRevenue,

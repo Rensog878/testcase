@@ -17,14 +17,18 @@ export default function AdminDashboard() {
 
   const show = value => (stats ? String(value ?? 0) : statsError ? '—' : '…')
   const note = text => (stats ? text : statsError ? 'Could not load' : 'Loading')
+  // A store-scoped admin (assigned to one branch) has no online figures to
+  // show - the website is one storefront, not one per branch - so their
+  // revenue is their counter's alone, not "omnichannel".
+  const storeScoped = stats?.scope === 'store'
   const statCards = [
-    { label: 'Total Omnichannel Revenue', value: stats ? `₹${Number(stats.totalRevenue || 0).toLocaleString('en-IN')}` : show(), change: note(stats?.offlineRevenue ? `₹${Number(stats.onlineRevenue || 0).toLocaleString('en-IN')} web + ₹${Number(stats.offlineRevenue || 0).toLocaleString('en-IN')} counter` : `${stats?.paidOrders ?? 0} paid orders`), color: 'green', icon: <Banknote size={22} /> },
-    { label: 'Orders & Bills Today', value: show(stats?.ordersToday), change: note(`${stats?.totalOrders ?? 0} total (${stats?.onlineOrders ?? 0} web, ${stats?.offlineOrders ?? 0} counter)`), color: 'blue', icon: <Package size={22} /> },
-    { label: 'Active Products', value: show(stats?.activeProducts), change: note(`${stats?.totalProducts ?? 0} in catalog, in stock`), color: 'yellow', icon: <Leaf size={22} /> },
-    { label: 'Subscribers', value: show(stats?.subscribers), change: note('Advisory sign-ups'), color: 'orange', icon: <Mail size={22} /> },
-    { label: 'Wishlist Saves', value: show(stats?.wishlistSaves), change: note('Customer interest'), color: 'purple', icon: <Heart size={22} /> },
-    { label: 'Open Tickets', value: show(stats?.openTickets), change: note('Awaiting a reply'), color: 'red', icon: <Ticket size={22} /> },
-    { label: 'Pending Deliveries', value: show(stats?.pendingDeliveries), change: note('Not yet delivered'), color: 'teal', icon: <Truck size={22} /> },
+    { label: storeScoped ? 'Store Revenue' : 'Total Omnichannel Revenue', value: stats ? `₹${Number(stats.totalRevenue || 0).toLocaleString('en-IN')}` : show(), change: note(storeScoped ? `${stats?.offlineOrders ?? 0} counter bills` : (stats?.offlineRevenue ? `₹${Number(stats.onlineRevenue || 0).toLocaleString('en-IN')} web + ₹${Number(stats.offlineRevenue || 0).toLocaleString('en-IN')} counter` : `${stats?.paidOrders ?? 0} paid orders`)), color: 'green', icon: <Banknote size={22} /> },
+    { label: storeScoped ? 'Bills Today' : 'Orders & Bills Today', value: show(stats?.ordersToday), change: note(storeScoped ? `${stats?.totalOrders ?? 0} counter bills, this store` : `${stats?.totalOrders ?? 0} total (${stats?.onlineOrders ?? 0} web, ${stats?.offlineOrders ?? 0} counter)`), color: 'blue', icon: <Package size={22} /> },
+    { label: 'Active Products', value: show(stats?.activeProducts), change: note(storeScoped ? `${stats?.totalProducts ?? 0} in the shared catalog` : `${stats?.totalProducts ?? 0} in catalog, in stock`), color: 'yellow', icon: <Leaf size={22} /> },
+    { label: 'Subscribers', value: show(stats?.subscribers), change: note(storeScoped ? 'Site-wide, not per store' : 'Advisory sign-ups'), color: 'orange', icon: <Mail size={22} /> },
+    { label: 'Wishlist Saves', value: show(stats?.wishlistSaves), change: note(storeScoped ? 'Site-wide, not per store' : 'Customer interest'), color: 'purple', icon: <Heart size={22} /> },
+    { label: 'Open Tickets', value: show(stats?.openTickets), change: note(storeScoped ? 'Site-wide, not per store' : 'Awaiting a reply'), color: 'red', icon: <Ticket size={22} /> },
+    { label: 'Pending Deliveries', value: show(stats?.pendingDeliveries), change: note(storeScoped ? 'Online orders are not this store’s' : 'Not yet delivered'), color: 'teal', icon: <Truck size={22} /> },
   ]
 
   const quickLinks = [

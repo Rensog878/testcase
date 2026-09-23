@@ -2162,16 +2162,30 @@ class DatabaseManager {
 
   // ================= ADMIN DASHBOARD =================
 
-  async getAdminStats() {
+  // storeId scopes the counter/billing side to one branch - the only side
+  // that carries a storeId at all (Invoice, set at creation). Online orders
+  // have no store on them: there is one storefront, not one per branch, so
+  // a farmer's order was never placed "at" any of them. A branch admin's
+  // dashboard therefore shows their own counter takings and 0 online - the
+  // website's sales are not theirs to take credit for - while an admin with
+  // no storeId (the original, pre-multi-store account) keeps seeing the
+  // company-wide total exactly as before, online and offline both.
+  async getAdminStats(storeId = '') {
         await connectDB();
         // "Today" is the business day in India (UTC+5:30), not the server's UTC day.
         const IST_OFFSET_MS = 330 * 60 * 1000;
         const DAY_MS = 24 * 60 * 60 * 1000;
         const dayStartIso = new Date(Math.floor((Date.now() + IST_OFFSET_MS) / DAY_MS) * DAY_MS - IST_OFFSET_MS).toISOString();
+        const scoped = Boolean(storeId);
 
+        const invoiceQuery = scoped ? { storeId } : {};
+        // Subscribers, tickets and wishlist saves are genuinely company-wide -
+        // one advisory list, one support inbox, one storefront's wishlists -
+        // so they are the real total even in a store-scoped response; only
+        // orders and revenue change with storeId.
         const [orders, invoices, totalProducts, activeProducts, subscribers, openTickets, wishlistSaves] = await Promise.all([
-            Order.find({}, { total: 1, paymentStatus: 1, deliveryStatus: 1, createdAt: 1 }).lean(),
-            Invoice.find({}, { grandTotal: 1, status: 1, date: 1 }).lean(),
+            scoped ? [] : Order.find({}, { total: 1, paymentStatus: 1, deliveryStatus: 1, createdAt: 1 }).lean(),
+            Invoice.find(invoiceQuery, { grandTotal: 1, status: 1, date: 1 }).lean(),
             Product.countDocuments({}),
             Product.countDocuments({ stock: { $gt: 0 } }),
             AdvisorySubscriber.countDocuments({}),
@@ -2188,6 +2202,7 @@ class DatabaseManager {
         const offlineToday = invoices.filter(i => String(i.date || '') >= dayStartIso).length;
 
         return {
+            scope: scoped ? 'store' : 'company',
             totalRevenue,
             onlineRevenue: Math.round(onlineRevenue * 100) / 100,
             offlineRevenue: Math.round(offlineRevenue * 100) / 100,
@@ -2198,6 +2213,9 @@ class DatabaseManager {
             ordersToday: onlineToday + offlineToday,
             onlineOrdersToday: onlineToday,
             offlineOrdersToday: offlineToday,
+            // The catalogue is shared across every store (one website, one
+            // product list) - a new branch's admin correctly sees the same
+            // count as every other branch, same as Products Master itself.
             totalProducts,
             activeProducts,
             subscribers,

@@ -1,4 +1,4 @@
-/* Sathya Bio - E-Commerce Data Store & Product Catalog */
+/* Sathyam Agro Mart - E-Commerce Data Store & Product Catalog */
 
 export const CROPS = [
   { id: 'all', name: 'All Crops', icon: 'fa-wheat-awn' },
@@ -38,7 +38,7 @@ const IMG = {
 
 export const PESTICIDES = [
   {
-    id: 'sb-01', name: 'Sathya Bio BlastShield 75 WP',
+    id: 'sb-01', name: 'Sathyam Agro Mart BlastShield 75 WP',
     tagline: 'Systemic Bio-Fungicide for Paddy Blast & Neck Rot',
     category: 'Fungicide',
     crops: ['Paddy/Rice', 'Wheat', 'Corn'],
@@ -47,7 +47,7 @@ export const PESTICIDES = [
     dosage: '120g - 150g per Acre', packSizes: ['250g', '500g', '1kg'], selectedPack: '500g',
     safetyRating: 'Class III (Eco Friendly)',
     description: 'Advanced systemic bio-fortified fungicide providing protective and curative control against Blast disease in Paddy, Leaf Rust in Wheat, and Neck Blast.',
-    detailedDescription: 'Sathya Bio BlastShield 75 WP is a highly specialized systemic fungicide tailored to combat the most stubborn fungal pathogens affecting grain crops. It rapidly penetrates the plant tissue, establishing a protective barrier that stops fungal spore germination and mycelial growth. With added bio-enzyme fortifiers, it not only cures the disease but helps the plant recover quickly from stress.',
+    detailedDescription: 'Sathyam Agro Mart BlastShield 75 WP is a highly specialized systemic fungicide tailored to combat the most stubborn fungal pathogens affecting grain crops. It rapidly penetrates the plant tissue, establishing a protective barrier that stops fungal spore germination and mycelial growth. With added bio-enzyme fortifiers, it not only cures the disease but helps the plant recover quickly from stress.',
     benefits: ['Rapid systemic action offering up to 15 days of protection.', 'Prevents secondary infections and reduces neck rot incidence.', 'Enhances grain quality and ensures higher milling yield.', 'Rainfast within 2 hours of application.'],
     modeOfAction: 'Inhibits melanin biosynthesis in appressoria, preventing the fungus from penetrating the plant cuticle.',
     applicationInstructions: 'Foliar spray at early symptoms or initiation of tillering phase. Dissolve 120g in 150L water per acre.',
@@ -55,7 +55,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 680, originalPrice: 850, discount: '20% OFF'
   },
   {
-    id: 'sb-02', name: 'Sathya Bio FlyKill Ultra',
+    id: 'sb-02', name: 'Sathyam Agro Mart FlyKill Ultra',
     tagline: 'Multi-Action Insecticide for Whitefly & Aphids',
     category: 'Insecticide',
     crops: ['Cotton', 'Tomato', 'Citrus', 'Potato'],
@@ -72,7 +72,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 840, originalPrice: 1050, discount: '20% OFF'
   },
   {
-    id: 'sb-03', name: 'Sathya Bio BlightStop Pro',
+    id: 'sb-03', name: 'Sathyam Agro Mart BlightStop Pro',
     tagline: 'Dual Action Systemic Fungicide for Blight Control',
     category: 'Fungicide',
     crops: ['Tomato', 'Potato', 'Grapes', 'Citrus'],
@@ -89,7 +89,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 750, originalPrice: 900, discount: '17% OFF'
   },
   {
-    id: 'sb-04', name: 'Sathya Bio RootVigor Gold',
+    id: 'sb-04', name: 'Sathyam Agro Mart RootVigor Gold',
     tagline: '100% Organic Bio-Stimulant & Root Enhancer',
     category: 'Bio-Stimulant',
     crops: ['Paddy/Rice', 'Wheat', 'Cotton', 'Sugarcane', 'Corn', 'Tomato', 'Grapes'],
@@ -106,7 +106,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 990, originalPrice: 1200, discount: '18% OFF'
   },
   {
-    id: 'sb-05', name: 'Sathya Bio StemGuard Max',
+    id: 'sb-05', name: 'Sathyam Agro Mart StemGuard Max',
     tagline: 'Granular Systemic Insecticide for Stem Borers',
     category: 'Insecticide',
     crops: ['Paddy/Rice', 'Sugarcane', 'Corn'],
@@ -123,7 +123,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 1250, originalPrice: 1490, discount: '16% OFF'
   },
   {
-    id: 'sb-06', name: 'Sathya Bio WeedWipe 41',
+    id: 'sb-06', name: 'Sathyam Agro Mart WeedWipe 41',
     tagline: 'Non-Selective Systemic Herbicide',
     category: 'Herbicide',
     crops: ['Sugarcane', 'Citrus', 'Cotton'],
@@ -140,7 +140,7 @@ export const PESTICIDES = [
     image: IMG.herbicide, price: 620, originalPrice: 750, discount: '17% OFF'
   },
   {
-    id: 'sb-07', name: 'Sathya Bio NutriMax Extra',
+    id: 'sb-07', name: 'Sathyam Agro Mart NutriMax Extra',
     tagline: 'Complete Micro-Nutrient Mix for Flowering Crops',
     category: 'Bio-Stimulant',
     crops: ['Tomato', 'Citrus', 'Grapes', 'Cotton'],
@@ -157,7 +157,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 550, originalPrice: 650, discount: '15% OFF'
   },
   {
-    id: 'sb-08', name: 'Sathya Bio PestBan 20 SP',
+    id: 'sb-08', name: 'Sathyam Agro Mart PestBan 20 SP',
     tagline: 'Systemic Insecticide for Sucking Pests',
     category: 'Insecticide',
     crops: ['Cotton', 'Paddy/Rice', 'Citrus'],
@@ -174,7 +174,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 420, originalPrice: 500, discount: '16% OFF'
   },
   {
-    id: 'sb-09', name: 'Sathya Bio FungiClear 75 WP',
+    id: 'sb-09', name: 'Sathyam Agro Mart FungiClear 75 WP',
     tagline: 'Broad Spectrum Contact Fungicide',
     category: 'Fungicide',
     crops: ['Potato', 'Tomato', 'Grapes'],
@@ -191,7 +191,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 580, originalPrice: 700, discount: '17% OFF'
   },
   {
-    id: 'sb-10', name: 'Sathya Bio ClearField Pre-Emerge',
+    id: 'sb-10', name: 'Sathyam Agro Mart ClearField Pre-Emerge',
     tagline: 'Pre-Emergent Selective Herbicide',
     category: 'Herbicide',
     crops: ['Paddy/Rice', 'Wheat', 'Corn'],
@@ -208,7 +208,7 @@ export const PESTICIDES = [
     image: IMG.herbicide, price: 490, originalPrice: 600, discount: '18% OFF'
   },
   {
-    id: 'sb-11', name: 'Sathya Bio NeemGuard 1500 EC',
+    id: 'sb-11', name: 'Sathyam Agro Mart NeemGuard 1500 EC',
     tagline: 'Cold-Pressed Neem Oil Biopesticide',
     category: 'Bio-Stimulant',
     crops: ['Cotton', 'Tomato', 'Paddy/Rice', 'Grapes', 'Citrus'],
@@ -225,7 +225,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 480, originalPrice: 580, discount: '17% OFF'
   },
   {
-    id: 'sb-12', name: 'Sathya Bio CopperCure 50 WP',
+    id: 'sb-12', name: 'Sathyam Agro Mart CopperCure 50 WP',
     tagline: 'Broad Spectrum Copper Fungicide & Bactericide',
     category: 'Fungicide',
     crops: ['Tomato', 'Potato', 'Citrus', 'Grapes', 'Cotton'],
@@ -242,7 +242,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 360, originalPrice: 430, discount: '16% OFF'
   },
   {
-    id: 'sb-13', name: 'Sathya Bio AgroNeem Granules',
+    id: 'sb-13', name: 'Sathyam Agro Mart AgroNeem Granules',
     tagline: 'Soil Amendment & Nematode Controller',
     category: 'Nematicide',
     crops: ['Tomato', 'Potato', 'Sugarcane', 'Cotton', 'Corn'],
@@ -259,7 +259,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 1100, originalPrice: 1350, discount: '19% OFF'
   },
   {
-    id: 'sb-14', name: 'Sathya Bio TricoShield WP',
+    id: 'sb-14', name: 'Sathyam Agro Mart TricoShield WP',
     tagline: 'Biological Fungicide (Trichoderma viride)',
     category: 'Bio-Stimulant',
     crops: ['Tomato', 'Cotton', 'Paddy/Rice', 'Wheat', 'Corn'],
@@ -276,7 +276,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 780, originalPrice: 950, discount: '18% OFF'
   },
   {
-    id: 'sb-15', name: 'Sathya Bio RustOff 25 EC',
+    id: 'sb-15', name: 'Sathyam Agro Mart RustOff 25 EC',
     tagline: 'Systemic Triazole Fungicide for Rust Control',
     category: 'Fungicide',
     crops: ['Wheat', 'Paddy/Rice', 'Corn'],
@@ -293,7 +293,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 620, originalPrice: 740, discount: '16% OFF'
   },
   {
-    id: 'sb-16', name: 'Sathya Bio Pyro-Kill 5 EC',
+    id: 'sb-16', name: 'Sathyam Agro Mart Pyro-Kill 5 EC',
     tagline: 'Broad Spectrum Pyrethroid Insecticide',
     category: 'Insecticide',
     crops: ['Cotton', 'Tomato', 'Citrus', 'Corn', 'Sugarcane'],
@@ -310,7 +310,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 510, originalPrice: 620, discount: '18% OFF'
   },
   {
-    id: 'sb-17', name: 'Sathya Bio MaxYield SL',
+    id: 'sb-17', name: 'Sathyam Agro Mart MaxYield SL',
     tagline: 'Plant Growth Regulator for Yield Enhancement',
     category: 'Bio-Stimulant',
     crops: ['Tomato', 'Grapes', 'Cotton', 'Sugarcane', 'Citrus'],
@@ -327,7 +327,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 720, originalPrice: 860, discount: '16% OFF'
   },
   {
-    id: 'sb-18', name: 'Sathya Bio NemaKill Bio',
+    id: 'sb-18', name: 'Sathyam Agro Mart NemaKill Bio',
     tagline: 'Entomopathogenic Nematicide (Paecilomyces)',
     category: 'Nematicide',
     crops: ['Tomato', 'Potato', 'Cotton', 'Corn', 'Sugarcane'],
@@ -344,7 +344,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 890, originalPrice: 1080, discount: '18% OFF'
   },
   {
-    id: 'sb-19', name: 'Sathya Bio SuperKill 5 SG',
+    id: 'sb-19', name: 'Sathyam Agro Mart SuperKill 5 SG',
     tagline: 'High-Potency Caterpillar & Bollworm Control',
     category: 'Insecticide',
     crops: ['Cotton', 'Paddy/Rice', 'Corn', 'Sugarcane'],
@@ -361,7 +361,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 850, originalPrice: 1050, discount: '19% OFF'
   },
   {
-    id: 'sb-20', name: 'Sathya Bio WeedBuster Post',
+    id: 'sb-20', name: 'Sathyam Agro Mart WeedBuster Post',
     tagline: 'Post-Emergent Selective Rice Herbicide',
     category: 'Herbicide',
     crops: ['Paddy/Rice', 'Wheat'],
@@ -378,7 +378,7 @@ export const PESTICIDES = [
     image: IMG.herbicide, price: 580, originalPrice: 700, discount: '17% OFF'
   },
   {
-    id: 'sb-21', name: 'Sathya Bio BioZinc Max 39.5%',
+    id: 'sb-21', name: 'Sathyam Agro Mart BioZinc Max 39.5%',
     tagline: 'High Concentration Liquid Zinc Chelated Bio-Nutrient',
     category: 'Bio-Stimulant',
     crops: ['Paddy/Rice', 'Wheat', 'Corn', 'Cotton'],
@@ -395,7 +395,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 520, originalPrice: 630, discount: '17% OFF'
   },
   {
-    id: 'sb-22', name: 'Sathya Bio MiteShield 57 EC',
+    id: 'sb-22', name: 'Sathyam Agro Mart MiteShield 57 EC',
     tagline: 'Contact & Ovicidal Miticide for Red Spider Mites',
     category: 'Insecticide',
     crops: ['Cotton', 'Grapes', 'Citrus', 'Tomato'],
@@ -412,7 +412,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 790, originalPrice: 950, discount: '17% OFF'
   },
   {
-    id: 'sb-23', name: 'Sathya Bio SulfoGuard 80 WDG',
+    id: 'sb-23', name: 'Sathyam Agro Mart SulfoGuard 80 WDG',
     tagline: 'Dual Action Micronutrient & Powdery Mildew Fungicide',
     category: 'Fungicide',
     crops: ['Grapes', 'Tomato', 'Wheat', 'Sugarcane'],
@@ -429,7 +429,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 320, originalPrice: 390, discount: '18% OFF'
   },
   {
-    id: 'sb-24', name: 'Sathya Bio BioK-Power Liquid',
+    id: 'sb-24', name: 'Sathyam Agro Mart BioK-Power Liquid',
     tagline: 'Potassium Solubilizing Bio-Fertilizer (KSB)',
     category: 'Bio-Stimulant',
     crops: ['Sugarcane', 'Potato', 'Grapes', 'Tomato', 'Cotton'],
@@ -446,7 +446,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 650, originalPrice: 780, discount: '17% OFF'
   },
   {
-    id: 'sb-25', name: 'Sathya Bio RootLock Nematicide',
+    id: 'sb-25', name: 'Sathyam Agro Mart RootLock Nematicide',
     tagline: 'Botanical Bio-Nematicide Granules for Soil Drench',
     category: 'Nematicide',
     crops: ['Tomato', 'Potato', 'Grapes', 'Citrus', 'Sugarcane'],
@@ -463,7 +463,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 980, originalPrice: 1200, discount: '18% OFF'
   },
   {
-    id: 'sb-26', name: 'Sathya Bio WeedClear 24-D',
+    id: 'sb-26', name: 'Sathyam Agro Mart WeedClear 24-D',
     tagline: 'Systemic Broadleaf Herbicide',
     category: 'Herbicide',
     crops: ['Wheat', 'Corn', 'Sugarcane'],
@@ -480,7 +480,7 @@ export const PESTICIDES = [
     image: IMG.herbicide, price: 340, originalPrice: 400, discount: '15% OFF'
   },
   {
-    id: 'sb-27', name: 'Sathya Bio AminoBoost Liquid',
+    id: 'sb-27', name: 'Sathyam Agro Mart AminoBoost Liquid',
     tagline: 'Advanced Amino Acid Bio-Stimulant',
     category: 'Bio-Stimulant',
     crops: ['Tomato', 'Cotton', 'Grapes', 'Citrus', 'Paddy/Rice'],
@@ -497,7 +497,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 460, originalPrice: 550, discount: '16% OFF'
   },
   {
-    id: 'sb-28', name: 'Sathya Bio NeemGuard 10000 PPM',
+    id: 'sb-28', name: 'Sathyam Agro Mart NeemGuard 10000 PPM',
     tagline: 'Pure Cold-Pressed Bio-Insecticide & Antifeedant',
     category: 'Insecticide',
     crops: ['Paddy/Rice', 'Cotton', 'Tomato', 'Grapes', 'Citrus'],
@@ -506,7 +506,7 @@ export const PESTICIDES = [
     dosage: '300ml per Acre', packSizes: ['250ml', '500ml', '1 Litre'], selectedPack: '500ml',
     safetyRating: '100% Organic Certified',
     description: 'High-potency botanical neem formulation disrupting insect lifecycle, feeding, and egglaying without chemical residues.',
-    detailedDescription: 'Sathya Bio NeemGuard 10000 PPM is extracted using high-grade cold-press technology to preserve active Azadirachtin azadirachtoids. It acts as an antifeedant, repellent, oviposition deterrent, and insect growth regulator (IGR). It kills eggs and nymphs while repelling adult sucking pests.',
+    detailedDescription: 'Sathyam Agro Mart NeemGuard 10000 PPM is extracted using high-grade cold-press technology to preserve active Azadirachtin azadirachtoids. It acts as an antifeedant, repellent, oviposition deterrent, and insect growth regulator (IGR). It kills eggs and nymphs while repelling adult sucking pests.',
     benefits: ['Zero pre-harvest interval - completely safe for organic & export crops.', 'Inhibits pest resistance development when mixed with chemical sprays.', 'Safe for earthworms, pollinators, and natural predators.', 'Protects against spider mites, thrips, and caterpillars.'],
     modeOfAction: 'Disrupts ecdysone hormone systems, preventing molting and suppressing feeding activity.',
     applicationInstructions: 'Foliar spray at 3ml per Litre water. Apply early morning or evening for optimal stability.',
@@ -514,7 +514,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 580, originalPrice: 720, discount: '19% OFF'
   },
   {
-    id: 'sb-29', name: 'Sathya Bio CopperShield 50 WG',
+    id: 'sb-29', name: 'Sathyam Agro Mart CopperShield 50 WG',
     tagline: 'Water Dispersible Bio-Bactericide & Contact Fungicide',
     category: 'Fungicide',
     crops: ['Tomato', 'Potato', 'Grapes', 'Citrus'],
@@ -531,7 +531,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 620, originalPrice: 750, discount: '17% OFF'
   },
   {
-    id: 'sb-30', name: 'Sathya Bio SulphaStar 80 WDG',
+    id: 'sb-30', name: 'Sathyam Agro Mart SulphaStar 80 WDG',
     tagline: 'Micronutrient Fortified Powdery Mildew & Mite Guard',
     category: 'Fungicide',
     crops: ['Grapes', 'Wheat', 'Sugarcane', 'Citrus'],
@@ -548,7 +548,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 390, originalPrice: 480, discount: '18% OFF'
   },
   {
-    id: 'sb-31', name: 'Sathya Bio StemKill 18.5 SC',
+    id: 'sb-31', name: 'Sathyam Agro Mart StemKill 18.5 SC',
     tagline: 'Broad Spectrum Stem Borer & Leaf Folder Specialist',
     category: 'Insecticide',
     crops: ['Paddy/Rice', 'Sugarcane', 'Corn'],
@@ -565,7 +565,7 @@ export const PESTICIDES = [
     image: IMG.insecticide, price: 890, originalPrice: 1100, discount: '19% OFF'
   },
   {
-    id: 'sb-32', name: 'Sathya Bio BloomMax Super',
+    id: 'sb-32', name: 'Sathyam Agro Mart BloomMax Super',
     tagline: 'Flower Booster & Fruit Drop Prevention Bio-Stimulant',
     category: 'Bio-Stimulant',
     crops: ['Tomato', 'Cotton', 'Grapes', 'Citrus'],
@@ -582,7 +582,7 @@ export const PESTICIDES = [
     image: IMG.biostim, price: 520, originalPrice: 650, discount: '20% OFF'
   },
   {
-    id: 'sb-33', name: 'Sathya Bio GrassOut 10 EC',
+    id: 'sb-33', name: 'Sathyam Agro Mart GrassOut 10 EC',
     tagline: 'Selective Post-Emergence Grass Weed Herbicide',
     category: 'Herbicide',
     crops: ['Cotton', 'Tomato', 'Potato', 'Sugarcane'],
@@ -599,7 +599,7 @@ export const PESTICIDES = [
     image: IMG.herbicide, price: 480, originalPrice: 580, discount: '17% OFF'
   },
   {
-    id: 'sb-34', name: 'Sathya Bio Trichoderma Viride 1% WP',
+    id: 'sb-34', name: 'Sathyam Agro Mart Trichoderma Viride 1% WP',
     tagline: 'Bio-Control Soil Fungicide for Root Rot & Wilt',
     category: 'Fungicide',
     crops: ['Paddy/Rice', 'Cotton', 'Tomato', 'Sugarcane', 'Grapes'],
@@ -616,7 +616,7 @@ export const PESTICIDES = [
     image: IMG.fungicide, price: 290, originalPrice: 380, discount: '23% OFF'
   },
   {
-    id: 'sb-35', name: 'Sathya Bio Pseudomonas 1% WP',
+    id: 'sb-35', name: 'Sathyam Agro Mart Pseudomonas 1% WP',
     tagline: 'Bio-Bactericide & Systemic Induced Resistance Activator',
     category: 'Fungicide',
     crops: ['Paddy/Rice', 'Tomato', 'Potato', 'Citrus', 'Wheat'],
@@ -646,12 +646,12 @@ export const INITIAL_TICKETS = [
     assignedExpert: 'Dr. Ramesh Agronomist',
     messages: [
       { sender: 'Farmer', text: 'My 3-acre paddy field leaves are turning light yellow from tips after heavy rainfall.', time: '10:15 AM' },
-      { sender: 'Sathya Bio Expert', text: 'Hello! This indicates possible Nitrogen leaching or early sheath blight. Please upload a clear leaf photo in the ticket attachment or use our AI Photo Scanner.', time: '10:42 AM' }
+      { sender: 'Sathyam Agro Mart Expert', text: 'Hello! This indicates possible Nitrogen leaching or early sheath blight. Please upload a clear leaf photo in the ticket attachment or use our AI Photo Scanner.', time: '10:42 AM' }
     ]
   },
   {
     id: 'TK-8710',
-    subject: 'Dosage query for Sathya Bio BlastShield on Cotton',
+    subject: 'Dosage query for Sathyam Agro Mart BlastShield on Cotton',
     category: 'Product Dosage',
     crop: 'Cotton',
     severity: 'Medium',
@@ -660,7 +660,7 @@ export const INITIAL_TICKETS = [
     assignedExpert: 'Kavitha S. (Pesticide Specialist)',
     messages: [
       { sender: 'Farmer', text: 'Can I mix BlastShield with RootVigor Gold in a single tank spray?', time: '02:00 PM' },
-      { sender: 'Sathya Bio Expert', text: 'Yes, BlastShield WP and RootVigor Gold Liquid are fully tank-mix compatible. Maintain 150L water volume per acre.', time: '02:18 PM' }
+      { sender: 'Sathyam Agro Mart Expert', text: 'Yes, BlastShield WP and RootVigor Gold Liquid are fully tank-mix compatible. Maintain 150L water volume per acre.', time: '02:18 PM' }
     ]
   }
 ];
@@ -701,7 +701,7 @@ export const EXPERTS = [
 export const N8N_WORKFLOW_NODES = [
   { id: 1, name: 'WhatsApp Webhook (Twilio / Meta API)', type: 'trigger', status: 'Active', desc: 'Receives farmer incoming message & photo' },
   { id: 2, name: 'AI Disease & Symptom Parser (LLM)', type: 'action', status: 'Success', desc: 'Extracts crop type, disease symptoms & location' },
-  { id: 3, name: 'Sathya Bio Catalog Lookup DB', type: 'search', status: 'Success', desc: 'Matches exact fungicide / insecticide remedy' },
+  { id: 3, name: 'Sathyam Agro Mart Catalog Lookup DB', type: 'search', status: 'Success', desc: 'Matches exact fungicide / insecticide remedy' },
   { id: 4, name: 'Automated WhatsApp Response Generator', type: 'response', status: 'Ready', desc: 'Sends instant dosage, video guide & order button' }
 ];
 
@@ -712,7 +712,7 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     cropDetected: 'Tomato / Potato',
     confidence: '96.4%',
     symptoms: 'Dark brown concentric rings on lower leaves, stem lesions, and water-soaked spots during humid weather.',
-    recommendedProduct: 'Sathya Bio BlightStop Pro (500g/acre)',
+    recommendedProduct: 'Sathyam Agro Mart BlightStop Pro (500g/acre)',
     productId: 'sb-03',
     preventiveTip: 'Avoid overhead sprinkler irrigation late in the evening and maintain 45cm row spacing.'
   },
@@ -722,7 +722,7 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     cropDetected: 'Paddy / Rice',
     confidence: '98.1%',
     symptoms: 'Diamond-shaped or spindle spots with greyish center and reddish-brown margins on leaf blades.',
-    recommendedProduct: 'Sathya Bio BlastShield 75 WP (120g/acre)',
+    recommendedProduct: 'Sathyam Agro Mart BlastShield 75 WP (120g/acre)',
     productId: 'sb-01',
     preventiveTip: 'Apply standing water management and avoid excessive Nitrogen fertilization.'
   },
@@ -732,7 +732,7 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
     cropDetected: 'Cotton / Chilli',
     confidence: '94.8%',
     symptoms: 'Sticky honey-dew exudate on leaves, yellowing vector damage, curling leaves.',
-    recommendedProduct: 'Sathya Bio FlyKill Ultra (250g/acre)',
+    recommendedProduct: 'Sathyam Agro Mart FlyKill Ultra (250g/acre)',
     productId: 'sb-02',
     preventiveTip: 'Install yellow sticky traps (15 traps/acre) alongside foliar spray.'
   }

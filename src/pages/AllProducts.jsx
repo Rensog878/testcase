@@ -343,6 +343,22 @@ export default function AllProducts() {
       .filter(cat => hasProductFor(cat.filterCategory, matchesCategoryFilter))
   }, [catalogOptions?.categories, hasProductFor])
 
+  // The filter pill bar (flat text buttons, unlike the illustrated rail above)
+  // reads the same merged, admin-aware list - deduped on filterCategory, since
+  // the rail can carry two tiles for one filter (Sprayers and Farm Machinery
+  // both mean Equipments) which would otherwise show as two identical pills.
+  const categoryPills = useMemo(() => {
+    const seen = new Set()
+    const pills = [{ label: 'All Products', value: '' }]
+    for (const cat of dynamicCategories) {
+      const key = cat.filterCategory.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      pills.push({ label: cat.filterCategory, value: cat.filterCategory })
+    }
+    return pills
+  }, [dynamicCategories])
+
   // Dynamic crops merging admin-added crops with default list
   const dynamicCropsList = useMemo(() => {
     // dedupeCropLabels first: the registry holds "Corn" beside "Corn / Maize"
@@ -1344,18 +1360,10 @@ export default function AllProducts() {
               </div>
             </div>
 
-            {/* Filter Category Pills */}
+            {/* Filter Category Pills - every admin category with a product,
+                same merged list as the illustrated rail above (dynamicCategories) */}
             <div className="catalog-category-filter-pills">
-              {[
-                { label: 'All Products', value: '' },
-                { label: 'Fungicides', value: 'Fungicide' },
-                { label: 'Insecticides', value: 'Insecticide' },
-                { label: 'Herbicides', value: 'Herbicide' },
-                { label: 'Crop Nutrition', value: 'Crop Nutrition' },
-                { label: 'Growth Promoters', value: 'Growth Promoters' },
-                { label: 'Seeds', value: 'Seeds' },
-                { label: 'Equipments', value: 'Equipments' }
-              ].map(cat => (
+              {categoryPills.map(cat => (
                 <button
                   key={cat.label}
                   type="button"

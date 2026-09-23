@@ -1101,6 +1101,30 @@ app.get('/api/catalog-options', async (req, res) => {
   }
 });
 
+// Adds to the shared registry (categories/crops/pack sizes/diseases/physical
+// forms) immediately, rather than only as a side effect of saving a product
+// that happens to use the new value - so a value picked in the admin form's
+// "Add a custom ..." box is there to reuse right away, on any admin session.
+const cleanOptionList = value => (Array.isArray(value) ? value : [])
+  .map(v => String(v || '').trim().slice(0, 40))
+  .filter(Boolean)
+  .slice(0, 20);
+
+app.post('/api/catalog-options', requireAuth('admin'), async (req, res) => {
+  try {
+    const data = await db.registerCatalogOptions({
+      categories: cleanOptionList(req.body?.categories),
+      crops: cleanOptionList(req.body?.crops),
+      storageBatches: cleanOptionList(req.body?.storageBatches),
+      diseases: cleanOptionList(req.body?.diseases),
+      physicalForms: cleanOptionList(req.body?.physicalForms),
+    });
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Catalog options');
+  }
+});
+
 app.get('/api/user-product-summary', requireAuth('admin'), async (req, res) => {
   try {
     const data = await db.getUserProductSummary();

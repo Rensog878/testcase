@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import {
   Plus, Edit2, Trash2, Check, X, Search, User, Filter,
   ArrowUpDown, RefreshCw, Sparkles, Tag, ShieldAlert, BarChart3,
-  IndianRupee, Sprout, Package, Image as ImageIcon, Info, Film, Video
+  IndianRupee, Sprout, Package, Image as ImageIcon, Info, Film, Video, ChevronDown
 } from 'lucide-react'
 import { parseImageList } from '../../shared/productImages.js'
 import { duplicateNameGroups, findSameNamedProduct, productNameKey } from '../../shared/productName.js'
 import { PRODUCT_FORMS, productForm } from '../../shared/productForm.js'
+import { cropList, joinCrops, CROP_CHOICES } from '../../shared/profileFieldRules'
 
 const PFORM_SECTIONS = [
   { id: 'pform-basic', label: 'Basic details', hint: 'Title, category, badge' },
@@ -51,6 +52,8 @@ export default function AdminProducts() {
   const [catalogOptions, setCatalogOptions] = useState({ categories: DEFAULT_CATEGORIES, crops: [], storageBatches: [], diseases: [], physicalForms: PRODUCT_FORMS })
   const [newCategory, setNewCategory] = useState('')
   const [newCrop, setNewCrop] = useState('')
+  const [cropMenuOpen, setCropMenuOpen] = useState(false)
+  const cropMenuRef = useRef(null)
   const [newDisease, setNewDisease] = useState('')
   const [newPhysicalForm, setNewPhysicalForm] = useState('')
   const [newStorageBatch, setNewStorageBatch] = useState('')
@@ -114,11 +117,16 @@ export default function AdminProducts() {
     }
   }
 
+  // Form field name -> the shared registry key it draws from and saves to
+  // (server.js's /api/catalog-options, db.js's registerCatalogOptions).
+  const FORM_FIELD_CATALOG_KEY = { category: 'categories', form: 'physicalForms', diseases: 'diseases' }
   const addFormOption = (field, value, setValue) => {
     const cleanValue = value.trim()
     if (!cleanValue) return
     setForm(current => ({ ...current, [field]: field === 'crops' || field === 'diseases' || field === 'packSizes' ? `${current[field] ? `${current[field]}, ` : ''}${cleanValue}` : cleanValue }))
     setValue('')
+    const catalogKey = FORM_FIELD_CATALOG_KEY[field]
+    if (catalogKey) persistCatalogOption(catalogKey, cleanValue, field)
   }
 
   const handlePhotoUpload = async (event) => {
@@ -197,10 +205,64 @@ export default function AdminProducts() {
   const removeListItem = (field, item) => {
     setForm(current => ({ ...current, [field]: current[field].split(',').map(s => s.trim()).filter(s => s && s !== item).join(', ') }))
   }
+  // Suitable Crops: a checklist dropdown over the admin's crop registry
+  // (catalogOptions.crops, the same list every other crop picker in the app
+  // reads from), not free text - so a filter option is never a typo away
+  // from matching nothing.
+  const selectedCrops = cropList(form.crops)
+  const cropChoices = catalogOptions.crops?.length ? catalogOptions.crops : CROP_CHOICES
+  const toggleCrop = crop => {
+    const exists = selectedCrops.some(c => c.toLowerCase() === crop.toLowerCase())
+    const next = exists ? selectedCrops.filter(c => c.toLowerCase() !== crop.toLowerCase()) : [...selectedCrops, crop]
+    setForm(current => ({ ...current, crops: joinCrops(next) }))
+  }
+  // Every "Add new ..." box in this form (category, physical form, crop,
+  // disease, pack size) writes to the same shared Settings.catalogOptions
+  // registry server-side (db.js's registerCatalogOptions). Saving it here,
+  // the moment it's typed - not only as a side effect of publishing a
+  // product that happens to use it - is what makes it show up in every
+  // dropdown, for every admin, immediately: their own next product, the
+  // storefront filters, everyone's session, not just this one after a save.
+  // Deduped against the built-in fallback too, so typing "Wheat" when the
+  // registry is still empty (and the dropdown is showing the fallback list)
+  // doesn't add a second "Wheat" once the real registry catches up.
+  const CATALOG_FALLBACKS = { categories: DEFAULT_CATEGORIES, physicalForms: PRODUCT_FORMS, crops: CROP_CHOICES, diseases: [], storageBatches: [] }
+  const persistCatalogOption = async (catalogKey, rawValue, label) => {
+    const value = rawValue.trim()
+    if (!value) return
+    const known = [...(catalogOptions[catalogKey] || []), ...(CATALOG_FALLBACKS[catalogKey] || [])]
+    if (known.some(v => v.toLowerCase() === value.toLowerCase())) return
+    setCatalogOptions(current => ({ ...current, [catalogKey]: [...(current[catalogKey] || []), value] }))
+    try {
+      const { data } = await axios.post('/api/catalog-options', { [catalogKey]: [value] })
+      if (data.success) setCatalogOptions(data.data)
+    } catch {
+      toast.error(`"${value}" is set for this product, but could not be saved to the shared ${label} list. It will still save with this product.`)
+    }
+  }
+  const addCustomCrop = value => {
+    const crop = value.trim()
+    if (!crop) return
+    setNewCrop('')
+    toggleCrop(crop)
+    persistCatalogOption('crops', crop, 'crop')
+  }
+  useEffect(() => {
+    if (!cropMenuOpen) return undefined
+    const onOutside = event => { if (!cropMenuRef.current?.contains(event.target)) setCropMenuOpen(false) }
+    const onEscape = event => { if (event.key === 'Escape') setCropMenuOpen(false) }
+    document.addEventListener('mousedown', onOutside)
+    document.addEventListener('keydown', onEscape)
+    return () => {
+      document.removeEventListener('mousedown', onOutside)
+      document.removeEventListener('keydown', onEscape)
+    }
+  }, [cropMenuOpen])
   const photoList = parseImageList(form.images)
   const requiredChecks = [
     { label: 'Product title', done: Boolean(String(form.name).trim()) },
     { label: 'Category', done: Boolean(String(form.category).trim()) },
+    { label: 'Physical form', done: Boolean(String(form.form || '').trim()) },
     { label: 'Selling price', done: form.price !== '' },
     { label: 'Stock quantity', done: form.stock !== '' },
     { label: 'HSN code', done: Boolean(String(form.hsnCode || '').trim()) },
@@ -296,6 +358,7 @@ export default function AdminProducts() {
     setForm({
       name: '',
       category: 'Fungicide',
+      form: '',
       price: '380',
       mrp: '450',
       stock: 100,
@@ -952,33 +1015,21 @@ export default function AdminProducts() {
                           that shares this database (server catalogOptions.
                           physicalForms) the next time this product is saved,
                           and offered on every product after that - so a typo
-                          here becomes a filter option nothing ever matches.
-                          Left blank, the store guesses it from the name and
-                          pack size instead - shown below as a check, not a
-                          value saved to the product. */}
-                      <label htmlFor="pformPhysicalForm">Physical Form</label>
+                          here becomes a filter option nothing ever matches. */}
+                      <label htmlFor="pformPhysicalForm">Physical Form *</label>
                       <select
                         id="pformPhysicalForm"
+                        required
                         value={form.form}
                         onChange={e => setForm({ ...form, form: e.target.value })}
                       >
-                        <option value="">Auto-detect from name/size</option>
+                        <option value="" disabled>Choose a physical form…</option>
                         {(catalogOptions.physicalForms?.length ? catalogOptions.physicalForms : PRODUCT_FORMS).map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
                       <div className="pform-adder">
                         <input value={newPhysicalForm} onChange={e => setNewPhysicalForm(e.target.value)} placeholder="New physical form" />
                         <button type="button" onClick={() => addFormOption('form', newPhysicalForm, setNewPhysicalForm)}><Plus size={14} className="pform-adder-icon" />Add</button>
                       </div>
-                      {!form.form && (() => {
-                        const guessed = productForm({ name: form.name, packSizes: form.packSizes?.split(',').map(s => s.trim()) }, catalogOptions.physicalForms)
-                        return (
-                          <p className="pform-hint">
-                            {guessed
-                              ? <>Shoppers will see this as <strong>{guessed}</strong>, guessed from the name. Pick one above to set it directly.</>
-                              : 'Shoppers won’t see a Form for this product until you pick one, or its name says what it is (e.g. "... 75 WP").'}
-                          </p>
-                        )
-                      })()}
                     </div>
                   </div>
                   <div className="pform-field">
@@ -1064,21 +1115,42 @@ export default function AdminProducts() {
                   </div>
 
                   <div className="pform-field">
-                    <label>Suitable Crops * <em>(comma separated)</em></label>
-                    <input
-                      required
-                      placeholder="e.g. Paddy/Rice, Wheat, Cotton, Tomato"
-                      value={form.crops}
-                      onChange={e => setForm({ ...form, crops: e.target.value })}
-                    />
-                    {form.crops.trim() && (
+                    <label>Suitable Crops *</label>
+                    <div className="pform-multiselect" ref={cropMenuRef}>
+                      <button
+                        type="button"
+                        className="pform-multiselect-trigger"
+                        aria-haspopup="listbox"
+                        aria-expanded={cropMenuOpen}
+                        onClick={() => setCropMenuOpen(open => !open)}
+                      >
+                        <span className={selectedCrops.length ? '' : 'pform-multiselect-placeholder'}>
+                          {selectedCrops.length ? `${selectedCrops.length} crop${selectedCrops.length === 1 ? '' : 's'} selected` : 'Select crops…'}
+                        </span>
+                        <ChevronDown size={15} className={`pform-multiselect-caret${cropMenuOpen ? ' open' : ''}`} aria-hidden="true" />
+                      </button>
+                      {cropMenuOpen && (
+                        <div className="pform-multiselect-panel" role="listbox" aria-multiselectable="true">
+                          {cropChoices.map(crop => {
+                            const checked = selectedCrops.some(c => c.toLowerCase() === crop.toLowerCase())
+                            return (
+                              <label key={crop} className="pform-multiselect-option">
+                                <input type="checkbox" checked={checked} onChange={() => toggleCrop(crop)} />
+                                <span>{crop}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    {selectedCrops.length > 0 && (
                       <div className="pform-chips">
-                        {form.crops.split(',').map(s => s.trim()).filter(Boolean).map(c => <span key={c} className="pform-chip">{c}<button type="button" className="pform-chip-x" onClick={() => removeListItem('crops', c)} aria-label={`Remove ${c}`}><X size={11} /></button></span>)}
+                        {selectedCrops.map(c => <span key={c} className="pform-chip">{c}<button type="button" className="pform-chip-x" onClick={() => removeListItem('crops', c)} aria-label={`Remove ${c}`}><X size={11} /></button></span>)}
                       </div>
                     )}
                     <div className="pform-adder">
-                      <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add a custom crop" />
-                      <button type="button" onClick={() => addFormOption('crops', newCrop, setNewCrop)}><Plus size={14} className="pform-adder-icon" />Add crop</button>
+                      <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Not listed? Add a custom crop" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomCrop(newCrop) } }} />
+                      <button type="button" onClick={() => addCustomCrop(newCrop)}><Plus size={14} className="pform-adder-icon" />Add crop</button>
                     </div>
                   </div>
 
@@ -1219,6 +1291,7 @@ export default function AdminProducts() {
                             return { ...current, packDetails: next, packSizes: next.map(n => n.size).filter(Boolean).join(', ') }
                           })
                           setNewStorageBatch('')
+                          persistCatalogOption('storageBatches', val, 'pack size')
                         }}
                       >
                         + Add Size

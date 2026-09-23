@@ -25,56 +25,16 @@ export const OTHER_GROUP = { key: 'other', label: 'Other crops' };
 export const SUBSCRIBER_STATUSES = ['Active', 'Unsubscribed'];
 export const SEASONS = ['Kharif', 'Rabi', 'Zaid'];
 
-// Starting points the admin edits before sending; one per crop group.
-export const ADVISORY_TEMPLATES = {
-  paddy: `🌾 Vanakkam {name},
+// The starting point the admin edits before sending: a greeting in Tamil and
+// English, and nothing else - no crop advice. The sign-off and the STOP line
+// are added to every message by renderAdvisory, so they are not repeated here.
+// {crop} is left out of the Tamil so a farmer with no crop on file never reads
+// "your crop" in the middle of a Tamil sentence.
+export const ADVISORY_GREETING = `🌾 வணக்கம் {name},
+*சத்யம் அக்ரோ மார்ட்*-இன் அன்பான வாழ்த்துகள்! உங்கள் பயிர் நன்கு செழித்து நல்ல மகசூல் தர வாழ்த்துகிறோம்.
 
-Paddy advisory for {season}:
-• Watch for leaf blast (eye-shaped spots on leaves) in humid weather.
-• Keep 2–5 cm of standing water after transplanting; drain before top-dressing.
-• Split nitrogen into 3 doses — do not apply it all at once.
-
-For your {acres} acre(s), ask us for the right dose. Reply to this message for help.`,
-  cotton: `🌱 Vanakkam {name},
-
-Cotton advisory for {season}:
-• Check the underside of leaves weekly for whitefly and jassids.
-• Install 5 pheromone traps per acre to track pink bollworm.
-• Avoid excess nitrogen — it invites sucking pests.
-
-Reply to this message for a spray schedule for your {acres} acre(s).`,
-  sugarcane: `🎋 Vanakkam {name},
-
-Sugarcane advisory for {season}:
-• Look for dead hearts — a sign of early shoot borer.
-• Earth up at 90 days and remove dry lower leaves.
-• Irrigate every 7–10 days in dry weeks.
-
-Reply to this message for help with your {acres} acre(s).`,
-  horticulture: `🍅 Vanakkam {name},
-
-{crop} advisory for {season}:
-• Remove and destroy leaves with early blight spots.
-• Stake plants and keep the base free of weeds.
-• Water at the root in the morning, not over the leaves.
-
-Reply to this message for the right treatment for your {acres} acre(s).`,
-  mixed: `🌿 Vanakkam {name},
-
-Crop advisory for {season}:
-• Scout your fields twice a week for pests and leaf spots.
-• Rotate crops to break pest and disease cycles.
-• Test your soil before the next sowing.
-
-Reply to this message and we will guide you crop by crop.`,
-  other: `🌿 Vanakkam {name},
-
-{crop} advisory for {season}:
-• Scout your field twice a week for pests and leaf spots.
-• Use only the recommended dose of any spray.
-
-Reply to this message for advice on your {acres} acre(s).`,
-};
+Vanakkam {name},
+Warm greetings from *Sathyam Agro Mart*! Wishing you a healthy harvest of {crop}.`;
 
 export const MESSAGE_MAX_LENGTH = 1500;
 export const TITLE_MAX_LENGTH = 80;

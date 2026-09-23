@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ADVISORY_TEMPLATES, CROP_GROUPS, OPT_OUT_FOOTER, broadcastCounts, cropGroupKey, parseBroadcastRequest,
+  ADVISORY_GREETING, CROP_GROUPS, OPT_OUT_FOOTER, broadcastCounts, cropGroupKey, parseBroadcastRequest,
   parseOptOutWebhook, renderAdvisory, selectRecipients,
 } from '../advisoryRules.js';
 
@@ -20,8 +20,17 @@ test('free-text crop labels fold into crop groups', () => {
   assert.equal(cropGroupKey(undefined), 'other');
 });
 
-test('every crop group has a starter template', () => {
-  for (const group of [...CROP_GROUPS, { key: 'other' }]) assert.ok(ADVISORY_TEMPLATES[group.key], group.key);
+test('the starter template is a greeting in Tamil and English, with no crop advice', () => {
+  assert.match(ADVISORY_GREETING, /வணக்கம் \{name\}/);
+  assert.match(ADVISORY_GREETING, /Vanakkam \{name\}/);
+  assert.doesNotMatch(ADVISORY_GREETING, /spray|dose|water|nitrogen|pest|scout|•/i, 'no advice');
+  const text = renderAdvisory(ADVISORY_GREETING, { name: 'Selvi Murugan', crop: 'Paddy / Rice Farmer' });
+  assert.match(text, /வணக்கம் Selvi/);
+  assert.match(text, /harvest of Paddy \/ Rice\./);
+  assert.ok(text.endsWith(OPT_OUT_FOOTER), 'the sign-off and STOP line come once, at the end');
+  assert.equal(text.split('Reply STOP').length, 2);
+  const noCrop = renderAdvisory(ADVISORY_GREETING, { name: 'Selvi' });
+  assert.doesNotMatch(noCrop.split('Vanakkam')[0], /your crop/, 'no English filler inside the Tamil');
 });
 
 const subs = [

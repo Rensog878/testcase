@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import {
-  CROP_GROUPS, MESSAGE_MAX_LENGTH, OTHER_GROUP, SEASONS,
+  ADVISORY_GREETING, CROP_GROUPS, MESSAGE_MAX_LENGTH, OTHER_GROUP, SEASONS,
   cropGroupKey, cropGroupLabel, isActiveSubscriber, renderAdvisory, selectRecipients,
 } from '../../shared/advisoryRules.js'
 
@@ -274,6 +274,19 @@ function BroadcastComposer({ subscribers, onClose, onStarted }) {
     setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value])
   }
 
+  // Fills the message with the Tamil + English greeting (no crop advice) for
+  // the admin to add to. Asks first rather than wiping something typed.
+  const useTemplate = () => {
+    if (message.trim() && message !== ADVISORY_GREETING && !window.confirm('Replace your message with the crop greeting template?')) return
+    setMessage(ADVISORY_GREETING)
+    setConfirming(false)
+    if (!title) setTitle(`${crops.length ? crops.map(cropGroupLabel).join(', ') : 'Crop'} greetings`)
+    requestAnimationFrame(() => {
+      const el = textRef.current
+      if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length) }
+    })
+  }
+
   const insertPlaceholder = (token) => {
     const el = textRef.current
     const start = el?.selectionStart ?? message.length
@@ -337,6 +350,7 @@ function BroadcastComposer({ subscribers, onClose, onStarted }) {
             <div className="form-group">
               <div className="adv-label-row">
                 <label className="form-label" htmlFor="adv-message">3. Message</label>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={useTemplate}>Use crop template</button>
               </div>
               <textarea id="adv-message" ref={textRef} className="form-textarea adv-textarea" value={message}
                 onChange={e => { setMessage(e.target.value); setConfirming(false) }} placeholder="Write the advisory. Use {name} and {crop} to personalise it." />

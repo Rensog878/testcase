@@ -3,10 +3,11 @@ import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import { STAFF_HOME } from '../../hooks/checkoutRules'
 import { ResendAnnouncer, resendLabel, useResendCountdown } from '../../shared/useResendCountdown'
-import { ACRE_LIMITS, ALL_CROPS, acreInput, stepAcres, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, MAX_CROPS, cropList, normalizeProfileFields, profileValueOf, toggleCrop, validateProfileValues } from '../../shared/profileFieldRules'
+import { ACRE_LIMITS, ACRE_STEP, ALL_CROPS, acreInput, stepAcres, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, cropList, normalizeProfileFields, profileValueOf, toggleCrop, validateProfileValues } from '../../shared/profileFieldRules'
 import { useStore } from '../StoreContext'
 import { showToast } from '../toast'
 import { otpFromText } from '../../shared/otpCode'
+import { endPunctuationless } from '../../shared/voiceText'
 import { readGuestContact } from '../guestContact'
 import Modal from './Modal'
 import VoiceButton from './VoiceButton'
@@ -77,56 +78,138 @@ function OtpCells({ value, focused }) {
   )
 }
 
-// Crops as a row of chips, up to MAX_CROPS. The value stays one string
-// ("Paddy / Rice, Cotton"), the way it is saved. onToggle gets the crop tapped
-// and toggles it on the latest value, so two quick taps both count. `id` goes on the first chip so
-// an error can focus the question. Crops saved that the shop's list no longer
-// has are still shown, picked, so saving never drops one silently.
+// Crops as a searchable checklist, as many as the farmer grows. The options are the admin's
+// product-form crop registry (server.js withCatalogCrops). The value stays one
+// string ("Paddy / Rice, Cotton"), the way it is saved. onToggle toggles on the
+// latest value, so two quick ticks both count. `id` is the search box, so an
+// error can focus the question. Crops saved that the shop's list no longer has
+// are still listed, ticked, so saving never drops one silently.
+const sameCropName = (a, b) => a.toLowerCase() === b.toLowerCase()
 function CropPicker({ id, title, options, value, onToggle, error }) {
   const picked = cropList(value)
-  const isPicked = crop => picked.some(item => item.toLowerCase() === crop.toLowerCase())
-  const offered = [...picked.filter(crop => !options.some(option => option.toLowerCase() === crop.toLowerCase())), ...options]
-  const full = picked.filter(crop => crop !== ALL_CROPS).length >= MAX_CROPS
-  const [bumped, setBumped] = useState(false)
+  const isPicked = crop => picked.some(item => sameCropName(item, crop))
+  const offered = [...picked.filter(crop => !options.some(option => sameCropName(option, crop))), ...options]
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [active, setActive] = useState(0)
+  const boxRef = useRef(null)
+  const listRef = useRef(null)
   const labelId = `${id}Label`
   const noteId = `${id}Note`
-  const pick = crop => {
-    if (full && !isPicked(crop) && crop !== ALL_CROPS) {
-      setBumped(true)
-      return
-    }
-    setBumped(false)
-    onToggle(crop)
+  const listId = `${id}List`
+  const needle = endPunctuationless(query).toLowerCase()
+  const shown = needle ? offered.filter(crop => crop.toLowerCase().includes(needle)) : offered
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onOutside = event => { if (!boxRef.current?.contains(event.target)) setOpen(false) }
+    document.addEventListener('pointerdown', onOutside)
+    return () => document.removeEventListener('pointerdown', onOutside)
+  }, [open])
+  useEffect(() => { setActive(0) }, [needle])
+  // Keeps the keyboard's option in view by scrolling the list alone:
+  // scrollIntoView would scroll the sheet too and move the list under the finger.
+  const revealOption = index => {
+    const list = listRef.current
+    const row = list?.querySelector(`[data-index="${index}"]`)
+    if (!row) return
+    if (row.offsetTop < list.scrollTop) list.scrollTop = row.offsetTop
+    else if (row.offsetTop + row.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = row.offsetTop + row.offsetHeight - list.clientHeight
   }
+
+  const pick = crop => {
+    onToggle(crop)
+    // A pick from a search clears it, ready for the next crop.
+    if (query) setQuery('')
+  }
+  const onKeyDown = event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!open) { setOpen(true); return }
+      const step = event.key === 'ArrowDown' ? 1 : -1
+      const next = shown.length ? (active + step + shown.length) % shown.length : 0
+      setActive(next)
+      requestAnimationFrame(() => revealOption(next))
+    } else if (event.key === 'Enter' && open && shown[active]) {
+      event.preventDefault()
+      pick(shown[active])
+    } else if (event.key === 'Escape' && open) {
+      // Closes the list only; the sheet's own Escape (StorePopups.jsx) waits.
+      event.preventDefault()
+      event.stopPropagation()
+      setOpen(false)
+    }
+  }
+
   return (
-    <div className="auth-field">
+    <div className="auth-field auth-crop-field" ref={boxRef}>
       <div className="auth-label" id={labelId}>
         <span>{title}</span>
-        <span className="auth-crop-count notranslate" aria-hidden="true">{picked.length}/{MAX_CROPS}</span>
+        {picked.length > 0 && <span className="auth-crop-count" aria-hidden="true">{picked.length} selected</span>}
       </div>
-      <p id={noteId} className={['auth-crop-note', bumped && 'is-bumped'].filter(Boolean).join(' ')} aria-live="polite">
-        {bumped ? `You can pick up to ${MAX_CROPS}. Remove one to add another.` : `Tap every crop you grow, up to ${MAX_CROPS}.`}
-      </p>
-      <div className={['auth-crop-chips', error && 'is-invalid'].filter(Boolean).join(' ')} role="group" aria-labelledby={labelId} aria-describedby={[noteId, error && `${id}Hint`].filter(Boolean).join(' ')}>
-        {offered.map((crop, index) => {
-          const on = isPicked(crop)
-          const blocked = full && !on && crop !== ALL_CROPS
-          return (
-            <button
-              type="button"
-              key={crop}
-              id={index === 0 ? id : undefined}
-              className={['auth-crop-chip', on && 'is-on', blocked && 'is-blocked'].filter(Boolean).join(' ')}
-              aria-pressed={on}
-              aria-disabled={blocked || undefined}
-              onClick={() => pick(crop)}
-            >
-              <i className={`fa-solid ${on ? 'fa-check' : 'fa-plus'}`} aria-hidden="true"></i>
+      <div className={['auth-crop-combo', open && 'is-open', error && 'is-invalid'].filter(Boolean).join(' ')}>
+        <i className="fa-solid fa-magnifying-glass auth-crop-search-icon" aria-hidden="true"></i>
+        <input
+          id={id}
+          type="text"
+          role="combobox"
+          className="auth-crop-search"
+          placeholder={picked.length ? 'Add another crop…' : 'Search your crops…'}
+          autoComplete="off"
+          enterKeyHint="done"
+          value={query}
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-labelledby={labelId}
+          aria-describedby={[noteId, error && `${id}Hint`].filter(Boolean).join(' ')}
+          aria-activedescendant={open && shown[active] ? `${id}Opt${active}` : undefined}
+          aria-invalid={error ? 'true' : undefined}
+          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
+          onChange={event => { setQuery(event.target.value); setOpen(true) }}
+          onKeyDown={onKeyDown}
+        />
+        <button type="button" className="auth-crop-caret" tabIndex={-1} aria-hidden="true" onClick={() => setOpen(current => !current)}>
+          <i className={`fa-solid fa-chevron-${open ? 'up' : 'down'}`}></i>
+        </button>
+      </div>
+      {open && (
+        <ul className="auth-crop-list" id={listId} role="listbox" aria-multiselectable="true" aria-labelledby={labelId} ref={listRef}>
+          {shown.length ? shown.map((crop, index) => {
+            const on = isPicked(crop)
+            return (
+              <li
+                key={crop}
+                id={`${id}Opt${index}`}
+                data-index={index}
+                role="option"
+                aria-selected={on}
+                className={['auth-crop-option', on && 'is-on', index === active && 'is-active'].filter(Boolean).join(' ')}
+                onPointerDown={event => event.preventDefault()}
+                onPointerEnter={() => setActive(index)}
+                onClick={() => pick(crop)}
+              >
+                <span className="auth-crop-box" aria-hidden="true">{on && <i className="fa-solid fa-check"></i>}</span>
+                <span>{crop}</span>
+              </li>
+            )
+          }) : (
+            <li className="auth-crop-empty" role="presentation">No crop matches “<span className="notranslate">{query.trim()}</span>”</li>
+          )}
+        </ul>
+      )}
+      {picked.length > 0 && (
+        <ul className="auth-crop-picked" aria-label="Crops you picked">
+          {picked.map(crop => (
+            <li key={crop} className="auth-crop-tag">
               <span>{crop}</span>
-            </button>
-          )
-        })}
-      </div>
+              <button type="button" onClick={() => pick(crop)} aria-label={`Remove ${crop}`}><i className="fa-solid fa-xmark" aria-hidden="true"></i></button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p id={noteId} className="auth-crop-note">Pick every crop you grow.</p>
       <FieldHint id={id} hint={error && { kind: 'error', message: error }} />
     </div>
   )
@@ -156,11 +239,10 @@ function useProfileForm(open) {
 const FIELD_ICONS = { name: 'fa-user', email: 'fa-envelope', village: 'fa-location-dot', district: 'fa-map-location-dot', state: 'fa-map' }
 const TYPE_ICONS = { text: 'fa-pen', email: 'fa-envelope', tel: 'fa-phone', number: 'fa-hashtag', date: 'fa-calendar-days', textarea: 'fa-align-left', select: 'fa-list' }
 const AUTOCOMPLETE = { name: 'name', email: 'email', village: 'address-level2', state: 'address-level1' }
-// Voice typing (VoiceButton) per question: places in English, numbers as
-// digits, other text in the site's language. Emails, dates and lists have none.
+// Voice typing (VoiceButton) per question: places in English, other text in
+// the site's language. Numbers, emails, dates and lists have none.
 const voiceModeFor = field => {
   if (['village', 'district'].includes(field.id)) return 'latin'
-  if (field.type === 'tel' || field.type === 'number') return 'digits'
   if (field.type === 'text' || field.type === 'textarea') return 'text'
   return null
 }
@@ -940,14 +1022,14 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
           <label className="auth-label" htmlFor="regAcreage">{field.title}</label>
           <div className="auth-stepper">
             <button type="button" className="auth-stepper-btn" data-acre-step="-1" aria-controls="regAcreage" aria-disabled={acreage <= ACRE_LIMITS.min} onClick={() => { if (acreage > ACRE_LIMITS.min) stepAcreage(-1) }}>
-              <i className="fa-solid fa-minus" aria-hidden="true"></i><span className="auth-sr">Fewer acres</span>
+              <i className="fa-solid fa-minus" aria-hidden="true"></i><span className="auth-sr">{`${ACRE_STEP} acre less`}</span>
             </button>
             <div className="auth-control auth-control--suffix">
               <input type="text" inputMode="decimal" autoComplete="off" {...inputProps('regAcreage', { describedBy: 'regAcreageUnit' })} />
               <span className="auth-suffix" id="regAcreageUnit">acres</span>
             </div>
             <button type="button" className="auth-stepper-btn" data-acre-step="1" aria-controls="regAcreage" aria-disabled={acreage >= ACRE_LIMITS.max} onClick={() => { if (acreage < ACRE_LIMITS.max) stepAcreage(1) }}>
-              <i className="fa-solid fa-plus" aria-hidden="true"></i><span className="auth-sr">More acres</span>
+              <i className="fa-solid fa-plus" aria-hidden="true"></i><span className="auth-sr">{`${ACRE_STEP} acre more`}</span>
             </button>
           </div>
           {hint}
@@ -1006,10 +1088,9 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
           <div className="auth-field">
             <label className="auth-label" htmlFor="authPhone">Mobile number</label>
-            <div className="auth-control auth-control--prefix has-voice">
+            <div className="auth-control auth-control--prefix">
               <input type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} enterKeyHint="send" placeholder="9876543210" {...inputProps('authPhone')} />
               <span className="auth-prefix" aria-hidden="true">+91</span>
-              <VoiceButton htmlFor="authPhone" mode="digits" />
             </div>
             <FieldHint id="authPhone" hint={hints.authPhone} />
           </div>

@@ -165,11 +165,7 @@ export const Header = memo(function Header(props) {
         <div className="header-actions">
 
           <div className="action-item action-track" onClick={() => goTo('/orders')} role="button" tabIndex={0}>
-            <i className="fa-solid fa-truck-ramp-box action-icon"></i>
-            <div>
-              <span className="action-sub">Track</span>
-              <span className="action-title">Order Status</span>
-            </div>
+            <span className="action-title">Track order</span>
           </div>
 
           {/* A real link, as on every other store page (Navigation.jsx). The

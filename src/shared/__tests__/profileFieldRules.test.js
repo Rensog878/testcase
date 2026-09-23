@@ -4,7 +4,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  ALL_CROPS, DEFAULT_PROFILE_FIELDS, acreInput, stepAcres, MAX_CROPS, cropList, joinCrops, normalizeProfileFields, toggleCrop, profileValueOf, splitProfileValues, validateProfileValues,
+  ALL_CROPS, CROP_CHOICES, DEFAULT_PROFILE_FIELDS, acreInput, stepAcres, cropList, joinCrops, normalizeProfileFields, toggleCrop, profileValueOf, splitProfileValues, validateProfileValues,
 } from '../profileFieldRules.js'
 
 test('name and mobile number are always in the form, with their rules', () => {
@@ -92,7 +92,7 @@ test('answers split into account columns and profile; values are read back the s
   assert.equal(profileValueOf(user, { id: 'missing' }), '')
 })
 
-test('a farmer picks up to six crops, kept as one comma-separated value', () => {
+test('a farmer picks every crop they grow, kept as one comma-separated value', () => {
   assert.deepEqual(cropList(' Cotton ,  paddy / rice,cotton,, '), ['Cotton', 'paddy / rice'])
   assert.deepEqual(cropList(['Wheat', 'Wheat', '']), ['Wheat'])
   assert.deepEqual(cropList(null), [])
@@ -100,9 +100,8 @@ test('a farmer picks up to six crops, kept as one comma-separated value', () => 
 
   let value = ''
   for (const crop of ['Wheat', 'Cotton', 'Tomato', 'Potato', 'Grapes / Fruits', 'Sugarcane', 'Corn / Maize']) value = toggleCrop(value, crop)
-  assert.equal(cropList(value).length, MAX_CROPS)
-  assert.ok(!value.includes('Corn'), 'a seventh crop is not added')
-  assert.equal(toggleCrop(value, 'cotton'), 'Wheat, Tomato, Potato, Grapes / Fruits, Sugarcane')
+  assert.equal(cropList(value).length, 7, 'no limit: a seventh crop is added')
+  assert.equal(toggleCrop(value, 'cotton'), 'Wheat, Tomato, Potato, Grapes / Fruits, Sugarcane, Corn / Maize')
 })
 
 test('"All Crops" stands alone', () => {
@@ -116,7 +115,8 @@ test('crop answers are checked and cleaned on every screen and the server', () =
   const check = crop => validateProfileValues(form, { crop }, { only: ['crop'] })
   assert.deepEqual(check(['Cotton', ' Wheat ']).values, { crop: 'Cotton, Wheat' })
   assert.deepEqual(check('Cotton,Wheat,Cotton').values, { crop: 'Cotton, Wheat' })
-  assert.equal(check('a,b,c,d,e,f,g').errors.crop, 'Choose up to 6 crops.')
+  assert.deepEqual(check('a,b,c,d,e,f,g,h,i,j').values, { crop: 'a, b, c, d, e, f, g, h, i, j' }, 'ten crops are fine')
+  assert.equal(check(Array.from({ length: 101 }, (_, i) => `c${i}`)).errors.crop, 'Too many crops chosen.', 'only a crafted request is refused')
   assert.deepEqual(check('').values, { crop: '' })
   const required = form.map(field => (field.id === 'crop' ? { ...field, required: true } : field))
   assert.equal(validateProfileValues(required, { crop: '' }, { only: ['crop'] }).errors.crop, 'Please choose at least one crop.')
@@ -144,7 +144,20 @@ test('farm size can be part of an acre, to two decimal places', () => {
   assert.equal(acreInput('12a.3456'), '12.34')
   assert.equal(acreInput('123456'), '1234')
   assert.equal(acreInput('1.2.3'), '1.23')
-  assert.equal(stepAcres('2.5', 1), '3.5')
-  assert.equal(stepAcres('0.5', -1), '0.1')
+  assert.equal(stepAcres('3', 1), '3.15')
+  assert.equal(stepAcres('3.15', 1), '3.3')
+  assert.equal(stepAcres('3', -1), '2.85')
+  assert.equal(stepAcres('2.5', 1), '2.65')
+  assert.equal(stepAcres('0.2', -1), '0.1', 'never below the 0.1 acre minimum')
   assert.equal(stepAcres('9999', 1), '9999')
+  let v = '0.1'
+  for (let i = 0; i < 20; i++) v = stepAcres(v, 1)
+  assert.equal(v, '3.1', 'twenty taps from 0.1 add exactly 3 acres, no float drift')
 })
+
+test('sign-up offers the crops the server sends (the admin product-form list), not only the built-in ones', () => {
+  const [crop] = normalizeProfileFields([{ id: 'crop', title: 'Your crops', options: ['Paddy / Rice', 'Coconut', ' Arecanut ', 'coconut', 'All Crops'] }]).filter(field => field.id === 'crop');
+  assert.deepEqual(crop.options, ['Paddy / Rice', 'Coconut', 'Arecanut', 'All Crops']);
+  const [fallback] = normalizeProfileFields([{ id: 'crop', title: 'Your crops' }]).filter(field => field.id === 'crop');
+  assert.deepEqual(fallback.options, CROP_CHOICES, 'the built-in list until the server list arrives');
+});

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLanguage } from '../context/LanguageContext'
-import { fillInput, speechLang, spokenDigits, useVoiceInput, voiceSupported } from '../storefront/voice'
+import { fillInput, speechLang, useVoiceInput, voiceSupported } from '../storefront/voice'
 import './voiceAnywhere.css'
 
 // Voice typing for every text field customers use - every store page and its
@@ -12,9 +12,9 @@ import './voiceAnywhere.css'
 // through the field's own onChange (voice.js, fillInput), so every form's
 // checks and saving work as they do for the keyboard.
 // Fields with their own mic (.has-voice, the header search) are left alone, as
-// are passwords, emails, dates, files, one-time codes and data-voice="off".
+// are numbers, passwords, emails, dates, files, one-time codes and data-voice="off".
 
-const TEXT_TYPES = new Set(['text', 'search', 'tel', 'number', ''])
+const TEXT_TYPES = new Set(['text', 'search', ''])
 const PLACE = /address|street|village|district|taluk|city|town|area|location|door|pincode|postal|landmark/i
 
 function voiceModeOf(el) {
@@ -25,8 +25,8 @@ function voiceModeOf(el) {
   if (auto === 'one-time-code') return null
   if (el instanceof HTMLInputElement && !TEXT_TYPES.has(el.type)) return null
   const inputMode = (el.getAttribute('inputmode') || '').toLowerCase()
-  if (el.type === 'number' || inputMode === 'decimal') return 'decimal'
-  if (el.type === 'tel' || inputMode === 'numeric' || inputMode === 'tel') return 'digits'
+  // Numbers (mobile, PIN, acres, quantities) are typed, never spoken.
+  if (['decimal', 'numeric', 'tel'].includes(inputMode)) return null
   const hint = `${el.id} ${el.name} ${auto} ${el.getAttribute('placeholder') || ''} ${el.getAttribute('aria-label') || ''}`
   // Places (couriers read them) and searches (products match on English text): English.
   if (PLACE.test(hint) || el.type === 'search' || /search/i.test(hint)) return 'latin'
@@ -42,15 +42,10 @@ export default function VoiceAnywhere() {
 
   const mode = target?.mode
   const { listening, toggle } = useVoiceInput({
-    lang: speechLang(mode === 'text' ? 'text' : 'latin', lang),
+    lang: speechLang(mode || 'latin', lang),
     onResult: heard => {
       const el = targetRef.current?.el
       if (!el || !el.isConnected) return
-      if (mode === 'digits' || mode === 'decimal') {
-        const digits = spokenDigits(heard, { decimal: mode === 'decimal' })
-        if (digits) fillInput(el, digits)
-        return
-      }
       fillInput(el, el instanceof HTMLTextAreaElement && el.value.trim() ? `${el.value.trimEnd()} ${heard}` : heard)
     },
   })

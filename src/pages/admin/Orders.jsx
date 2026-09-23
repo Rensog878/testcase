@@ -293,6 +293,9 @@ export default function AdminOrders() {
                           {tx.addressDetails?.label ? <strong>{tx.addressDetails.label}: </strong> : null}{addressOf(tx)}
                         </div>
                       )}
+                      {((tx.addressDetails?.name && tx.addressDetails.name !== tx.customer) || (tx.addressDetails?.phone && tx.addressDetails.phone !== String(tx.phone || '').replace(/\D/g, '').slice(-10))) && (
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>👤 Receiver: {[tx.addressDetails.name, tx.addressDetails.phone].filter(Boolean).join(' · ')}</div>
+                      )}
                       {gpsMapsUrl(tx) && (
                         <a href={gpsMapsUrl(tx)} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: 600 }}>📍 Open in Maps</a>
                       )}

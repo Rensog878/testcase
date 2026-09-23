@@ -8,8 +8,10 @@ export const GUEST_CART_KEY = 'sathya_cart_guest'
 export const GST_RATE = 0.18
 export const STAFF_HOME = { superadmin: '/superadmin', admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 export const ADDRESS_LABELS = ['Home', 'Office', 'Farm']
-// Shown before each address label. An address saved with a label that is not
-// one of these (older data) gets the plain pin.
+// A label the customer types instead ("Godown", "Uncle's house"). The server
+// keeps up to 30 characters.
+export const CUSTOM_LABEL_MAX = 30
+// Shown before each address label. A custom label gets the plain pin.
 export const ADDRESS_EMOJI = { Home: '🏠', Office: '🏢', Farm: '🚜' }
 export const addressEmoji = label => ADDRESS_EMOJI[label] || '📍'
 export const STATES = ['Tamil Nadu', 'Karnataka', 'Kerala', 'Andhra Pradesh', 'Telangana', 'Maharashtra', 'Other']
@@ -94,6 +96,9 @@ export const initialFields = user => ({
   addressLabel: 'Home',
   customerName: user?.name || '',
   customerPhone: user?.phone || user?.mobile || '',
+  // Who receives at this address: the delivery team asks for and calls them.
+  addressName: user?.name || '',
+  addressPhone: user?.phone || user?.mobile || '',
   doorNo: '',
   street: '',
   area: user?.village || '',
@@ -107,12 +112,14 @@ export const initialFields = user => ({
 
 // A saved address in the form, keeping the contact details already there.
 export function fieldsFromAddress(fields, address) {
-  const label = address.label || 'Home'
   return {
     ...fields,
     ...Object.fromEntries(ADDRESS_KEYS.map(key => [key, address[key] || ''])),
     geo: address.geo || null,
-    addressLabel: ADDRESS_LABELS.includes(label) ? label : fields.addressLabel,
+    addressLabel: String(address.label || '').trim() || 'Home',
+    // Addresses saved before each had its own number use the contact number.
+    addressName: address.name || fields.customerName || '',
+    addressPhone: address.phone || fields.customerPhone || '',
   }
 }
 
@@ -120,12 +127,14 @@ export function fieldsFromAddress(fields, address) {
 export function blankAddress(fields, user) {
   const blank = initialFields(user)
   CONTACT_FIELDS.forEach(key => { blank[key] = fields[key] })
+  blank.addressName = fields.customerName || blank.addressName
+  blank.addressPhone = fields.customerPhone || blank.addressPhone
   return blank
 }
 
 // Every delivery detail an order needs; the checkout marks each with *.
 // detailProblems below checks exactly these (a test keeps the two in step).
-export const REQUIRED_DETAILS = ['customerName', 'customerPhone', 'doorNo', 'pincode', 'street', 'area', 'taluk', 'district', 'state']
+export const REQUIRED_DETAILS = ['customerName', 'customerPhone', 'addressLabel', 'addressName', 'addressPhone', 'doorNo', 'pincode', 'street', 'area', 'taluk', 'district', 'state']
 
 // The server's checks (readCustomerDetails in server/server.js): a name, a
 // 10-digit mobile number and every address field, with a 6-digit PIN code.
@@ -136,6 +145,10 @@ export function detailProblems(fields) {
   const filled = key => String(fields[key] || '').trim() !== ''
   if (!filled('customerName')) problems.customerName = 'required'
   if (!/^\d{10}$/.test(String(fields.customerPhone || '').replace(/\D/g, '').slice(-10))) problems.customerPhone = 'phone'
+  if (!filled('addressLabel')) problems.addressLabel = 'required'
+  if (!filled('addressName')) problems.addressName = 'required'
+  // An Indian mobile, as the server's normalizePhone() accepts it.
+  if (!/^[6-9]\d{9}$/.test(String(fields.addressPhone || '').replace(/\D/g, '').slice(-10))) problems.addressPhone = 'phone'
   ;['doorNo', 'street', 'area', 'taluk'].forEach(key => {
     if (!filled(key)) problems[key] = 'required'
   })
@@ -150,7 +163,10 @@ export function detailProblems(fields) {
 export function customerDetails(fields) {
   const f = fields
   const addressDetails = {
-    label: f.addressLabel || 'Home', doorNo: f.doorNo, street: f.street, area: f.area,
+    label: String(f.addressLabel || '').trim().slice(0, CUSTOM_LABEL_MAX) || 'Home',
+    name: String(f.addressName || '').trim(),
+    phone: String(f.addressPhone || '').replace(/\D/g, '').slice(-10),
+    doorNo: f.doorNo, street: f.street, area: f.area,
     taluk: f.taluk, pincode: f.pincode, district: f.district, state: f.state,
     ...(f.geo && { geo: f.geo }),
   }

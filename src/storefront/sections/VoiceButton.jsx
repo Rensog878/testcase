@@ -1,9 +1,9 @@
 import { useLanguage } from '../../context/LanguageContext'
-import { fillInput, speechLang, spokenDigits, useVoiceInput, voiceSupported } from '../voice'
+import { fillInput, speechLang, useVoiceInput, voiceSupported } from '../voice'
 
 // The mic at the right end of an input: tap, speak, and the words go into the
 // field with id `htmlFor` (see voice.js). mode: 'text' (Tamil or English, with
-// the site), 'latin' (always English: addresses) or 'digits' (mobile, PIN).
+// the site) or 'latin' (always English: addresses). Number fields have no mic.
 // A textarea gets the words added; an input gets them in place of what was there.
 // Its container needs the .has-voice class (room on the right; storefront.css 7n).
 export default function VoiceButton({ htmlFor, mode = 'text', disabled }) {
@@ -13,11 +13,6 @@ export default function VoiceButton({ htmlFor, mode = 'text', disabled }) {
     onResult: heard => {
       const el = document.getElementById(htmlFor)
       if (!el) return
-      if (mode === 'digits') {
-        const digits = spokenDigits(heard)
-        if (digits) fillInput(el, digits)
-        return
-      }
       const text = el.tagName === 'TEXTAREA' && el.value.trim() ? `${el.value.trimEnd()} ${heard}` : heard
       fillInput(el, text)
     },

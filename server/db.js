@@ -1216,7 +1216,11 @@ class DatabaseManager {
         await connectDB();
         const cleaned = {
             id: typeof address.id === 'string' && address.id ? address.id.slice(0, 40) : newId('ADDR'),
-            label: String(address.label || 'Home').trim().slice(0, 30),
+            label: String(address.label || 'Home').trim().slice(0, 30) || 'Home',
+            // Who receives there, and the number the delivery team calls
+            name: String(address.name || '').trim().slice(0, 80),
+            // at this address (optional for older clients).
+            phone: /^[6-9]\d{9}$/.test(String(address.phone || '').replace(/\D/g, '').slice(-10)) ? String(address.phone).replace(/\D/g, '').slice(-10) : '',
             doorNo: String(address.doorNo || '').trim().slice(0, 40),
             street: String(address.street || '').trim().slice(0, 120),
             area: String(address.area || '').trim().slice(0, 100),
@@ -1258,13 +1262,18 @@ class DatabaseManager {
   async createUser(userData) {
         await connectDB();
 
-        // One account per mobile number, whichever path creates the user
-        // (self-registration, admin panel, or /api/users).
+        // A number holds at most one customer account and one staff account (one
+        // person may shop and also work here; the sign-ins are separate: the
+        // store's WhatsApp code finds the farmer, /login the staff account).
+        // Two staff accounts on one number would make /login ambiguous.
         const phone = String(userData.phone || '').trim();
         if (phone) {
-            const clash = await User.findOne({ phone }).lean();
+            const sameKind = (userData.role || 'farmer') === 'farmer' ? 'farmer' : { $in: STAFF_ROLES };
+            const clash = await User.findOne({ phone, role: sameKind }).lean();
             if (clash) {
-                const err = new Error('This mobile number is already registered.');
+                const err = new Error(sameKind === 'farmer'
+                    ? 'This mobile number already has a customer account.'
+                    : 'This mobile number is already registered to a staff account.');
                 err.code = 'PHONE_TAKEN';
                 throw err;
             }

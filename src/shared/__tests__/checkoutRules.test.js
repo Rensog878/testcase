@@ -9,7 +9,7 @@ import {
 } from '../../hooks/checkoutRules.js';
 
 const completeFields = {
-  addressLabel: 'Farm', customerName: 'Murugan', customerPhone: '+91 98765 01234',
+  addressLabel: 'Farm', customerName: 'Murugan', customerPhone: '+91 98765 01234', addressName: 'Selvi', addressPhone: '94430 11223',
   doorNo: '12', street: 'Temple St', area: 'Thiruvaiyaru', taluk: 'Thanjavur', pincode: '613204', district: 'Thanjavur', state: 'Tamil Nadu',
 };
 
@@ -73,10 +73,19 @@ test('delivery details: the same checks as the server', () => {
   assert.deepEqual(problems, { customerName: 'required', customerPhone: 'phone', doorNo: 'required', pincode: 'pincode', state: 'state' });
 });
 
+test('address label and number: a custom name up to 30 characters, an Indian mobile', () => {
+  assert.equal(detailProblems({ ...completeFields, addressLabel: '   ' }).addressLabel, 'required');
+  assert.equal(detailProblems({ ...completeFields, addressPhone: '12345 67890' }).addressPhone, 'phone', 'must start 6-9, as the server checks');
+  assert.equal(detailProblems({ ...completeFields, addressPhone: '+91 94430 11223' }).addressPhone, undefined);
+  const long = customerDetails({ ...completeFields, addressLabel: '  Godown near the old rice mill on the canal road  ' });
+  assert.equal(long.addressDetails.label.length, 30);
+  assert.equal(customerDetails({ ...completeFields, addressLabel: 'Godown' }).addressDetails.label, 'Godown');
+});
+
 test('customer details: the address field by field and as one line', () => {
   const details = customerDetails(completeFields);
   assert.equal(details.address, '12, Temple St, Thiruvaiyaru, Thanjavur, Thanjavur, Tamil Nadu, 613204');
-  assert.deepEqual(details.addressDetails, { label: 'Farm', doorNo: '12', street: 'Temple St', area: 'Thiruvaiyaru', taluk: 'Thanjavur', pincode: '613204', district: 'Thanjavur', state: 'Tamil Nadu' });
+  assert.deepEqual(details.addressDetails, { label: 'Farm', name: 'Selvi', phone: '9443011223', doorNo: '12', street: 'Temple St', area: 'Thiruvaiyaru', taluk: 'Thanjavur', pincode: '613204', district: 'Thanjavur', state: 'Tamil Nadu' });
   assert.equal(details.customerName, 'Murugan');
 });
 
@@ -85,12 +94,18 @@ test('saved addresses fill the form and keep the contact details; a new one star
   const fields = { ...initialFields(user), customerName: 'Murugan S' };
   const filled = fieldsFromAddress(fields, { label: 'Warehouse', doorNo: '4', street: 'Main Rd', area: 'A', taluk: 'T', pincode: '600001', district: 'D', state: 'Karnataka' });
   assert.equal(filled.customerName, 'Murugan S');
-  assert.equal(filled.addressLabel, 'Home', 'an unknown label keeps the chosen one');
+  assert.equal(filled.addressLabel, 'Warehouse', 'a custom label is kept');
+  assert.equal(filled.addressName, 'Murugan S', 'an address saved without a name uses the contact name');
+  assert.equal(filled.addressPhone, fields.customerPhone, 'an address saved without a number uses the contact number');
+  assert.equal(fieldsFromAddress(fields, { label: 'Home', phone: '9443011223' }).addressPhone, '9443011223');
   assert.equal(filled.state, 'Karnataka');
   const blank = blankAddress(filled, user);
   assert.equal(blank.customerName, 'Murugan S');
   assert.equal(blank.doorNo, '');
   assert.equal(blank.area, 'Kallakurichi');
+  assert.equal(blank.addressLabel, 'Home');
+  assert.equal(blank.addressName, 'Murugan S');
+  assert.equal(blank.addressPhone, filled.customerPhone);
 });
 
 test('each step has a hash, and only those hashes are steps', () => {

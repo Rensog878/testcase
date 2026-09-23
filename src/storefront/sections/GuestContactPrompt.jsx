@@ -169,7 +169,7 @@ export default function GuestContactPrompt({ t }) {
 
           <div className="auth-field">
             <label className="auth-label" htmlFor="guestPhone">Mobile number</label>
-            <div className="auth-control auth-control--prefix has-voice">
+            <div className="auth-control auth-control--prefix">
               <input
                 id="guestPhone" className={`auth-input${errors.phone ? ' sb-input-invalid' : ''}`} type="tel" inputMode="numeric" autoComplete="tel-national"
                 maxLength={10} enterKeyHint="done" placeholder="9876543210" value={phone}
@@ -177,7 +177,6 @@ export default function GuestContactPrompt({ t }) {
                 onChange={event => { setPhone(event.target.value.replace(/\D/g, '').slice(-10)); if (errors.phone) setErrors(e => ({ ...e, phone: undefined })) }}
               />
               <span className="auth-prefix" aria-hidden="true">+91</span>
-              <VoiceButton htmlFor="guestPhone" mode="digits" />
             </div>
             {errors.phone && <small id="guestPhoneHint" className="sb-field-error">{errors.phone}</small>}
           </div>

@@ -57,8 +57,10 @@ console.log('current indexes:', existing.map(i => `${i.name} ${JSON.stringify(i.
 const oldPhoneIndex = existing.find(i => i.key && Object.keys(i.key).length === 1 && i.key.phone === 1 && i.unique);
 const newIndexPresent = existing.some(i => i.name === 'phone_role_unique');
 
-if (newIndexPresent) {
-  console.log('\nphone_role_unique already present - nothing to do.');
+// The API builds phone_role_unique by itself on start (Mongoose autoIndex) but
+// never drops the old index, so "new index present" alone does not mean done.
+if (newIndexPresent && !oldPhoneIndex) {
+  console.log('\nphone_role_unique present and no old phone-only index - nothing to do.');
   await mongoose.disconnect();
   process.exit(0);
 }
@@ -66,7 +68,7 @@ if (newIndexPresent) {
 console.log(oldPhoneIndex
   ? `\nwould drop old unique index "${oldPhoneIndex.name}" on { phone: 1 }`
   : '\nno old single-field unique index on phone found (nothing to drop)');
-console.log('would create partial unique index "phone_role_unique" on { phone: 1, role: 1 }, documents with a phone only');
+if (!newIndexPresent) console.log('would create partial unique index "phone_role_unique" on { phone: 1, role: 1 }, documents with a phone only');
 
 if (!APPLY) {
   console.log('\ndry run - nothing changed. Add --db=<name> --yes to apply.');
@@ -79,11 +81,13 @@ if (oldPhoneIndex) {
   console.log(`dropped ${oldPhoneIndex.name}.`);
 }
 
-await users.createIndex(
-  { phone: 1, role: 1 },
-  { unique: true, name: 'phone_role_unique', partialFilterExpression: { phone: { $exists: true } } }
-);
-console.log('created phone_role_unique on { phone: 1, role: 1 } (documents with a phone only).');
+if (!newIndexPresent) {
+  await users.createIndex(
+    { phone: 1, role: 1 },
+    { unique: true, name: 'phone_role_unique', partialFilterExpression: { phone: { $exists: true } } }
+  );
+  console.log('created phone_role_unique on { phone: 1, role: 1 } (documents with a phone only).');
+}
 
 await mongoose.disconnect();
 console.log('Done.');

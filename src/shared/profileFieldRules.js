@@ -31,7 +31,9 @@ export const CROP_CHOICES = [
 // A farmer grows more than one crop. They are kept in the one crop column,
 // comma-separated ("Paddy / Rice, Cotton"), so every screen that shows
 // user.crop, and the advisories and orders that read it, keep working.
-export const MAX_CROPS = 6
+// A farmer picks as many crops as they grow. This is only a guard against a
+// crafted request; the admin's list is far shorter.
+const CROP_SAFETY_LIMIT = 100
 export const ALL_CROPS = 'All Crops'
 
 // "Paddy / Rice, Cotton" or ['Paddy / Rice', 'Cotton'] -> ['Paddy / Rice', 'Cotton'].
@@ -53,14 +55,14 @@ export function cropList(value) {
 export const joinCrops = list => cropList(list).join(', ')
 
 // Picking or unpicking one crop. "All Crops" stands alone: choosing it clears
-// the rest, choosing a crop clears it. Never more than MAX_CROPS.
+// the rest, choosing a crop clears it.
 export function toggleCrop(value, crop) {
   const list = cropList(value)
   const has = list.some(item => item.toLowerCase() === crop.toLowerCase())
   if (has) return joinCrops(list.filter(item => item.toLowerCase() !== crop.toLowerCase()))
   if (crop === ALL_CROPS) return ALL_CROPS
   const rest = list.filter(item => item !== ALL_CROPS)
-  return rest.length >= MAX_CROPS ? joinCrops(rest) : joinCrops([...rest, crop])
+  return joinCrops([...rest, crop])
 }
 
 // type: the input it always uses. fixed: cannot be removed. lockRequired /
@@ -98,9 +100,13 @@ export function acreInput(value) {
   return rest.length ? `${digits}.${rest.join('').slice(0, ACRE_LIMITS.decimals)}` : digits
 }
 
-// One acre more or fewer, keeping the part of an acre already typed.
-export function stepAcres(value, delta) {
-  const next = Math.round(((Number(value) || 0) + delta) * 100) / 100
+// What one tap of the farm-size + / − buttons adds or takes away.
+export const ACRE_STEP = 0.15
+
+// direction 1 or -1: ACRE_STEP more or fewer, keeping the part of an acre
+// already typed, rounded to the 2 decimals the server accepts.
+export function stepAcres(value, direction) {
+  const next = Math.round(((Number(value) || 0) + direction * ACRE_STEP) * 100) / 100
   return String(Math.min(ACRE_LIMITS.max, Math.max(ACRE_LIMITS.min, next)))
 }
 const MAX_FIELDS = 40
@@ -131,7 +137,11 @@ export function normalizeProfileFields(input) {
     seen.add(id)
     const core = CORE_FIELDS[id]
     let type = core ? core.type : (FIELD_TYPES.includes(raw.type) ? raw.type : 'text')
-    let options = core?.options || (Array.isArray(raw.options) ? [...new Set(raw.options.map(option => text(option, 60)).filter(Boolean))].slice(0, MAX_OPTIONS) : [])
+    // Crops: the admin's product-form crop list the server sends
+    // (withCatalogCrops), so a crop added to a product shows at sign-up; the
+    // built-in list only until it arrives.
+    const sentCrops = id === 'crop' && Array.isArray(raw.options) ? cropList(raw.options.map(option => text(option, 60))).slice(0, CROP_SAFETY_LIMIT) : []
+    let options = sentCrops.length ? sentCrops : core?.options || (Array.isArray(raw.options) ? [...new Set(raw.options.map(option => text(option, 60)).filter(Boolean))].slice(0, MAX_OPTIONS) : [])
     // A dropdown with nothing to choose becomes a plain text field.
     if (type === 'select' && !options.length) type = 'text'
     if (type !== 'select') options = []
@@ -175,7 +185,7 @@ export function validateProfileValues(fields, values, { only, partial = false } 
     if (partial && !Object.prototype.hasOwnProperty.call(source, field.id)) continue
     if (field.id === 'crop') {
       const crops = cropList(source.crop).map(crop => text(crop, 60))
-      if (crops.length > MAX_CROPS) errors.crop = `Choose up to ${MAX_CROPS} crops.`
+      if (crops.length > CROP_SAFETY_LIMIT) errors.crop = 'Too many crops chosen.'
       else if (!crops.length && field.required) errors.crop = 'Please choose at least one crop.'
       else clean.crop = joinCrops(crops)
       continue

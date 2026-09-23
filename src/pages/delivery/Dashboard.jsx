@@ -8,8 +8,9 @@ import { Truck } from 'lucide-react'
 // API orders use the store's field names; the cards below were written for these.
 const toDeliveryCard = order => ({
   ...order,
-  farmer: order.farmer || order.customerName,
-  phone: order.phone || order.customerPhone,
+  farmer: order.addressDetails?.name || order.farmer || order.customerName,
+  // The number saved with the delivery address reaches whoever is there.
+  phone: order.addressDetails?.phone || order.phone || order.customerPhone,
   amount: Number(order.amount ?? order.total ?? 0),
   payMode: order.payMode || (order.paymentStatus === 'Paid' ? 'Prepaid' : 'COD'),
   items: Array.isArray(order.items) ? order.items.map(item => `${item.name || 'Product'} x${item.qty || 1}`).join(', ') : order.items,

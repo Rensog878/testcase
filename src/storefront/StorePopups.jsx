@@ -82,6 +82,8 @@ export default function StorePopups() {
     const onKey = event => {
       const { authOpen, sheetOpen, busy: working } = live.current
       if (event.key === 'Escape') {
+        // An open dropdown inside the card (the crop picker) closes first.
+        if (event.target?.closest?.('[role="combobox"][aria-expanded="true"]')) return
         if (authOpen) {
           event.preventDefault()
           actions.closeSignIn()

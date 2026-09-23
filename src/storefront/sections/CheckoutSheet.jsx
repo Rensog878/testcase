@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useCheckout, useCheckoutActions } from '../../hooks/useCheckout'
-import { ADDRESS_LABELS, CHECKOUT_STEPS, addressEmoji, REQUIRED_DETAILS, STATES } from '../../hooks/checkoutRules'
+import { ADDRESS_LABELS, CHECKOUT_STEPS, CUSTOM_LABEL_MAX, addressEmoji, REQUIRED_DETAILS, STATES } from '../../hooks/checkoutRules'
 import { productImage, rupees, useFallbackImage } from '../data'
 import { showToast } from '../toast'
 import useSwipeToDismiss from '../useSwipeToDismiss'
@@ -60,9 +60,9 @@ function FieldError({ id, problem }) {
 // the input's aria-required instead, so the symbol itself is hidden from them.
 const RequiredMark = () => <span className="co-req" aria-hidden="true">*</span>
 const isRequired = name => REQUIRED_DETAILS.includes(name)
-// How each field listens (VoiceButton): numbers as digits, the address in
-// English so the courier can read it, the name in the site's language.
-const VOICE_MODE = { customerName: 'text', customerPhone: 'digits', pincode: 'digits', doorNo: 'latin', street: 'latin', area: 'latin', taluk: 'latin', district: 'latin' }
+// How each field listens (VoiceButton): the address in English so the courier
+// can read it, names in the site's language. Number fields have no mic.
+const VOICE_MODE = { customerName: 'text', addressName: 'text', addressLabel: 'text', doorNo: 'latin', street: 'latin', area: 'latin', taluk: 'latin', district: 'latin' }
 
 function Field({ name, label, wide, value, problem, onChange, ...inputProps }) {
   const id = `co-${name}`
@@ -70,7 +70,7 @@ function Field({ name, label, wide, value, problem, onChange, ...inputProps }) {
   return (
     <div className={`co-field${wide ? ' co-field--wide' : ''}`}>
       <label htmlFor={id}>{label}{required && <RequiredMark />}</label>
-      <div className="sb-voice-wrap has-voice">
+      <div className={VOICE_MODE[name] ? 'sb-voice-wrap has-voice' : 'sb-voice-wrap'}>
         <input
           id={id}
           name={name}
@@ -257,18 +257,29 @@ function LocateButton({ fields, busy, actions }) {
 }
 
 function AddressForm({ fields, errors, saveAddress, busy, actions, field }) {
+  // The heading is always a text box the customer can change; Home, Office and
+  // Farm are one-tap fills for it. Anything else typed is a custom heading.
+  const heading = String(fields.addressLabel || '').trim()
   return (
     <div className="co-form">
-      <div className="co-chips" role="radiogroup" aria-label="Address type">
-        {ADDRESS_LABELS.map(label => (
-          <label key={label} className={`co-chip${fields.addressLabel === label ? ' is-selected' : ''}`}>
-            <input type="radio" name="coAddressLabel" value={label} checked={fields.addressLabel === label} disabled={busy} onChange={() => actions.setField('addressLabel', label)} />
-            <AddressLabel label={label} />
-          </label>
-        ))}
+      <div className="co-grid co-grid--single">
+        {field('addressLabel', 'Address heading', { wide: true, maxLength: CUSTOM_LABEL_MAX, placeholder: 'e.g. Home, Godown, Uncle’s house', enterKeyHint: 'next', 'aria-describedby': errors.addressLabel ? 'co-addressLabel-error' : 'coLabelHint' })}
+      </div>
+      <p className="co-form-hint" id="coLabelHint">Type any name, or tap one:</p>
+      <div className="co-chips" role="group" aria-label="Quick headings">
+        {ADDRESS_LABELS.map(label => {
+          const on = heading.toLowerCase() === label.toLowerCase()
+          return (
+            <button type="button" key={label} className={`co-chip${on ? ' is-selected' : ''}`} aria-pressed={on} disabled={busy} onClick={() => actions.setField('addressLabel', label)}>
+              <AddressLabel label={label} />
+            </button>
+          )
+        })}
       </div>
       <LocateButton fields={fields} busy={busy} actions={actions} />
       <div className="co-grid">
+        {field('addressName', 'Name of person at this address', { wide: true, autoComplete: 'name', autoCapitalize: 'words', enterKeyHint: 'next' })}
+        {field('addressPhone', 'Mobile number at this address', { wide: true, type: 'tel', inputMode: 'tel', autoComplete: 'tel', maxLength: 16, enterKeyHint: 'next' })}
         {field('doorNo', 'Door no. / house no.', { enterKeyHint: 'next' })}
         {field('pincode', 'PIN code', { inputMode: 'numeric', autoComplete: 'postal-code', enterKeyHint: 'next' })}
         {field('street', 'Street / road', { wide: true, autoComplete: 'address-line1', enterKeyHint: 'next' })}
@@ -344,6 +355,9 @@ function AddressStep({ checkout, actions }) {
                     <span className="co-card-label"><AddressLabel label={address.label || 'Home'} /></span>
                     <span className="co-card-line notranslate">{[address.doorNo, address.area].filter(Boolean).join(', ')}</span>
                     <span className="co-card-sub"><span>PIN code</span> <span className="notranslate">{address.pincode}</span></span>
+                    {(address.name || address.phone) && (
+                      <span className="co-card-sub"><i className="fa-solid fa-user" aria-hidden="true"></i> <span className="notranslate">{[address.name, address.phone && `+91 ${address.phone.slice(0, 5)} ${address.phone.slice(5)}`].filter(Boolean).join(' · ')}</span></span>
+                    )}
                   </span>
                 </label>
               )
@@ -371,6 +385,8 @@ function PaymentStep({ checkout, actions }) {
   const busy = Boolean(checkout.busy)
   const f = draft.fields
   const phone = String(f.customerPhone || '').replace(/\D/g, '').slice(-10)
+  const addressPhone = String(f.addressPhone || '').replace(/\D/g, '').slice(-10)
+  const receiver = String(f.addressName || '').trim() || f.customerName
   const address = [f.doorNo, f.street, f.area, f.taluk, f.district, f.state, f.pincode].filter(Boolean).join(', ')
   const chosen = draft.payment === 'online' ? 'online' : 'cod'
   const option = (value, icon, title, sub) => (
@@ -397,6 +413,9 @@ function PaymentStep({ checkout, actions }) {
         <p className="co-summary-line">
           <span className="co-card-label"><AddressLabel label={f.addressLabel || 'Home'} /></span> <span className="notranslate">{address}</span>
         </p>
+        {(receiver !== String(f.customerName || '').trim() || (addressPhone && addressPhone !== phone)) && (
+          <p className="co-summary-line"><i className="fa-solid fa-user" aria-hidden="true"></i> <span>Receiver</span> <span className="notranslate"><strong>{receiver}</strong> · +91 {addressPhone.slice(0, 5)} {addressPhone.slice(5)}</span></p>
+        )}
       </section>
 
       <div className="co-mini">

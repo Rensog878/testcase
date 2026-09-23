@@ -1646,7 +1646,7 @@ body.sb-home-active {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 2px solid #3FBE86;
+  border: 2px solid #D9A441;
   opacity: 0;
   animation: chatPulseGPU 2.5s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
   pointer-events: none;
@@ -1654,7 +1654,7 @@ body.sb-home-active {
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn:hover {
   transform: scale(1.08) translateZ(0);
-  box-shadow: 0 12px 32px rgba(20, 83, 45, 0.55);
+  box-shadow: 0 12px 32px rgba(107, 68, 18, 0.55);
 }
 @keyframes chatPulseGPU {
   0%   { transform: scale(0.95); opacity: 0.8; }
@@ -2132,13 +2132,13 @@ body.sb-home-active {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0B7A4B, #063F2A);
+  background: linear-gradient(135deg, #A8711F, #6B4412);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.6rem;
-  box-shadow: 0 10px 28px rgba(11, 122, 75, 0.4);
+  box-shadow: 0 10px 28px rgba(107, 68, 18, 0.4);
   cursor: pointer;
   z-index: 1500;
   transition: var(--transition);
@@ -5909,7 +5909,7 @@ body.sb-home-active {
   transform: translateY(-50%);
 }
 
-/* Crops: a wrapping row of chips, up to six picked (CropPicker in AuthModal.jsx). */
+/* Crops: a searchable checklist, as many as the farmer grows (CropPicker in AuthModal.jsx). */
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-count {
   margin-left: auto;
   color: var(--auth-muted);
@@ -5923,76 +5923,183 @@ body.sb-home-active {
   font-size: 0.875rem;
   line-height: 1.4;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-note.is-bumped {
-  color: var(--auth-error);
-  font-weight: 600;
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-field {
+  position: relative;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chips {
+/* Picked crops: removable tags under the search box and its list, so ticking
+   a crop never moves the list under the finger. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-picked {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
+  gap: 6px;
+  margin: 10px 0 0;
   padding: 0;
+  list-style: none;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chips.is-invalid .auth-crop-chip:not(.is-on) {
-  border-color: var(--auth-error);
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip {
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-tag {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
+  gap: 2px;
   max-width: 100%;
-  margin: 0;
-  padding: 8px 14px;
-  border: 1.5px solid var(--auth-line);
+  min-height: 34px;
+  padding: 0 4px 0 12px;
   border-radius: 999px;
-  background: #ffffff;
-  color: var(--auth-ink);
-  font: 600 0.9375rem/1.25 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  background: var(--auth-green);
+  color: #ffffff;
+  font: 600 0.875rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip i {
-  flex: none;
-  color: var(--auth-muted);
-  font-size: 0.8rem;
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip span {
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-tag span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip:hover {
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-tag button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-tag button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-tag button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
+}
+/* The search box: same height, line and focus ring as the sheet's inputs. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-combo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  border: 1.5px solid var(--auth-line);
+  border-radius: 14px;
+  background: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-combo:hover {
   border-color: var(--auth-line-strong);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-combo:focus-within,
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-combo.is-open {
+  border-color: var(--auth-green);
+  box-shadow: 0 0 0 3px rgba(22, 164, 106, 0.16);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-combo.is-invalid {
+  border-color: var(--auth-error);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--auth-muted);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) input.auth-crop-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 50px;
+  margin: 0;
+  /* Right: room for the voice-typing mic that floats over a focused field
+     (components/VoiceAnywhere.jsx). */
+  padding: 0 48px 0 42px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--auth-ink);
+  font: 500 1rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+}
+/* The frame around it (.auth-crop-combo:focus-within) is the focus ring; the
+   store-wide :focus-visible outline would draw a second one inside it. */
+:is(body.sb-home-active .sb-home, .sb-portal) input.auth-crop-search:focus-visible {
+  outline: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) input.auth-crop-search::placeholder {
+  color: var(--auth-quiet);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-caret {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--auth-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+/* The checklist opens in the flow of the form, so the sheet's own scroll
+   never clips it on a short phone screen. */
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-list {
+  max-height: 248px;
+  margin: 6px 0 0;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: 1px solid var(--auth-line);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(20, 35, 28, 0.12);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--auth-ink);
+  font: 600 0.9375rem/1.25 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-option span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-option.is-active {
   background: var(--auth-tint);
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip:focus-visible {
-  outline: var(--auth-focus);
-  outline-offset: 2px;
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--auth-line-strong);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #ffffff;
+  font-size: 0.7rem;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-on {
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-option.is-on .auth-crop-box {
   border-color: var(--auth-green);
   background: var(--auth-green);
-  color: #ffffff;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-on i {
-  color: #ffffff;
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-empty {
+  padding: 12px 10px;
+  color: var(--auth-muted);
+  font-size: 0.9rem;
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-on:hover {
-  border-color: var(--auth-green-deep);
-  background: var(--auth-green-deep);
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-blocked {
-  border-style: dashed;
-  color: var(--auth-quiet);
-  cursor: not-allowed;
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-chip.is-blocked:hover {
-  border-color: var(--auth-line);
-  background: #ffffff;
+:is(body.sb-home-active .sb-home, .sb-portal) .auth-crop-field .auth-crop-note {
+  margin: 8px 0 0;
 }
 
 /* Farm size: - [ 3 acres ] + */
@@ -8083,6 +8190,15 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   flex-wrap: wrap;
   gap: 8px;
 }
+/* "Type any name, or tap one:" between the heading box and its quick chips. */
+.sb-portal #checkoutSheet .co-form-hint {
+  margin: -4px 0 -6px;
+  font-size: 0.8rem;
+  color: var(--co-muted, #5b6b63);
+}
+.sb-portal #checkoutSheet .co-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
 .sb-portal #checkoutSheet .co-chip {
   position: relative;
   min-height: 40px;
@@ -8096,6 +8212,15 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   font-weight: 600;
   color: var(--co-ink);
   cursor: pointer;
+}
+/* The heading chips are buttons that fill the heading box. */
+.sb-portal #checkoutSheet button.co-chip {
+  font-family: inherit;
+  line-height: 1.2;
+}
+.sb-portal #checkoutSheet button.co-chip:focus-visible {
+  outline: 2px solid var(--co-green);
+  outline-offset: 2px;
 }
 .sb-portal #checkoutSheet .co-chip.is-selected {
   border-color: var(--co-green);
@@ -8461,12 +8586,12 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   padding: 0 20px 0 16px;
   border: 0;
   border-radius: 999px;
-  background: var(--primary-dark);
+  background: linear-gradient(135deg, #A8711F, #6B4412);
   color: #ffffff;
   font-family: 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
   font-size: 0.92rem;
   font-weight: 700;
-  box-shadow: 0 10px 28px rgba(20, 83, 45, 0.4);
+  box-shadow: 0 10px 28px rgba(107, 68, 18, 0.4);
   cursor: pointer;
   z-index: 1200;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -8476,7 +8601,7 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .enq-fab:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 34px rgba(20, 83, 45, 0.5);
+  box-shadow: 0 14px 34px rgba(107, 68, 18, 0.5);
 }
 
 :is(body.sb-home-active .sb-home, .sb-portal) #enquiryModal {
@@ -10566,8 +10691,8 @@ html.sb-loc-lock {
     flex: 1 1 auto;
     align-items: center;
     gap: 2px;
-    /* Room for ~12 characters of query beside the two buttons. */
-    min-width: 260px;
+    /* Room for ~10 characters of query beside the mic and search circles. */
+    min-width: 170px;
     max-width: none;
     height: 44px;
     margin: 0 4px 0 12px;
@@ -10618,9 +10743,11 @@ html.sb-loc-lock {
      word faster than the glyph. */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell #headerSearchBtn {
     flex: none;
+    justify-content: center;
+    width: 36px;
     height: 36px;
-    gap: 7px;
-    padding: 0 16px;
+    gap: 0;
+    padding: 0;
     border-radius: 999px;
     background: var(--primary);
     color: #ffffff;
@@ -10709,21 +10836,44 @@ html.sb-loc-lock {
     font-size: 0.84rem;
     font-weight: 600;
   }
-  /* Track and Wishlist are glanceable utilities: icon-only circles. Their
-     label stacks are what overflowed in Tamil. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(.action-track, .action-wishlist) {
+  /* Wishlist is a glanceable utility: an icon-only circle. Its label stack
+     is what overflowed in Tamil. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-wishlist {
     justify-content: center;
     width: 40px;
     padding: 0;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(.action-track, .action-wishlist) .action-icon {
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-wishlist .action-icon {
     width: 40px;
     height: 40px;
     background: transparent;
     font-size: 1.05rem;
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(.action-track, .action-wishlist):hover .action-icon {
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-wishlist:hover .action-icon {
     background: transparent;
+  }
+  /* Track Order is text only, drawn as the same pill as the language button. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-track {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid rgba(11, 70, 48, 0.14);
+    background: linear-gradient(180deg, #ffffff, #F4F9F6);
+    box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(22, 36, 29, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-track:hover {
+    background: linear-gradient(180deg, #ffffff, #F4F9F6);
+    border-color: rgba(11, 122, 75, 0.35);
+    box-shadow: inset 0 1px 0 #ffffff, 0 4px 12px rgba(22, 36, 29, 0.1);
+    transform: translateY(-1px);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-track .action-title {
+    color: var(--primary-dark, #0b4630);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    white-space: nowrap;
   }
   /* A hard-coded "0", not live data. */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-wishlist .cart-badge {
@@ -10766,7 +10916,7 @@ html.sb-loc-lock {
      English aria-label would not be. */
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(
       .nav-scan-btn span,
-      .action-track > div,
+      #headerSearchBtn span,
       .action-wishlist > div:not(.action-icon),
       .action-item .action-sub
     ) {
@@ -10783,7 +10933,7 @@ html.sb-loc-lock {
 
   /* Narrow desktops, and the longer Indic labels below 1440: the account
      keeps its icon and hands its label to screen readers. */
-  @media (max-width: 1279px) {
+  @media (max-width: 1365px) {
     :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell :is(#headerAccountBtn, .header-actions > .action-item:not(.action-track, .action-wishlist, .cart-trigger-btn)) {
       justify-content: center;
       width: 40px;
@@ -10814,6 +10964,14 @@ html.sb-loc-lock {
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+  /* "Track order" runs about twice as long in these scripts; the search box
+     gives up the difference so the basket stays inside the bar. */
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .header-search {
+    min-width: 150px;
+  }
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .action-track .action-title {
+    font-size: 0.74rem;
   }
 
   /* ---- focus: the bar is light now, so the ring is brand green, and each
@@ -11967,13 +12125,13 @@ html.sb-loc-lock {
   height: 46px;
   display: grid;
   place-items: center;
-  border: 1.5px solid #cfe3d8;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   border-radius: 50%;
-  background: #ffffff;
-  color: #096540;
+  background: linear-gradient(135deg, #A8711F, #6B4412);
+  color: #ffffff;
   font-size: 1.1rem;
   text-decoration: none;
-  box-shadow: 0 8px 24px rgba(20, 35, 28, 0.16);
+  box-shadow: 0 8px 24px rgba(107, 68, 18, 0.35);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.15s ease, color 0.15s ease;
@@ -11987,11 +12145,16 @@ body.page-fab .sb-portal .call-fab {
 }
 .sb-portal .call-fab:hover,
 .sb-portal .call-fab:active {
-  background: #096540;
+  background: #5C3A0E;
+  color: #ffffff;
+}
+/* On the icon itself: the store's `:is(...) a { color: inherit }` outranks
+   `.sb-portal .call-fab`, so a colour on the link never reaches the glyph. */
+.sb-portal .call-fab > i {
   color: #ffffff;
 }
 .sb-portal .call-fab:focus-visible {
-  outline: 3px solid rgba(9, 101, 64, 0.55);
+  outline: 3px solid rgba(139, 94, 26, 0.55);
   outline-offset: 3px;
 }
 .sb-portal .call-fab-label {
@@ -12050,7 +12213,7 @@ body.poster-open .sb-portal .call-fab {
     pointer-events: none;
   }
   .sb-portal .call-fab .call-fab-label strong {
-    color: #096540;
+    color: #8B5E1A;
   }
   .sb-portal .call-fab:hover .call-fab-label,
   .sb-portal .call-fab:focus-visible .call-fab-label {

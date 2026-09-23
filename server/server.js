@@ -1409,6 +1409,9 @@ function readCustomerDetails(source) {
   const customerPhone = normalizePhone(source?.customerPhone);
   const addressDetails = {
     label: cleanText(source?.addressLabel, 30) || 'Home',
+    // Who receives at this address; older clients send none, so the contact's.
+    name: cleanText(source?.addressName, 80) || customerName,
+    phone: normalizePhone(source?.addressPhone) || customerPhone,
     doorNo: cleanText(source?.doorNo, 40),
     street: cleanText(source?.street, 120),
     area: cleanText(source?.area, 100),

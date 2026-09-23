@@ -10,30 +10,9 @@ import { showToast } from './toast'
 const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 export const voiceSupported = Boolean(Recognition)
 
-// Which language to listen in: 'text' follows the site (Tamil or English),
-// 'latin' (addresses) and 'digits' (mobile, PIN) always English, so couriers
-// can read the address and a number comes out as digits.
-export const speechLang = (mode, siteLang) => (mode === 'text' && siteLang === 'ta' ? 'ta-IN' : 'en-IN')
+import { endPunctuationless } from '../shared/voiceText'
 
-const WORD_DIGITS = { zero: '0', oh: '0', o: '0', one: '1', two: '2', to: '2', too: '2', three: '3', four: '4', for: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9' }
-const REPEAT = { double: 2, triple: 3 }
-
-// "nine eight double seven 6 5" -> "987765". Keeps only digits, and with
-// decimal one point too ("two point five", "2.5" -> "2.5").
-export function spokenDigits(text, { decimal = false } = {}) {
-  const words = String(text).toLowerCase().replace(/(\d)\.(\d)/g, '$1 point $2').replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)
-  let out = ''
-  let repeat = 1
-  for (const word of words) {
-    if (decimal && (word === 'point' || word === 'dot')) { if (!out.includes('.')) out += '.'; continue }
-    if (REPEAT[word]) { repeat = REPEAT[word]; continue }
-    const digits = /^\d+$/.test(word) ? word : WORD_DIGITS[word]
-    if (!digits) continue
-    out += digits.length === 1 ? digits.repeat(repeat) : digits
-    repeat = 1
-  }
-  return out
-}
+export { speechLang } from '../shared/voiceText'
 
 // Puts text into a React-controlled input as if typed, so the form's own
 // onChange, formatting and checks run exactly as they do for the keyboard.
@@ -41,7 +20,10 @@ export function fillInput(el, text) {
   if (!el) return
   const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
   const limit = el.maxLength > 0 ? el.maxLength : Infinity
-  Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, String(text).slice(0, limit))
+  // Speech services end a phrase with a full stop ("Apple."); a one-line field
+  // (a name, a village, a search) never wants it. Text areas keep sentences.
+  const clean = el instanceof HTMLTextAreaElement ? String(text) : endPunctuationless(text)
+  Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, clean.slice(0, limit))
   el.dispatchEvent(new Event('input', { bubbles: true }))
 }
 

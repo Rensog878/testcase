@@ -206,10 +206,9 @@ export default memo(function EnquirySheet() {
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="enqPhone">Mobile Number*</label>
-                  <div className="auth-control auth-control--prefix has-voice">
+                  <div className="auth-control auth-control--prefix">
                     <input type="tel" inputMode="numeric" maxLength={10} autoComplete="tel-national" enterKeyHint="next" placeholder="9876543210" {...inputProps('phone')} />
                     <span className="auth-prefix" aria-hidden="true">+91</span>
-                    <VoiceButton htmlFor="enqPhone" mode="digits" />
                   </div>
                   {errors.phone && <small className="sb-field-error">{errors.phone}</small>}
                 </div>

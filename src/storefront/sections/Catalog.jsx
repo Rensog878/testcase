@@ -66,7 +66,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   const currentPrice = getPackPrice(selectedPack)
   const currentMrp = getPackMrp(selectedPack, currentPrice)
 
-  // A farmer grows up to six crops: name the one this product is for.
+  // A farmer may grow several crops: name the one this product is for.
   const myCrop = catalog && user ? cropList(user.crop).find(crop => crop !== ALL_CROPS && matchesCrop(p.crops, crop)) : undefined
   let personalBadge = null
   if (catalog && user) {

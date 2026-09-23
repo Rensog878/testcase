@@ -95,17 +95,18 @@ const DEFAULT_CONTENT = {
 }
 
 // ─── Which fields are shown to farmers as words ───────────────────────────────
-// A Tamil box appears under these. Everything else is a URL, an image, a
+// A translation box appears under these. Everything else is a URL, an image, a
 // colour, a number or a setting: nothing a farmer reads as a sentence, so
 // translating it would be meaningless or would break the page.
 const NOT_WORDS = /image|photo|url|link|color|colour|phone|email|whatsapp|key|secret|mode|count|percent|price|rate|id$/i
 const isTranslatable = field =>
   (field.type === 'input' || field.type === 'textarea') && !NOT_WORDS.test(field.key)
 
-// The languages an admin can translate into today. Adding Hindi, Kannada or
-// Telugu is one more entry here; nothing else in the CMS or the storefront
-// needs to change.
-const TRANSLATION_LANGUAGES = [{ code: 'ta', label: 'Tamil', native: 'தமிழ்' }]
+// The languages an admin can hand-translate into. None for now: the store's
+// runtime translation covers Tamil. Each entry, e.g.
+// { code: 'ta', label: 'Tamil', native: 'தமிழ்' }, adds its box under every
+// text field; nothing else in the CMS or the storefront needs to change.
+const TRANSLATION_LANGUAGES = []
 
 /* The five information pages (src/pages/InformationPage.jsx) read their copy
    from the CMS under a prefix, so an admin can write the privacy policy, the

@@ -178,3 +178,17 @@ test('a name written in Tamil is kept, and a missing name reads naturally in Tam
   const noName = buildOtpMessage('482915', '12345', '9873300002', 5 * 60 * 1000, { isNew: true });
   assert.match(noName, /விவசாயி நண்பரே/);
 });
+
+test('each fact line leads with an emoji, never inside WhatsApp italics', () => {
+  for (let i = 0; i < OTP_LAYOUT_COUNT * 50; i++) {
+    for (const isNew of [true, false]) {
+      const text = buildOtpMessage('482915', 'Selvi', `98744${String(i).padStart(5, '0')}`, 5 * 60 * 1000, { isNew });
+      const [tamil, english] = text.split('━━━━━━━━━━');
+      for (const part of [tamil, english]) {
+        assert.match(part, /⏳|⏱️|🕒/, 'how long the code lasts');
+        assert.match(part, /🔒|🚫|⚠️/, 'the warning');
+      }
+      assert.doesNotMatch(text, /_(🔒|🚫|⚠️|⏳|⏱️|🕒)/u, 'an emoji just inside italics breaks the formatting');
+    }
+  }
+});

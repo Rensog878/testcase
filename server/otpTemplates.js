@@ -63,6 +63,15 @@ const decap = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 // Interchangeable wording
 // ---------------------------------------------------------------
 
+// One emoji leads each fact line, so the message is easy to scan: the time
+// the code lasts, the warning, the line before the code. Each is picked from
+// a small set, like the wording, so the look varies from message to message.
+const TIME_EMOJI = ['⏳', '⏱️', '🕒']
+const WARN_EMOJI = ['🔒', '🚫', '⚠️']
+const LEAD_EMOJI = ['🔐', '🔑', '✅']
+const CODE_EMOJI = ['👉', '➡️']
+const withEmoji = (emojis, text) => `${pick(emojis)} ${text}`
+
 const GREETINGS = [
   (n) => `Hello ${n},`,
   (n) => `Hello ${n} 👋`,
@@ -104,7 +113,7 @@ const CODE_LINES = [
   (otp) => `*${otp}* 🔑`,
 ];
 
-const VALIDITY = [
+const VALIDITY_TEXT = [
   (m) => `Valid for ${m} minutes.`,
   (m) => `It expires in ${m} minutes.`,
   (m) => `This code stops working after ${m} minutes.`,
@@ -119,7 +128,7 @@ const VALIDITY = [
   (m) => `The code lasts ${m} minutes.`,
 ];
 
-const WARNINGS = [
+const WARNING_TEXT = [
   'Never share this code with anyone.',
   `Do not forward this code. ${BRAND} staff will never ask you for it.`,
   'Keep this code private — sharing it puts your account at risk.',
@@ -133,6 +142,11 @@ const WARNINGS = [
   'Never send this code to anyone who asks for it.',
   'Keep this code secret to protect your account.',
 ];
+
+// With their emoji. A layout that puts two facts on one line reads fine too:
+// "⏳ Valid for 5 minutes. 🔒 Never share this code with anyone."
+const VALIDITY = VALIDITY_TEXT.map((line) => (m) => withEmoji(TIME_EMOJI, line(m)))
+const warning = () => withEmoji(WARN_EMOJI, pick(WARNING_TEXT))
 
 const FOOTERS = [
   '_If you did not request this, you can safely ignore this message._',
@@ -175,7 +189,7 @@ const LAYOUTS = [
     lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
-    pick(WARNINGS),
+    warning(),
     maybe('\n' + footer(), 0.5),
   ],
 
@@ -184,7 +198,7 @@ const LAYOUTS = [
     `*${otp}* is your *${BRAND}* verification code.`, '',
     `${pick(GREETINGS)(name)} ${decap(lead().replace(/:$/, '.'))}`,
     pick(VALIDITY)(mins), '',
-    `_${pick(WARNINGS)}_`,
+    `${pick(WARN_EMOJI)} _${pick(WARNING_TEXT)}_`,
     maybe('\n' + footer(), 0.3),
   ],
 
@@ -192,7 +206,7 @@ const LAYOUTS = [
   ({ name, otp, mins, lead, footer, header }) => [
     pick(GREETINGS)(name),
     `Your *${BRAND}* code is *${otp}*.`,
-    `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`,
+    `${pick(VALIDITY)(mins)} ${warning()}`,
     maybe('\n' + footer(), 0.4),
   ],
 
@@ -201,8 +215,8 @@ const LAYOUTS = [
     header(), '',
     pick(GREETINGS)(name), '',
     `Verification code: *${otp}*`,
-    `Valid for: ${mins} minutes`, '',
-    pick(WARNINGS),
+    withEmoji(TIME_EMOJI, `Valid for: ${mins} minutes`), '',
+    warning(),
     maybe('\n' + footer(), 0.4),
   ],
 
@@ -211,7 +225,7 @@ const LAYOUTS = [
     pick(GREETINGS)(name), '',
     lead(), '',
     pick(CODE_LINES)(otp), '',
-    `${pick(WARNINGS)} ${pick(VALIDITY)(mins)}`, '',
+    `${warning()} ${pick(VALIDITY)(mins)}`, '',
     `— *${BRAND}*`,
   ],
 
@@ -219,7 +233,7 @@ const LAYOUTS = [
   ({ otp, mins, lead, footer, header }) => [
     header(), '',
     pick(CODE_LINES)(otp), '',
-    `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`,
+    `${pick(VALIDITY)(mins)} ${warning()}`,
     maybe('\n' + footer(), 0.5),
   ],
 
@@ -229,7 +243,7 @@ const LAYOUTS = [
     lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
-    pick(WARNINGS),
+    warning(),
     maybe('\n' + footer(), 0.3),
   ],
 
@@ -238,7 +252,7 @@ const LAYOUTS = [
     header(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
-    pick(WARNINGS),
+    warning(),
     maybe('\n' + footer(), 0.6),
   ],
 
@@ -247,7 +261,7 @@ const LAYOUTS = [
     pick(GREETINGS)(name),
     `Please enter *${otp}* to verify your mobile number with *${BRAND}*.`,
     pick(VALIDITY)(mins), '',
-    pick(WARNINGS),
+    warning(),
     maybe('\n' + footer(), 0.4),
   ],
 
@@ -258,7 +272,7 @@ const LAYOUTS = [
     pick(CODE_LINES)(otp), '',
     `• ${pick(VALIDITY)(mins)}`,
     '• Can be used once',
-    `• ${pick(WARNINGS)}`,
+    `• ${warning()}`,
   ],
 
   // 11 — question opener
@@ -267,7 +281,7 @@ const LAYOUTS = [
     `Signing up with *${BRAND}*?`,
     lead(), '',
     pick(CODE_LINES)(otp), '',
-    `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`,
+    `${pick(VALIDITY)(mins)} ${warning()}`,
     maybe('\n' + footer(), 0.3),
   ],
 
@@ -277,7 +291,7 @@ const LAYOUTS = [
     lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
-    pick(WARNINGS), '',
+    warning(), '',
     `— *${BRAND}*`,
   ],
 
@@ -285,7 +299,7 @@ const LAYOUTS = [
   ({ name, otp, mins, lead, footer, header }) => [
     header(), '',
     pick(GREETINGS)(name),
-    `${pick(WARNINGS)}`, '',
+    `${warning()}`, '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
     maybe('\n' + footer(), 0.4),
@@ -295,7 +309,7 @@ const LAYOUTS = [
   ({ name, otp, mins, lead, footer, header }) => [
     `${pick(GREETINGS)(name)} ${decap(lead())}`, '',
     pick(CODE_LINES)(otp), '',
-    `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`, '',
+    `${pick(VALIDITY)(mins)} ${warning()}`, '',
     `— *${BRAND}*`,
     footer(),
   ],
@@ -307,7 +321,7 @@ const LAYOUTS = [
     lead(), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins), '',
-    `_${pick(WARNINGS)}_`, '',
+    `${pick(WARN_EMOJI)} _${pick(WARNING_TEXT)}_`, '',
     `— *${BRAND}*`,
   ],
 
@@ -316,7 +330,7 @@ const LAYOUTS = [
     pick(GREETINGS)(name),
     lead(), '',
     `*${otp}*`, '',
-    `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`, '',
+    `${pick(VALIDITY)(mins)} ${warning()}`, '',
     `*${BRAND}*`,
   ],
 ];
@@ -367,7 +381,7 @@ const TA_WELCOME = [
 const TA_WELCOME_BACK = [
   'மீண்டும் வருக! 🌾',
   'உங்களை மீண்டும் காண்பதில் மகிழ்ச்சி 🌱',
-  `*${TA_BRAND}*-க்கு மீண்டும் வருக 🙏`,
+  `*${TA_BRAND}*-க்கு மீண்டும் வருக 🌿`,
 ]
 
 const TA_LEAD_INS = [
@@ -406,10 +420,10 @@ function tamilBlock({ name, otp, mins, isNew }) {
   return [
     pick(TA_GREETINGS)(who),
     pick(isNew ? TA_WELCOME : TA_WELCOME_BACK), '',
-    pick(TA_LEAD_INS),
-    `*${otp}*`, '',
-    pick(TA_VALIDITY)(mins),
-    pick(TA_WARNINGS),
+    withEmoji(LEAD_EMOJI, pick(TA_LEAD_INS)),
+    `${pick(CODE_EMOJI)} *${otp}*`, '',
+    withEmoji(TIME_EMOJI, pick(TA_VALIDITY)(mins)),
+    withEmoji(WARN_EMOJI, pick(TA_WARNINGS)),
     isNew ? '\n' + pick(TA_SAVE) : '',
   ]
 }
@@ -492,13 +506,13 @@ const RESET_LAYOUTS = [
     pick(RESET_LEAD_INS), '',
     pick(CODE_LINES)(otp), '',
     pick(VALIDITY)(mins),
-    pick(WARNINGS), '',
+    warning(), '',
     pick(RESET_FOOTERS),
   ],
   ({ name, otp, mins }) => [
     `*${otp}* is your *${BRAND}* password reset code.`, '',
     `${pick(GREETINGS)(name)} ${pick(VALIDITY)(mins)}`, '',
-    `_${pick(WARNINGS)}_`, '',
+    `${pick(WARN_EMOJI)} _${pick(WARNING_TEXT)}_`, '',
     pick(RESET_FOOTERS),
   ],
   ({ name, otp, mins }) => [
@@ -507,14 +521,14 @@ const RESET_LAYOUTS = [
     pick(CODE_LINES)(otp), '',
     `• ${pick(VALIDITY)(mins)}`,
     '• Can be used once',
-    `• ${pick(WARNINGS)}`, '',
+    `• ${warning()}`, '',
     `— *${BRAND}*`,
   ],
   ({ name, otp, mins }) => [
     pick(RESET_HEADERS), '',
     `${pick(GREETINGS)(name)} ${decap(pick(RESET_LEAD_INS))}`, '',
     pick(CODE_LINES)(otp), '',
-    `${pick(VALIDITY)(mins)} ${pick(WARNINGS)}`, '',
+    `${pick(VALIDITY)(mins)} ${warning()}`, '',
     pick(RESET_FOOTERS),
   ],
 ];

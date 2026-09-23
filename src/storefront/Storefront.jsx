@@ -2,8 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { dedupeCropLabels, matchesCategory, matchesCrop, matchesDisease } from '../utils/catalogUtils'
-import { matchesForm } from '../shared/productForm'
+import { dedupeCropLabels, matchesDisease } from '../utils/catalogUtils'
 import { afterPageTransition } from '../components/home/pageTransition'
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { SHARED_POPUP_HASHES } from '../hooks/checkoutRules'
@@ -59,38 +58,29 @@ export default function Storefront() {
     onlineOnly: true
   })
 
-  // The catalogue's filter lists. db.js keeps /api/catalog-options as an
-  // append-only registry - every crop and disease ever typed on a product is
-  // merged in and nothing is ever taken out - so it still offers values no
-  // product carries any more (a pest left behind by an edited or deleted
-  // product). Picking one of those was a guaranteed "0 Products" with nothing
-  // to explain it, so an option is offered only when something in the live
-  // catalogue actually matches it. The registry is used as-is until the
-  // products arrive, or the lists would flicker empty on a cold load.
+  // The catalogue's filter lists - the full admin registry (db.js's
+  // /api/catalog-options), every option that exists in the admin product
+  // form's dropdowns, not only the ones a live product currently matches.
+  // Picking one with nothing in stock right now shows "0 Products" rather
+  // than hiding the option, so the storefront's filters and the admin form's
+  // dropdowns always offer exactly the same list.
   const catalogOptions = useMemo(() => {
     if (!rawCatalogOptions) return null
-    const keep = (values, matches) => {
-      const list = values || []
-      if (!products.length) return list
-      return list.filter(value => products.some(product => matches(product, value)))
-    }
     return {
-      categories: ['All', ...keep(rawCatalogOptions.categories, (p, c) => matchesCategory(p.category, c))],
+      categories: ['All', ...(rawCatalogOptions.categories || [])],
       crops: [
         { id: 'all', name: 'All Crops' },
-        // Prune before deduping, or a spelling that matches nothing can take
-        // the live one down with it (see the Maize / Corn case in AllProducts).
-        ...dedupeCropLabels(keep(rawCatalogOptions.crops, (p, c) => matchesCrop(p.crops, c))).map(crop => ({ id: crop, name: crop })),
+        ...dedupeCropLabels(rawCatalogOptions.crops || []).map(crop => ({ id: crop, name: crop })),
       ],
       diseases: [
         { id: 'all', name: 'All Diseases & Pests' },
-        ...keep(rawCatalogOptions.diseases, (p, d) => matchesDisease(p.diseases, d)).map(disease => ({ id: disease, name: disease })),
+        ...(rawCatalogOptions.diseases || []).map(disease => ({ id: disease, name: disease })),
       ],
       // Plain strings, not {id, name}: the Form filter (Catalog.jsx) reads
       // this the same way it reads its own PRODUCT_FORMS fallback.
-      physicalForms: keep(rawCatalogOptions.physicalForms, (p, f) => matchesForm(p, f, rawCatalogOptions.physicalForms)),
+      physicalForms: rawCatalogOptions.physicalForms || [],
     }
-  }, [rawCatalogOptions, products])
+  }, [rawCatalogOptions])
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)

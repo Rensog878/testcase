@@ -15,6 +15,9 @@ const STATUS_COLORS = {
   Delivered: 'green',
   Cancelled: 'red'
 }
+// Payment, Fulfillment / Status and Actions are hidden for now; true brings them back.
+const SHOW_FULFILLMENT_COLUMNS = false
+const COLUMN_COUNT = SHOW_FULFILLMENT_COLUMNS ? 9 : 6
 const STATUSES = ['Pending', 'Confirmed', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled']
 
 const WHATSAPP_BADGES = { sent: ['green', 'Sent'], failed: ['red', 'Failed'], sending: ['yellow', 'Sending'] }
@@ -246,16 +249,20 @@ export default function AdminOrders() {
                 <th style={{ padding: '14px 16px' }}>Customer</th>
                 <th style={{ padding: '14px 16px' }}>Items Summary</th>
                 <th style={{ padding: '14px 16px' }}>Total</th>
-                <th style={{ padding: '14px 16px' }}>Payment</th>
-                <th style={{ padding: '14px 16px' }}>Fulfillment / Status</th>
-                <th style={{ padding: '14px 16px', textAlign: 'right' }}>Actions</th>
+                {SHOW_FULFILLMENT_COLUMNS && (
+                  <>
+                    <th style={{ padding: '14px 16px' }}>Payment</th>
+                    <th style={{ padding: '14px 16px' }}>Fulfillment / Status</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right' }}>Actions</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading sales data...</td></tr>
+                <tr><td colSpan={COLUMN_COUNT} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading sales data...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No sales or bills found for the selected view.</td></tr>
+                <tr><td colSpan={COLUMN_COUNT} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No sales or bills found for the selected view.</td></tr>
               ) : (
                 filtered.map(tx => (
                   <tr key={tx.txId} style={{ borderBottom: '1px solid var(--dark-700)' }}>
@@ -311,55 +318,59 @@ export default function AdminOrders() {
                       ₹{tx.amount.toLocaleString('en-IN')}
                     </td>
 
-                    {/* Payment Mode */}
-                    <td style={{ padding: '14px 16px' }}>
-                      <span className="badge badge-green" style={{ fontSize: '0.72rem' }}>
-                        {tx.paymentMethod}
-                      </span>
-                    </td>
-
-                    {/* Fulfillment */}
-                    <td style={{ padding: '14px 16px' }}>
-                      {tx.channel === 'online' ? (
-                        <>
-                          <span className={`badge badge-${STATUS_COLORS[tx.statusText] || 'gray'}`}>
-                            {tx.statusText}
-                          </span>
-                          {tx.stockShortfall && (
-                            <span className="badge badge-red" style={{ marginLeft: 6 }} title="Paid after stock ran out — check inventory">Stock short</span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="badge badge-green">
-                          Completed (Counter POS)
+                    {SHOW_FULFILLMENT_COLUMNS && (
+                      <>
+                      {/* Payment Mode */}
+                      <td style={{ padding: '14px 16px' }}>
+                        <span className="badge badge-green" style={{ fontSize: '0.72rem' }}>
+                          {tx.paymentMethod}
                         </span>
-                      )}
-                    </td>
+                      </td>
 
-                    {/* Actions */}
-                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                      {tx.channel === 'online' ? (
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          <WhatsAppStatus order={tx} sending={sendingId === tx.id} onSend={sendWhatsApp} />
-                          <select
-                            className="filter-select"
-                            style={{ padding: '3px 8px', fontSize: '0.72rem' }}
-                            value={tx.deliveryStatus || tx.status}
-                            onChange={e => updateStatus(tx.id, e.target.value)}
+                      {/* Fulfillment */}
+                      <td style={{ padding: '14px 16px' }}>
+                        {tx.channel === 'online' ? (
+                          <>
+                            <span className={`badge badge-${STATUS_COLORS[tx.statusText] || 'gray'}`}>
+                              {tx.statusText}
+                            </span>
+                            {tx.stockShortfall && (
+                              <span className="badge badge-red" style={{ marginLeft: 6 }} title="Paid after stock ran out — check inventory">Stock short</span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="badge badge-green">
+                            Completed (Counter POS)
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                        {tx.channel === 'online' ? (
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                            <WhatsAppStatus order={tx} sending={sendingId === tx.id} onSend={sendWhatsApp} />
+                            <select
+                              className="filter-select"
+                              style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                              value={tx.deliveryStatus || tx.status}
+                              onChange={e => updateStatus(tx.id, e.target.value)}
+                            >
+                              {STATUSES.map(s => <option key={s}>{s}</option>)}
+                            </select>
+                          </div>
+                        ) : (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                            onClick={() => setSelectedInvoice(tx)}
                           >
-                            {STATUSES.map(s => <option key={s}>{s}</option>)}
-                          </select>
-                        </div>
-                      ) : (
-                        <button
-                          className="btn btn-outline"
-                          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                          onClick={() => setSelectedInvoice(tx)}
-                        >
-                          <Eye size={12} /> View Bill
-                        </button>
-                      )}
-                    </td>
+                            <Eye size={12} /> View Bill
+                          </button>
+                        )}
+                      </td>
+                      </>
+                    )}
                   </tr>
                 ))
               )}

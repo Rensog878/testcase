@@ -7,9 +7,14 @@ export default function Sidebar({ items, roleName, roleIcon: RoleIcon, isOpen, o
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    const role = user?.role
+    // This sidebar is only ever mounted for signed-in staff (Admin, Employee,
+    // Delivery, Billing, Super Admin) - never for a farmer - so signing out
+    // of it always means back to the staff sign-in page, whichever role.
+    // '/#login' (the farmer sign-in modal on the storefront home page) was
+    // wrong for every role except admin, who happened to land on /admin's
+    // own inline sign-in instead.
     logout()
-    navigate(role === 'admin' ? '/admin' : '/#login')
+    navigate('/login', { replace: true })
   }
 
   return (

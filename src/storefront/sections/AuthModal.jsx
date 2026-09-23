@@ -474,12 +474,23 @@ function AccountCard({ t, user, view, onView, profileForm }) {
       return <CropPicker key={field.id} id="acctCrop" title={field.title} options={cropOptionsFor(field)} value={form.crop} onToggle={toggleMyCrop} error={errors.crop} />
     }
     if (field.id === 'acreage') {
+      // The same - [ acres ] + stepper as sign-up.
+      const acres = Number(form.acreage) || 0
+      const step = direction => setField('acreage', stepAcres(form.acreage, direction))
       return (
         <div className="auth-field" key={field.id}>
           <label className="auth-label" htmlFor="acctAcreage">{field.title}</label>
-          <div className="auth-control auth-control--suffix">
-            <input type="text" inputMode="decimal" autoComplete="off" enterKeyHint={last ? 'done' : 'next'} {...inputProps('acreage', 'acctAcreageUnit')} />
-            <span className="auth-suffix" id="acctAcreageUnit">acres</span>
+          <div className="auth-stepper">
+            <button type="button" className="auth-stepper-btn" data-acre-step="-1" aria-controls="acctAcreage" aria-disabled={acres <= ACRE_LIMITS.min} onClick={() => { if (acres > ACRE_LIMITS.min) step(-1) }}>
+              <i className="fa-solid fa-minus" aria-hidden="true"></i><span className="auth-sr">{`${ACRE_STEP} acre less`}</span>
+            </button>
+            <div className="auth-control auth-control--suffix">
+              <input type="text" inputMode="decimal" autoComplete="off" enterKeyHint={last ? 'done' : 'next'} {...inputProps('acreage', 'acctAcreageUnit')} />
+              <span className="auth-suffix" id="acctAcreageUnit">acres</span>
+            </div>
+            <button type="button" className="auth-stepper-btn" data-acre-step="1" aria-controls="acctAcreage" aria-disabled={acres >= ACRE_LIMITS.max} onClick={() => { if (acres < ACRE_LIMITS.max) step(1) }}>
+              <i className="fa-solid fa-plus" aria-hidden="true"></i><span className="auth-sr">{`${ACRE_STEP} acre more`}</span>
+            </button>
           </div>
           {hint('acreage')}
         </div>

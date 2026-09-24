@@ -27,7 +27,7 @@ export const DISEASES = [
 export const CATEGORIES = ['All', 'Fungicide', 'Insecticide', 'Bio-Stimulant', 'Herbicide', 'Nematicide']
 
 // Fallback product image if product photo fails to load
-export const FALLBACK_PRODUCT_IMAGE = '/assets/p1.webp'
+export const FALLBACK_PRODUCT_IMAGE = '/assets/products/photo-coming-soon.svg'
 
 export function productImage(product) {
   let src = String((product && product.image) || '').trim()

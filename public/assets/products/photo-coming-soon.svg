@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Product photo coming soon">
+  <rect width="512" height="512" fill="#F1F6F2"/>
+  <!-- A plain pack with a leaf: no product name, so it never passes for a real product -->
+  <rect x="206" y="92" width="100" height="46" rx="10" fill="#C9DCCD"/>
+  <path d="M176 156 Q176 138 194 138 H318 Q336 138 336 156 V404 Q336 424 316 424 H196 Q176 424 176 404 Z" fill="#FFFFFF" stroke="#C9DCCD" stroke-width="6"/>
+  <path d="M256 330 C216 316 204 268 226 226 C262 236 286 272 272 318 C270 324 262 330 256 330 Z" fill="#8CC29A"/>
+  <path d="M256 330 C258 292 250 262 232 238" fill="none" stroke="#5E9E6E" stroke-width="5" stroke-linecap="round"/>
+  <rect x="210" y="356" width="92" height="10" rx="5" fill="#DCE8DF"/>
+  <rect x="226" y="376" width="60" height="10" rx="5" fill="#DCE8DF"/>
+</svg>

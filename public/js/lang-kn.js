@@ -191,6 +191,12 @@ window.SB_LANG_KN = {
     'min': 'ನಿ',
     'sec': 'ಸೆ',
     'Shop Now': 'ಈಗ ಖರೀದಿಸಿ',
+    'Coming Soon': 'ಶೀಘ್ರದಲ್ಲಿ ಬರಲಿದೆ',
+    'Price coming soon': 'ಬೆಲೆ ಶೀಘ್ರದಲ್ಲಿ',
+    'View details': 'ವಿವರಗಳನ್ನು ನೋಡಿ',
+    'View': 'ನೋಡಿ',
+    'Call now': 'ಈಗ ಕರೆ ಮಾಡಿ',
+    'WhatsApp us': 'ವಾಟ್ಸಾಪ್ ಮಾಡಿ',
 
     // Trust strip & stats
     'Lab-Tested Original Bio-Formulations': 'ಪ್ರಯೋಗಾಲಯ ಪರೀಕ್ಷಿತ ಮೂಲ ಜೈವಿಕ ಉತ್ಪನ್ನಗಳು',

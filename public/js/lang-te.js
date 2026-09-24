@@ -191,6 +191,12 @@ window.SB_LANG_TE = {
     'min': 'ని',
     'sec': 'సె',
     'Shop Now': 'ఇప్పుడే కొనండి',
+    'Coming Soon': 'త్వరలో వస్తోంది',
+    'Price coming soon': 'ధర త్వరలో',
+    'View details': 'వివరాలు చూడండి',
+    'View': 'చూడండి',
+    'Call now': 'ఇప్పుడే కాల్ చేయండి',
+    'WhatsApp us': 'వాట్సాప్ చేయండి',
 
     // Trust strip & stats
     'Lab-Tested Original Bio-Formulations': 'ప్రయోగశాలలో పరీక్షించిన అసలైన జీవ ఉత్పత్తులు',

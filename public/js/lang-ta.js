@@ -142,6 +142,12 @@ window.SB_LANG_TA = {
     'min': 'நிமி',
     'sec': 'வினா',
     'Shop Now': 'இப்போதே வாங்கு',
+    'Coming Soon': 'விரைவில் வருகிறது',
+    'Price coming soon': 'விலை விரைவில்',
+    'View details': 'விவரங்களைப் பார்க்க',
+    'View': 'பார்க்க',
+    'Call now': 'இப்போது அழைக்கவும்',
+    'WhatsApp us': 'வாட்ஸ்அப்பில் தொடர்பு கொள்ளுங்கள்',
 
     // Trust strip & stats
     'Lab-Tested Original Bio-Formulations': 'ஆய்வகச் சோதனை செய்த அசல் உயிர் மருந்துகள்',

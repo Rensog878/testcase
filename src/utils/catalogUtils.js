@@ -3,6 +3,8 @@
  * Provides resilient, typo-tolerant crop, category, and disease matching across Admin and Storefront.
  */
 
+import { hasPrice } from '../shared/comingSoon.js'
+
 /**
  * Normalizes a crop string by stripping whitespace around slashes, lowercasing, and trimming.
  * e.g., "Paddy / Rice" -> "paddy/rice"
@@ -199,7 +201,8 @@ export function dedupeCropLabels(crops) {
  * before instead of showing an arbitrary slice of the catalogue.
  */
 export function topSelling(products, count) {
-  const list = Array.isArray(products) ? products : []
+  // A product not priced yet ("Price coming soon") is never a top seller.
+  const list = (Array.isArray(products) ? products : []).filter(hasPrice)
   const sold = product => Math.max(0, Number(product?.unitsSold) || 0)
   if (!list.some(product => sold(product) > 0)) return null
   return [...list]

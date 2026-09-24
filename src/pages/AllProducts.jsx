@@ -12,6 +12,7 @@ import { useCms } from '../context/CmsContext'
 import { cmsText } from '../hooks/useCmsSettings'
 import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
 import { WHATSAPP_EXPERT_URL } from '../storefront/data'
+import { hasPrice } from '../shared/comingSoon'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../shared/productForm'
@@ -236,6 +237,11 @@ export default function AllProducts() {
   // Add to cart: one more of this product in its pack size. The price shown
   // here is for the basket only; the server prices the order again.
   const handleAddToCart = (product, explicitSize = null) => {
+    // Not priced yet ("Price coming soon"): its page, not the basket.
+    if (!hasPrice(product)) {
+      navigate(`/product/${encodeURIComponent(product.id)}`)
+      return
+    }
     const currentSize = explicitSize || selectedSizes[product.id] || product.selectedSize || product.sizes?.[0]?.size || 'Standard'
     const sizeObj = product.sizes?.find(s => s.size === currentSize)
     addItem({
@@ -268,7 +274,8 @@ export default function AllProducts() {
   }, [dbProducts])
 
   const todaysOffersList = useMemo(() => {
-    return dbProducts.filter(p => p.discount || (p.originalPrice && p.originalPrice > p.price)).map(p => ({
+    // A product not priced yet is no offer.
+    return dbProducts.filter(p => hasPrice(p) && (p.discount || (p.originalPrice && p.originalPrice > p.price))).map(p => ({
       ...p,
       sizes: (Array.isArray(p.packSizes) ? p.packSizes : ['Standard']).map(size => ({
         size,
@@ -787,7 +794,7 @@ export default function AllProducts() {
                         loading="lazy"
                         onError={(e) => {
                           e.target.onerror = null
-                          e.target.src = './assets/p1.png'
+                          e.target.src = '/assets/products/photo-coming-soon.svg'
                         }}
                       />
                     </div>
@@ -800,7 +807,7 @@ export default function AllProducts() {
                     {/* Price & Action */}
                     <div className="top10-card-footer">
                       <div className="top10-price-box">
-                        <strong className="price-curr">₹{item.price}</strong>
+                        <strong className="price-curr">{hasPrice(item) ? `₹${item.price}` : 'Price coming soon'}</strong>
                         {item.originalPrice && (
                           <span className="price-orig">₹{item.originalPrice}</span>
                         )}
@@ -809,9 +816,9 @@ export default function AllProducts() {
                         type="button" 
                         className="top10-quick-add"
                         onClick={() => handleAddToCart(item)}
-                        title="Add to Basket"
+                        title={hasPrice(item) ? 'Add to Basket' : 'View details'}
                       >
-                        + Add
+                        {hasPrice(item) ? '+ Add' : 'View'}
                       </button>
                     </div>
                   </div>
@@ -923,7 +930,7 @@ export default function AllProducts() {
                           loading="lazy"
                           onError={(e) => {
                             e.target.onerror = null
-                            e.target.src = './assets/p1.png'
+                            e.target.src = '/assets/products/photo-coming-soon.svg'
                           }}
                         />
                       </Link>
@@ -955,7 +962,7 @@ export default function AllProducts() {
 
                     {/* Price and Savings */}
                     <div className="card-pricing-row">
-                      <strong className="card-current-price">₹{activeSize.price}</strong>
+                      <strong className="card-current-price">{hasPrice(prod) ? `₹${activeSize.price}` : 'Price coming soon'}</strong>
                       {activeSize.originalPrice && (
                         <span className="card-original-price">₹{activeSize.originalPrice}</span>
                       )}
@@ -968,7 +975,7 @@ export default function AllProducts() {
                     )}
 
                     {/* Pack Size Selector Dropdown */}
-                    <div className="card-size-selector-row">
+                    <div className="card-size-selector-row" style={hasPrice(prod) ? undefined : { visibility: 'hidden' }}>
                       <label htmlFor={`size-select-${prod.id}`}>Size</label>
                       <select 
                         id={`size-select-${prod.id}`}
@@ -990,8 +997,8 @@ export default function AllProducts() {
                       className="card-add-to-cart-btn"
                       onClick={() => handleAddToCart(prod, activeSize.size)}
                     >
-                      <ShoppingCart size={16} />
-                      <span>Add to Cart</span>
+                      {hasPrice(prod) && <ShoppingCart size={16} />}
+                      <span>{hasPrice(prod) ? 'Add to Cart' : 'View details'}</span>
                     </button>
                   </div>
                 )
@@ -1103,7 +1110,7 @@ export default function AllProducts() {
                         loading="lazy"
                         onError={(e) => {
                           e.target.onerror = null
-                          e.target.src = './assets/p1.png'
+                          e.target.src = '/assets/products/photo-coming-soon.svg'
                         }}
                       />
                     </div>
@@ -1134,7 +1141,7 @@ export default function AllProducts() {
                     <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                     <div className="card-pricing-row">
-                      <strong className="card-current-price">₹{activeSize.price}</strong>
+                      <strong className="card-current-price">{hasPrice(prod) ? `₹${activeSize.price}` : 'Price coming soon'}</strong>
                       {activeSize.originalPrice && (
                         <span className="card-original-price">₹{activeSize.originalPrice}</span>
                       )}
@@ -1146,7 +1153,7 @@ export default function AllProducts() {
                       </div>
                     )}
 
-                    <div className="card-size-selector-row">
+                    <div className="card-size-selector-row" style={hasPrice(prod) ? undefined : { visibility: 'hidden' }}>
                       <label htmlFor={`size-select-${prod.id}`}>Size</label>
                       <select 
                         id={`size-select-${prod.id}`}
@@ -1167,8 +1174,8 @@ export default function AllProducts() {
                       className="card-add-to-cart-btn"
                       onClick={() => handleAddToCart(prod, activeSize.size)}
                     >
-                      <ShoppingCart size={16} />
-                      <span>Add to Cart</span>
+                      {hasPrice(prod) && <ShoppingCart size={16} />}
+                      <span>{hasPrice(prod) ? 'Add to Cart' : 'View details'}</span>
                     </button>
                   </div>
                 )
@@ -1279,7 +1286,7 @@ export default function AllProducts() {
                   <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                   <div className="card-pricing-row">
-                    <strong className="card-current-price">₹{activeSize.price}</strong>
+                    <strong className="card-current-price">{hasPrice(prod) ? `₹${activeSize.price}` : 'Price coming soon'}</strong>
                     {activeSize.originalPrice && (
                       <span className="card-original-price">₹{activeSize.originalPrice}</span>
                     )}
@@ -1291,7 +1298,7 @@ export default function AllProducts() {
                     </div>
                   )}
 
-                  <div className="card-size-selector-row">
+                  <div className="card-size-selector-row" style={hasPrice(prod) ? undefined : { visibility: 'hidden' }}>
                     <label htmlFor={`size-select-${prod.id}`}>Size</label>
                     <select 
                       id={`size-select-${prod.id}`}
@@ -1312,8 +1319,8 @@ export default function AllProducts() {
                     className="card-add-to-cart-btn"
                     onClick={() => handleAddToCart(prod, activeSize.size)}
                   >
-                    <ShoppingCart size={16} />
-                    <span>Add to Cart</span>
+                    {hasPrice(prod) && <ShoppingCart size={16} />}
+                    <span>{hasPrice(prod) ? 'Add to Cart' : 'View details'}</span>
                   </button>
                 </div>
               )
@@ -1478,7 +1485,7 @@ export default function AllProducts() {
                         loading="lazy"
                         onError={(e) => {
                           e.target.onerror = null
-                          e.target.src = './assets/p1.png'
+                          e.target.src = '/assets/products/photo-coming-soon.svg'
                         }}
                       />
                     </div>
@@ -1509,7 +1516,7 @@ export default function AllProducts() {
                     <p className="card-brand-name">{[prod.brand, productForm(prod, formOptions)].filter(Boolean).join(' · ')}</p>
 
                     <div className="card-pricing-row">
-                      <strong className="card-current-price">₹{activeSize.price}</strong>
+                      <strong className="card-current-price">{hasPrice(prod) ? `₹${activeSize.price}` : 'Price coming soon'}</strong>
                       {activeSize.originalPrice && (
                         <span className="card-original-price">₹{activeSize.originalPrice}</span>
                       )}
@@ -1521,7 +1528,7 @@ export default function AllProducts() {
                       </div>
                     )}
 
-                    <div className="card-size-selector-row">
+                    <div className="card-size-selector-row" style={hasPrice(prod) ? undefined : { visibility: 'hidden' }}>
                       <label htmlFor={`size-select-${prod.id}`}>Size</label>
                       <select 
                         id={`size-select-${prod.id}`}
@@ -1542,8 +1549,8 @@ export default function AllProducts() {
                       className="card-add-to-cart-btn"
                       onClick={() => handleAddToCart(prod, activeSize.size)}
                     >
-                      <ShoppingCart size={16} />
-                      <span>Add to Cart</span>
+                      {hasPrice(prod) && <ShoppingCart size={16} />}
+                      <span>{hasPrice(prod) ? 'Add to Cart' : 'View details'}</span>
                     </button>
                   </div>
                 )

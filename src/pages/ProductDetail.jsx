@@ -4,6 +4,11 @@ import axios from 'axios'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCheckoutActions } from '../hooks/useCheckout'
 import { findCachedProduct } from '../hooks/useCatalogProducts'
+import { hasPrice } from '../shared/comingSoon'
+import { useCms } from '../context/CmsContext'
+import { cmsText } from '../hooks/useCmsSettings'
+import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
+import { WHATSAPP_EXPERT_URL } from '../storefront/data'
 
 const getYouTubeId = (url) => {
   if (!url) return null
@@ -30,6 +35,7 @@ const getWishlistIdentity = () => {
 
 export default function ProductDetail() {
   const { id } = useParams()
+  const { cms } = useCms()
   const navigate = useNavigate()
   const { addItem, startCheckout } = useCheckoutActions()
   const [product, setProduct] = useState(null)
@@ -169,6 +175,8 @@ export default function ProductDetail() {
   const selectedPrice = packagePrice(selectedPack)
   const selectedOriginalPrice = packageMrp(selectedPack)
   const totalPrice = selectedPrice * quantity
+  const priced = hasPrice(product)
+  const supportPhone = cmsText(cms, 'phone', SUPPORT_PHONE)
   const totalOriginalPrice = selectedOriginalPrice * quantity
 
   // A different size or quantity is a new choice: "Added to cart" (and
@@ -221,10 +229,12 @@ export default function ProductDetail() {
             {averageRating ? <><Star size={16} fill="currentColor" /> {averageRating} ({reviews.length} verified reviews)</> : 'No verified reviews yet'}
           </div>
           <div className="product-detail-price">
-            ₹{totalPrice.toLocaleString()} {totalOriginalPrice > totalPrice && <del>₹{totalOriginalPrice.toLocaleString()}</del>}
+            {priced
+              ? <>₹{totalPrice.toLocaleString()} {totalOriginalPrice > totalPrice && <del>₹{totalOriginalPrice.toLocaleString()}</del>}</>
+              : 'Price coming soon'}
           </div>
 
-          {packSizes.length > 0 && (
+          {priced && packSizes.length > 0 && (
             <div className="product-pack-selector">
               <strong id="packSizeLabel">Package size</strong>
               <div role="group" aria-labelledby="packSizeLabel">
@@ -237,7 +247,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <div className="product-qty-row">
+          {priced && <div className="product-qty-row">
             <strong id="qtyLabel">Quantity</strong>
             <div className="product-qty" role="group" aria-labelledby="qtyLabel">
               <button type="button" onClick={() => changeQuantity(-1)} disabled={quantity <= 1} aria-label="Fewer">−</button>
@@ -247,18 +257,28 @@ export default function ProductDetail() {
             {quantity > 1 && (
               <span className="product-qty-sum">₹{selectedPrice.toLocaleString()} × {quantity}{selectedPack ? ` · ${selectedPack} each` : ''}</span>
             )}
-          </div>
+          </div>}
 
           <p className="product-detail-description">{product.detailedDescription || product.description}</p>
           <div className="product-detail-facts">
             <div><strong>Active ingredient</strong><span>{product.activeIngredient || 'Not specified'}</span></div>
             <div><strong>Dosage</strong><span>{product.dosage || 'Not specified'}</span></div>
-            <div><strong>Pack sizes</strong><span>{product.packSizes?.join(', ') || 'Not specified'}</span></div>
+            <div><strong>Pack sizes</strong><span>{priced ? product.packSizes?.join(', ') || 'Not specified' : 'Coming Soon'}</span></div>
             <div><strong>Suitable crops</strong><span>{product.crops?.join(', ') || 'Not specified'}</span></div>
           </div>
           <div className="product-detail-actions">
-            <button className="btn btn-primary btn-lg" onClick={addToCart}><ShoppingCart size={18} /> {cartAdded ? 'Added to cart' : 'Add to cart'}</button>
-            <button className="btn btn-secondary btn-lg" onClick={proceedToCheckout}>Proceed to checkout</button>
+            {priced ? (
+              <>
+                <button className="btn btn-primary btn-lg" onClick={addToCart}><ShoppingCart size={18} /> {cartAdded ? 'Added to cart' : 'Add to cart'}</button>
+                <button className="btn btn-secondary btn-lg" onClick={proceedToCheckout}>Proceed to checkout</button>
+              </>
+            ) : (
+              // Not priced yet: the farmer can still ask about it.
+              <>
+                <a className="btn btn-primary btn-lg" href={telHref(supportPhone)}>Call now</a>
+                <a className="btn btn-secondary btn-lg" href={WHATSAPP_EXPERT_URL} target="_blank" rel="noopener noreferrer">WhatsApp us</a>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -353,7 +373,7 @@ export default function ProductDetail() {
 
       {product.relatedBlogs?.length > 0 && <section className="product-detail-section"><h2>Related blogs</h2><div className="related-blog-list">{product.relatedBlogs.map(blog => <a key={`${blog.title}-${blog.url}`} href={blog.url} target="_blank" rel="noreferrer">{blog.title}<ExternalLink size={15} /></a>)}</div></section>}
 
-      {relatedProducts.length > 0 && <section className="product-detail-section"><h2>Related products</h2><div className="related-product-grid">{relatedProducts.map(item => <button key={item.id} onClick={() => navigate(`/product/${item.id}`)}><img src={resolveImage(item.images?.[0] || item.image)} alt={item.name} /><strong>{item.name}</strong><span>₹{item.price.toLocaleString()}</span></button>)}</div></section>}
+      {relatedProducts.length > 0 && <section className="product-detail-section"><h2>Related products</h2><div className="related-product-grid">{relatedProducts.map(item => <button key={item.id} onClick={() => navigate(`/product/${item.id}`)}><img src={resolveImage(item.images?.[0] || item.image)} alt={item.name} /><strong>{item.name}</strong><span>{hasPrice(item) ? `₹${Number(item.price).toLocaleString()}` : 'Price coming soon'}</span></button>)}</div></section>}
     </div>
   )
 }

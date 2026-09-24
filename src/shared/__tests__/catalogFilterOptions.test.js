@@ -58,19 +58,19 @@ test('the synonyms reach the filter lists too', () => {
 
 test('best sellers come back most sold first', () => {
   const products = [
-    { id: 'a', unitsSold: 4 },
-    { id: 'b', unitsSold: 91 },
-    { id: 'c', unitsSold: 0 },
-    { id: 'd', unitsSold: 37 },
+    { id: 'a', price: 100, unitsSold: 4 },
+    { id: 'b', price: 100, unitsSold: 91 },
+    { id: 'c', price: 100, unitsSold: 0 },
+    { id: 'd', price: 100, unitsSold: 37 },
   ];
   assert.deepEqual(topSelling(products, 3).map(p => p.id), ['b', 'd', 'a']);
 });
 
 test('ties are broken by rating, then reviews, so the order never wobbles', () => {
   const products = [
-    { id: 'a', unitsSold: 10, rating: 4.1, reviewsCount: 90 },
-    { id: 'b', unitsSold: 10, rating: 4.9, reviewsCount: 2 },
-    { id: 'c', unitsSold: 10, rating: 4.1, reviewsCount: 300 },
+    { id: 'a', price: 100, unitsSold: 10, rating: 4.1, reviewsCount: 90 },
+    { id: 'b', price: 100, unitsSold: 10, rating: 4.9, reviewsCount: 2 },
+    { id: 'c', price: 100, unitsSold: 10, rating: 4.1, reviewsCount: 300 },
   ];
   assert.deepEqual(topSelling(products, 3).map(p => p.id), ['b', 'c', 'a']);
 });
@@ -83,9 +83,18 @@ test('before the shop has sold anything the caller keeps its own rule', () => {
 
 test('a broken or negative count never outranks a real one', () => {
   const products = [
-    { id: 'junk', unitsSold: 'lots' },
-    { id: 'negative', unitsSold: -50 },
-    { id: 'real', unitsSold: 3 },
+    { id: 'junk', price: 100, unitsSold: 'lots' },
+    { id: 'negative', price: 100, unitsSold: -50 },
+    { id: 'real', price: 100, unitsSold: 3 },
   ];
   assert.deepEqual(topSelling(products, 1).map(p => p.id), ['real']);
+});
+
+test('a product not priced yet is never a best seller', () => {
+  const products = [
+    { id: 'a', price: 100, unitsSold: 4 },
+    { id: 'soon', price: 0, unitsSold: 50 },
+    { id: 'none', unitsSold: 60 },
+  ];
+  assert.deepEqual(topSelling(products, 3).map(p => p.id), ['a']);
 });

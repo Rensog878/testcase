@@ -191,6 +191,12 @@ window.SB_LANG_HI = {
     'min': 'मिनट',
     'sec': 'सेकंड',
     'Shop Now': 'अभी खरीदें',
+    'Coming Soon': 'जल्द आ रहा है',
+    'Price coming soon': 'कीमत जल्द आएगी',
+    'View details': 'विवरण देखें',
+    'View': 'देखें',
+    'Call now': 'अभी कॉल करें',
+    'WhatsApp us': 'व्हाट्सऐप करें',
 
     // Trust strip & stats
     'Lab-Tested Original Bio-Formulations': 'लैब में जाँचे असली जैव-उत्पाद',

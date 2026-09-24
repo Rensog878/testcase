@@ -4,6 +4,7 @@ import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../
 import { matchesCrop, matchesCategory, matchesDisease, topSelling, liveCategories } from '../../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../../shared/productForm'
+import { hasPrice } from '../../shared/comingSoon'
 
 // The phone chips and the category dropdown list the categories the live
 // products are in (liveCategories); these emoji lead the chips we know.
@@ -59,6 +60,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
     return baseMrp ? Math.round(baseMrp * (packPrice / basePrice)) : packPrice
   }
 
+  const priced = hasPrice(p)
   const currentPrice = getPackPrice(selectedPack)
   const currentMrp = getPackMrp(selectedPack, currentPrice)
 
@@ -108,7 +110,7 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
       onClick={openFromCard}
       onKeyDown={keyFromCard}
     >
-      <span className="discount-tag">{catalog ? p.discount || 'Special Offer' : p.discount}</span>
+      <span className="discount-tag">{!priced ? 'Coming Soon' : catalog ? p.discount || 'Special Offer' : p.discount}</span>
       <div className="product-img-box">
         <img loading="lazy" decoding="async" src={productImage(p)} alt={p.name} onError={useFallbackImage} />
       </div>
@@ -123,11 +125,15 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
           : <div className="rating-row" style={{ color: 'var(--text-muted)' }}>No verified reviews yet</div>}
 
         <div className="price-row">
-          <span className="current-price">₹{currentPrice.toLocaleString()}</span>
-          {currentMrp > currentPrice && <span className="original-price">₹{currentMrp.toLocaleString()}</span>}
+          {priced ? (
+            <>
+              <span className="current-price">₹{currentPrice.toLocaleString()}</span>
+              {currentMrp > currentPrice && <span className="original-price">₹{currentMrp.toLocaleString()}</span>}
+            </>
+          ) : <span className="current-price">Price coming soon</span>}
         </div>
 
-        <div className="pack-sizes-row">
+        {priced && <div className="pack-sizes-row">
           {packs.map((pack, idx) => (
             <span
               key={`${pack}-${idx}`}
@@ -151,12 +157,18 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
               {pack}
             </span>
           ))}
-        </div>
+        </div>}
 
         <div className="card-btn-row">
-          <button className={`btn btn-primary ${catalog ? 'add-to-cart-btn' : 'trending-add-btn'}`} data-id={p.id} style={{ flex: 1 }} onClick={() => addToCart(p.id, selectedPack)}>
-            <i className="fa-solid fa-cart-shopping"></i> {t('add_to_cart')}
-          </button>
+          {priced ? (
+            <button className={`btn btn-primary ${catalog ? 'add-to-cart-btn' : 'trending-add-btn'}`} data-id={p.id} style={{ flex: 1 }} onClick={() => addToCart(p.id, selectedPack)}>
+              <i className="fa-solid fa-cart-shopping"></i> {t('add_to_cart')}
+            </button>
+          ) : (
+            <button className={`btn btn-primary ${catalog ? 'add-to-cart-btn' : 'trending-add-btn'}`} style={{ flex: 1 }} onClick={() => openProductPage(p.id)}>
+              <i className="fa-solid fa-circle-info"></i> View details
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -441,7 +441,7 @@ export default function Categories() {
                             </div>
                             {/* Title Underneath */}
                             <span className="subcat-circle-title">
-                              {item.title}{item.price != null ? ` — ₹${item.price}` : ''}
+                              {item.title}{Number(item.price) > 0 ? ` — ₹${item.price}` : ''}
                             </span>
                           </Link>
                         ))}

@@ -20,6 +20,7 @@ import { CategoryGrid, Certifications, CropGrid } from './sections/ShopGrids'
 import { Catalog, Trending } from './sections/Catalog'
 import { Newsletter, Testimonials } from './sections/Community'
 import { cmsOverride } from '../hooks/useCmsSettings'
+import { hasPrice } from '../shared/comingSoon'
 // The one footer, shared with every other store page.
 import Footer from '../components/home/Footer'
 import BackToTop from './sections/BackToTop'
@@ -142,6 +143,8 @@ export default function Storefront() {
     const addToCart = (productId, customPack, customQty = 1) => {
       const product = productsRef.current.find(item => item.id === productId)
       if (!product) return
+      // Not priced yet ("Price coming soon"): its page, not the basket.
+      if (!hasPrice(product)) return openProductPage(productId)
       const selectedPack = customPack || product.selectedPack || (Array.isArray(product.packSizes) ? (typeof product.packSizes[0] === 'object' ? product.packSizes[0].size : product.packSizes[0]) : undefined)
 
       let price = product.packagePrices?.[selectedPack] || product.packPrices?.[selectedPack]

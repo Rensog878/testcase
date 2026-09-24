@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Search, Calendar, User, Clock, ArrowRight } from 'lucide-react'
 import axios from 'axios'
+import { useAuth } from '../context/AuthContext'
 
 // Blog list. Styles: index.css, "BLOG PAGES" - the home page's fonts
 // (Outfit headings, Plus Jakarta Sans text) at the home page's sizes.
@@ -10,6 +11,8 @@ const CATEGORIES = ['All', 'Crop Advisory', 'Pest Management', 'Organic Farming'
 const FALLBACK_COVER = 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80'
 
 export default function Blog() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -90,12 +93,17 @@ export default function Blog() {
           <h3>{blogs.length === 0 ? 'No Blog Articles Published Yet' : 'No articles match your search'}</h3>
           <p>
             {blogs.length === 0
-              ? 'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon, or log in as Admin to publish articles!'
+              ? 'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon!'
               : 'Try clearing your search query or selecting a different category filter.'}
           </p>
-          {blogs.length === 0 ? (
+          {blogs.length === 0 && isAdmin ? (
             <Link to="/admin/blogs" className="sb-blog-btn">
               <span>Admin: Write New Blog</span>
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          ) : blogs.length === 0 ? (
+            <Link to="/products" className="sb-blog-btn">
+              <span>Shop Now</span>
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           ) : (

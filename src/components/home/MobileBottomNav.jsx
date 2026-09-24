@@ -6,6 +6,7 @@ import { useCheckoutActions } from '../../hooks/useCheckout'
 import { useCms, cmsText } from '../../context/CmsContext'
 import TransitionLink from './TransitionLink'
 import { cropList } from '../../shared/profileFieldRules'
+import { SUPPORT_PHONE } from '../../shared/phoneLink'
 
 // Phones: the bottom bar and its Menu sheet on every store page. App.jsx draws
 // it once, outside the routes, so it stays mounted - the same element, icons
@@ -49,7 +50,7 @@ export default function MobileBottomNav() {
   const navigate = useNavigate()
   const { lang, setLang, languages } = useLanguage()
   const { cms } = useCms()
-  const supportPhone = cmsText(cms, 'phone', '1800-425-9999')
+  const supportPhone = cmsText(cms, 'phone', SUPPORT_PHONE)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   // The account row follows sign-in and sign-out as they happen, while the
   // sheet is closed. Read from storage as the sheet opened, the new name

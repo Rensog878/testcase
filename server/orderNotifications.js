@@ -8,11 +8,12 @@
  * Optional settings:
  *   ORDER_WHATSAPP_MESSAGES=off   Turn order messages off (OTPs are unaffected).
  *   PUBLIC_SITE_URL               Base URL for the tracking link, e.g. https://shop.example.com
+ *   ORDER_ALERT_PHONES            Staff mobiles (comma separated) told about every new order.
  */
 
 import { db } from './db.js';
 import { sendWhatsAppText, whatsAppConfigured } from './whatsapp.js';
-import { buildOrderConfirmationMessage, buildDeliveryStatusMessage } from './orderMessages.js';
+import { buildOrderConfirmationMessage, buildDeliveryStatusMessage, buildStaffOrderAlert } from './orderMessages.js';
 import { publicSiteUrl } from './publicUrl.js';
 
 const MAX_AUTOMATIC_ATTEMPTS = 3;
@@ -103,3 +104,36 @@ export async function sendDeliveryStatusUpdate(order, newStatus) {
   }
 }
 
+
+function staffAlertNumbers() {
+  const numbers = String(process.env.ORDER_ALERT_PHONES || '').split(',').map(whatsAppNumber).filter(Boolean);
+  return [...new Set(numbers)];
+}
+
+// Tells staff about a new order, at most once per order (checkout callback and
+// webhook may both call it). Does nothing unless ORDER_ALERT_PHONES is set.
+// Returns 'sent' | 'failed' | 'skipped' | 'disabled'.
+export async function sendStaffOrderAlert(order) {
+  const numbers = staffAlertNumbers();
+  if (!order?.id || !numbers.length || !orderWhatsAppEnabled()) return 'disabled';
+
+  const claimed = await db.claimOrderNotification(order.id, 'staffAlert', { maxAttempts: MAX_AUTOMATIC_ATTEMPTS });
+  if (!claimed) return 'skipped';
+
+  const siteUrl = publicSiteUrl();
+  const text = buildStaffOrderAlert(order, { adminUrl: siteUrl ? `${siteUrl}/admin/orders` : '' });
+  let sent = 0;
+  let lastError = '';
+  for (const phone of numbers) {
+    try {
+      await sendWhatsAppText(phone, text);
+      sent += 1;
+    } catch (err) {
+      lastError = err.message;
+      console.error(`❌ Staff alert for ${order.id} to +91 ${phone} failed:`, err.message);
+    }
+  }
+  const status = sent ? 'sent' : 'failed';
+  await db.recordOrderNotification(order.id, 'staffAlert', status, sent ? '' : lastError).catch(() => {});
+  return status;
+}

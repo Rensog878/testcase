@@ -134,3 +134,17 @@ export function buildDeliveryStatusMessage(order, newStatus, { trackUrl = '', su
   return null;
 }
 
+
+// The short alert staff get when a new order comes in (ORDER_ALERT_PHONES).
+export function buildStaffOrderAlert(order, { adminUrl = '' } = {}) {
+  const items = (order.items || []).map((item) => `• ${item.name}${item.packSize ? ` (${item.packSize})` : ''} × ${item.qty}`);
+  const place = [order.addressDetails?.taluk || order.addressDetails?.area, order.district || order.addressDetails?.district].filter(Boolean).join(', ');
+  return [
+    `🛒 New order *${order.id}* — ${rupees(order.total)} (${order.paymentMethod || 'Cash on Delivery'})`,
+    `${order.customerName || 'Customer'} · ${order.customerPhone || ''}${place ? ` · ${place}` : ''}`,
+    '',
+    ...items,
+    '',
+    adminUrl ? `Assign a delivery agent: ${adminUrl}` : 'Assign a delivery agent in Admin → Orders.',
+  ].join('\n');
+}

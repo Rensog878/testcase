@@ -8,6 +8,10 @@ import {
 import { useBasket, useCheckoutActions } from '../hooks/useCheckout'
 import { useAuth } from '../context/AuthContext'
 import useCatalogProducts from '../hooks/useCatalogProducts'
+import { useCms } from '../context/CmsContext'
+import { cmsText } from '../hooks/useCmsSettings'
+import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
+import { WHATSAPP_EXPERT_URL } from '../storefront/data'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../shared/productForm'
@@ -68,6 +72,8 @@ const matchesNutrientFilter = (product, nutrient) => {
 
 export default function AllProducts() {
   const { user } = useAuth()
+  const { cms } = useCms()
+  const supportPhone = cmsText(cms, 'phone', SUPPORT_PHONE)
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -1630,16 +1636,16 @@ export default function AllProducts() {
                 Need customized dosage, pest identification or tank-mix compatibility for your crops?
               </p>
               <div className="advisory-contact-cards">
-                <a href="tel:18004259999" className="advisory-action-card">
+                <a href={telHref(supportPhone)} className="advisory-action-card">
                   <div className="action-icon-circle call-circle">
                     <PhoneCall size={20} />
                   </div>
                   <div>
-                    <strong>Toll-Free Kisan Call Centre</strong>
-                    <p>1800-425-9999 (Tamil, Telugu, Kannada, Hindi)</p>
+                    <strong>Farmer Expert Helpline</strong>
+                    <p className="notranslate">{supportPhone}</p>
                   </div>
                 </a>
-                <a href="https://wa.me/919000425999" target="_blank" rel="noopener noreferrer" className="advisory-action-card">
+                <a href={WHATSAPP_EXPERT_URL} target="_blank" rel="noopener noreferrer" className="advisory-action-card">
                   <div className="action-icon-circle wa-circle">
                     <Sparkles size={20} />
                   </div>

@@ -1051,6 +1051,7 @@ window.SB_LANG_KN = {
     'No articles match your search': 'ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಹೊಂದುವ ಲೇಖನಗಳಿಲ್ಲ',
     'No Blog Articles Published Yet': 'ಇನ್ನೂ ಬ್ಲಾಗ್ ಲೇಖನಗಳು ಪ್ರಕಟವಾಗಿಲ್ಲ',
     'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon, or log in as Admin to publish articles': 'ನಮ್ಮ ಕೃಷಿ ತಜ್ಞರು ಋತುಮಾನದ ಸಲಹೆಗಳು ಮತ್ತು ಸಂಶೋಧನಾ ಲೇಖನಗಳನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತಿದ್ದಾರೆ. ಶೀಘ್ರದಲ್ಲಿ ಮತ್ತೆ ನೋಡಿ',
+    'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon': 'ನಮ್ಮ ಕೃಷಿ ತಜ್ಞರು ಋತುಮಾನದ ಸಲಹೆಗಳು ಮತ್ತು ಸಂಶೋಧನಾ ಲೇಖನಗಳನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತಿದ್ದಾರೆ. ಶೀಘ್ರದಲ್ಲಿ ಮತ್ತೆ ನೋಡಿ',
     'Read Full Guide': 'ಪೂರ್ಣ ಮಾರ್ಗದರ್ಶಿ ಓದಿ',
     'Recent': 'ಇತ್ತೀಚಿನ',
     'Reset Filters': 'ಫಿಲ್ಟರ್ ತೆಗೆಯಿರಿ',

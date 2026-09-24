@@ -1051,6 +1051,7 @@ window.SB_LANG_TE = {
     'No articles match your search': 'మీ శోధనకు సరిపోయే వ్యాసాలు లేవు',
     'No Blog Articles Published Yet': 'ఇంకా బ్లాగ్ వ్యాసాలు ప్రచురించలేదు',
     'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon, or log in as Admin to publish articles': 'మా వ్యవసాయ నిపుణులు సీజన్ సలహాలు & పరిశోధన వ్యాసాలు సిద్ధం చేస్తున్నారు. త్వరలో మళ్ళీ చూడండి',
+    'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon': 'మా వ్యవసాయ నిపుణులు సీజన్ సలహాలు & పరిశోధన వ్యాసాలు సిద్ధం చేస్తున్నారు. త్వరలో మళ్ళీ చూడండి',
     'Read Full Guide': 'పూర్తి మార్గదర్శి చదవండి',
     'Recent': 'ఇటీవలివి',
     'Reset Filters': 'ఫిల్టర్లు తీసివేయండి',

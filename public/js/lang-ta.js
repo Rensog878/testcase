@@ -1085,6 +1085,7 @@ window.SB_LANG_TA = {
     'No articles match your search': 'உங்கள் தேடலுக்குப் பொருந்தும் கட்டுரைகள் இல்லை',
     'No Blog Articles Published Yet': 'இன்னும் பதிவுகள் வெளியிடப்படவில்லை',
     'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon, or log in as Admin to publish articles': 'எங்கள் வேளாண் நிபுணர்கள் பருவகால ஆலோசனைகளையும் ஆராய்ச்சிக் கட்டுரைகளையும் தயாரித்து வருகின்றனர். விரைவில் மீண்டும் பாருங்கள்',
+    'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon': 'எங்கள் வேளாண் நிபுணர்கள் பருவகால ஆலோசனைகளையும் ஆராய்ச்சிக் கட்டுரைகளையும் தயாரித்து வருகின்றனர். விரைவில் மீண்டும் பாருங்கள்',
     'Read Full Guide': 'முழு வழிகாட்டியைப் படியுங்கள்',
     'Recent': 'சமீபத்தியவை',
     'Reset Filters': 'வடிகட்டிகளை நீக்கு',

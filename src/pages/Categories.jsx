@@ -9,6 +9,9 @@ import { CATEGORIES } from '../storefront/data'
 import { SHOP_CATEGORIES, EXTRA_CATEGORY_ICONS, FALLBACK_CATEGORY_ICON } from '../data/allProductsData'
 import { matchesCategory, liveCategories } from '../utils/catalogUtils'
 import useCatalogProducts from '../hooks/useCatalogProducts'
+import { useCms } from '../context/CmsContext'
+import { cmsText } from '../hooks/useCmsSettings'
+import { SUPPORT_PHONE } from '../shared/phoneLink'
 
 // Every category is one section of the right-hand pane, one after another.
 // The left rail follows the scroll (the category being read is highlighted and
@@ -49,6 +52,8 @@ const findCategory = (list, handle) => {
 const READING_LINE = 28
 
 export default function Categories() {
+  const { cms } = useCms()
+  const supportPhone = cmsText(cms, 'phone', SUPPORT_PHONE)
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -458,7 +463,7 @@ export default function Categories() {
                 <PhoneCall size={18} className="assurance-icon" />
                 <div>
                   <strong>Farmer Expert Helpline</strong>
-                  <small>Toll Free 1800-425-9999 (Tamil, Telugu, Kannada, Hindi)</small>
+                  <small className="notranslate">{supportPhone}</small>
                 </div>
               </div>
             </div>

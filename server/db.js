@@ -1872,8 +1872,9 @@ class DatabaseManager {
                 stockShortfall: orderData.stockShortfall === true,
                 deliveryStatus: orderData.deliveryStatus || 'Confirmed',
                 expectedDeliveryDate: orderData.expectedDeliveryDate || null,
-                assignedDeliveryBoy: orderData.assignedDeliveryBoy || 'Karthik Raja',
-                deliveryBoyPhone: orderData.deliveryBoyPhone || '9345678901',
+                // An admin assigns a real delivery agent from the Orders page.
+                assignedDeliveryBoy: orderData.assignedDeliveryBoy || 'Unassigned',
+                deliveryBoyPhone: orderData.deliveryBoyPhone || '',
                 otp: crypto.randomInt(1000, 10000).toString(),
                 createdAt: new Date().toISOString()
         };
@@ -1930,6 +1931,19 @@ class DatabaseManager {
       order.set(updates);
         await order.save();
         return serialize(order.toObject());
+  }
+
+  // Applies `updates` only while the order still matches `condition`, in one
+  // step, so two requests racing on the same change cannot both win. Returns
+  // the updated order, or null when it no longer matched.
+  async updateOrderIf(id, condition, updates) {
+        await connectDB();
+        const order = await Order.findOneAndUpdate(
+            { _id: String(id), ...condition },
+            { $set: updates },
+            { new: true }
+        ).lean();
+        return order ? serialize(order) : null;
   }
 
   // ================= CMS & ADVISORY =================

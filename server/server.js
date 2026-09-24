@@ -20,7 +20,7 @@ import superadminRoutes from './superadminRoutes.js';
 import { buildOtpMessage, buildResetOtpMessage, buildPasswordChangedMessage, forgetOtpLayout, otpBannerUrl } from './otpTemplates.js';
 import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whatsapp.js';
 import { selectRecipients, renderAdvisory, parseBroadcastRequest, parseOptOutWebhook, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
-import { sendOrderConfirmation, sendDeliveryStatusUpdate } from './orderNotifications.js';
+import { sendOrderConfirmation, sendDeliveryStatusUpdate, sendStaffOrderAlert } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
 import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
@@ -1610,6 +1610,7 @@ app.post('/api/payments/verify', async (req, res) => {
     const order = await finalizePaidOrder(razorpay_order_id, razorpay_payment_id);
     // Sent at most once per order, whether this callback or the webhook gets there first.
     const whatsapp = await sendOrderConfirmation(order);
+    await sendStaffOrderAlert(order).catch(() => {});
     return res.json({ success: true, data: order, whatsapp });
   } catch (err) {
     sendError(res, err, 'Verify payment');
@@ -1642,6 +1643,7 @@ app.post('/api/payments/webhook', async (req, res) => {
       // Covers customers who closed the tab before the checkout callback ran,
       // and retries a confirmation that failed to send from that callback.
       await sendOrderConfirmation(order);
+      await sendStaffOrderAlert(order).catch(() => {});
     }
     return res.json({ success: true });
   } catch (err) {
@@ -1668,6 +1670,17 @@ const ORDER_STAFF_ROLES = ['admin', 'billing', 'employee'];
 function withoutDeliveryOtp(order) {
   const { otp, ...rest } = order;
   return rest;
+}
+
+// The stock an order holds, one line per product (as reserveStock takes it).
+function orderStockLines(order) {
+  const byId = new Map();
+  for (const item of Array.isArray(order.items) ? order.items : []) {
+    const id = String(item?.id || '');
+    const qty = Number(item?.qty);
+    if (id && Number.isInteger(qty) && qty > 0) byId.set(id, (byId.get(id) || 0) + qty);
+  }
+  return [...byId].map(([id, qty]) => ({ id, qty }));
 }
 
 function isAssignedTo(order, user) {
@@ -1731,6 +1744,7 @@ app.post('/api/orders', requireAuth(), async (req, res) => {
 
     if (user) await db.saveCart(user.id, []);
     const whatsapp = await sendOrderConfirmation(order);
+    await sendStaffOrderAlert(order).catch(() => {});
     res.json({ success: true, data: order, whatsapp });
   } catch (err) {
     sendError(res, err, 'Create order');
@@ -1852,6 +1866,28 @@ app.post('/api/delivery/verify-otp', requireAuth('delivery', 'admin'), async (re
   }
 });
 
+// Admin picks the delivery agent for an order; an empty id un-assigns it. The
+// name and phone come from the agent's account, never from the request.
+app.put('/api/orders/:id/assign', requireAuth('admin'), async (req, res) => {
+  try {
+    const agentId = String(req.body?.deliveryUserId || '');
+    let updates = { assignedDeliveryBoy: 'Unassigned', deliveryBoyPhone: '', assignedDeliveryUserId: '' };
+    if (agentId) {
+      const agent = await db.getUserById(agentId);
+      if (!agent || agent.role !== 'delivery' || (agent.status && agent.status !== 'active')) {
+        return res.status(400).json({ success: false, message: 'Pick an active delivery staff member.' });
+      }
+      updates = { assignedDeliveryBoy: agent.name, deliveryBoyPhone: agent.phone || '', assignedDeliveryUserId: agent.id };
+    }
+    updates.updatedAt = new Date().toISOString();
+    const order = await db.updateOrder(req.params.id, updates);
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    res.json({ success: true, data: withoutDeliveryOtp(order) });
+  } catch (err) {
+    sendError(res, err, 'Assign delivery');
+  }
+});
+
 app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), async (req, res) => {
   try {
     const ALLOWED = ['Pending', 'Assigned', 'Confirmed', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled'];
@@ -1885,7 +1921,30 @@ app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), async (req, 
     }
     updates.updatedAt = new Date().toISOString();
 
-    const order = await db.updateOrder(req.params.id, updates);
+    // Cancelling gives the order's stock back; re-opening a cancelled order takes
+    // it again. Each change is applied only if the order is still in the state we
+    // read, so a double click cannot return the stock twice.
+    const wasCancelled = [existing.deliveryStatus, existing.status].includes('Cancelled');
+    const stockLines = orderStockLines(existing);
+    let order;
+    if (nextStatus === 'Cancelled' && !wasCancelled) {
+      order = await db.updateOrderIf(req.params.id, { deliveryStatus: { $ne: 'Cancelled' }, status: { $ne: 'Cancelled' } }, updates);
+      if (!order) return res.status(409).json({ success: false, message: 'This order was just cancelled. Refresh the list.' });
+      // A paid order that ran short never took its stock, so there is none to return.
+      if (!existing.stockShortfall) await db.releaseStock(stockLines);
+    } else if (nextStatus && nextStatus !== 'Cancelled' && wasCancelled) {
+      const reserved = await db.reserveStock(stockLines);
+      if (!reserved.ok) {
+        return res.status(409).json({ success: false, message: 'Not enough stock to re-open this order.' });
+      }
+      order = await db.updateOrderIf(req.params.id, { $or: [{ deliveryStatus: 'Cancelled' }, { status: 'Cancelled' }] }, updates);
+      if (!order) {
+        await db.releaseStock(stockLines).catch(() => {});
+        return res.status(409).json({ success: false, message: 'This order was just changed. Refresh the list.' });
+      }
+    } else {
+      order = await db.updateOrder(req.params.id, updates);
+    }
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
     if (nextStatus && ['Dispatched', 'Out for Delivery', 'Delivered'].includes(nextStatus)) {
       await sendDeliveryStatusUpdate(order, nextStatus).catch(() => {});

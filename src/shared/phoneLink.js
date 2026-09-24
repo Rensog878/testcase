@@ -1,3 +1,6 @@
+// The shop's number when the CMS has none (admin CMS field "phone").
+export const SUPPORT_PHONE = '+91-8778613372'
+
 /**
  * A tel: link for the shop's number as the admin typed it in the CMS:
  * "+91 94432 10987" -> "tel:+919443210987", "94432 10987" -> "tel:+919443210987",

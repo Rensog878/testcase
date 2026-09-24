@@ -1051,6 +1051,7 @@ window.SB_LANG_HI = {
     'No articles match your search': 'आपकी खोज से मेल खाते लेख नहीं हैं',
     'No Blog Articles Published Yet': 'अभी कोई ब्लॉग लेख प्रकाशित नहीं हुआ',
     'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon, or log in as Admin to publish articles': 'हमारे कृषि विशेषज्ञ मौसमी सलाह और शोध लेख तैयार कर रहे हैं। जल्द फिर देखें',
+    'Our agricultural experts are preparing seasonal advisories and field research articles. Check back soon': 'हमारे कृषि विशेषज्ञ मौसमी सलाह और शोध लेख तैयार कर रहे हैं। जल्द फिर देखें',
     'Read Full Guide': 'पूरी गाइड पढ़ें',
     'Recent': 'हाल के',
     'Reset Filters': 'फ़िल्टर हटाएँ',

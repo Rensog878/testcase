@@ -5,6 +5,7 @@ import HomeLogoLink from './HomeLogoLink'
 import { socialLinksFrom } from '../../shared/socialLinks'
 import { useCms } from '../../context/CmsContext'
 import { cmsText } from '../../hooks/useCmsSettings'
+import { SUPPORT_PHONE } from '../../shared/phoneLink'
 
 // THE footer. One copy, on every store page including the home page, mounted
 // outside .sb-home (see Storefront.jsx). Contact details come from the CMS so
@@ -102,7 +103,7 @@ export default function Footer() {
   const { cms } = useCms()
   const brandLine = cmsText(cms, 'footerBrand', "India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.")
   const brandMore = cmsText(cms, 'footerBrandMore', 'Providing 100% bio-certified products with fast express dispatch to 15,000+ farmers across India.')
-  const phone = cmsText(cms, 'phone', '1800-425-9999')
+  const phone = cmsText(cms, 'phone', SUPPORT_PHONE)
   const email = cmsText(cms, 'email', 'support@sathyamagromart.com')
   const address = cmsText(cms, 'address', 'Sathyam Agro Mart, Hyderabad, India')
   const dial = `tel:${phone.replace(/[^\d+]/g, '')}`

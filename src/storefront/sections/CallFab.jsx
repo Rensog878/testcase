@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { cmsText, useCms } from '../../context/CmsContext'
-import { telHref } from '../../shared/phoneLink'
+import { telHref, SUPPORT_PHONE } from '../../shared/phoneLink'
 
 // A round "Call us" button on every store page, bottom right, above the AI
 // chat bubble where the page has one. The number is the CMS contact phone,
@@ -11,7 +11,7 @@ import { telHref } from '../../shared/phoneLink'
 // Styles: storefront.css, "Floating call button".
 export default memo(function CallFab() {
   const { cms } = useCms()
-  const phone = cmsText(cms, 'phone', '1800-425-9999')
+  const phone = cmsText(cms, 'phone', SUPPORT_PHONE)
   const href = telHref(phone)
   if (!href) return null
   return (

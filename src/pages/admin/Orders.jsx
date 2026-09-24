@@ -17,7 +17,7 @@ const STATUS_COLORS = {
 }
 // Payment, Fulfillment / Status and Actions are hidden for now; true brings them back.
 const SHOW_FULFILLMENT_COLUMNS = false
-const COLUMN_COUNT = SHOW_FULFILLMENT_COLUMNS ? 9 : 6
+const COLUMN_COUNT = SHOW_FULFILLMENT_COLUMNS ? 10 : 7
 const STATUSES = ['Pending', 'Confirmed', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled']
 
 const WHATSAPP_BADGES = { sent: ['green', 'Sent'], failed: ['red', 'Failed'], sending: ['yellow', 'Sending'] }
@@ -51,6 +51,8 @@ export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sendingId, setSendingId] = useState(null)
   const [selectedInvoice, setSelectedInvoice] = useState(null)
+  const [agents, setAgents] = useState([])
+  const [assigningId, setAssigningId] = useState(null)
 
   const authHeader = () => {
     const user = JSON.parse(localStorage.getItem('sathya_user') || '{}')
@@ -76,7 +78,28 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchData()
+    axios.get('/api/admin/users', { params: { role: 'delivery' } })
+      .then(({ data }) => setAgents((data?.data || []).filter(u => !u.status || u.status === 'active')))
+      .catch(() => toast.error('Could not load delivery staff'))
   }, [])
+
+  // The server fills in the agent's name and phone from their account.
+  const assignAgent = async (order, deliveryUserId) => {
+    setAssigningId(order.id)
+    try {
+      const { data } = await axios.put(`/api/orders/${order.id}/assign`, { deliveryUserId })
+      setOrders(list => list.map(x => x.id === order.id ? { ...x, ...data.data } : x))
+      toast.success(deliveryUserId ? `Assigned to ${data.data.assignedDeliveryBoy}` : 'Delivery agent removed')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not assign the delivery agent')
+    } finally {
+      setAssigningId(null)
+    }
+  }
+
+  // The agent picked for an order: by account id, else (older orders) by name.
+  const agentIdFor = order => order.assignedDeliveryUserId ||
+    agents.find(a => a.name === order.assignedDeliveryBoy)?.id || ''
 
   const setNotification = (id, notification) => {
     if (!notification) return
@@ -249,6 +272,7 @@ export default function AdminOrders() {
                 <th style={{ padding: '14px 16px' }}>Customer</th>
                 <th style={{ padding: '14px 16px' }}>Items Summary</th>
                 <th style={{ padding: '14px 16px' }}>Total</th>
+                <th style={{ padding: '14px 16px' }}>Delivery agent</th>
                 {SHOW_FULFILLMENT_COLUMNS && (
                   <>
                     <th style={{ padding: '14px 16px' }}>Payment</th>
@@ -316,6 +340,28 @@ export default function AdminOrders() {
                     {/* Total */}
                     <td style={{ padding: '14px 16px', fontWeight: 700, color: 'var(--brand-400)' }}>
                       ₹{tx.amount.toLocaleString('en-IN')}
+                    </td>
+
+                    {/* Delivery agent (online orders only) */}
+                    <td style={{ padding: '14px 16px' }}>
+                      {tx.channel === 'online' ? (
+                        <>
+                          <select
+                            className="filter-select"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', maxWidth: '170px' }}
+                            aria-label={`Delivery agent for ${tx.txId}`}
+                            value={agentIdFor(tx)}
+                            disabled={assigningId === tx.id}
+                            onChange={e => assignAgent(tx, e.target.value)}
+                          >
+                            <option value="">Unassigned</option>
+                            {agents.map(a => <option key={a.id} value={a.id}>{a.name}{a.phone ? ` · ${a.phone}` : ''}</option>)}
+                          </select>
+                          {tx.assignedDeliveryBoy && tx.assignedDeliveryBoy !== 'Unassigned' && !agentIdFor(tx) && (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }} title="Not a current delivery account — pick one">⚠ {tx.assignedDeliveryBoy}</div>
+                          )}
+                        </>
+                      ) : '—'}
                     </td>
 
                     {SHOW_FULFILLMENT_COLUMNS && (

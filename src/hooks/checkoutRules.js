@@ -134,17 +134,26 @@ export function blankAddress(fields, user) {
 
 // Every delivery detail an order needs; the checkout marks each with *.
 // detailProblems below checks exactly these (a test keeps the two in step).
-export const REQUIRED_DETAILS = ['customerName', 'customerPhone', 'addressLabel', 'addressName', 'addressPhone', 'doorNo', 'pincode', 'street', 'area', 'taluk', 'district', 'state']
+export const REQUIRED_DETAILS = ['addressLabel', 'addressName', 'addressPhone', 'doorNo', 'pincode', 'street', 'area', 'taluk', 'district', 'state']
+
+// The checkout asks only for the address and the person there. The order's
+// contact is the signed-in account (its name and number fill customerName /
+// customerPhone); when the account has none, the person at the address is used.
+const validPhone = value => /^\d{10}$/.test(String(value || '').replace(/\D/g, '').slice(-10))
+export function withContact(fields) {
+  const name = String(fields.customerName || '').trim() || String(fields.addressName || '').trim()
+  const phone = validPhone(fields.customerPhone) ? fields.customerPhone : fields.addressPhone || ''
+  return { ...fields, customerName: name, customerPhone: phone }
+}
 
 // The server's checks (readCustomerDetails in server/server.js): a name, a
 // 10-digit mobile number and every address field, with a 6-digit PIN code.
 // Returns { field: 'required' | 'phone' | 'pincode' | 'state' }, empty when
 // the order can go ahead.
-export function detailProblems(fields) {
+export function detailProblems(input) {
+  const fields = withContact(input)
   const problems = {}
   const filled = key => String(fields[key] || '').trim() !== ''
-  if (!filled('customerName')) problems.customerName = 'required'
-  if (!/^\d{10}$/.test(String(fields.customerPhone || '').replace(/\D/g, '').slice(-10))) problems.customerPhone = 'phone'
   if (!filled('addressLabel')) problems.addressLabel = 'required'
   if (!filled('addressName')) problems.addressName = 'required'
   // An Indian mobile, as the server's normalizePhone() accepts it.
@@ -161,7 +170,7 @@ export function detailProblems(fields) {
 // The customer part of an order request: the fields, the address field by
 // field, and the one-line address kept for messages.
 export function customerDetails(fields) {
-  const f = fields
+  const f = withContact(fields)
   const addressDetails = {
     label: String(f.addressLabel || '').trim().slice(0, CUSTOM_LABEL_MAX) || 'Home',
     name: String(f.addressName || '').trim(),

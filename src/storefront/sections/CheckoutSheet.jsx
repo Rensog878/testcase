@@ -325,18 +325,10 @@ function AddressStep({ checkout, actions }) {
 
   return (
     <>
-      <section className="co-group" aria-labelledby="coContactTitle">
-        <h3 id="coContactTitle" className="co-group-title">Contact details</h3>
-        <p className="co-req-key"><RequiredMark /> <span>Required</span></p>
-        <div className="co-grid">
-          {field('customerName', 'Full name', { wide: true, autoComplete: 'name', autoCapitalize: 'words', enterKeyHint: 'next' })}
-          {field('customerPhone', 'Mobile number', { wide: true, type: 'tel', inputMode: 'tel', autoComplete: 'tel', maxLength: 16, enterKeyHint: 'next' })}
-        </div>
-      </section>
-
       <section className="co-group" aria-labelledby="coAddressTitle">
         <h3 id="coAddressTitle" className="co-group-title">Deliver to</h3>
         <p className="co-lead">Choose a saved address or add a new one.</p>
+        {formOpen && <p className="co-req-key"><RequiredMark /> <span>Required</span></p>}
         {addresses === null ? (
           <div className="co-cards">
             <span className="co-sr" role="status">Loading your addresses...</span>
@@ -384,7 +376,6 @@ function PaymentStep({ checkout, actions }) {
   const { cart, count, draft } = checkout
   const busy = Boolean(checkout.busy)
   const f = draft.fields
-  const phone = String(f.customerPhone || '').replace(/\D/g, '').slice(-10)
   const addressPhone = String(f.addressPhone || '').replace(/\D/g, '').slice(-10)
   const receiver = String(f.addressName || '').trim() || f.customerName
   const address = [f.doorNo, f.street, f.area, f.taluk, f.district, f.state, f.pincode].filter(Boolean).join(', ')
@@ -409,13 +400,10 @@ function PaymentStep({ checkout, actions }) {
           <h3 id="coDeliverTitle" className="co-group-title"><i className="fa-solid fa-location-dot" aria-hidden="true"></i> Deliver to</h3>
           <button type="button" className="co-link" disabled={busy} onClick={actions.back}>Change</button>
         </div>
-        <p className="co-summary-line notranslate"><strong>{f.customerName}</strong> · +91 {phone.slice(0, 5)} {phone.slice(5)}</p>
+        <p className="co-summary-line notranslate"><strong>{receiver}</strong> · +91 {addressPhone.slice(0, 5)} {addressPhone.slice(5)}</p>
         <p className="co-summary-line">
           <span className="co-card-label"><AddressLabel label={f.addressLabel || 'Home'} /></span> <span className="notranslate">{address}</span>
         </p>
-        {(receiver !== String(f.customerName || '').trim() || (addressPhone && addressPhone !== phone)) && (
-          <p className="co-summary-line"><i className="fa-solid fa-user" aria-hidden="true"></i> <span>Receiver</span> <span className="notranslate"><strong>{receiver}</strong> · +91 {addressPhone.slice(0, 5)} {addressPhone.slice(5)}</span></p>
-        )}
       </section>
 
       <div className="co-mini">

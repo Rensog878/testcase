@@ -69,8 +69,18 @@ test('an order line carries only the product, quantity and pack - never a price'
 
 test('delivery details: the same checks as the server', () => {
   assert.deepEqual(detailProblems(completeFields), {});
-  const problems = detailProblems({ ...completeFields, customerName: '  ', customerPhone: '98765', doorNo: '', pincode: '61320', state: '' });
-  assert.deepEqual(problems, { customerName: 'required', customerPhone: 'phone', doorNo: 'required', pincode: 'pincode', state: 'state' });
+  const problems = detailProblems({ ...completeFields, doorNo: '', pincode: '61320', state: '' });
+  assert.deepEqual(problems, { doorNo: 'required', pincode: 'pincode', state: 'state' });
+});
+
+test('no contact form: the account name and number, else the person at the address', () => {
+  assert.deepEqual(detailProblems({ ...completeFields, customerName: '  ', customerPhone: '98765' }), {});
+  const fallback = customerDetails({ ...completeFields, customerName: '', customerPhone: '' });
+  assert.equal(fallback.customerName, 'Selvi');
+  assert.equal(fallback.customerPhone, '94430 11223');
+  const account = customerDetails(completeFields);
+  assert.equal(account.customerName, 'Murugan', 'the signed-in account stays the order contact');
+  assert.equal(account.customerPhone, '+91 98765 01234');
 });
 
 test('address label and number: a custom name up to 30 characters, an Indian mobile', () => {

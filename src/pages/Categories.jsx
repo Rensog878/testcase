@@ -191,15 +191,24 @@ export default function Categories() {
     cancelAnimationFrame(spyFrame.current)
   }, [])
 
-  // Arriving with ?ct= (or following a link to another category while here):
-  // jump straight to that category.
+  // Arriving (or following a link to another category while here): jump to
+  // the ?ct= category once the products are in. A link to an empty ("coming
+  // soon") category, or no ?ct= at all, lands on the first category that has
+  // products instead. Tapping an empty category in the rail still goes there.
   useEffect(() => {
-    const handle = findCategory(categoriesData, ctParam)?.handle
-    if (!handle || handle === writtenCt.current) return
-    writtenCt.current = handle
-    markActive(handle, { writeUrl: false })
-    scrollPaneTo(handle, 'auto')
-  }, [ctParam, categoriesData, markActive, scrollPaneTo])
+    if (productsLoading) return
+    const wanted = findCategory(categoriesData, ctParam)?.handle
+    if (wanted && wanted === writtenCt.current) return
+    const stocked = sections.filter(section => section.total > 0)
+    const target = !stocked.length || stocked.some(section => section.cat.handle === wanted)
+      ? wanted
+      : stocked[0].cat.handle
+    if (!target || target === writtenCt.current) return
+    writtenCt.current = target
+    markActive(target, { writeUrl: target !== wanted })
+    // After this render, so the pane has the real sections to measure.
+    requestAnimationFrame(() => scrollPaneTo(target, 'auto'))
+  }, [ctParam, categoriesData, sections, productsLoading, markActive, scrollPaneTo])
 
   // Keep the highlighted rail tab in view, centred in the rail.
   useEffect(() => {

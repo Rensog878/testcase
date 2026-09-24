@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 // Settings must be in place before the modules load. There is no database, so
 // sender pacing falls back to working without it, as whatsapp.js allows.
 Object.assign(process.env, {
+  NODE_ENV: 'test',
   MONGODB_URI: '',
   WASENDER_API_KEY: 'test-key',
   WASENDER_API_URL: 'https://wasender.test/api/send-message',
@@ -18,7 +19,7 @@ for (let slot = 2; slot <= 10; slot++) delete process.env[`WASENDER_API_KEY_${sl
 
 const { sendWhatsAppImage } = await import('../whatsapp.js');
 const { buildOtpMessage, otpBannerUrl, OTP_BANNER_VERSION, WHATSAPP_CAPTION_LIMIT, OTP_LAYOUT_COUNT } = await import('../otpTemplates.js');
-const { isPublicHttpsUrl } = await import('../publicUrl.js');
+const { isPublicHttpsUrl, publicSiteUrl, LIVE_SITE_URL } = await import('../publicUrl.js');
 
 // Missing-database warnings are expected here.
 console.warn = () => {};
@@ -190,5 +191,21 @@ test('each fact line leads with an emoji, never inside WhatsApp italics', () => 
       }
       assert.doesNotMatch(text, /_(🔒|🚫|⚠️|⏳|⏱️|🕒)/u, 'an emoji just inside italics breaks the formatting');
     }
+  }
+});
+
+// A running server never links farmers to localhost: a copied development
+// address (or none) falls back to the live site.
+test('outside tests a private or missing site address becomes the live site', () => {
+  process.env.NODE_ENV = 'production';
+  try {
+    for (const value of ['http://localhost:3000', 'http://192.168.1.5:3000', '']) {
+      process.env.PUBLIC_SITE_URL = value;
+      assert.equal(publicSiteUrl(), LIVE_SITE_URL, value);
+    }
+    process.env.PUBLIC_SITE_URL = 'https://shop.example.com/';
+    assert.equal(publicSiteUrl(), 'https://shop.example.com');
+  } finally {
+    process.env.NODE_ENV = 'test';
   }
 });

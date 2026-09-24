@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ADDRESS_LABELS, AUTH_HASHES, REQUIRED_DETAILS, addressEmoji, SHARED_POPUP_HASHES, STEP_HASH, cartTotals, customerDetails, detailProblems, fieldsFromAddress,
-  blankAddress, initialFields, itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withItemAdded,
+  blankAddress, initialFields, itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withCurrentProducts, withItemAdded,
 } from '../../hooks/checkoutRules.js';
 
 const completeFields = {
@@ -161,4 +161,19 @@ test('CGST and SGST split the GST and always add up to it', () => {
   const mixed = cartTotals([{ price: 100, qty: 1, gstRate: 18 }, { price: 100, qty: 1, gstRate: 5 }]);
   assert.equal(mixed.gstRate, null, 'mixed rates: no single % to show');
   assert.equal(mixed.cgst + mixed.sgst, mixed.gst);
+});
+
+test("a saved basket takes each product's current GST rate and pack price", () => {
+  const saved = [{ id: 'gel', selectedPack: '1kg', qty: 2, price: 400, originalPrice: 500, gstRate: 18 }, { id: 'gone', selectedPack: '1kg', qty: 1, price: 90, gstRate: 18 }];
+  const products = [{ id: 'gel', gstRate: 5, packagePrices: { '1kg': 450 }, packageMrps: { '1kg': 530 } }];
+  const next = withCurrentProducts(saved, products);
+  assert.deepEqual(next[0], { id: 'gel', selectedPack: '1kg', qty: 2, price: 450, originalPrice: 530, gstRate: 5 });
+  assert.equal(next[1], saved[1], 'a product not in the catalogue is left as it was');
+  assert.equal(cartTotals([next[0]]).gst, 45); // 900 at 5%
+});
+
+test('an up-to-date basket comes back unchanged (no needless save)', () => {
+  const saved = [{ id: 'gel', selectedPack: '1kg', qty: 1, price: 450, originalPrice: 530, gstRate: 5 }];
+  assert.equal(withCurrentProducts(saved, [{ id: 'gel', gstRate: 5, packagePrices: { '1kg': 450 }, packageMrps: { '1kg': 530 } }]), saved);
+  assert.equal(withCurrentProducts(saved, []), saved);
 });

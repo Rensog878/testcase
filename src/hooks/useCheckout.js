@@ -9,7 +9,7 @@ import useModalStates from '../storefront/useModalStates'
 import {
   AUTH_HASHES, CHECKOUT_STEPS, CONTACT_FIELDS, GUEST_CART_KEY, STAFF_HOME, STEP_HASH,
   blankAddress, cartTotals, customerDetails, detailProblems, fieldsFromAddress, initialFields,
-  itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withItemAdded,
+  itemCount, mergeCarts, normalizeCart, orderLine, stepForHash, withCurrentProducts, withItemAdded,
 } from './checkoutRules'
 
 // The store's basket and checkout, shared by every store page: App.jsx wraps
@@ -191,10 +191,25 @@ export function CheckoutProvider({ enabled, children }) {
       return Promise.resolve()
     }
 
+    // A basket loaded from storage shows today's prices and GST rates, which
+    // are what the server will charge (withCurrentProducts).
+    const refreshFromCatalogue = items => {
+      if (!items.length) return
+      axios.get('/api/products', { params: { onlineOnly: 'true' } })
+        .then(({ data }) => {
+          if (!data?.success) return
+          const current = cartRef.current
+          const next = withCurrentProducts(current, data.data)
+          if (next !== current) saveCart(next)
+        })
+        .catch(() => {})
+    }
+
     const showGuestCart = () => {
       const items = readGuestCart()
       setCart(items)
       setCartReady(true)
+      refreshFromCatalogue(items)
       return items
     }
 
@@ -215,6 +230,7 @@ export function CheckoutProvider({ enabled, children }) {
           serverCartRef.current = true
           setCart(items)
           setCartReady(true)
+          refreshFromCatalogue(items)
           if (guest.length) {
             clearGuestCart()
             await putCart(items)

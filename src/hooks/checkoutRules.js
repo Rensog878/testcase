@@ -89,6 +89,31 @@ export function mergeCarts(accountItems, guestItems) {
   return merged
 }
 
+// A saved basket keeps the price and GST rate from when each line was added;
+// the server charges today's. So the basket shows today's too: each line takes
+// its product's current GST rate, and its pack's current price and MRP where
+// the product sets one. Returns the same array when nothing changed.
+export function withCurrentProducts(items, products) {
+  const byId = new Map((Array.isArray(products) ? products : []).map(p => [String(p.id ?? p._id), p]))
+  let changed = false
+  const next = items.map(item => {
+    const product = byId.get(String(keyOf(item)))
+    if (!product) return item
+    const update = {}
+    const rate = Number(product.gstRate)
+    if (product.gstRate !== undefined && product.gstRate !== null && product.gstRate !== '' && Number.isFinite(rate) && rate !== Number(item.gstRate)) update.gstRate = rate
+    const pack = item.selectedPack
+    const price = Number(product.packagePrices?.[pack])
+    if (pack && price > 0 && price !== Number(item.price)) update.price = price
+    const mrp = Number(product.packageMrps?.[pack])
+    if (pack && mrp > 0 && mrp !== Number(item.originalPrice)) update.originalPrice = mrp
+    if (!Object.keys(update).length) return item
+    changed = true
+    return { ...item, ...update }
+  })
+  return changed ? next : items
+}
+
 // Only the product, pack size and quantity are sent: the server works out every price.
 export const orderLine = item => ({ id: keyOf(item), qty: Number(item.qty || 1), selectedPack: item.selectedPack || '' })
 

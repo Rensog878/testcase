@@ -96,7 +96,7 @@ export default function StoreHeader() {
       {/* A second, smaller header: hangs below this one and stays pinned with
           it while the page scrolls. */}
       <div className="header-slogan header-slogan--chrome" aria-hidden="true">
-        <span className="header-slogan-text">From our farms to your home</span>
+        <span className="header-slogan-text">FACTORY 2 FARMER</span>
       </div>
 
 

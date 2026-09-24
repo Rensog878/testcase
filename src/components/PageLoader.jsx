@@ -1,7 +1,7 @@
-// The full-page loader with the "Factory to Farmer" tagline. Same markup as the
+// The full-page loader with the "FACTORY 2 FARMER" tagline. Same markup as the
 // first-paint loader in index.html, whose <style> holds the .sb-loader rules.
 // `late` waits 0.2s before fading in, so a fast route change never flashes it.
-const TAGLINE = 'Factory to Farmer'
+const TAGLINE = 'FACTORY 2 FARMER'
 
 export default function PageLoader({ late = false }) {
   return (

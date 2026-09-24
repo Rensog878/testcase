@@ -16,7 +16,7 @@ export const TRANSLATIONS = {
     topbar_shipping:      'FREE Shipping on Agro Orders over ₹999',
     topbar_helpline:      'Helpline: 1800-425-9999',
     topbar_certified:     '100% Certified Potency & Eco-Friendly Products',
-    logo_sub:             'From our farms to your home',
+    logo_sub:             'FACTORY 2 FARMER',
     search_placeholder:   'Search by crop, disease or formulation...',
     search_btn:           'Search',
     advisory_label:       '24/7 Advisory',

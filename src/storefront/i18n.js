@@ -12,7 +12,7 @@
 
 export const EN_KEYS = {
   topbar_shipping: 'FREE Shipping on Agro Orders over ₹999',
-  logo_sub: 'From our farms to your home',
+  logo_sub: 'FACTORY 2 FARMER',
   search_placeholder: 'Search by crop, disease or chemical e.g. Blast, Paddy...',
   search_btn: 'Search',
   basket_label: 'Basket',

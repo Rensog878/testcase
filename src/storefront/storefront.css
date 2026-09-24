@@ -6347,7 +6347,15 @@ body.sb-home-active {
     font-size: 0.9375rem;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .auth-paste-note {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8125rem;
     text-align: left;
+  }
+  /* The lit box is the code field's focus mark; the store-wide
+     :focus-visible outline drew a second ring around the whole row. */
+  :is(body.sb-home-active .sb-home, .sb-portal) .auth-otp .auth-otp-input:focus-visible {
+    outline: none;
   }
 }
 

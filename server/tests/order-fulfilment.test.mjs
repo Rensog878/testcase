@@ -205,3 +205,27 @@ test('the staff alert lists the items and where to assign', () => {
   assert.match(text, /₹1,180/);
   assert.match(text, /shop\.example\.com\/admin\/orders/);
 });
+
+test('a cash-on-delivery order is paid once delivered', async () => {
+  const before = orders.get('ORD-1');
+  before.paymentStatus = 'Pending';
+  await call('PUT', '/api/orders/ORD-1/status', { status: 'Out for Delivery' });
+  assert.equal(orders.get('ORD-1').paymentStatus, 'Pending', 'not before delivery');
+  await call('PUT', '/api/orders/ORD-1/status', { status: 'Delivered' });
+  assert.equal(orders.get('ORD-1').paymentStatus, 'Paid');
+  assert.ok(orders.get('ORD-1').paidAt);
+});
+
+test('the delivery OTP also marks the cash as collected', async () => {
+  Object.assign(orders.get('ORD-1'), { paymentStatus: 'Pending', otp: '4321', assignedDeliveryBoy: 'Ravi' });
+  const { status } = await call('POST', '/api/delivery/verify-otp', { orderId: 'ORD-1', otp: '4321' }, agentToken);
+  assert.equal(status, 200);
+  assert.equal(orders.get('ORD-1').deliveryStatus, 'Delivered');
+  assert.equal(orders.get('ORD-1').paymentStatus, 'Paid');
+});
+
+test('an order paid online keeps its payment record when delivered', async () => {
+  Object.assign(orders.get('ORD-1'), { paymentMethod: 'Razorpay (UPI)', paymentStatus: 'Paid', paidAt: 'earlier' });
+  await call('PUT', '/api/orders/ORD-1/status', { status: 'Delivered' });
+  assert.equal(orders.get('ORD-1').paidAt, 'earlier');
+});

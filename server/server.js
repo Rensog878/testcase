@@ -1709,6 +1709,14 @@ function withoutDeliveryOtp(order) {
   return rest;
 }
 
+// A cash-on-delivery order is paid once it is delivered: the agent collected
+// the cash. Revenue on the admin dashboard counts paid orders only.
+function cashCollected(order) {
+  return order.paymentStatus !== 'Paid' && /cash on delivery|^cod$/i.test(String(order.paymentMethod || ''))
+    ? { paymentStatus: 'Paid', paidAt: new Date().toISOString() }
+    : {};
+}
+
 // The stock an order holds, one line per product (as reserveStock takes it).
 function orderStockLines(order) {
   const byId = new Map();
@@ -1894,7 +1902,8 @@ app.post('/api/delivery/verify-otp', requireAuth('delivery', 'admin'), async (re
     const updated = await db.updateOrder(orderId, {
       status: 'Delivered',
       deliveryStatus: 'Delivered',
-      deliveredAt: new Date().toISOString()
+      deliveredAt: new Date().toISOString(),
+      ...cashCollected(order),
     });
     await sendDeliveryStatusUpdate(updated, 'Delivered').catch(() => {});
     res.json({ success: true, order: withoutDeliveryOtp(updated) });
@@ -1950,7 +1959,7 @@ app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), async (req, 
     if (nextStatus) {
       updates.status = nextStatus;
       updates.deliveryStatus = nextStatus;
-      if (nextStatus === 'Delivered') updates.deliveredAt = new Date().toISOString();
+      if (nextStatus === 'Delivered') Object.assign(updates, { deliveredAt: new Date().toISOString() }, cashCollected(existing));
     }
     if (expectedDeliveryDate !== undefined) updates.expectedDeliveryDate = cleanText(String(expectedDeliveryDate), 40);
     if (!Object.keys(updates).length) {

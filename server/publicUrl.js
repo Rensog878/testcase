@@ -5,10 +5,16 @@
  *                     Vercel, the production domain is used.
  */
 
+// Where farmers' links point when the server has no usable public address.
+export const LIVE_SITE_URL = 'https://www.sathyamagromart.com';
+
 export function publicSiteUrl() {
-  const configured = process.env.PUBLIC_SITE_URL
-    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '');
-  return configured.replace(/\/+$/, '');
+  const configured = (process.env.PUBLIC_SITE_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')).replace(/\/+$/, '');
+  // A farmer's phone cannot open localhost or a private address, so a server
+  // configured with one (e.g. a copied development .env) links to the live site.
+  if (process.env.NODE_ENV !== 'test' && !isPublicHttpsUrl(configured)) return LIVE_SITE_URL;
+  return configured;
 }
 
 // True when WhatsApp's servers could fetch the URL: HTTPS on a public host, so

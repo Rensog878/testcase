@@ -63,7 +63,9 @@ export default function Storefront() {
   // form's dropdowns, not only the ones a live product currently matches.
   // Picking one with nothing in stock right now shows "0 Products" rather
   // than hiding the option, so the storefront's filters and the admin form's
-  // dropdowns always offer exactly the same list.
+  // dropdowns always offer exactly the same list. Categories are the
+  // exception: Catalog.jsx lists only the ones live products are in
+  // (liveCategories), using this list for their order and spelling.
   const catalogOptions = useMemo(() => {
     if (!rawCatalogOptions) return null
     return {

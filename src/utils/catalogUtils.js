@@ -229,3 +229,29 @@ export function advisoryCropOptions(profileCrops = [], catalogueCrops = []) {
   // should read like the profile it feeds.
   return [...base, ...extra]
 }
+
+/**
+ * The categories the live products are actually in, each with its product
+ * count: [{ name, count }]. Spellings matchesCategory treats as one category
+ * ("Fungicide" / "Fungicides") are merged under the admin's spelling from
+ * `preferred` (catalogOptions.categories), and listed in that order; a
+ * category the admin list does not have yet follows, A-Z. A category with no
+ * products is left out, so filters never offer an empty choice.
+ */
+export function liveCategories(products, preferred = []) {
+  const groups = []
+  for (const product of products || []) {
+    const name = String(product?.category || '').trim()
+    if (!name) continue
+    const group = groups.find(g => matchesCategory(name, g.name) || matchesCategory(g.name, name))
+    if (group) group.count += 1
+    else groups.push({ name, count: 1 })
+  }
+  const rank = name => {
+    const i = preferred.findIndex(p => String(p).trim().toLowerCase() === name.toLowerCase())
+    return i === -1 ? preferred.length : i
+  }
+  return groups
+    .map(g => ({ ...g, name: preferred.find(p => matchesCategory(g.name, p) && matchesCategory(p, g.name)) || g.name }))
+    .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name))
+}

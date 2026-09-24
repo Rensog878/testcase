@@ -7,36 +7,39 @@ import {
 } from 'lucide-react'
 import { CATEGORIES } from '../storefront/data'
 import { SHOP_CATEGORIES, EXTRA_CATEGORY_ICONS, FALLBACK_CATEGORY_ICON } from '../data/allProductsData'
-import { matchesCategory } from '../utils/catalogUtils'
+import { matchesCategory, liveCategories } from '../utils/catalogUtils'
 import useCatalogProducts from '../hooks/useCatalogProducts'
 
 // Every category is one section of the right-hand pane, one after another.
 // The left rail follows the scroll (the category being read is highlighted and
 // kept in view), and tapping a rail tab scrolls the pane to that category.
 // ?ct= in the URL names the category, so links like Shop -> ?ct=Brands land on it.
-// The rail mirrors the header's "Categories" mega menu (src/storefront/data.js
-// CATEGORIES) so the two never drift apart; the right pane lists the live
-// products in each of those categories.
+// The rail lists every category the live products are in (liveCategories:
+// a category an admin adds shows up as soon as a product uses it, and one with
+// no products is left out); the right pane lists those products. Until the
+// catalogue arrives, the header menu's list (src/storefront/data.js
+// CATEGORIES) stands in so the skeletons have somewhere to go.
 
 const iconFor = name => SHOP_CATEGORIES.find(c => matchesCategory(c.filterCategory, name))?.image
   || EXTRA_CATEGORY_ICONS[name.toLowerCase()]
   || FALLBACK_CATEGORY_ICON
 
-const CATEGORIES_DATA = CATEGORIES.filter(value => value !== 'All').map(value => ({
+const toCategory = value => ({
   id: value,
   handle: value,
-  name: `${value}s`,
+  name: /s$/i.test(value) ? value : `${value}s`,
   icon: iconFor(value),
-}))
+})
+const STAND_IN_CATEGORIES = CATEGORIES.filter(value => value !== 'All').map(toCategory)
 
-const DEFAULT_CATEGORY_HANDLE = CATEGORIES_DATA[0]?.handle
-
-const findCategory = handle => {
+// The rail tab for a ?ct= value ("Fertilizer", "Fertilizers", any case, or an
+// alias matchesCategory knows), else the first tab.
+const findCategory = (list, handle) => {
   const wanted = String(handle || '').toLowerCase()
   return (
-    CATEGORIES_DATA.find(c => c.handle.toLowerCase() === wanted || c.name.toLowerCase() === wanted) ||
-    CATEGORIES_DATA.find(c => c.handle === DEFAULT_CATEGORY_HANDLE) ||
-    CATEGORIES_DATA[0]
+    list.find(c => c.handle.toLowerCase() === wanted || c.name.toLowerCase() === wanted) ||
+    (wanted && list.find(c => matchesCategory(wanted, c.handle) && matchesCategory(c.handle, wanted))) ||
+    list[0]
   )
 }
 
@@ -49,9 +52,17 @@ export default function Categories() {
   const navigate = useNavigate()
 
   // URL category handle e.g. ?ct=AGRICULTURE%20EQUIPMENTS
-  const ctParam = searchParams.get('ct') || DEFAULT_CATEGORY_HANDLE
+  const ctParam = searchParams.get('ct') || ''
 
-  const [activeHandle, setActiveHandle] = useState(() => findCategory(ctParam).handle)
+  // Live catalog: the same MongoDB-backed product list every other store
+  // page uses, filtered client-side per rail category below.
+  const { products: dbProducts, catalogOptions, loading: productsLoading } = useCatalogProducts({ onlineOnly: true })
+  const categoriesData = useMemo(() => {
+    if (productsLoading && !dbProducts.length) return STAND_IN_CATEGORIES
+    return liveCategories(dbProducts, catalogOptions?.categories || []).map(c => toCategory(c.name))
+  }, [dbProducts, productsLoading, catalogOptions?.categories])
+
+  const [activeHandle, setActiveHandle] = useState(() => findCategory(STAND_IN_CATEGORIES, ctParam)?.handle)
   const [searchQuery, setSearchQuery] = useState('')
 
   const paneRef = useRef(null)
@@ -64,11 +75,7 @@ export default function Categories() {
   const releaseTimer = useRef(null)
   const spyFrame = useRef(0)
 
-  const activeCategory = findCategory(activeHandle)
-
-  // Live catalog: the same MongoDB-backed product list every other store
-  // page uses, filtered client-side per rail category below.
-  const { products: dbProducts, loading: productsLoading } = useCatalogProducts({ onlineOnly: true })
+  const activeCategory = findCategory(categoriesData, activeHandle)
 
   // Phones: a full-screen view, so the document behind it does not scroll
   // (index.css, html.sb-fullscreen-page). Set before paint, removed on leaving.
@@ -90,7 +97,7 @@ export default function Categories() {
   // skeleton tiles per category) replaces that false negative.
   const sections = useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
-    return CATEGORIES_DATA.map(cat => {
+    return categoriesData.map(cat => {
       const catMatches = !q || cat.name.toLowerCase().includes(q)
       if (productsLoading) {
         if (!catMatches) return { cat, subMenus: [], total: 0, loading: true }
@@ -104,7 +111,7 @@ export default function Categories() {
       const subMenus = items.length ? [{ name: cat.name, items }] : []
       return { cat, subMenus, total: items.length }
     }).filter(section => section.subMenus.length > 0)
-  }, [searchQuery, dbProducts, productsLoading])
+  }, [searchQuery, dbProducts, productsLoading, categoriesData])
 
   const sectionsRef = useRef(sections)
   sectionsRef.current = sections
@@ -175,12 +182,12 @@ export default function Categories() {
   // Arriving with ?ct= (or following a link to another category while here):
   // jump straight to that category.
   useEffect(() => {
-    const handle = findCategory(ctParam).handle
-    if (handle === writtenCt.current) return
+    const handle = findCategory(categoriesData, ctParam)?.handle
+    if (!handle || handle === writtenCt.current) return
     writtenCt.current = handle
     markActive(handle, { writeUrl: false })
     scrollPaneTo(handle, 'auto')
-  }, [ctParam, markActive, scrollPaneTo])
+  }, [ctParam, categoriesData, markActive, scrollPaneTo])
 
   // Keep the highlighted rail tab in view, centred in the rail.
   useEffect(() => {
@@ -272,7 +279,7 @@ export default function Categories() {
           {/* LEFT VERTICAL RAIL */}
           <aside className="bighaat-aside-rail" aria-label="Category Rail">
             <div className="aside-rail-scroll" ref={railRef}>
-              {CATEGORIES_DATA.map((cat) => {
+              {categoriesData.map((cat) => {
                 const isActive = cat.handle === activeCategory?.handle
                 return (
                   <button

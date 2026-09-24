@@ -1,18 +1,14 @@
 import { memo, useMemo, useState } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
-import { matchesCrop, matchesCategory, matchesDisease, topSelling } from '../../utils/catalogUtils'
+import { matchesCrop, matchesCategory, matchesDisease, topSelling, liveCategories } from '../../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../../shared/productForm'
 
-const MOBILE_CHIPS = [
-  ['All', 'All'],
-  ['Fungicide', '🌿 Fungicides'],
-  ['Insecticide', '🐛 Insecticides'],
-  ['Bio-Stimulant', '⚡ Bio-Stimulants'],
-  ['Herbicide', '🌾 Herbicides'],
-  ['Nematicide', '🪱 Nematicides'],
-]
+// The phone chips and the category dropdown list the categories the live
+// products are in (liveCategories); these emoji lead the chips we know.
+const CHIP_EMOJI = { fungicide: '🌿', insecticide: '🐛', 'bio-stimulant': '⚡', herbicide: '🌾', nematicide: '🪱', fertilizer: '🧪', seeds: '🌱', adjuvant: '💧', equipments: '🛠️' }
+const plural = name => (/s$/i.test(name) ? name : `${name}s`)
 const DEFAULT_PACKS = ['250g', '500g', '1kg']
 
 export const ProductSkeleton = memo(function ProductSkeleton() {
@@ -189,7 +185,14 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
   const activeFilterCount = [filters.crop !== 'all', filters.disease !== 'all', filters.category !== 'All', (filters.form || 'all') !== 'all', searchQuery !== ''].filter(Boolean).length
   const counts = useMemo(() => formCounts(products, formOptions), [products, formOptions])
   const cropOptions = catalogOptions?.crops || CROPS
-  const categoryOptions = catalogOptions?.categories || CATEGORIES
+  // Only categories that have products, with how many; the chosen one stays
+  // listed even if its products are gone, so the dropdown never goes blank.
+  const liveCats = useMemo(() => liveCategories(products, catalogOptions?.categories || CATEGORIES), [products, catalogOptions?.categories])
+  const categoryOptions = useMemo(() => {
+    const list = [{ name: 'All', count: products.length }, ...liveCats]
+    if (!list.some(c => c.name === filters.category)) list.push({ name: filters.category, count: 0 })
+    return list
+  }, [liveCats, products.length, filters.category])
   const diseaseOptions = catalogOptions?.diseases || DISEASES
 
   return (
@@ -203,8 +206,10 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
         {/* Phones: category chips and the filter drawer button */}
         <div className="mobile-catalog-header">
           <div className="mobile-category-chips-scroll" id="mobileCategoryChipsScroll">
-            {MOBILE_CHIPS.map(([value, label]) => (
-              <button key={value} className={`mobile-cat-chip ${filters.category === value ? 'active' : ''}`} data-cat={value} onClick={() => filterByCategory(value)}>{label}</button>
+            {categoryOptions.map(({ name: value }) => (
+              <button key={value} className={`mobile-cat-chip ${filters.category === value ? 'active' : ''}`} data-cat={value} onClick={() => filterByCategory(value)}>
+                {value === 'All' ? 'All' : `${CHIP_EMOJI[value.toLowerCase()] || '🏷️'} ${plural(value)}`}
+              </button>
             ))}
           </div>
           <div className="mobile-filter-bar-row">
@@ -242,7 +247,7 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
             <div className="filter-group">
               <label className="filter-label" htmlFor="categoryFilter"><i className="fa-solid fa-layer-group"></i> <span data-i18n="filter_category">{t('filter_category')}</span></label>
               <select className="filter-select" id="categoryFilter" value={filters.category} onChange={e => setFilter('category', e.target.value)}>
-                {categoryOptions.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'All Formulations' : cat}</option>)}
+                {categoryOptions.map(({ name, count }) => <option key={name} value={name}>{name === 'All' ? 'All Formulations' : name} ({count})</option>)}
               </select>
             </div>
 

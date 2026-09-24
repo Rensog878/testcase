@@ -55,7 +55,7 @@ export async function sendOrderConfirmation(order, { resend = false } = {}) {
     const siteUrl = publicSiteUrl();
     const text = buildOrderConfirmationMessage(order, {
       trackUrl: siteUrl ? `${siteUrl}/orders` : '',
-      supportPhone: cms?.contactPhone,
+      supportPhone: cms?.phone || cms?.contactPhone,
     });
 
     const { sender } = await sendWhatsAppText(phone, text);
@@ -89,7 +89,7 @@ export async function sendDeliveryStatusUpdate(order, newStatus) {
     const siteUrl = publicSiteUrl();
     const text = buildDeliveryStatusMessage(order, newStatus, {
       trackUrl: siteUrl ? `${siteUrl}/orders` : '',
-      supportPhone: cms?.contactPhone,
+      supportPhone: cms?.phone || cms?.contactPhone,
     });
     if (!text) return 'skipped';
 

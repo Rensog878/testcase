@@ -496,7 +496,7 @@ const RESET_FOOTERS = [
   '_Did not ask to reset your password? Ignore this message — your password stays the same._',
   '_Not you? Your password has not been changed. You can safely ignore this._',
   `_Sent automatically by ${BRAND}. No reply needed._`,
-  `_Need help? Call ${BRAND} support on 1800-425-9999._`,
+  `_Need help? Call ${BRAND} support on +91 87786 13372._`,
 ];
 
 const RESET_LAYOUTS = [
@@ -557,6 +557,6 @@ export function buildPasswordChangedMessage(userName = 'Farmer', phone = '') {
   return [
     `🔐 *${BRAND}* — password changed`, '',
     `${pick(GREETINGS)(name)} the password for the ${BRAND} account on ${masked} was just changed, and any other devices were signed out.`, '',
-    `If this was not you, call ${BRAND} support on 1800-425-9999 right away.`,
+    `If this was not you, call ${BRAND} support on +91 87786 13372 right away.`,
   ].join('\n');
 }

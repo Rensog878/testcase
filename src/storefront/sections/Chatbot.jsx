@@ -38,7 +38,7 @@ function replyTo(text, addToCart) {
     return <>🌱 <strong>Soil Health:</strong> Send your soil test report to our agronomists on WhatsApp for N-P-K nutrient recommendations.<br />{whatsAppButton('Send it on WhatsApp')}</>
   }
   if (lower.includes('agronomist') || lower.includes('speak') || lower.includes('doctor')) {
-    return <>📞 <strong>Senior Agronomist Consultation:</strong> Call toll-free <strong>1800-425-9999</strong> or chat with an agronomist on WhatsApp.<br />{whatsAppButton('Chat with an Agronomist')}</>
+    return <>📞 <strong>Senior Agronomist Consultation:</strong> Call <strong>+91 87786 13372</strong> or chat with an agronomist on WhatsApp.<br />{whatsAppButton('Chat with an Agronomist')}</>
   }
   if (lower.includes('weed') || lower.includes('herbicide')) {
     return <>🌿 <strong>Weed Control:</strong> Use <strong>WeedClear 24-D</strong> (₹340) for broadleaf weeds or <strong>GrassOut 10 EC</strong> (₹480) for grass weeds.<br />{cartButton('sb-26', 'Add WeedClear to Cart')}</>

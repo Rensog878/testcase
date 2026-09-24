@@ -78,6 +78,6 @@ export const SAMPLE_DISEASE_DIAGNOSES = [
   },
 ]
 
-export const WHATSAPP_EXPERT_URL = 'https://wa.me/919442562423?text=Hello%20Sathyam%20Bio%20Expert%2C%20I%20need%20crop%20advice'
+export const WHATSAPP_EXPERT_URL = 'https://wa.me/918778613372?text=Hello%20Sathyam%20Bio%20Expert%2C%20I%20need%20crop%20advice'
 
 export const rupees = value => `₹${Number(value || 0).toLocaleString('en-IN')}`

@@ -337,11 +337,11 @@ const INITIAL_CMS = {
     heroTitle: 'SATHYAM AGRO MART-PESTICIDES & CROP CARE',
     heroSubtitle: 'Government & 100% Bio-Certified Solutions for High Yield & Zero Chemical Residue Farming',
     bannerAnnouncement:
-          '🎉 KHARIF SPECIAL: Flat 20% OFF on Bio-Fungicides + Free Agronomist Hotline 1800-425-8899',
+          '🎉 KHARIF SPECIAL: Flat 20% OFF on Bio-Fungicides + Farmer Helpline +91 87786 13372',
     advisoryTitle: 'Get Weekly Crop & Pesticide Recommendations',
     advisorySubtitle:
           'Join 15,000+ farmers receiving our free seasonal advisory newsletter. Kharif & Rabi crop schedules, disease alerts, and exclusive offers every week.',
-    contactPhone: '+91 94432 10987',
+    contactPhone: '+91-8778613372',
     contactEmail: 'care@sathyambio.in',
     razorpayKeyId: 'rzp_test_sathyaBioLiveKey102',
     razorpaySecret: 'rzp_secret_mock_live_9988',

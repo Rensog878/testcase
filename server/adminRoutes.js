@@ -289,7 +289,8 @@ router.get('/analytics', async (req, res) => {
             items:          Array.isArray(o.items) ? o.items : [],
             itemSummary:    Array.isArray(o.items) ? o.items.map(i => `${i.name || '?'} x${i.qty || 1}`).join(', ') : '',
             total:          Number(o.total) || 0,
-            isPaid:         o.paymentStatus === 'Paid',
+            // A cancelled order is not revenue, even if it was paid (refunded).
+            isPaid:         o.paymentStatus === 'Paid' && (o.deliveryStatus || o.status) !== 'Cancelled',
             paymentStatus:  o.paymentStatus || 'Pending',
             paymentMethod:  o.paymentMethod || 'Razorpay / Online',
             deliveryStatus: o.deliveryStatus || o.status || 'Pending',

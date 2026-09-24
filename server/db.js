@@ -2295,7 +2295,8 @@ class DatabaseManager {
             WishlistItem.countDocuments({})
         ]);
 
-        const paid = orders.filter(o => o.paymentStatus === 'Paid');
+        // A cancelled order is not revenue, even if it was paid (refunded).
+        const paid = orders.filter(o => o.paymentStatus === 'Paid' && (o.deliveryStatus || o.status) !== 'Cancelled');
         const onlineRevenue = paid.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
         const offlineRevenue = invoices.reduce((sum, inv) => sum + (Number(inv.grandTotal) || 0), 0);
         const totalRevenue = Math.round((onlineRevenue + offlineRevenue) * 100) / 100;

@@ -181,7 +181,7 @@ export default function AdminOrders() {
     )
   })
 
-  const onlineRevenue = orders.reduce((sum, o) => sum + (o.paymentStatus === 'Paid' || o.deliveryStatus === 'Delivered' ? Number(o.total || o.amount || 0) : 0), 0)
+  const onlineRevenue = orders.reduce((sum, o) => sum + ((o.paymentStatus === 'Paid' || o.deliveryStatus === 'Delivered') && (o.deliveryStatus || o.status) !== 'Cancelled' ? Number(o.total || o.amount || 0) : 0), 0)
   const offlineRevenue = invoices.reduce((sum, i) => sum + Number(i.grandTotal || i.total || 0), 0)
   const totalRevenue = onlineRevenue + offlineRevenue
 

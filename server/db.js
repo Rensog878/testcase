@@ -3013,7 +3013,6 @@ class DatabaseManager {
    * Only whitelisted fields are written so employees cannot inject extra data.
    */
   async upsertStaffProfile(userId, data) {
-    await connectDB();
     const ALLOWED = [
       // Personal
       'fullName', 'dateOfBirth', 'gender', 'bloodGroup', 'fatherName', 'motherName',
@@ -3034,11 +3033,26 @@ class DatabaseManager {
       // Extra
       'profilePhoto', 'bio', 'skills', 'languages',
     ];
+    // Text only, and of a sensible length; the photo is an image (a data URL
+    // from the profile page, or an https link) of at most ~1.5 MB.
     const sanitized = {};
     for (const key of ALLOWED) {
-      if (key in data) sanitized[key] = data[key];
+      if (!(key in data)) continue;
+      const value = data[key] === null || data[key] === undefined ? '' : data[key];
+      if (typeof value === 'object') throw inputError('INVALID_STAFF_PROFILE', `${key} must be text.`);
+      const text = String(value).trim();
+      if (key === 'profilePhoto') {
+        if (text && !/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(text) && !/^https:\/\//i.test(text)) {
+          throw inputError('INVALID_STAFF_PROFILE', 'The profile photo must be an image.');
+        }
+        if (text.length > 2_000_000) throw inputError('INVALID_STAFF_PROFILE', 'The profile photo is too large (max about 1.5 MB).');
+        sanitized[key] = text;
+      } else {
+        sanitized[key] = text.slice(0, 500);
+      }
     }
     sanitized.updatedAt = new Date().toISOString();
+    await connectDB();
     const doc = await StaffProfile.findByIdAndUpdate(
       userId,
       { $set: sanitized, $setOnInsert: { _id: userId, createdAt: new Date().toISOString() } },

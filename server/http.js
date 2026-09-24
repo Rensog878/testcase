@@ -43,7 +43,7 @@ export function userInputError(err) {
   }
   // field: which box the message belongs under, so a form can show it there.
   if (err?.code === 'WEAK_PASSWORD') return new HttpError(400, err.message, { field: 'password' });
-  if (err?.code === 'INVALID_ROLE' || err?.code === 'INVALID_ADDRESS' || err?.code === 'INVALID_PROFILE') {
+  if (err?.code === 'INVALID_ROLE' || err?.code === 'INVALID_ADDRESS' || err?.code === 'INVALID_PROFILE' || err?.code === 'INVALID_STAFF_PROFILE') {
     return new HttpError(400, err.message);
   }
   return err;

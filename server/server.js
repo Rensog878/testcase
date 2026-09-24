@@ -2698,6 +2698,9 @@ app.get('/api/staff-tasks', requireAuth('admin', 'employee'), async (req, res) =
 // BILLING / POS
 // ============================================================
 
+// GST slabs an invoice line may carry.
+const INVOICE_GST_RATES = [0, 0.25, 3, 5, 12, 18, 28];
+
 app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule('pos', { roles: ['billing'] }), async (req, res) => {
   try {
     const {
@@ -2713,61 +2716,77 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       irn = '',
       ackNo = '',
       ackDate = '',
-      sellerDetails,
       consigneeDetails,
       buyerDetails,
       despatchDetails,
       transportDetails,
-      bankDetails,
       amountInWords = '',
       taxAmountInWords = ''
     } = req.body || {};
 
     const items = Array.isArray(req.body?.items) ? req.body.items.slice(0, 200) : [];
+    if (!items.length) throw new HttpError(400, 'Add at least one item to the bill.');
 
-    // Calculate itemized totals & taxes
-    let subtotal = 0;
+    // Everything that decides the money is checked here, not on the counter
+    // screen: quantities, rates, discounts, and the GST rate and HSN of a
+    // catalogue product (taken from the product, not the request).
+    const catalogue = new Map((await db.getProductsByIds(items.map((item) => String(item?.productId || '')).filter(Boolean))).map((p) => [p.id, p]));
+
+    const lines = items.map((item, index) => {
+      const n = index + 1;
+      const qty = Number(item?.qty);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 9999) throw new HttpError(400, `Line ${n}: quantity must be a whole number from 1 to 9999.`);
+      const price = Number(item?.price ?? item?.rate);
+      if (!Number.isFinite(price) || price <= 0 || price > 10000000) throw new HttpError(400, `Line ${n}: enter a rate above 0.`);
+      const discPercent = Number(item?.discPercent ?? item?.discountPercent ?? 0);
+      if (!Number.isFinite(discPercent) || discPercent < 0 || discPercent > 100) throw new HttpError(400, `Line ${n}: discount must be between 0 and 100%.`);
+
+      const productId = cleanText(item?.productId || '', 40);
+      const product = productId ? catalogue.get(productId) : null;
+      if (productId && !product) throw new HttpError(400, `Line ${n}: this product is no longer in the catalogue.`);
+      const productRate = Number(product?.gstRate);
+      const gstRate = product
+        ? (product.gstRate !== undefined && product.gstRate !== null && product.gstRate !== '' && Number.isFinite(productRate) ? productRate : 18)
+        : Number(item?.gstRate ?? item?.gst ?? 18);
+      if (!INVOICE_GST_RATES.includes(gstRate)) throw new HttpError(400, `Line ${n}: GST rate must be one of ${INVOICE_GST_RATES.join(', ')}%.`);
+
+      return { item, qty, price, discPercent, productId, product, gstRate, lineTotal: +(price * qty * (1 - discPercent / 100)).toFixed(2) };
+    });
+
+    const subtotal = +lines.reduce((sum, line) => sum + line.lineTotal, 0).toFixed(2);
+    const discAmt = Number(discountAmount) || 0;
+    if (discAmt < 0 || discAmt > subtotal) throw new HttpError(400, 'The bill discount cannot be more than the bill.');
+    const taxableAmount = +(subtotal - discAmt).toFixed(2);
+
+    // GST is on the discounted value: the bill discount is shared across the
+    // lines by their value, the same as the counter screen's preview.
     let totalCgst = 0;
     let totalSgst = 0;
     let totalIgst = 0;
-
-    const enrichedItems = items.map(item => {
-      const qty = Math.max(1, Number(item.qty) || 1);
-      const price = Math.max(0, Number(item.price ?? item.rate) || 0);
-      const discPercent = Math.max(0, Number(item.discPercent ?? item.discountPercent) || 0);
-      const rawLine = price * qty;
-      const lineDisc = rawLine * (discPercent / 100);
-      const lineTotal = +(rawLine - lineDisc).toFixed(2);
-      subtotal += lineTotal;
-
-      const gstRate = Number(item.gstRate ?? item.gst) || 18;
-      const cgstRate = Number(item.cgstRate) || +(gstRate / 2).toFixed(2);
-      const sgstRate = Number(item.sgstRate) || +(gstRate / 2).toFixed(2);
-      const igstRate = Number(item.igstRate) || gstRate;
-
-      const lineCgst = +(lineTotal * (cgstRate / 100)).toFixed(2);
-      const lineSgst = +(lineTotal * (sgstRate / 100)).toFixed(2);
-      const lineIgst = +(lineTotal * (igstRate / 100)).toFixed(2);
-
-      totalCgst += lineCgst;
-      totalSgst += lineSgst;
-      totalIgst += lineIgst;
+    const enrichedItems = lines.map(({ item, qty, price, discPercent, productId, product, gstRate, lineTotal }) => {
+      const lineTaxable = subtotal > 0 ? Math.max(0, lineTotal - discAmt * (lineTotal / subtotal)) : 0;
+      const cgstRate = +(gstRate / 2).toFixed(2);
+      const sgstRate = +(gstRate / 2).toFixed(2);
+      const igstRate = gstRate;
+      totalCgst += lineTaxable * (cgstRate / 100);
+      totalSgst += lineTaxable * (sgstRate / 100);
+      totalIgst += lineTaxable * (igstRate / 100);
 
       return {
-        id: item.id || newId('ITM'),
+        id: cleanText(item.id || '', 40) || newId('ITM'),
         // The catalogue product this line came from, if any (a hand-typed
         // line has none) - kept separate from the line's own id above, and
         // used only to take the sale out of that product's stock.
-        productId: cleanText(item.productId || '', 40),
-        name: item.name || item.productName || 'Product',
+        productId,
+        name: product?.name || cleanText(item.name || item.productName, 120) || 'Product',
         batch: cleanText(item.batch || item.batchNo || 'Primary Batch', 50),
         subText: cleanText(item.subText || '', 200),
-        hsnCode: item.hsnCode || item.hsn || '31010099',
+        hsnCode: cleanText(product?.hsnCode || item.hsnCode || item.hsn || '31010099', 12),
         price,
         rate: price,
         qty,
-        unit: item.unit || 'Nos',
-        per: item.per || item.unit || 'Nos',
+        unit: cleanText(item.unit || 'Nos', 12),
+        per: cleanText(item.per || item.unit || 'Nos', 12),
         discPercent,
         gstRate,
         cgstRate,
@@ -2775,13 +2794,14 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
         igstRate,
         lineTotal,
         amount: lineTotal,
-        lineCgst,
-        lineSgst
+        lineCgst: +(lineTaxable * (cgstRate / 100)).toFixed(2),
+        lineSgst: +(lineTaxable * (sgstRate / 100)).toFixed(2)
       };
     });
 
-    const discAmt = Math.max(0, Number(discountAmount) || 0);
-    const taxableAmount = Math.max(0, subtotal - discAmt);
+    totalCgst = +totalCgst.toFixed(2);
+    totalSgst = +totalSgst.toFixed(2);
+    totalIgst = +totalIgst.toFixed(2);
     const totalGst = +(totalCgst + totalSgst).toFixed(2);
     const rawGrandTotal = taxableAmount + totalGst;
     // Rounded to the rupee here, never taken from the request: a caller-sent
@@ -2789,12 +2809,21 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
     const computedRoundOff = +(Math.round(rawGrandTotal) - rawGrandTotal).toFixed(2);
     const grandTotal = +(rawGrandTotal + computedRoundOff).toFixed(2);
 
+    // The invoice date is the day it is issued, or an earlier day for a bill
+    // entered late - never a future day.
+    const invoiceDate = req.body?.date ? new Date(req.body.date) : new Date();
+    if (Number.isNaN(invoiceDate.getTime())) throw new HttpError(400, 'The invoice date is not a valid date.');
+    if (invoiceDate.getTime() > Date.now() + 24 * HOUR_MS) throw new HttpError(400, 'The invoice date cannot be in the future.');
+
     const generatedId = newId('INV');
 
     // Resolve store information from the authenticated user
-    const userStoreId = req.user.storeId || req.body.storeId || '';
-    const userStoreName = req.user.storeName || req.body.storeName || '';
-    let userStoreCode = req.user.storeCode || req.body.storeCode || '';
+    // The store (and so the invoice number series) is the signed-in account's;
+    // only a super admin may bill for a store they pick.
+    const pickStore = req.user.role === 'superadmin';
+    const userStoreId = req.user.storeId || (pickStore ? cleanText(req.body.storeId, 40) : '') || '';
+    const userStoreName = req.user.storeName || (pickStore ? cleanText(req.body.storeName, 80) : '') || '';
+    let userStoreCode = req.user.storeCode || (pickStore ? cleanText(req.body.storeCode, 12) : '') || '';
 
     // If storeCode not on user object, try to fetch it from the Store collection
     if (!userStoreCode && userStoreId) {
@@ -2819,13 +2848,14 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       storeCode: userStoreCode,
       storeName: userStoreName,
       documentType: cleanText(documentType, 30) || 'TAX INVOICE',
-      date: req.body.date ? new Date(req.body.date).toISOString() : new Date().toISOString(),
+      date: invoiceDate.toISOString(),
       irn: cleanText(irn, 120),
       ackNo: cleanText(ackNo, 50),
       ackDate: cleanText(ackDate, 30),
       customerName: cleanText(customerName || buyerDetails?.name, 80) || 'Walk-in Customer',
       customerPhone: cleanText(customerPhone || buyerDetails?.phone, 20),
-      sellerDetails: sellerDetails || {
+      // The seller's GSTIN and bank account are ours, never the request's.
+      sellerDetails: {
         name: 'Sathyam Bio',
         line1: 'No.130, Muppar street,',
         line2: 'Balamurugan Kovil road,',
@@ -2850,7 +2880,7 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       consigneeDetails: consigneeDetails || buyerDetails || {},
       despatchDetails: despatchDetails || {},
       transportDetails: transportDetails || {},
-      bankDetails: bankDetails || {
+      bankDetails: {
         bankName: 'HDFC Bank (India)',
         acNo: '50200112291146',
         branchIfsc: 'Thirunagar, Madurai & HDFC0009046'
@@ -2860,13 +2890,13 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       buyerRef: cleanText(buyerRef, 60),
       otherReferences: cleanText(otherReferences, 60),
       items: enrichedItems,
-      subtotal: +subtotal.toFixed(2),
+      subtotal,
       discountAmount: discAmt,
       couponCode: cleanText(couponCode, 50).toUpperCase(),
-      taxableAmount: +taxableAmount.toFixed(2),
-      cgst: +totalCgst.toFixed(2),
-      sgst: +totalSgst.toFixed(2),
-      igst: +totalIgst.toFixed(2),
+      taxableAmount,
+      cgst: totalCgst,
+      sgst: totalSgst,
+      igst: totalIgst,
       totalGst,
       roundOff: computedRoundOff,
       grandTotal,
@@ -3003,7 +3033,7 @@ app.put('/api/staff-profile', requireAuth('employee', 'admin', 'superadmin', 'de
     });
     res.json({ success: true, data: profile });
   } catch (err) {
-    sendError(res, err, 'Update staff profile');
+    sendError(res, userInputError(err), 'Update staff profile');
   }
 });
 

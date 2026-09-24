@@ -1,6 +1,6 @@
 import express from 'express';
 import { db, USER_ROLES } from './db.js';
-import { HttpError, sendError, userInputError, clientIp } from './http.js';
+import { HttpError, sendError, userInputError, clientIp, requireModule } from './http.js';
 import { orderWhatsAppEnabled, sendOrderConfirmation } from './orderNotifications.js';
 import { getWhatsAppSenderStatus } from './whatsapp.js';
 
@@ -67,7 +67,7 @@ function matchesSearch(user, search) {
                                                                                      );
 }
 
-router.get('/users', async (req, res) => {
+router.get('/users', requireModule(['users', 'orders', 'products']), async (req, res) => {
     try {
           const { role, sortBy, search } = req.query;
           // Super admin accounts are never listed: not their number, not that they exist.
@@ -93,7 +93,7 @@ router.get('/users', async (req, res) => {
     }
 });
 
-router.post('/users', async (req, res) => {
+router.post('/users', requireModule('users'), async (req, res) => {
     try {
           if (!req.body?.phone && !req.body?.email) {
                 throw new HttpError(400, 'Please provide a mobile number or email address.');
@@ -107,7 +107,7 @@ router.post('/users', async (req, res) => {
     }
 });
 
-router.put('/users/:id', async (req, res) => {
+router.put('/users/:id', requireModule('users'), async (req, res) => {
     try {
           const updates = pickUserFields(req.body);
           await guardSuperadmin(req, updates, req.params.id);
@@ -127,7 +127,7 @@ router.put('/users/:id', async (req, res) => {
     }
 });
 
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/:id', requireModule('users'), async (req, res) => {
     try {
           if (req.params.id === req.user.id) {
                 throw new HttpError(400, 'You cannot delete your own account.');
@@ -143,7 +143,7 @@ router.delete('/users/:id', async (req, res) => {
     }
 });
 
-router.get('/profile-fields', async (req, res) => {
+router.get('/profile-fields', requireModule('profile-fields'), async (req, res) => {
     try {
           const fields = await db.getProfileFields();
           res.json({ success: true, data: fields });
@@ -152,7 +152,7 @@ router.get('/profile-fields', async (req, res) => {
     }
 });
 
-router.put('/profile-fields', async (req, res) => {
+router.put('/profile-fields', requireModule('profile-fields'), async (req, res) => {
     try {
           const fields = await db.saveProfileFields(req.body.fields || req.body);
           res.json({ success: true, data: fields });
@@ -162,7 +162,7 @@ router.put('/profile-fields', async (req, res) => {
 });
 
 // Sends, or sends again, the WhatsApp order confirmation to the customer.
-router.post('/orders/:id/whatsapp', async (req, res) => {
+router.post('/orders/:id/whatsapp', requireModule('orders'), async (req, res) => {
     try {
           if (!orderWhatsAppEnabled()) {
                 throw new HttpError(503, 'WhatsApp order messages are not configured on the server.');
@@ -188,7 +188,7 @@ router.post('/orders/:id/whatsapp', async (req, res) => {
 });
 
 // Health of each WhatsApp sending number: session state, resting, sends today.
-router.get('/whatsapp/senders', async (req, res) => {
+router.get('/whatsapp/senders', requireModule(['orders', 'subscribers']), async (req, res) => {
     try {
           res.json({ success: true, data: await getWhatsAppSenderStatus() });
     } catch (err) {
@@ -209,7 +209,7 @@ router.get('/client-ip', (req, res) => {
 });
 
 // Live numbers for the admin dashboard cards.
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireModule('overview'), async (req, res) => {
     try {
           // superadmin never has a storeId, so this always resolves to the
           // company-wide view for them, whichever store they last opened.
@@ -220,7 +220,7 @@ router.get('/stats', async (req, res) => {
     }
 });
 
-router.get('/wishlist-summary', async (req, res) => {
+router.get('/wishlist-summary', requireModule(['overview', 'analytics', 'products']), async (req, res) => {
     try {
           const items = await db.getWishlists();
           const products = await db.getProducts();
@@ -239,7 +239,7 @@ router.get('/wishlist-summary', async (req, res) => {
 // ANALYTICS  GET /api/admin/analytics?from=ISO&to=ISO&channel=online|offline|both
 // Returns live aggregated KPIs, trend, top products, and regional breakdown.
 // ─────────────────────────────────────────────────────────────────────────────
-router.get('/analytics', async (req, res) => {
+router.get('/analytics', requireModule('analytics'), async (req, res) => {
     try {
         // A store-scoped admin has no online data to show (one storefront,
         // not one per branch - see getAdminStats) and their offline side is

@@ -165,3 +165,29 @@ export function requireAuth(...roles) {
     }
   };
 }
+
+// Module permissions a super admin sets per staff account
+// (src/pages/superadmin/Permissions.jsx). No list, an empty list or '*' means
+// every module, exactly as the admin and billing menus read it; super admins
+// always pass.
+export function hasModule(user, ...keys) {
+  if (!user) return false;
+  if (user.role === 'superadmin') return true;
+  const granted = user.permissions;
+  if (!Array.isArray(granted) || granted.length === 0 || granted.includes('*')) return true;
+  return keys.some((key) => granted.includes(key));
+}
+
+// After requireAuth: a user whose role is in `roles` must also hold one of
+// `keys`. Other roles pass here; their access is decided by requireAuth.
+// Without this the menus hid a module but its API stayed open.
+export function requireModule(keys, { roles = ['admin'] } = {}) {
+  const list = Array.isArray(keys) ? keys : [keys];
+  return (req, res, next) => {
+    const user = req.user;
+    if (user && roles.includes(user.role) && !hasModule(user, ...list)) {
+      return res.status(403).json({ success: false, message: 'This module has not been enabled for your account. Ask the super admin.' });
+    }
+    next();
+  };
+}

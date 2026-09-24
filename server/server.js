@@ -38,6 +38,7 @@ import {
   tooManyRequests,
   getAuthenticatedUser,
   requireAuth,
+  requireModule,
 } from './http.js';
 
 const app = express();
@@ -935,7 +936,7 @@ app.get('/api/profile-fields', async (req, res) => {
   }
 });
 
-app.put('/api/profile-fields', requireAuth('admin'), async (req, res) => {
+app.put('/api/profile-fields', requireAuth('admin'), requireModule('profile-fields'), async (req, res) => {
   try {
     const fields = await db.saveProfileFields((req.body && req.body.fields) || []);
     res.json({ success: true, data: await withCatalogCrops(fields) });
@@ -1019,7 +1020,7 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
-app.post('/api/products', requireAuth('admin'), async (req, res) => {
+app.post('/api/products', requireAuth('admin'), requireModule('products'), async (req, res) => {
   try {
     const problem = productInputError(req.body);
     if (problem) return res.status(400).json({ success: false, message: problem });
@@ -1047,7 +1048,7 @@ app.post('/api/products', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.put('/api/products/:id', requireAuth('admin'), async (req, res) => {
+app.put('/api/products/:id', requireAuth('admin'), requireModule('products'), async (req, res) => {
   try {
     const problem = productInputError(req.body, { partial: true });
     if (problem) return res.status(400).json({ success: false, message: problem });
@@ -1079,7 +1080,7 @@ app.put('/api/products/:id', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.delete('/api/products/:id', requireAuth('admin'), async (req, res) => {
+app.delete('/api/products/:id', requireAuth('admin'), requireModule('products'), async (req, res) => {
   try {
     const ok = await db.deleteProduct(req.params.id);
     if (!ok) {
@@ -1115,7 +1116,7 @@ const cleanOptionList = value => (Array.isArray(value) ? value : [])
   .filter(Boolean)
   .slice(0, 20);
 
-app.post('/api/catalog-options', requireAuth('admin'), async (req, res) => {
+app.post('/api/catalog-options', requireAuth('admin'), requireModule('products'), async (req, res) => {
   try {
     const data = await db.registerCatalogOptions({
       categories: cleanOptionList(req.body?.categories),
@@ -1140,7 +1141,7 @@ const CATALOG_OPTION_FIELDS = {
   physicalForms: (p) => [p.form, p.physicalForm],
 };
 
-app.delete('/api/catalog-options', requireAuth('admin'), async (req, res) => {
+app.delete('/api/catalog-options', requireAuth('admin'), requireModule('products'), async (req, res) => {
   try {
     const kind = String(req.body?.kind || '');
     const value = String(req.body?.value || '');
@@ -1161,7 +1162,7 @@ app.delete('/api/catalog-options', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.get('/api/user-product-summary', requireAuth('admin'), async (req, res) => {
+app.get('/api/user-product-summary', requireAuth('admin'), requireModule(['products', 'users', 'overview', 'analytics']), async (req, res) => {
   try {
     const data = await db.getUserProductSummary();
     res.json({ success: true, data });
@@ -1203,7 +1204,7 @@ app.get('/api/blogs/:id', async (req, res) => {
   }
 });
 
-app.post('/api/blogs', requireAuth('admin'), async (req, res) => {
+app.post('/api/blogs', requireAuth('admin'), requireModule('blogs'), async (req, res) => {
   try {
     if (typeof req.body?.title !== 'string' || !req.body.title.trim()) {
       return res.status(400).json({ success: false, message: 'Blog title is required' });
@@ -1215,7 +1216,7 @@ app.post('/api/blogs', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.put('/api/blogs/:id', requireAuth('admin'), async (req, res) => {
+app.put('/api/blogs/:id', requireAuth('admin'), requireModule('blogs'), async (req, res) => {
   try {
     const updated = await db.updateBlog(req.params.id, req.body || {});
     if (!updated) {
@@ -1227,7 +1228,7 @@ app.put('/api/blogs/:id', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.delete('/api/blogs/:id', requireAuth('admin'), async (req, res) => {
+app.delete('/api/blogs/:id', requireAuth('admin'), requireModule('blogs'), async (req, res) => {
   try {
     const ok = await db.deleteBlog(req.params.id);
     if (!ok) {
@@ -1265,7 +1266,7 @@ app.get('/api/videos/:id', async (req, res) => {
   }
 });
 
-app.post('/api/videos', requireAuth('admin'), async (req, res) => {
+app.post('/api/videos', requireAuth('admin'), requireModule('videos'), async (req, res) => {
   try {
     if (typeof req.body?.title !== 'string' || !req.body.title.trim()) {
       return res.status(400).json({ success: false, message: 'Video title is required' });
@@ -1286,7 +1287,7 @@ app.post('/api/videos', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.put('/api/videos/:id', requireAuth('admin'), async (req, res) => {
+app.put('/api/videos/:id', requireAuth('admin'), requireModule('videos'), async (req, res) => {
   try {
     const videoUrl = req.body?.videoUrl || req.body?.url || req.body?.fileUrl;
     const payload = {
@@ -1303,7 +1304,7 @@ app.put('/api/videos/:id', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.delete('/api/videos/:id', requireAuth('admin'), async (req, res) => {
+app.delete('/api/videos/:id', requireAuth('admin'), requireModule('videos'), async (req, res) => {
   try {
     const ok = await db.deleteVideo(req.params.id);
     if (!ok) {
@@ -1732,7 +1733,7 @@ function isAssignedTo(order, user) {
   return user.role === 'admin' || order.assignedDeliveryBoy === user.name || order.assignedDeliveryBoy === 'Unassigned';
 }
 
-app.get('/api/orders', requireAuth(), async (req, res) => {
+app.get('/api/orders', requireAuth(), requireModule('orders'), async (req, res) => {
   try {
     const user = req.user;
 
@@ -1796,7 +1797,7 @@ app.post('/api/orders', requireAuth(), async (req, res) => {
   }
 });
 
-app.put('/api/orders/:id', requireAuth('admin'), async (req, res) => {
+app.put('/api/orders/:id', requireAuth('admin'), requireModule('orders'), async (req, res) => {
   try {
     const { id, _id, otp, ...updates } = req.body || {};
     const order = await db.updateOrder(req.params.id, updates);
@@ -1914,7 +1915,7 @@ app.post('/api/delivery/verify-otp', requireAuth('delivery', 'admin'), async (re
 
 // Admin picks the delivery agent for an order; an empty id un-assigns it. The
 // name and phone come from the agent's account, never from the request.
-app.put('/api/orders/:id/assign', requireAuth('admin'), async (req, res) => {
+app.put('/api/orders/:id/assign', requireAuth('admin'), requireModule('orders'), async (req, res) => {
   try {
     const agentId = String(req.body?.deliveryUserId || '');
     let updates = { assignedDeliveryBoy: 'Unassigned', deliveryBoyPhone: '', assignedDeliveryUserId: '' };
@@ -1934,7 +1935,7 @@ app.put('/api/orders/:id/assign', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), async (req, res) => {
+app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), requireModule('orders'), async (req, res) => {
   try {
     const ALLOWED = ['Pending', 'Assigned', 'Confirmed', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled'];
     const { status, deliveryStatus, expectedDeliveryDate } = req.body || {};
@@ -2021,7 +2022,7 @@ app.get('/api/cms', async (req, res) => {
   }
 });
 
-app.put('/api/cms', requireAuth('admin'), async (req, res) => {
+app.put('/api/cms', requireAuth('admin'), requireModule('cms'), async (req, res) => {
   try {
     const updated = await db.updateCMS(req.body);
     recordActivity(req, {
@@ -2049,7 +2050,7 @@ const ALLOWED_UPLOAD_TYPES = [
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;      // 10MB for images
 const MAX_VIDEO_BYTES = 150 * 1024 * 1024;     // 150MB for videos (stored on disk, no MongoDB limit)
 
-app.post('/api/upload', requireAuth('admin'), async (req, res) => {
+app.post('/api/upload', requireAuth('admin'), requireModule(['cms', 'products', 'blogs', 'videos', 'users']), async (req, res) => {
   try {
     const { filename, contentType } = req.body || {};
     // Accept either a bare base64 string or a data: URL from FileReader.
@@ -2170,7 +2171,7 @@ app.post('/api/advisory/subscribe', async (req, res) => {
   }
 });
 
-app.get('/api/advisory/subscribers', requireAuth('admin'), async (req, res) => {
+app.get('/api/advisory/subscribers', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     const data = await db.getAdvisorySubscribers();
     res.json({ success: true, data });
@@ -2179,7 +2180,7 @@ app.get('/api/advisory/subscribers', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.patch('/api/advisory/subscribers/:id', requireAuth('admin'), async (req, res) => {
+app.patch('/api/advisory/subscribers/:id', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     const status = req.body?.status;
     if (!SUBSCRIBER_STATUSES.includes(status)) {
@@ -2251,7 +2252,7 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
   }
 });
 
-app.get('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
+app.get('/api/advisory/broadcasts', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     res.json({ success: true, data: await db.getAdvisoryBroadcasts(20) });
   } catch (err) {
@@ -2259,7 +2260,7 @@ app.get('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.get('/api/advisory/broadcasts/:id', requireAuth('admin'), async (req, res) => {
+app.get('/api/advisory/broadcasts/:id', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     const broadcast = await db.getAdvisoryBroadcast(req.params.id);
     if (!broadcast) return res.status(404).json({ success: false, message: 'Broadcast not found.' });
@@ -2269,7 +2270,7 @@ app.get('/api/advisory/broadcasts/:id', requireAuth('admin'), async (req, res) =
   }
 });
 
-app.post('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
+app.post('/api/advisory/broadcasts', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     let request;
     try {
@@ -2310,7 +2311,7 @@ app.post('/api/advisory/broadcasts', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.post('/api/advisory/broadcasts/:id/process', requireAuth('admin'), async (req, res) => {
+app.post('/api/advisory/broadcasts/:id/process', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     const { id } = req.params;
     const started = Date.now();
@@ -2360,7 +2361,7 @@ app.post('/api/advisory/broadcasts/:id/process', requireAuth('admin'), async (re
   }
 });
 
-app.post('/api/advisory/broadcasts/:id/cancel', requireAuth('admin'), async (req, res) => {
+app.post('/api/advisory/broadcasts/:id/cancel', requireAuth('admin'), requireModule('subscribers'), async (req, res) => {
   try {
     await db.cancelAdvisoryBroadcast(req.params.id);
     const current = await db.getAdvisoryBroadcast(req.params.id);
@@ -2439,7 +2440,7 @@ app.post('/api/visitor-contact', async (req, res) => {
   }
 });
 
-app.get('/api/visitor-locations', requireAuth('admin'), async (req, res) => {
+app.get('/api/visitor-locations', requireAuth('admin'), requireModule(['overview', 'analytics']), async (req, res) => {
   try {
     res.json({ success: true, data: await db.getVisitorLocations() });
   } catch (err) {
@@ -2483,7 +2484,7 @@ app.post('/api/enquiries', async (req, res) => {
   }
 });
 
-app.get('/api/enquiries', requireAuth('admin'), async (req, res) => {
+app.get('/api/enquiries', requireAuth('admin'), requireModule('enquiries'), async (req, res) => {
   try {
     const data = await db.getFarmerEnquiries();
     res.json({ success: true, data });
@@ -2492,7 +2493,7 @@ app.get('/api/enquiries', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.put('/api/enquiries/:id', requireAuth('admin'), async (req, res) => {
+app.put('/api/enquiries/:id', requireAuth('admin'), requireModule('enquiries'), async (req, res) => {
   try {
     const { status } = req.body;
     const updated = await db.updateFarmerEnquiryStatus(req.params.id, status);
@@ -2509,7 +2510,7 @@ app.put('/api/enquiries/:id', requireAuth('admin'), async (req, res) => {
 // COUPONS & DISCOUNT CREDIT MONITORING
 // ============================================================
 
-app.get('/api/admin/coupons', requireAuth('admin'), async (req, res) => {
+app.get('/api/admin/coupons', requireAuth('admin'), requireModule('coupons'), async (req, res) => {
   try {
     const data = await db.getCoupons();
     res.json({ success: true, data });
@@ -2518,7 +2519,7 @@ app.get('/api/admin/coupons', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.post('/api/admin/coupons', requireAuth('admin'), async (req, res) => {
+app.post('/api/admin/coupons', requireAuth('admin'), requireModule('coupons'), async (req, res) => {
   try {
     const { code, type, value, minOrder, maxDiscount, usageType, active } = req.body;
     if (!code || value === undefined) {
@@ -2531,7 +2532,7 @@ app.post('/api/admin/coupons', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.put('/api/admin/coupons/:id', requireAuth('admin'), async (req, res) => {
+app.put('/api/admin/coupons/:id', requireAuth('admin'), requireModule('coupons'), async (req, res) => {
   try {
     const updated = await db.updateCoupon(req.params.id, req.body);
     res.json({ success: true, message: 'Coupon updated successfully', data: updated });
@@ -2540,7 +2541,7 @@ app.put('/api/admin/coupons/:id', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.delete('/api/admin/coupons/:id', requireAuth('admin'), async (req, res) => {
+app.delete('/api/admin/coupons/:id', requireAuth('admin'), requireModule('coupons'), async (req, res) => {
   try {
     await db.deleteCoupon(req.params.id);
     res.json({ success: true, message: 'Coupon deleted successfully' });
@@ -2549,7 +2550,7 @@ app.delete('/api/admin/coupons/:id', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.get('/api/admin/coupon-usages', requireAuth('admin'), async (req, res) => {
+app.get('/api/admin/coupon-usages', requireAuth('admin'), requireModule('coupons'), async (req, res) => {
   try {
     const data = await db.getCouponUsages();
     res.json({ success: true, data });
@@ -2644,7 +2645,7 @@ app.post('/api/coupons/validate', async (req, res) => {
 // REFERRALS & REWARD POINTS MANAGEMENT
 // ============================================================
 
-app.get('/api/admin/referrals', requireAuth('admin'), async (req, res) => {
+app.get('/api/admin/referrals', requireAuth('admin'), requireModule('referrals'), async (req, res) => {
   try {
     const referrals = await db.getReferrals();
     const ledgers = await db.getPointsLedgers();
@@ -2655,7 +2656,7 @@ app.get('/api/admin/referrals', requireAuth('admin'), async (req, res) => {
   }
 });
 
-app.post('/api/admin/referrals/assign-points', requireAuth('admin'), async (req, res) => {
+app.post('/api/admin/referrals/assign-points', requireAuth('admin'), requireModule('referrals'), async (req, res) => {
   try {
     const { userId, points, description } = req.body;
     if (!userId || points === undefined) {
@@ -2697,7 +2698,7 @@ app.get('/api/staff-tasks', requireAuth('admin', 'employee'), async (req, res) =
 // BILLING / POS
 // ============================================================
 
-app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, res) => {
+app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule('pos', { roles: ['billing'] }), async (req, res) => {
   try {
     const {
       customerName,
@@ -2893,7 +2894,7 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), async (req, re
 /** GET /api/billing/next-invoice-no
  *  Returns the next SAM-formatted invoice number for the logged-in user's store.
  */
-app.get('/api/billing/next-invoice-no', requireAuth('billing', 'admin'), async (req, res) => {
+app.get('/api/billing/next-invoice-no', requireAuth('billing', 'admin'), requireModule('pos', { roles: ['billing'] }), async (req, res) => {
   try {
     let storeCode = req.user.storeCode || '';
     if (!storeCode && req.user.storeId) {
@@ -2907,7 +2908,7 @@ app.get('/api/billing/next-invoice-no', requireAuth('billing', 'admin'), async (
   }
 });
 
-app.get('/api/billing/invoices', requireAuth('billing', 'admin'), async (req, res) => {
+app.get('/api/billing/invoices', requireAuth('billing', 'admin'), requireModule(['history', 'pos'], { roles: ['billing'] }), requireModule('orders'), async (req, res) => {
   try {
     const data = await db.getInvoices({ storeId: req.user.storeId });
     res.json({ success: true, data });
@@ -3007,7 +3008,7 @@ app.put('/api/staff-profile', requireAuth('employee', 'admin', 'superadmin', 'de
 });
 
 // GET /api/admin/staff-profiles  — admin or superadmin views all staff profiles
-app.get('/api/admin/staff-profiles', requireAuth('admin', 'superadmin'), async (req, res) => {
+app.get('/api/admin/staff-profiles', requireAuth('admin', 'superadmin'), requireModule('employees'), async (req, res) => {
   try {
     const storeId = req.query.storeId || (req.user.role === 'admin' ? req.user.storeId : undefined);
     const profiles = await db.listStaffProfiles(storeId ? { storeId } : {});
@@ -3018,7 +3019,7 @@ app.get('/api/admin/staff-profiles', requireAuth('admin', 'superadmin'), async (
 });
 
 // GET /api/admin/staff-profiles/:userId  — admin views one specific staff profile
-app.get('/api/admin/staff-profiles/:userId', requireAuth('admin', 'superadmin'), async (req, res) => {
+app.get('/api/admin/staff-profiles/:userId', requireAuth('admin', 'superadmin'), requireModule('employees'), async (req, res) => {
   try {
     const profile = await db.getStaffProfile(req.params.userId);
     res.json({ success: true, data: profile || {} });

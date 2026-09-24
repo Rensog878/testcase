@@ -48,9 +48,43 @@
     }
   }
   </script>
+  <style>
+    /* Page loader: first paint (the markup in #root, replaced when React mounts)
+       and the route fallback (src/components/PageLoader.jsx) share these rules.
+       Intro plays once (mark pops, wordmark rises, road draws, tagline types),
+       then the truck drives factory -> farm on a loop. */
+    .sb-loader{--g:#0f6b3f;--gold:#d99a1c;--soft:#e3f1e7;position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;background:radial-gradient(circle at 50% 42%,#eef8f1 0%,#fff 62%);font-family:'Plus Jakarta Sans','Poppins',system-ui,sans-serif;animation:sbl-fade .3s ease-out both}
+    .sb-loader--late{animation-delay:.2s}
+    .sb-loader-mark{position:relative;width:104px;height:104px;display:grid;place-items:center;animation:sbl-pop .7s cubic-bezier(.34,1.56,.64,1) both}
+    .sb-loader-mark::before{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid var(--soft);border-top-color:var(--g);border-right-color:var(--gold);animation:sbl-spin 1.4s cubic-bezier(.6,.1,.4,.9) infinite}
+    .sb-loader-mark::after{content:"";position:absolute;inset:14px;border-radius:50%;background:#fff;box-shadow:0 8px 24px rgba(15,107,63,.14);animation:sbl-glow 2.4s ease-in-out infinite}
+    .sb-loader-mark img{position:relative;z-index:1;width:62px;height:62px;object-fit:contain;animation:sbl-breathe 2.4s ease-in-out infinite}
+    .sb-loader-word{height:34px;width:auto;max-width:70vw;animation:sbl-rise .5s .25s cubic-bezier(.2,.8,.2,1) both}
+    .sb-loader-road{position:relative;display:flex;align-items:flex-end;gap:8px;width:min(260px,72vw);height:34px;font-size:22px;line-height:1;animation:sbl-rise .5s .4s cubic-bezier(.2,.8,.2,1) both}
+    .sb-loader-road>span:first-child,.sb-loader-road>span:last-child{flex:none}
+    .sb-loader-road>span:last-child{transform-origin:50% 100%;animation:sbl-harvest 2.2s 1s ease-in-out infinite}
+    .sb-loader-line{position:relative;flex:1;height:4px;margin-bottom:6px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--soft) 0 8px,transparent 8px 14px);transform-origin:0 50%;animation:sbl-draw .6s .5s cubic-bezier(.2,.8,.2,1) both}
+    .sb-loader-truck{position:absolute;left:0;bottom:2px;font-size:20px;animation:sbl-drive 2.2s 1s cubic-bezier(.45,0,.3,1) infinite both}
+    .sb-loader-truck>span{display:inline-block;transform:scaleX(-1);animation:sbl-bump .28s linear infinite}
+    .sb-loader-tag{margin:2px 0 0;font-size:13px;font-weight:800;letter-spacing:.32em;color:var(--g);text-transform:uppercase;text-align:center;white-space:nowrap}
+    .sb-l{display:inline-block;animation:sbl-letter .45s calc(.7s + var(--i,0)*.04s) cubic-bezier(.2,.8,.2,1) both}
+    .sb-sp{width:.4em}
+    @keyframes sbl-fade{from{opacity:0}}
+    @keyframes sbl-pop{from{opacity:0;transform:scale(.4) rotate(-20deg)}}
+    @keyframes sbl-rise{from{opacity:0;transform:translateY(12px)}}
+    @keyframes sbl-draw{from{transform:scaleX(0)}}
+    @keyframes sbl-letter{from{opacity:0;transform:translateY(8px);filter:blur(3px)}}
+    @keyframes sbl-spin{to{transform:rotate(360deg)}}
+    @keyframes sbl-breathe{50%{transform:scale(.92)}}
+    @keyframes sbl-glow{50%{box-shadow:0 10px 32px rgba(217,154,28,.28)}}
+    @keyframes sbl-drive{0%{left:0;opacity:0}8%{opacity:1}82%{opacity:1}100%{left:calc(100% - 24px);opacity:0}}
+    @keyframes sbl-bump{50%{transform:scaleX(-1) translateY(-1.5px)}}
+    @keyframes sbl-harvest{0%,78%,100%{transform:none}86%{transform:scale(1.25) rotate(-8deg)}94%{transform:scale(.95) rotate(4deg)}}
+    @media (prefers-reduced-motion:reduce){.sb-loader *,.sb-loader *::before,.sb-loader *::after{animation:none!important}.sb-loader-truck{display:none}}
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root"><div class="sb-loader" role="status" aria-label="Loading"><div class="sb-loader-mark"><img src="/assets/brand/logo-mark.png" alt=""></div><img class="sb-loader-word" src="/assets/brand/logo-wordmark.png" alt="Sathyam Agro Mart"><div class="sb-loader-road" aria-hidden="true"><span>🏭</span><span class="sb-loader-line"><span class="sb-loader-truck"><span>🚚</span></span></span><span>🌾</span></div><p class="sb-loader-tag notranslate"><span class="sb-l" style="--i:0">F</span><span class="sb-l" style="--i:1">a</span><span class="sb-l" style="--i:2">c</span><span class="sb-l" style="--i:3">t</span><span class="sb-l" style="--i:4">o</span><span class="sb-l" style="--i:5">r</span><span class="sb-l" style="--i:6">y</span><span class="sb-l sb-sp"> </span><span class="sb-l" style="--i:8">t</span><span class="sb-l" style="--i:9">o</span><span class="sb-l sb-sp"> </span><span class="sb-l" style="--i:11">F</span><span class="sb-l" style="--i:12">a</span><span class="sb-l" style="--i:13">r</span><span class="sb-l" style="--i:14">m</span><span class="sb-l" style="--i:15">e</span><span class="sb-l" style="--i:16">r</span></p></div></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

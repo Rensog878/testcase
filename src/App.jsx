@@ -1,4 +1,5 @@
 import { Suspense, lazy, useLayoutEffect } from 'react'
+import PageLoader from './components/PageLoader'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { CmsProvider } from './context/CmsContext'
@@ -114,7 +115,7 @@ export default function App() {
     <CmsProvider>
     <CheckoutProvider enabled={storePage}>
       <StoreTop />
-      <Suspense fallback={<div className="route-loading" role="status" aria-live="polite" />}>
+      <Suspense fallback={<PageLoader late />}>
       <Routes>
         {/* Public Home - the storefront */}
         <Route path="/"        element={<HomePage />} />

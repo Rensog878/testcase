@@ -14,9 +14,10 @@ import useCatalogProducts from '../hooks/useCatalogProducts'
 // The left rail follows the scroll (the category being read is highlighted and
 // kept in view), and tapping a rail tab scrolls the pane to that category.
 // ?ct= in the URL names the category, so links like Shop -> ?ct=Brands land on it.
-// The rail lists every category the live products are in (liveCategories:
-// a category an admin adds shows up as soon as a product uses it, and one with
-// no products is left out); the right pane lists those products. Until the
+// The rail lists every category in the admin panel (catalogOptions.categories),
+// plus any a live product uses that the admin list lacks (liveCategories), in
+// the admin's order; the right pane lists each one's products, or "coming
+// soon" for a category that has none yet. Until the
 // catalogue arrives, the header menu's list (src/storefront/data.js
 // CATEGORIES) stands in so the skeletons have somewhere to go.
 
@@ -59,7 +60,13 @@ export default function Categories() {
   const { products: dbProducts, catalogOptions, loading: productsLoading } = useCatalogProducts({ onlineOnly: true })
   const categoriesData = useMemo(() => {
     if (productsLoading && !dbProducts.length) return STAND_IN_CATEGORIES
-    return liveCategories(dbProducts, catalogOptions?.categories || []).map(c => toCategory(c.name))
+    const admin = (catalogOptions?.categories || []).map(c => String(c || '').trim()).filter(c => c && c !== 'All')
+    const names = []
+    const same = (a, b) => matchesCategory(a, b) && matchesCategory(b, a)
+    for (const name of [...admin, ...liveCategories(dbProducts, admin).map(c => c.name)]) {
+      if (!names.some(n => same(n, name))) names.push(name)
+    }
+    return names.map(toCategory)
   }, [dbProducts, productsLoading, catalogOptions?.categories])
 
   const [activeHandle, setActiveHandle] = useState(() => findCategory(STAND_IN_CATEGORIES, ctParam)?.handle)
@@ -109,8 +116,8 @@ export default function Categories() {
         .filter(p => catMatches || p.name.toLowerCase().includes(q))
         .map(p => ({ handle: p.id, title: p.name, image: p.image, price: p.price }))
       const subMenus = items.length ? [{ name: cat.name, items }] : []
-      return { cat, subMenus, total: items.length }
-    }).filter(section => section.subMenus.length > 0)
+      return { cat, subMenus, total: items.length, empty: !q && !items.length }
+    }).filter(section => section.subMenus.length > 0 || section.empty)
   }, [searchQuery, dbProducts, productsLoading, categoriesData])
 
   const sectionsRef = useRef(sections)
@@ -340,7 +347,7 @@ export default function Categories() {
               </div>
             )}
 
-            {sections.map(({ cat, subMenus, total, loading: sectionLoading }) => (
+            {sections.map(({ cat, subMenus, total, empty, loading: sectionLoading }) => (
               <div
                 key={cat.id || cat.handle}
                 ref={el => { sectionEls.current[cat.handle] = el }}
@@ -361,7 +368,9 @@ export default function Categories() {
                       {/* One text node, so the page translator sees the whole sentence. */}
                       {sectionLoading
                         ? `Loading verified agricultural ${cat.name.toLowerCase()} & field formulations…`
-                        : `Explore ${total} verified agricultural ${cat.name.toLowerCase()} & field formulations.`}
+                        : empty
+                          ? `Verified agricultural ${cat.name.toLowerCase()} are coming soon. Call our helpline for advice today.`
+                          : `Explore ${total} verified agricultural ${cat.name.toLowerCase()} & field formulations.`}
                     </p>
                   </div>
                   <div className="subcat-banner-image">

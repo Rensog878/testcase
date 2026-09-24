@@ -19,6 +19,7 @@ import { DealBanner, Hero, StatsStrip, TrustStrip } from './sections/Hero'
 import { CategoryGrid, Certifications, CropGrid } from './sections/ShopGrids'
 import { Catalog, Trending } from './sections/Catalog'
 import { Newsletter, Testimonials } from './sections/Community'
+import { cmsOverride } from '../hooks/useCmsSettings'
 // The one footer, shared with every other store page.
 import Footer from '../components/home/Footer'
 import BackToTop from './sections/BackToTop'
@@ -318,14 +319,15 @@ export default function Storefront() {
             page uses (sections/Header.jsx, StoreChrome). */}
         <StoreChrome t={t} appliedLang={appliedLang} user={user} cartCount={count} cartTotal={totals.total} searchText={filters.search} />
         <Hero t={t} cms={cms} />
-        <DealBanner cms={cms} />
+        {/* An admin turns these off by clearing their title in the CMS. */}
+        {cmsOverride(cms, 'dealBannerTitle') !== '' && <DealBanner cms={cms} />}
         <TrustStrip t={t} cms={cms} />
         <StatsStrip cms={cms} />
         <CategoryGrid t={t} cms={cms} />
         <CropGrid cms={cms} />
         <Catalog t={t} filters={filters} products={products} catalogOptions={catalogOptions} user={user} filterDrawerOpen={filterDrawerOpen} loading={catalogLoading} />
         <Trending t={t} products={products} loading={catalogLoading} />
-        <Testimonials cms={cms} />
+        {cmsOverride(cms, 'testimonialsTitle') !== '' && <Testimonials cms={cms} />}
         <Newsletter cms={cms} crops={rawCatalogOptions?.crops} />
         <Certifications settings={cms} />
         <BackToTop />

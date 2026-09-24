@@ -1130,6 +1130,37 @@ app.post('/api/catalog-options', requireAuth('admin'), async (req, res) => {
   }
 });
 
+// Removes a mistaken value (e.g. a "test" crop) from the registry. Refused
+// while any product still uses it, so no product loses its label.
+const CATALOG_OPTION_FIELDS = {
+  categories: (p) => [p.category],
+  crops: (p) => p.crops,
+  storageBatches: (p) => p.packSizes,
+  diseases: (p) => p.diseases,
+  physicalForms: (p) => [p.form, p.physicalForm],
+};
+
+app.delete('/api/catalog-options', requireAuth('admin'), async (req, res) => {
+  try {
+    const kind = String(req.body?.kind || '');
+    const value = String(req.body?.value || '');
+    if (!CATALOG_OPTION_FIELDS[kind] || !value) {
+      return res.status(400).json({ success: false, message: 'Say which list and which value to remove.' });
+    }
+    const usedBy = (await db.getProducts({})).filter((p) =>
+      (CATALOG_OPTION_FIELDS[kind](p) || []).some((v) => String(v || '').trim() === value));
+    if (usedBy.length) {
+      return res.status(409).json({ success: false, message: `Still used by ${usedBy.length} product(s): ${usedBy.slice(0, 3).map((p) => p.name).join(', ')}` });
+    }
+    const data = await db.removeCatalogOption(kind, value);
+    if (!data) return res.status(404).json({ success: false, message: 'That value is not in the list.' });
+    recordActivity(req, { module: 'PRODUCTS', action: 'REMOVE_CATALOG_OPTION', entityId: kind, description: `Removed ${kind} option "${value}"` });
+    res.json({ success: true, data });
+  } catch (err) {
+    sendError(res, err, 'Catalog options');
+  }
+});
+
 app.get('/api/user-product-summary', requireAuth('admin'), async (req, res) => {
   try {
     const data = await db.getUserProductSummary();
@@ -1371,7 +1402,9 @@ async function priceCart(rawItems) {
 
   for (const r of requested) {
     const product = products.get(r.id);
-    if (!product) {
+    // Offline products are sold at the billing counter only; one may still sit
+    // in a cart from before an admin took it off the website.
+    if (!product || product.online === false || product.visibility === 'offline') {
       throw new HttpError(409, 'A product in your cart is no longer available. Please remove it and try again.');
     }
     const packSizes = Array.isArray(product.packSizes) ? product.packSizes : [];
@@ -1381,7 +1414,9 @@ async function priceCart(rawItems) {
       throw new HttpError(409, `${product.name} cannot be ordered right now.`);
     }
 
-    lines.push({ id: product.id, name: product.name, image: product.image || '', packSize: pack, selectedPack: pack, qty: r.qty, price });
+    const rate = Number(product.gstRate);
+    const gstRate = product.gstRate !== undefined && product.gstRate !== null && product.gstRate !== '' && Number.isFinite(rate) ? rate : GST_RATE * 100;
+    lines.push({ id: product.id, name: product.name, image: product.image || '', packSize: pack, selectedPack: pack, qty: r.qty, price, gstRate });
     unitsByProduct.set(product.id, (unitsByProduct.get(product.id) || 0) + r.qty);
   }
 
@@ -1396,7 +1431,9 @@ async function priceCart(rawItems) {
   }
 
   const subtotal = Math.round(lines.reduce((sum, line) => sum + line.price * line.qty, 0) * 100) / 100;
-  const gst = Math.round(subtotal * GST_RATE);
+  // Each product's own GST rate (18% when unset), rounded once over the
+  // basket - the same sum checkoutRules.js cartTotals shows the customer.
+  const gst = Math.round(lines.reduce((sum, line) => sum + line.price * line.qty * line.gstRate / 100, 0));
 
   return {
     lines,

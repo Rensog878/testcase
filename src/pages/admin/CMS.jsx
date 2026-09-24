@@ -154,7 +154,7 @@ const SECTIONS = [
     id: 'deal',
     label: '🔥 Deal Banner',
     fields: [
-      { key: 'dealBannerTitle',    label: 'Sale Headline', type: 'input' },
+      { key: 'dealBannerTitle',    label: 'Sale Headline (empty hides the sale banner)', type: 'input' },
       { key: 'dealBannerSubtitle', label: 'Sale Sub-text', type: 'input' },
     ],
   },
@@ -238,7 +238,7 @@ const SECTIONS = [
     id: 'testimonials',
     label: '💬 Testimonials',
     fields: [
-      { key: 'testimonialsTitle',    label: 'Section Title',    type: 'input' },
+      { key: 'testimonialsTitle',    label: 'Section Title (empty hides testimonials)',    type: 'input' },
       { key: 'testimonialsSubtitle', label: 'Section Subtitle', type: 'input' },
       { key: 'testimonial1Quote', label: '💬 Testimonial 1 — Quote',    type: 'textarea' },
       { key: 'testimonial1Name',  label: '👤 Testimonial 1 — Name',     type: 'input' },

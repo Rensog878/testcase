@@ -1511,6 +1511,18 @@ class DatabaseManager {
         return updated;
   }
 
+  // Takes one value out of a catalogue list (exact match). The caller checks
+  // that no product still uses it.
+  async removeCatalogOption(kind, value) {
+        await connectDB();
+        const current = await this.getCatalogOptions();
+        const list = Array.isArray(current[kind]) ? current[kind] : [];
+        if (!list.includes(value)) return null;
+        const updated = { ...current, [kind]: list.filter(item => item !== value) };
+        await Settings.findByIdAndUpdate('global', { $set: { catalogOptions: updated } }, { upsert: true });
+        return updated;
+  }
+
   // The product already using this name (same name ignoring capitals,
   // punctuation and the brand prefix), other than exceptId. Read from the
   // database, not the product cache, so another server's publish is seen.

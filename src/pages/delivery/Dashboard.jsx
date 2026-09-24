@@ -50,21 +50,20 @@ export default function DeliveryDashboard() {
     axios.put(`/api/orders/${order.id}/status`, updates).catch(() => toast.error('Unable to save delivery update.'))
   }
 
+  // Every figure here is counted from the orders on this page.
+  const delivered = orders.filter(o => o.status === 'Delivered')
+  const pending = orders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled')
+  const codDue = pending.filter(o => o.payMode === 'COD').reduce((sum, o) => sum + o.amount, 0)
   const KPI = [
-    { label: 'Assigned', value: String(orders.length), change: '+4 today', color: 'blue', icon: '🚚' },
-    { label: 'Delivered', value: String(orders.filter(o => o.status === 'Delivered').length), change: '89% success', color: 'green', icon: '✅' },
-    { label: 'Pending', value: String(orders.filter(o => o.status !== 'Delivered').length), change: '3 route clusters', color: 'yellow', icon: '🧭' },
-  ]
-  const routeHealth = [
-    { label: 'On-time status', value: 92 },
-    { label: 'Avg route time', value: 68 },
-    { label: 'COD collection', value: 74 },
+    { label: 'Assigned', value: String(orders.length), change: `${orders.filter(o => o.assignedDeliveryBoy === 'Unassigned').length} not yet assigned to anyone`, color: 'blue', icon: '🚚' },
+    { label: 'Delivered', value: String(delivered.length), change: orders.length ? `${Math.round(delivered.length / orders.length * 100)}% of your orders` : '—', color: 'green', icon: '✅' },
+    { label: 'Pending', value: String(pending.length), change: `₹${codDue.toLocaleString('en-IN')} cash to collect`, color: 'yellow', icon: '🧭' },
   ]
 
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <div><h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={28} /> My deliveries</h1><p>Welcome, {user?.name}. {orders.length} deliveries assigned today.</p></div>
+        <div><h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={28} /> My deliveries</h1><p>Welcome, {user?.name}. {orders.length} deliveries on your list.</p></div>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: 24 }}>
@@ -76,38 +75,6 @@ export default function DeliveryDashboard() {
             <div className="stat-change positive">{item.change}</div>
           </div>
         ))}
-      </div>
-
-      <div className="analytics-grid">
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Route coverage</div>
-            <span className="badge badge-orange">3 zones</span>
-          </div>
-          <div className="mini-graph">
-            {[34, 48, 72, 64, 81, 90, 78].map((value, index) => (
-              <span key={index} style={{ height: `${value}%` }} className={index === 5 ? 'active' : ''} />
-            ))}
-          </div>
-          <div className="mini-graph-labels">
-            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Delivery health</div>
-          </div>
-          <div className="region-list">
-            {routeHealth.map(item => (
-              <div key={item.label} className="region-row">
-                <span>{item.label}</span>
-                <div className="mini-progress"><span style={{ width: `${item.value}%` }} /></div>
-                <strong>{item.value}%</strong>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>

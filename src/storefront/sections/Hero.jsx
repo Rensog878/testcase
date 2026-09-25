@@ -11,7 +11,7 @@ export const Hero = memo(function Hero({ t, cms }) {
   const shopBtn   = cmsText(cms, 'heroShopBtnText', t('hero_shop_btn'))
 
   return (
-    <section className="section" style={{ padding: '24px 0 40px 0' }}>
+    <section className="section hero-bento" style={{ padding: '24px 0 40px 0' }}>
       <div className="container">
         <div className="bento-grid-4">
           {/* Main feature banner (2 columns, 2 rows) */}
@@ -25,6 +25,10 @@ export const Hero = memo(function Hero({ t, cms }) {
                 <a href="#catalog" className="btn btn-primary bento-btn">
                   <span data-i18n="hero_shop_btn">{shopBtn}</span>
                 </a>
+                {/* Desktop only (hidden below 1025px): a second route in for farmers who want advice first. */}
+                <a href={WHATSAPP_EXPERT_URL} className="hero-cta-secondary" target="_blank" rel="noopener noreferrer">
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i> Talk to an Expert
+                </a>
               </div>
             </div>
           </div>
@@ -34,7 +38,7 @@ export const Hero = memo(function Hero({ t, cms }) {
             <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=600&q=80" className="bento-bg-img" alt="Crop Leaf Scan" loading="lazy" decoding="async" />
             <div className="bento-overlay">
               <span className="bento-tag">Instant Diagnostic</span>
-              <h3 className="bento-title" style={{ fontSize: '1.15rem' }}>AI Leaf Scanner</h3>
+              <h3 className="bento-title hero-scan-title">AI Leaf Scanner</h3>
               <p className="bento-desc">Upload leaf photo for 10-second disease check</p>
             </div>
           </div>

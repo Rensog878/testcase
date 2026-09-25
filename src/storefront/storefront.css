@@ -2366,6 +2366,12 @@ body.sb-home-active {
   line-height: 1.5;
 }
 
+:is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-title.hero-scan-title {
+  font-size: 1.15rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .hero-cta-secondary {
+  display: none;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) .bento-btn {
   width: fit-content;
   border-radius: 50px;
@@ -2398,7 +2404,7 @@ body.sb-home-active {
     letter-spacing: 0.8px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-title {
-    font-size: var(--fs-4xl) !important;
+    font-size: clamp(2.5rem, 3.5vw, 3.5rem) !important;
     letter-spacing: -0.5px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-desc {
@@ -12526,6 +12532,184 @@ body.poster-open .sb-portal .call-fab {
     transition: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .trust-item:hover i {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   HERO 2026 (>=1025px) - Hero.jsx, scoped to section.hero-bento
+   Editorial hero: a left-weighted scrim so the headline reads on any photo,
+   a tighter display headline, a two-button row (white primary with an arrow
+   and a glass "Talk to an Expert"), and side cards with a glass arrow
+   button that turns on hover. Arrows are Font Awesome glyphs in ::after, so
+   the markup only gained the secondary link (hidden below 1025px).
+   The headline size itself lives in the HERO BENTO GRID refinement layer
+   above (flagged important there, to beat the JSX inline font-size).
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-grid-4 {
+    margin-top: 16px;
+    grid-template-rows: repeat(2, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card {
+    border: 0;
+    border-radius: 28px;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.06), 0 18px 40px -18px rgba(6, 64, 43, 0.45);
+    transition: box-shadow 0.3s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:hover {
+    transform: none;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.06), 0 28px 56px -20px rgba(6, 64, 43, 0.55);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-bg-img {
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:hover .bento-bg-img {
+    transform: scale(1.05);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-overlay {
+    padding: 32px;
+    background: linear-gradient(180deg, rgba(4, 28, 19, 0) 25%, rgba(4, 28, 19, 0.55) 62%, rgba(4, 28, 19, 0.88) 100%);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 {
+    min-height: 540px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 .bento-overlay {
+    justify-content: center;
+    padding: 56px;
+    background:
+      linear-gradient(90deg, rgba(4, 28, 19, 0.86) 0%, rgba(4, 28, 19, 0.62) 42%, rgba(4, 28, 19, 0.08) 78%),
+      linear-gradient(0deg, rgba(4, 28, 19, 0.55) 0%, transparent 45%);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-tag {
+    margin-bottom: 18px;
+    padding: 7px 14px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.35);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2) .bento-tag {
+    margin-bottom: 12px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 .bento-title {
+    max-width: 14ch;
+    margin-bottom: 18px;
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 .bento-desc {
+    max-width: 34rem;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.84);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2) .bento-title {
+    margin-bottom: 6px;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2) .bento-desc {
+    max-width: 30rem;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn,
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .hero-cta-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 26px;
+    border-radius: 999px;
+    font: 700 1rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    text-decoration: none;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn {
+    border: 0;
+    color: #06402B;
+    background: #ffffff;
+    box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn::after {
+    content: "\f061";
+    font: 900 0.9rem/1 "Font Awesome 6 Free";
+    transition: transform 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn:hover {
+    color: #06402B;
+    background: #F0FAF4;
+    transform: translateY(-1px);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn:hover::after {
+    transform: translateX(3px);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .hero-cta-secondary {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .hero-cta-secondary i {
+    font-size: 1.15rem;
+    color: #25D366;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .hero-cta-secondary:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2)::after {
+    content: "\f061";
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    font: 900 1rem/1 "Font Awesome 6 Free";
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transform: rotate(-45deg);
+    transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+    pointer-events: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2):hover::after {
+    color: #06402B;
+    background: #ffffff;
+    transform: rotate(0deg);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento :is(.bento-btn, .hero-cta-secondary):focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+  }
+}
+@media (min-width: 1025px) and (prefers-reduced-motion: reduce) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-bg-img,
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn,
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-btn::after,
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .hero-cta-secondary,
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card::after {
+    transition: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:hover .bento-bg-img {
     transform: none;
   }
 }

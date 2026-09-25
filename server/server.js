@@ -22,6 +22,11 @@ import { sendWhatsAppText, sendWhatsAppImage, whatsAppConfigured } from './whats
 import { selectRecipients, renderAdvisory, parseBroadcastRequest, parseOptOutWebhook, broadcastCounts, cropGroupKey, SUBSCRIBER_STATUSES } from '../src/shared/advisoryRules.js';
 import { sendOrderConfirmation, sendDeliveryStatusUpdate, sendStaffOrderAlert } from './orderNotifications.js';
 import { estimatedDeliveryDate } from './orderMessages.js';
+import {
+  attachReferral, quoteRewards, claimRewards, bindClaim, releaseClaim, rewardOrderFields,
+  returnOrderRewards, retakeOrderRewards, settleReferralForOrder, reverseReferral, referralSummary, loadReferralSettings,
+} from './referralService.js';
+import { cleanReferralSettings, normalizeReferralCode, maskName, pointsExpiry } from './referrals.js';
 import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { hashPassword, verifyPassword, signToken, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
 import { cleanGeo, cleanVisitorPing, cleanVisitorDenied, validVisitorId } from './geo.js';
@@ -867,7 +872,13 @@ app.post('/api/auth/register', async (req, res) => {
 
     console.log(`🌱 New farmer account for +91 ${phone}`);
 
-    res.json({ success: true, user: toSafeUser(user), token });
+    // A friend's referral code is optional; a bad one never blocks the signup.
+    const referral = await attachReferral(user, req.body?.referralCode).catch((err) => {
+      console.error('Referral at signup:', err?.message);
+      return null;
+    });
+
+    res.json({ success: true, user: toSafeUser(user), token, referral });
   } catch (err) {
     sendError(res, userInputError(err), 'Registration');
   }
@@ -1531,7 +1542,8 @@ app.post('/api/payments/create-order', requireAuth(), async (req, res) => {
     const user = req.user;
     const customer = readCustomerDetails(req.body?.customer);
     const priced = await priceCart(req.body?.items);
-    const amountPaise = Math.round(priced.total * 100);
+    const quote = await quoteRewards(user, priced, req.body?.usePoints === true);
+    const amountPaise = Math.round(quote.rewards.payable * 100);
 
     const razorpay = getRazorpayInstance();
     const razorpayOrder = await razorpay.orders.create({
@@ -1546,6 +1558,8 @@ app.post('/api/payments/create-order', requireAuth(), async (req, res) => {
       ...customer,
       ...priced,
       amountPaise,
+      // Taken for real only once the payment succeeds (finalizePaidOrder).
+      rewardQuote: { rewards: quote.rewards, referral: quote.referral ? { id: quote.referral.id } : null },
     }, CHECKOUT_TTL_MS);
 
     return res.json({
@@ -1556,7 +1570,10 @@ app.post('/api/payments/create-order', requireAuth(), async (req, res) => {
         currency: razorpayOrder.currency,
         subtotal: priced.subtotal,
         gst: priced.gst,
-        total: priced.total,
+        total: quote.rewards.payable,
+        itemsTotal: priced.total,
+        welcomeDiscount: quote.rewards.welcomeDiscount,
+        pointsUsed: quote.rewards.pointsUsed,
         keyId: process.env.RAZORPAY_KEY_ID,
       },
     });
@@ -1581,8 +1598,15 @@ async function finalizePaidOrder(razorpayOrderId, paymentId) {
   }
 
   let reserved = null;
+  let claim = null;
+  // Sessions from before Refer & Earn carry no quote.
+  const quote = session.rewardQuote || { rewards: { discount: 0, welcomeDiscount: 0, pointsUsed: 0 }, referral: null };
+  const payer = { id: session.userId };
   try {
     reserved = await db.reserveStock(session.stockLines);
+    // Already paid, so the order stands even if the points or offer were used
+    // up meanwhile; the flag lets an admin follow up, like stockShortfall.
+    if (session.userId) claim = await claimRewards(payer, quote, { strict: false });
     const order = await db.createOrder({
       userId: session.userId || undefined,
       customerName: session.customerName,
@@ -1593,6 +1617,7 @@ async function finalizePaidOrder(razorpayOrderId, paymentId) {
       subtotal: session.subtotal,
       gst: session.gst,
       total: session.total,
+      ...rewardOrderFields(quote, !!claim?.shortfall),
       expectedDeliveryDate: estimatedDeliveryDate(),
       paymentMethod: 'Razorpay (UPI)',
       paymentStatus: 'Paid',
@@ -1603,6 +1628,7 @@ async function finalizePaidOrder(razorpayOrderId, paymentId) {
       stockShortfall: !reserved.ok,
     });
 
+    if (claim?.token) await bindClaim(quote, claim.token, order.id);
     if (session.userId) await db.saveCart(session.userId, []);
     await db.kvTransition(key, 'processing', 'paid', { orderId: order.id });
 
@@ -1610,6 +1636,7 @@ async function finalizePaidOrder(razorpayOrderId, paymentId) {
     return order;
   } catch (err) {
     if (reserved?.ok) await db.releaseStock(session.stockLines).catch(() => {});
+    if (claim) await releaseClaim(payer, quote, claim).catch(() => {});
     await db.kvTransition(key, 'processing', 'pending').catch(() => {});
 
     // Lost a race with a concurrent request for the same payment.
@@ -1764,10 +1791,17 @@ app.post('/api/orders', requireAuth(), async (req, res) => {
     const user = req.user;
     const customer = readCustomerDetails(req.body);
     const priced = await priceCart(req.body?.items);
+    const quote = await quoteRewards(user, priced, req.body?.usePoints === true);
 
     const reserved = await db.reserveStock(priced.stockLines);
     if (!reserved.ok) {
       throw new HttpError(409, 'Some items in your cart just went out of stock. Please review your cart.');
+    }
+
+    const claim = await claimRewards(user, quote, { strict: true });
+    if (!claim.ok) {
+      await db.releaseStock(priced.stockLines).catch(() => {});
+      throw new HttpError(409, 'Your points or welcome offer just changed. Please review your order and try again.');
     }
 
     let order;
@@ -1779,14 +1813,17 @@ app.post('/api/orders', requireAuth(), async (req, res) => {
         subtotal: priced.subtotal,
         gst: priced.gst,
         total: priced.total,
+        ...rewardOrderFields(quote),
         expectedDeliveryDate: estimatedDeliveryDate(),
         paymentMethod: 'Cash on Delivery',
         paymentStatus: 'Pending',
       });
     } catch (err) {
       await db.releaseStock(priced.stockLines).catch(() => {});
+      await releaseClaim(user, quote, claim).catch(() => {});
       throw err;
     }
+    await bindClaim(quote, claim.token, order.id);
 
     if (user) await db.saveCart(user.id, []);
     const whatsapp = await sendOrderConfirmation(order);
@@ -1799,7 +1836,13 @@ app.post('/api/orders', requireAuth(), async (req, res) => {
 
 app.put('/api/orders/:id', requireAuth('admin'), requireModule('orders'), async (req, res) => {
   try {
-    const { id, _id, otp, ...updates } = req.body || {};
+    // Status goes through /status (stock, delivery OTP, rewards) and money
+    // fields are set by the server when the order is placed, never here.
+    const {
+      id, _id, otp, status, deliveryStatus, userId,
+      subtotal, gst, total, itemsTotal, discount, welcomeDiscount, pointsUsed, referralId, rewardShortfall,
+      ...updates
+    } = req.body || {};
     const order = await db.updateOrder(req.params.id, updates);
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -1907,6 +1950,7 @@ app.post('/api/delivery/verify-otp', requireAuth('delivery', 'admin'), async (re
       ...cashCollected(order),
     });
     await sendDeliveryStatusUpdate(updated, 'Delivered').catch(() => {});
+    await settleReferralForOrder(updated).catch((err) => console.error('Referral reward:', err?.message));
     res.json({ success: true, order: withoutDeliveryOtp(updated) });
   } catch (err) {
     sendError(res, err, 'Verify delivery OTP');
@@ -1979,14 +2023,20 @@ app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), requireModul
       if (!order) return res.status(409).json({ success: false, message: 'This order was just cancelled. Refresh the list.' });
       // A paid order that ran short never took its stock, so there is none to return.
       if (!existing.stockShortfall) await db.releaseStock(stockLines);
+      await returnOrderRewards(existing).catch((err) => console.error('Return order rewards:', err?.message));
     } else if (nextStatus && nextStatus !== 'Cancelled' && wasCancelled) {
       const reserved = await db.reserveStock(stockLines);
       if (!reserved.ok) {
         return res.status(409).json({ success: false, message: 'Not enough stock to re-open this order.' });
       }
+      if (!(await retakeOrderRewards(existing))) {
+        await db.releaseStock(stockLines).catch(() => {});
+        return res.status(409).json({ success: false, message: 'The customer has used these points or this welcome offer on another order, so this order cannot be re-opened.' });
+      }
       order = await db.updateOrderIf(req.params.id, { $or: [{ deliveryStatus: 'Cancelled' }, { status: 'Cancelled' }] }, updates);
       if (!order) {
         await db.releaseStock(stockLines).catch(() => {});
+        await returnOrderRewards(existing).catch(() => {});
         return res.status(409).json({ success: false, message: 'This order was just changed. Refresh the list.' });
       }
     } else {
@@ -1995,6 +2045,9 @@ app.put('/api/orders/:id/status', requireAuth('admin', 'delivery'), requireModul
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
     if (nextStatus && ['Dispatched', 'Out for Delivery', 'Delivered'].includes(nextStatus)) {
       await sendDeliveryStatusUpdate(order, nextStatus).catch(() => {});
+    }
+    if (nextStatus === 'Delivered') {
+      await settleReferralForOrder(order).catch((err) => console.error('Referral reward:', err?.message));
     }
     res.json({ success: true, data: withoutDeliveryOtp(order) });
   } catch (err) {
@@ -2658,17 +2711,111 @@ app.get('/api/admin/referrals', requireAuth('admin'), requireModule('referrals')
 
 app.post('/api/admin/referrals/assign-points', requireAuth('admin'), requireModule('referrals'), async (req, res) => {
   try {
-    const { userId, points, description } = req.body;
-    if (!userId || points === undefined) {
-      return res.status(400).json({ success: false, message: 'User ID and points amount are required.' });
+    const userId = String(req.body?.userId || '');
+    const points = Number(req.body?.points);
+    const description = cleanText(req.body?.description, 200) || 'Points adjusted by admin';
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'Pick a customer.' });
     }
-    const result = await db.assignCustomerPoints(userId, points, description);
+    if (!Number.isInteger(points) || points === 0 || Math.abs(points) > 10000) {
+      return res.status(400).json({ success: false, message: 'Points must be a whole number from -10000 to 10000, not 0.' });
+    }
+    // Only farmer accounts hold points; addPoints refuses anyone else.
+    const settings = await loadReferralSettings();
+    const result = await db.addPoints(userId, points, description, {
+      type: points > 0 ? 'admin' : 'admin-deduct',
+      expiresAt: points > 0 ? pointsExpiry(settings) : undefined,
+    });
     if (!result) {
       return res.status(404).json({ success: false, message: 'Customer account not found.' });
     }
+    if (result.error) {
+      return res.status(400).json({ success: false, message: 'The customer does not have that many points to deduct.' });
+    }
+    await recordActivity(req, { module: 'referrals', action: 'assign-points', entityId: userId, description: `${points > 0 ? '+' : ''}${points} points: ${description}` }).catch(() => {});
     res.json({ success: true, message: `Updated points balance to ${result.newPoints} points!`, data: result });
   } catch (err) {
     sendError(res, err, 'Assign points');
+  }
+});
+
+app.get('/api/admin/referrals/settings', requireAuth('admin'), requireModule('referrals'), async (req, res) => {
+  try {
+    res.json({ success: true, data: await loadReferralSettings() });
+  } catch (err) {
+    sendError(res, err, 'Referral settings');
+  }
+});
+
+app.put('/api/admin/referrals/settings', requireAuth('admin'), requireModule('referrals'), async (req, res) => {
+  try {
+    const { settings, error } = cleanReferralSettings(req.body, await loadReferralSettings());
+    if (error) return res.status(400).json({ success: false, message: error });
+    await db.saveReferralSettings(settings);
+    await recordActivity(req, { module: 'referrals', action: 'settings', entityId: 'referral-settings', description: 'Changed Refer & Earn settings', details: settings }).catch(() => {});
+    res.json({ success: true, data: settings, message: 'Refer & Earn settings saved.' });
+  } catch (err) {
+    sendError(res, err, 'Save referral settings');
+  }
+});
+
+app.post('/api/admin/referrals/:id/reverse', requireAuth('admin'), requireModule('referrals'), async (req, res) => {
+  try {
+    const reason = cleanText(req.body?.reason, 200);
+    const result = await reverseReferral(req.params.id, reason);
+    if (result.status !== 200) return res.status(result.status).json({ success: false, message: result.message });
+    await recordActivity(req, { module: 'referrals', action: 'reverse', entityId: req.params.id, description: `Reversed referral (${result.pointsRemoved} points removed)` }).catch(() => {});
+    res.json({ success: true, data: result.referral, message: `Referral reversed. ${result.pointsRemoved} points removed from the referrer.` });
+  } catch (err) {
+    sendError(res, err, 'Reverse referral');
+  }
+});
+
+// ---- Refer & Earn for farmers ----
+
+// Signup checks a code before the farmer submits, to greet them with their
+// friend's name. Limited per connection, so codes cannot be harvested.
+app.get('/api/referrals/check', async (req, res) => {
+  try {
+    const wait = await rateLimit(`ref-check-ip:${clientIp(req)}`, 30, HOUR_MS);
+    if (wait) return tooManyRequests(res, wait, 'Too many code checks. Please try again later.');
+    const settings = await loadReferralSettings();
+    const referrer = settings.enabled ? await db.getFarmerByReferralCode(normalizeReferralCode(req.query.code)) : null;
+    if (!referrer || referrer.status === 'blocked' || referrer.status === 'inactive') {
+      return res.json({ success: true, valid: false, message: 'That referral code was not found.' });
+    }
+    res.json({
+      success: true,
+      valid: true,
+      referrerName: maskName(referrer.name),
+      welcomeDiscount: settings.welcomeDiscount,
+      minOrder: settings.minOrder,
+    });
+  } catch (err) {
+    sendError(res, err, 'Check referral code');
+  }
+});
+
+app.get('/api/me/referrals', requireAuth(), async (req, res) => {
+  try {
+    if (req.user.role !== 'farmer') {
+      return res.status(403).json({ success: false, message: 'Refer & Earn is for customer accounts.' });
+    }
+    res.json({ success: true, data: await referralSummary(req.user) });
+  } catch (err) {
+    sendError(res, err, 'My referrals');
+  }
+});
+
+// What checkout will charge after the welcome offer and points - the same
+// calculation /api/orders and /api/payments/create-order apply.
+app.post('/api/checkout/rewards', requireAuth(), async (req, res) => {
+  try {
+    const priced = await priceCart(req.body?.items);
+    const { rewards, balance } = await quoteRewards(req.user, priced, req.body?.usePoints === true);
+    res.json({ success: true, data: { ...rewards, balance, subtotal: priced.subtotal, gst: priced.gst } });
+  } catch (err) {
+    sendError(res, err, 'Checkout rewards');
   }
 });
 

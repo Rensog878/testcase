@@ -12,6 +12,7 @@ import { matchesCrop, matchesCategory, matchesDisease } from '../src/utils/catal
 import { findSameNamedProduct } from '../src/shared/productName.js';
 import { DEFAULT_PROFILE_FIELDS, cropList, normalizeProfileFields, splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
 import { cleanGeo } from './geo.js';
+import { referralIdFor } from './referrals.js';
 
 // ================= CONNECTION (serverless-safe, cached across invocations) =================
 
@@ -1877,6 +1878,15 @@ class DatabaseManager {
                 subtotal: Number(orderData.subtotal) || 0,
                 gst: Number(orderData.gst) || 0,
                 total: Number(orderData.total) || 0,
+                // Refer & Earn: the cart before discounts, and what paid the difference.
+                ...(Number(orderData.discount) > 0 ? {
+                        itemsTotal: Number(orderData.itemsTotal) || 0,
+                        discount: Number(orderData.discount) || 0,
+                        welcomeDiscount: Number(orderData.welcomeDiscount) || 0,
+                        pointsUsed: Number(orderData.pointsUsed) || 0,
+                        referralId: orderData.referralId || null,
+                        rewardShortfall: orderData.rewardShortfall === true,
+                } : {}),
                 paymentMethod: orderData.paymentMethod || 'Cash on Delivery',
                 paymentStatus: orderData.paymentStatus || 'Pending',
                 paymentId: orderData.paymentId || null,
@@ -2807,29 +2817,173 @@ class DatabaseManager {
     return (await PointsLedger.find({}).lean()).map(serialize);
   }
 
-  async assignCustomerPoints(userId, points, description = 'Admin Assigned Reward Points') {
+  // Every change to a balance goes through $inc and a conditional filter, so
+  // two changes at the same moment can never overwrite each other. Returns
+  // null when the user is missing or not a farmer, { error } when a deduction
+  // would take the balance below zero.
+  async addPoints(userId, points, description, { type, orderId, referralId, expiresAt } = {}) {
     await connectDB();
-    const user = await User.findById(userId).lean();
+    const delta = Math.trunc(Number(points));
+    const now = new Date().toISOString();
+    const user = await User.findOne({ _id: String(userId), role: 'farmer' }).lean();
     if (!user) return null;
 
-    const currentPoints = Number(user.points || 0);
-    const newPoints = currentPoints + Number(points);
-    await User.findByIdAndUpdate(userId, { $set: { points: newPoints } });
+    // An expired balance is written off before new points land on it, so
+    // earning again never revives points that had lapsed.
+    if (user.pointsExpireAt && user.pointsExpireAt <= now && Number(user.points) > 0) {
+      const lapsed = await User.findOneAndUpdate(
+        { _id: user._id, pointsExpireAt: user.pointsExpireAt, points: user.points },
+        { $set: { points: 0 } },
+        { returnDocument: 'after', lean: true },
+      );
+      if (lapsed) await this.recordPoints(lapsed, -Number(user.points), 'Points expired', 'expired');
+    }
 
-    const ledgerId = `PT-${Date.now()}`;
+    const filter = { _id: user._id };
+    if (delta < 0) filter.points = { $gte: -delta };
+    const update = { $inc: { points: delta } };
+    if (expiresAt) update.$set = { pointsExpireAt: expiresAt };
+    const updated = await User.findOneAndUpdate(filter, update, { returnDocument: 'after', lean: true });
+    if (!updated) return { error: 'INSUFFICIENT_POINTS' };
+
+    const ledger = await this.recordPoints(updated, delta, description, type || (delta >= 0 ? 'earned' : 'spent'), { orderId, referralId });
+    return { userId: updated._id, newPoints: Number(updated.points) || 0, ledger };
+  }
+
+  async recordPoints(user, points, description, type, extra = {}) {
+    const id = `PT-${crypto.randomUUID()}`;
     const ledger = {
-      _id: ledgerId,
-      id: ledgerId,
-      userId,
+      _id: id,
+      id,
+      userId: user._id,
       userName: user.name || user.phone || 'Customer',
-      points: Number(points),
-      balanceAfter: newPoints,
-      type: points >= 0 ? 'earned' : 'spent',
+      points,
+      balanceAfter: Number(user.points) || 0,
+      type,
       description,
-      createdAt: new Date().toISOString()
+      ...Object.fromEntries(Object.entries(extra).filter(([, v]) => v)),
+      createdAt: new Date().toISOString(),
     };
     await PointsLedger.create(ledger);
-    return { userId, newPoints, ledger };
+    return ledger;
+  }
+
+  // Takes points for an order only if the farmer still has them and they
+  // have not expired.
+  async spendPoints(userId, points, description, orderId) {
+    await connectDB();
+    const amount = Math.trunc(Number(points));
+    if (!(amount > 0)) return true;
+    const now = new Date().toISOString();
+    const updated = await User.findOneAndUpdate(
+      {
+        _id: String(userId),
+        role: 'farmer',
+        points: { $gte: amount },
+        $or: [{ pointsExpireAt: { $exists: false } }, { pointsExpireAt: null }, { pointsExpireAt: { $gt: now } }],
+      },
+      { $inc: { points: -amount } },
+      { returnDocument: 'after', lean: true },
+    );
+    if (!updated) return false;
+    await this.recordPoints(updated, -amount, description, 'spent', { orderId });
+    return true;
+  }
+
+  async getPointsLedgerForUser(userId, limit = 50) {
+    await connectDB();
+    const rows = await PointsLedger.find({ userId: String(userId) }).sort({ createdAt: -1 }).limit(limit).lean();
+    return rows.map(serialize);
+  }
+
+  async getReferralSettings() {
+    await connectDB();
+    const settings = await Settings.findById('global', { referralSettings: 1 }).lean();
+    return settings?.referralSettings || null;
+  }
+
+  async saveReferralSettings(referralSettings) {
+    await connectDB();
+    await Settings.updateOne({ _id: 'global' }, { $set: { referralSettings } }, { upsert: true });
+    return referralSettings;
+  }
+
+  // Gives a farmer a referral code the first time one is needed. Codes are
+  // random, so a clash is rare; it is retried rather than trusted.
+  async ensureReferralCode(userId, makeCode) {
+    await connectDB();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const user = await User.findOne({ _id: String(userId), role: 'farmer' }, { referralCode: 1 }).lean();
+      if (!user) return '';
+      if (user.referralCode) return user.referralCode;
+      const code = makeCode();
+      if (await User.exists({ referralCode: code })) continue;
+      await User.updateOne({ _id: user._id, referralCode: { $exists: false } }, { $set: { referralCode: code } });
+    }
+    const user = await User.findById(String(userId), { referralCode: 1 }).lean();
+    return user?.referralCode || '';
+  }
+
+  async getFarmerByReferralCode(code) {
+    if (!code) return null;
+    await connectDB();
+    const user = await User.findOne({ referralCode: code, role: 'farmer' }).lean();
+    return serializeUser(user);
+  }
+
+  // One referral per new phone number, ever: the id is derived from the phone
+  // (hashed, so it never shows the number), so a second insert for the same
+  // number fails instead of creating another reward.
+  async createReferral(referral) {
+    await connectDB();
+    const id = referralIdFor(referral.referredPhone);
+    try {
+      const doc = { _id: id, id, status: 'Pending', pointsAwarded: 0, welcomeOrderId: null, createdAt: new Date().toISOString(), ...referral };
+      await Referral.create(doc);
+      return serialize(doc);
+    } catch (err) {
+      if (err?.code === 11000) return null;
+      throw err;
+    }
+  }
+
+  async getReferralById(id) {
+    if (!id) return null;
+    await connectDB();
+    return serialize(await Referral.findById(String(id)).lean());
+  }
+
+  async getReferralForReferred(userId) {
+    if (!userId) return null;
+    await connectDB();
+    return serialize(await Referral.findOne({ referredId: String(userId) }).lean());
+  }
+
+  async getReferralsByReferrer(userId) {
+    await connectDB();
+    const rows = await Referral.find({ referrerId: String(userId) }).sort({ createdAt: -1 }).lean();
+    return rows.map(serialize);
+  }
+
+  async countRewardedReferrals(referrerId, sinceIso) {
+    await connectDB();
+    return Referral.countDocuments({ referrerId: String(referrerId), status: 'Completed', completedAt: { $gte: sinceIso } });
+  }
+
+  // Moves a referral on only while it still matches `condition`, in one step.
+  async updateReferralIf(id, condition, updates) {
+    await connectDB();
+    const doc = await Referral.findOneAndUpdate(
+      { _id: String(id), ...condition },
+      { $set: updates },
+      { returnDocument: 'after', lean: true },
+    );
+    return doc ? serialize(doc) : null;
+  }
+
+  async getOrdersForUser(userId) {
+    await connectDB();
+    return (await Order.find({ userId: String(userId) }).lean()).map(serialize);
   }
 
   // ================= STORES TABLE =================

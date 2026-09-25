@@ -70,13 +70,13 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
   if (catalog && user) {
     if (p.targetUserId === user.id) {
       personalBadge = (
-        <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <div className="pc-badge pc-badge-rec">
           <i className="fa-solid fa-star"></i> Recommended for You
         </div>
       )
     } else if (myCrop) {
       personalBadge = (
-        <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#16A46A', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <div className="pc-badge pc-badge-crop">
           <i className="fa-solid fa-seedling"></i> Tailored for {myCrop}
         </div>
       )

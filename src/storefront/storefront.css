@@ -319,7 +319,7 @@ body.sb-home-active {
   left: -40px;
   right: -40px;
   bottom: -40px;
-  background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400&q=20') center/cover no-repeat;
+  background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=20&auto=format&fit=crop') center/cover no-repeat;
   opacity: 0.06;
   pointer-events: none;
 }

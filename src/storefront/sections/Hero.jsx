@@ -1,6 +1,10 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { WHATSAPP_EXPERT_URL } from '../data'
 import { cmsText } from '../../hooks/useCmsSettings'
+import { photoUrl, photoSrcSet } from '../../shared/responsiveImage'
+
+const SCAN_PHOTO = 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8'
+const ADVISOR_PHOTO = 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5'
 
 // ─── Hero bento banner ────────────────────────────────────────────────────────
 export const Hero = memo(function Hero({ t, cms }) {
@@ -16,7 +20,7 @@ export const Hero = memo(function Hero({ t, cms }) {
         <div className="bento-grid-4">
           {/* Main feature banner (2 columns, 2 rows) */}
           <div className="bento-card bento-span-2 bento-row-2">
-            <img src={img} className="bento-bg-img" alt="Agriculture Farm Field" fetchpriority="high" decoding="async" />
+            <img src={photoUrl(img, 800)} srcSet={photoSrcSet(img)} sizes="(max-width: 1024px) 100vw, 50vw" className="bento-bg-img" alt="Agriculture Farm Field" fetchpriority="high" decoding="async" />
             <div className="bento-overlay">
               <span className="bento-tag">{tag}</span>
               <h1 className="bento-title" style={{ fontSize: '2rem' }} data-i18n="hero_title">{title}</h1>
@@ -35,7 +39,7 @@ export const Hero = memo(function Hero({ t, cms }) {
 
           {/* AI Leaf Doctor scanner */}
           <div className="bento-card bento-span-2" data-modal-target="photoScannerModal" style={{ cursor: 'pointer' }}>
-            <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=600&q=80" className="bento-bg-img" alt="Crop Leaf Scan" loading="lazy" decoding="async" />
+            <img src={photoUrl(SCAN_PHOTO, 800)} srcSet={photoSrcSet(SCAN_PHOTO)} sizes="(max-width: 1024px) 100vw, 50vw" className="bento-bg-img" alt="Crop Leaf Scan" loading="lazy" decoding="async" />
             <div className="bento-overlay">
               <span className="bento-tag">Instant Diagnostic</span>
               <h3 className="bento-title hero-scan-title">AI Leaf Scanner</h3>
@@ -45,7 +49,7 @@ export const Hero = memo(function Hero({ t, cms }) {
 
           {/* WhatsApp assistant */}
           <div className="bento-card bento-span-2" style={{ background: 'linear-gradient(135deg, #063F2A, #096540)', cursor: 'pointer' }} onClick={() => window.open(WHATSAPP_EXPERT_URL, '_blank', 'noopener')}>
-            <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800&q=80" className="bento-bg-img" style={{ opacity: 0.35 }} alt="Farmer Consultation" loading="lazy" decoding="async" />
+            <img src={photoUrl(ADVISOR_PHOTO, 800)} srcSet={photoSrcSet(ADVISOR_PHOTO)} sizes="(max-width: 1024px) 100vw, 50vw" className="bento-bg-img" style={{ opacity: 0.35 }} alt="Farmer Consultation" loading="lazy" decoding="async" />
             <div className="bento-overlay">
               <span className="bento-tag" style={{ background: '#25d366', color: 'white' }}>24/7 WhatsApp AI</span>
               <h3 className="bento-title">Automated Field Assistant</h3>

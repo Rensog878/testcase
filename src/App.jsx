@@ -1,4 +1,4 @@
-import { Suspense, lazy, useLayoutEffect } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect } from 'react'
 import PageLoader from './components/PageLoader'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
@@ -7,11 +7,6 @@ import { CheckoutProvider } from './hooks/useCheckout'
 import { STAFF_HOME } from './hooks/checkoutRules'
 import PrivateRoute from './components/PrivateRoute'
 
-// Auth Pages
-import Login    from './pages/Login'
-import ForgotPassword from './pages/ForgotPassword'
-import ProductDetail from './pages/ProductDetail'
-import IngredientDetail from './pages/IngredientDetail'
 import MobileBottomNav from './components/home/MobileBottomNav'
 import StoreTopChrome from './components/home/StoreTopChrome'
 import PageTranslator from './components/PageTranslator'
@@ -19,15 +14,44 @@ import VoiceAnywhere from './components/VoiceAnywhere'
 import Storefront from './storefront/Storefront'
 import StoreLayout from './layouts/StoreLayout'
 import StorePopups from './storefront/StorePopups'
-import StoreSection from './pages/StoreSection'
-import Categories from './pages/Categories'
-import AllProducts from './pages/AllProducts'
-import Wishlist from './pages/Wishlist'
-import OrderStatus from './pages/OrderStatus'
 import Checkout from './pages/Checkout'
-import Blog from './pages/Blog'
-import BlogDetail from './pages/BlogDetail'
-import InformationPage from './pages/InformationPage'
+
+// Store pages other than home are fetched when first opened, so a farmer on a
+// budget phone downloads and parses only the home page before it can draw.
+// The two most likely next pages are warmed while the phone is idle
+// (WarmStorePages below), so opening a product still feels instant.
+const loadProductDetail = () => import('./pages/ProductDetail')
+const loadAllProducts = () => import('./pages/AllProducts')
+const ProductDetail = lazy(loadProductDetail)
+const AllProducts = lazy(loadAllProducts)
+const IngredientDetail = lazy(() => import('./pages/IngredientDetail'))
+const StoreSection = lazy(() => import('./pages/StoreSection'))
+const Categories = lazy(() => import('./pages/Categories'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
+const OrderStatus = lazy(() => import('./pages/OrderStatus'))
+const Blog = lazy(() => import('./pages/Blog'))
+const BlogDetail = lazy(() => import('./pages/BlogDetail'))
+const InformationPage = lazy(() => import('./pages/InformationPage'))
+// Staff sign-in and password reset: never needed by a shopper.
+const Login = lazy(() => import('./pages/Login'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+
+function WarmStorePages() {
+  useEffect(() => {
+    const warm = () => { loadProductDetail(); loadAllProducts() }
+    // After the page has loaded and the main thread is free; never on a
+    // connection the visitor asked to save data on.
+    if (navigator.connection?.saveData) return undefined
+    const idle = window.requestIdleCallback || (cb => setTimeout(cb, 2000))
+    const cancel = window.cancelIdleCallback || clearTimeout
+    let handle
+    const start = () => { handle = idle(warm, { timeout: 5000 }) }
+    if (document.readyState === 'complete') start()
+    else window.addEventListener('load', start, { once: true })
+    return () => { window.removeEventListener('load', start); if (handle) cancel(handle) }
+  }, [])
+  return null
+}
 
 // The staff portals. Every one of these used to be imported here, which put
 // the whole of admin, employee, delivery and billing into the one bundle a
@@ -115,6 +139,7 @@ export default function App() {
     <CmsProvider>
     <CheckoutProvider enabled={storePage}>
       <StoreTop />
+      {storePage && <WarmStorePages />}
       <Suspense fallback={<PageLoader late />}>
       <Routes>
         {/* Public Home - the storefront */}

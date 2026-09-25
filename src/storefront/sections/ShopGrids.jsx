@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../StoreContext'
 import { cmsText } from '../../hooks/useCmsSettings'
+import { photoUrl, photoSrcSet } from '../../shared/responsiveImage'
 
 const CATEGORY_CARDS = [
   { value: 'Fungicide', image: 'photo-1692481060581-98c224124f12', alt: 'Leaf with fungal disease spots', tag: 'Crop Disease Defense', title: 'Fungicides', desc: 'Cure Blast, Blight, Powdery Mildew & Rust' },
@@ -23,7 +24,8 @@ const CROP_CARDS = [
   { value: 'Potato', image: 'photo-1518977676601-b53f82aba655', alt: 'Potato Crop Harvest', tag: 'Tuber Guard', title: 'Potato' },
 ]
 
-const unsplash = (id, width) => `https://images.unsplash.com/${id}?w=${width}&q=80`
+const unsplash = (id, width) => photoUrl(`https://images.unsplash.com/${id}`, width)
+const unsplashSet = id => photoSrcSet(`https://images.unsplash.com/${id}`)
 
 export const CategoryGrid = memo(function CategoryGrid({ t, cms }) {
   const { filterByCategory } = useStore()
@@ -51,7 +53,7 @@ export const CategoryGrid = memo(function CategoryGrid({ t, cms }) {
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filterByCategory(card.value) } }}
               style={{ cursor: 'pointer' }}
             >
-              <img src={unsplash(card.image, 800)} className="bento-bg-img" alt={card.alt} loading="lazy" decoding="async" />
+              <img src={unsplash(card.image, 800)} srcSet={unsplashSet(card.image)} sizes="(max-width: 768px) 50vw, 40vw" className="bento-bg-img" alt={card.alt} loading="lazy" decoding="async" />
               <div className="bento-overlay">
                 <span className="bento-tag" style={card.tagStyle}>{card.tag}</span>
                 <h3 className="bento-title">{card.title}</h3>
@@ -90,7 +92,7 @@ export const CropGrid = memo(function CropGrid({ cms }) {
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filterByCrop(card.value) } }}
               style={{ cursor: 'pointer' }}
             >
-              <img src={unsplash(card.image, 600)} className="bento-bg-img" alt={card.alt} loading="lazy" decoding="async" />
+              <img src={unsplash(card.image, 800)} srcSet={unsplashSet(card.image)} sizes="(max-width: 768px) 50vw, 25vw" className="bento-bg-img" alt={card.alt} loading="lazy" decoding="async" />
               <div className="bento-overlay">
                 <span className="bento-tag">{card.tag}</span>
                 <h3 className="bento-title" style={{ fontSize: '1.15rem' }}>{card.title}</h3>

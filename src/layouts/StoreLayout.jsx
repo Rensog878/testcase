@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import { StoreChrome } from '../storefront/sections/Header'
 import Footer from '../components/home/Footer'
@@ -26,7 +27,10 @@ export default function StoreLayout() {
         </div>
       </div>
       <main className="public-page-shell">
-        <Outlet />
+        {/* Pages here load on first visit; header and footer stay put meanwhile. */}
+        <Suspense fallback={<div className="public-page-loading" style={{ minHeight: '60vh' }} aria-busy="true" />}>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
     </>

@@ -7,7 +7,7 @@
   <!-- The emblem from the Sathyam Agro Mart logo, in place of the seedling
        emoji that stood in for it before. -->
   <link rel="icon" type="image/png" sizes="64x64" href="/assets/brand/logo-mark-64.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/assets/brand/logo-mark.png" />
+  <link rel="icon" type="image/png" sizes="256x256" href="/assets/brand/logo-mark.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/logo-mark-180.png" />
   <meta name="description" content="Sathyam Agro Mart - India's Leading Agricultural E-Commerce, Crop Protection & ERP Platform for Farmers" />
   <meta name="keywords" content="pesticides, agro chemicals, crop protection, bio pesticides, fertilizers, farmer portal, agricultural ERP" />
@@ -19,10 +19,19 @@
        language (index.css, "INDIAN-LANGUAGE TEXT"), so English pages download none. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400..800&family=Noto+Sans+Kannada:wght@400..800&family=Noto+Sans+Telugu:wght@400..800&family=Noto+Sans+Devanagari:wght@400..800&display=swap" rel="stylesheet">
+  <!-- Both stylesheets load without blocking the first paint: on a budget phone
+       over 4G each one is a DNS + TLS + download trip to another server before
+       anything could be drawn. Text shows at once in the fallback font and
+       swaps (display=swap); icons appear as soon as their stylesheet lands. -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400..800&family=Noto+Sans+Kannada:wght@400..800&family=Noto+Sans+Telugu:wght@400..800&family=Noto+Sans+Devanagari:wght@400..800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400..800&family=Noto+Sans+Kannada:wght@400..800&family=Noto+Sans+Telugu:wght@400..800&family=Noto+Sans+Devanagari:wght@400..800&display=swap"></noscript>
 
   <!-- Font Awesome: the icon set used by the storefront and the bottom bar -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+  <!-- The store's photos (hero, categories, crops) come from Unsplash's CDN. -->
+  <link rel="preconnect" href="https://images.unsplash.com">
 
   <!-- Razorpay Checkout SDK: fetched when a payment actually starts
        (hooks/useCheckout.js loadRazorpay, which already retries a flaky
@@ -81,6 +90,11 @@
     @keyframes sbl-bump{50%{transform:scaleX(-1) translateY(-1.5px)}}
     @keyframes sbl-harvest{0%,78%,100%{transform:none}86%{transform:scale(1.25) rotate(-8deg)}94%{transform:scale(.95) rotate(4deg)}}
     @media (prefers-reduced-motion:reduce){.sb-loader *,.sb-loader *::before,.sb-loader *::after{animation:none!important}.sb-loader-truck{display:none}}
+    /* First paint: the loader in #root below is on screen from frame one. Fading it in
+       from opacity 0 meant nothing counted as painted until the app's JavaScript
+       finished running - seconds on a budget phone. The logo pop, spinner, truck and
+       letters still animate; route-change loaders (--late) keep their fade. */
+    #root>.sb-loader:not(.sb-loader--late),#root>.sb-loader:not(.sb-loader--late) .sb-loader-word{animation:none}
   </style>
 </head>
 <body>

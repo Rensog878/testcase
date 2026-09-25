@@ -1,18 +1,40 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useCheckout, useCheckoutActions } from '../hooks/useCheckout'
 import { StoreContext } from './StoreContext'
 import { isLanguageReady, loadLanguagePack, translationFor } from './i18n'
 import { setBodyFlag } from './bodyFlags'
-import AuthModal from './sections/AuthModal'
 import CallFab from './sections/CallFab'
-import CheckoutSheet from './sections/CheckoutSheet'
 import EnquirySheet from './sections/EnquirySheet'
 import GuestContactPrompt from './sections/GuestContactPrompt'
 import LocationPrompt from './sections/LocationPrompt'
 import WelcomeCelebration from './sections/WelcomeCelebration'
 import './storefront.css'
+
+// The sign-in card and the checkout are the two biggest pieces of the store's
+// code and only matter once tapped. They are fetched while the phone is idle
+// after the page has loaded - and mounted then, so from that moment they
+// behave exactly as before - or straight away if opened sooner.
+const loadAuthModal = () => import('./sections/AuthModal')
+const loadCheckoutSheet = () => import('./sections/CheckoutSheet')
+const AuthModal = lazy(loadAuthModal)
+const CheckoutSheet = lazy(loadCheckoutSheet)
+
+function useMountWhenIdleOr(open) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    if (mounted) return undefined
+    const idle = window.requestIdleCallback || (cb => setTimeout(cb, 1500))
+    const cancel = window.cancelIdleCallback || clearTimeout
+    let handle
+    const start = () => { handle = idle(() => setMounted(true), { timeout: 4000 }) }
+    if (document.readyState === 'complete') start()
+    else window.addEventListener('load', start, { once: true })
+    return () => { window.removeEventListener('load', start); if (handle) cancel(handle) }
+  }, [mounted])
+  return mounted || Boolean(open)
+}
 
 // The popups every store page shares, drawn once in App.jsx so they open over
 // whichever page the customer is on: the floating checkout and the sign-in
@@ -31,6 +53,8 @@ export default function StorePopups() {
   const { modals, step, busy } = checkout
   const authState = modals.authModal
   const sheetState = modals.checkout
+  const authMounted = useMountWhenIdleOr(authState)
+  const sheetMounted = useMountWhenIdleOr(sheetState || step)
 
   // The sign-in card's brand line comes from the language pack.
   const [appliedLang, setAppliedLang] = useState('en')
@@ -118,8 +142,10 @@ export default function StorePopups() {
   return (
     <StoreContext.Provider value={store}>
       <div className="sb-portal">
-        <CheckoutSheet />
-        <AuthModal t={t} state={authState} user={user} notice={checkout.authNotice} loginRequest={checkout.loginRequest} />
+        <Suspense fallback={null}>
+          {sheetMounted && <CheckoutSheet />}
+          {authMounted && <AuthModal t={t} state={authState} user={user} notice={checkout.authNotice} loginRequest={checkout.loginRequest} />}
+        </Suspense>
         <EnquirySheet />
         <WelcomeCelebration />
         <CallFab />

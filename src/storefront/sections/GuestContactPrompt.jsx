@@ -7,7 +7,7 @@ import { showToast } from '../toast'
 import { MOBILE_RE, readGuestContact, saveGuestContact } from '../guestContact'
 import { visitorId } from '../visitorId'
 import VoiceButton from './VoiceButton'
-import { AuthBrand } from './AuthModal'
+import AuthBrand from './AuthBrand'
 
 // "Stay connected": a visitor who is not signed in and has not given their
 // details is stopped on their first scroll down any store page by a floating

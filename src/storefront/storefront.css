@@ -12919,3 +12919,129 @@ body.poster-open .sb-portal .call-fab {
     transform: none;
   }
 }
+
+/* ==========================================================================
+   SHOP BY CROP 2026 (>=1025px) - ShopGrids.jsx CropGrid
+   Clean white crop cards that contrast with the photo-led category bento
+   above: a framed photo, the crop name in ink, the problem it solves as a
+   green dotted label, and an arrow chip that fills green on hover.
+   The card height used to be an inline 200px; it now lives in the first rule
+   (same result below 1025px - phones keep their important-flagged 105px).
+   ========================================================================== */
+:is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-card.crop-card {
+  height: 200px;
+}
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .section-header-flex {
+    margin-bottom: 28px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-card.crop-card {
+    height: auto;
+    min-height: 0;
+    padding: 8px;
+    border: 1px solid rgba(11, 122, 75, 0.10);
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 10px 28px -16px rgba(20, 35, 28, 0.18);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-card.crop-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(11, 122, 75, 0.28);
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 22px 40px -18px rgba(6, 64, 43, 0.35);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-card.crop-card:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card .bento-bg-img {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: 100%;
+    height: 180px;
+    border-radius: 18px;
+    transform: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card:hover .bento-bg-img {
+    transform: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card .bento-overlay {
+    position: relative;
+    inset: auto;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+    align-self: stretch;
+    gap: 6px;
+    padding: 14px 64px 12px 12px;
+    background: none;
+    color: var(--text-main, #14231C);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card .bento-title {
+    margin: 0;
+    color: var(--text-main, #14231C);
+    letter-spacing: -0.02em;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card .bento-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--primary);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card .bento-tag::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.15);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card::after {
+    content: "\f061";
+    position: absolute;
+    right: 18px;
+    bottom: 20px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font: 900 0.85rem/1 "Font Awesome 6 Free";
+    color: var(--primary);
+    background: #EEF7F1;
+    box-shadow: inset 0 0 0 1px rgba(11, 122, 75, 0.12);
+    transform: rotate(-45deg);
+    transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+    pointer-events: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card:hover::after,
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card:focus-visible::after {
+    color: #ffffff;
+    background: var(--primary);
+    transform: rotate(0deg);
+  }
+}
+@media (min-width: 1025px) and (prefers-reduced-motion: reduce) {
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-card.crop-card,
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .crop-card::after {
+    transition: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) #cropSection .bento-card.crop-card:hover {
+    transform: none;
+  }
+}

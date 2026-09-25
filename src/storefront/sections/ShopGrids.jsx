@@ -19,7 +19,7 @@ const CROP_CARDS = [
   { value: 'Wheat', image: 'photo-1574323347407-f5e1ad6d020b', alt: 'Golden Wheat Field', tag: 'Rust Control', title: 'Wheat' },
   { value: 'Sugarcane', image: 'photo-1719424668314-a0def541377b', alt: 'Sugarcane Plantation', tag: 'Borer Solution', title: 'Sugarcane' },
   { value: 'Corn', image: 'photo-1551754655-cd27e38d2076', alt: 'Corn Maize Field', tag: 'Armyworm Defense', title: 'Corn / Maize' },
-  { value: 'Grapes', image: 'photo-1560493676-04071c5f467b', alt: 'Grape Vineyard', tag: 'Mildew Protect', title: 'Grapes' },
+  { value: 'Grapes', image: 'photo-1537640538966-79f369143f8f', alt: 'Grape clusters on the vine', tag: 'Mildew Protect', title: 'Grapes' },
   { value: 'Potato', image: 'photo-1518977676601-b53f82aba655', alt: 'Potato Crop Harvest', tag: 'Tuber Guard', title: 'Potato' },
 ]
 
@@ -81,7 +81,15 @@ export const CropGrid = memo(function CropGrid({ cms }) {
 
         <div className="bento-grid-4">
           {CROP_CARDS.map(card => (
-            <div key={card.value} className="bento-card" onClick={() => filterByCrop(card.value)} style={{ cursor: 'pointer', height: '200px' }}>
+            <div
+              key={card.value}
+              className="bento-card crop-card"
+              role="button"
+              tabIndex={0}
+              onClick={() => filterByCrop(card.value)}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filterByCrop(card.value) } }}
+              style={{ cursor: 'pointer' }}
+            >
               <img src={unsplash(card.image, 600)} className="bento-bg-img" alt={card.alt} loading="lazy" decoding="async" />
               <div className="bento-overlay">
                 <span className="bento-tag">{card.tag}</span>

@@ -333,7 +333,7 @@ export const Trending = memo(function Trending({ t, products, loading = false })
             <p className="section-subtitle">Recommended products based on current crop seasonal demand</p>
           </div>
         </div>
-        <div className="products-grid" id="trendingProductsGrid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+        <div className="products-grid" id="trendingProductsGrid">
           {loading && products.length === 0 ? (
             <>
               <ProductSkeleton />

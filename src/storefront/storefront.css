@@ -12370,7 +12370,7 @@ body.poster-open .sb-portal .call-fab {
 /* ==========================================================================
    TRENDING ROW (#trendingProductsGrid, Catalog.jsx Trending)
    Was an inline style; the ID selector keeps the same precedence for phones
-   and tablets (beats the class rules, still loses to their !important ones).
+   and tablets (beats the class rules, still loses to their important-flagged ones).
    On desktop each track is exactly one catalog card wide: the catalog grid is
    the same container minus the 260px filter sidebar and 40px gap, split into
    5 columns with 16px gaps. So trending and catalog cards are the same size.

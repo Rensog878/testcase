@@ -13601,3 +13601,76 @@ body.poster-open .sb-portal .call-fab {
     mix-blend-mode: multiply;
   }
 }
+
+/* ---- Floating call button: first-visit greeting (CallFab.jsx is-intro) ----
+   Once per visitor: the phone rings, two soft rings pulse out and the number
+   slides out beside the button, then tucks back in (4.5s, matching
+   INTRO_SHOWN_FOR). Phones normally never show the number; they do here. */
+@keyframes sbCallRing {
+  0%, 100% { transform: rotate(0); }
+  10%, 30%, 50% { transform: rotate(-16deg); }
+  20%, 40%, 60% { transform: rotate(16deg); }
+  70% { transform: rotate(0); }
+}
+@keyframes sbCallPulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes sbCallLabel {
+  0% { opacity: 0; transform: translate(10px, -50%) scale(0.96); }
+  9%, 88% { opacity: 1; transform: translate(0, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(10px, -50%) scale(0.96); }
+}
+@keyframes sbCallLabelFade {
+  0%, 100% { opacity: 0; }
+  9%, 88% { opacity: 1; }
+}
+.sb-portal .call-fab.is-intro > i {
+  animation: sbCallRing 1.2s ease-in-out 0.2s 2;
+}
+.sb-portal .call-fab.is-intro::before,
+.sb-portal .call-fab.is-intro::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 2px solid rgba(168, 113, 31, 0.55);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: sbCallPulse 1.6s ease-out 0.2s 2;
+}
+.sb-portal .call-fab.is-intro::after {
+  animation-delay: 0.7s;
+}
+.sb-portal .call-fab.is-intro .call-fab-label {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 10px);
+  display: block;
+  padding: 8px 14px;
+  border: 1px solid #cfe3d8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #14231C;
+  font: 600 0.875rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(20, 35, 28, 0.14);
+  visibility: visible;
+  pointer-events: none;
+  opacity: 0;
+  animation: sbCallLabel 4.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.sb-portal .call-fab.is-intro .call-fab-label strong {
+  color: #8B5E1A;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-portal .call-fab.is-intro > i,
+  .sb-portal .call-fab.is-intro::before,
+  .sb-portal .call-fab.is-intro::after {
+    animation: none;
+  }
+  .sb-portal .call-fab.is-intro .call-fab-label {
+    transform: translate(0, -50%);
+    animation-name: sbCallLabelFade;
+  }
+}

@@ -148,9 +148,11 @@ return data
 }
 
 // Creates the account for a number verified moments ago, and signs them in.
-const register = async (payload) => {
+// onReply sees the whole answer (e.g. whether a referral code was applied).
+const register = async (payload, { onReply } = {}) => {
 const { data } = await axios.post('/api/auth/register', payload)
 saveSession(data.token, data.user)
+onReply?.(data)
 return data.user
 }
 

@@ -12,6 +12,8 @@ import { readGuestContact } from '../guestContact'
 import Modal from './Modal'
 import VoiceButton from './VoiceButton'
 import AuthBrand from './AuthBrand'
+import { ReferEarnCard, ReferralCodeField } from './ReferEarn'
+import { forgetReferralCode, storedReferralCode } from '../../shared/referralLink'
 
 // One sheet with three views: phone (the mobile number), otp (the WhatsApp
 // code) and details (who they are and where they farm). There is no password
@@ -569,6 +571,8 @@ function AccountCard({ t, user, view, onView, profileForm }) {
           })}
         </ul>
 
+        {user.role === 'farmer' && <ReferEarnCard />}
+
         <div className="acct-actions">
           {portal && (
             <a id={user.role === 'admin' ? 'adminPortalLink' : 'staffPortalLink'} href={portal} className="auth-cta" onClick={openPortal}>
@@ -601,6 +605,7 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
   const [busy, setBusy] = useState('')
   const [otpPhone, setOtpPhone] = useState('')
   const [accountView, setAccountView] = useState('profile') // signed in: 'profile' | 'edit'
+  const [referralCode, setReferralCode] = useState(() => storedReferralCode())
   const signupResend = useResendCountdown()
   const profileForm = useProfileForm(Boolean(state))
   // The builder's questions other than the two the sheet asks itself.
@@ -963,7 +968,19 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
 
     setBusy('register')
     try {
-      const created = await register({ ...details.values, name, phone })
+      const friendCode = referralCode.trim()
+      const created = await register({ ...details.values, name, phone, ...(friendCode && { referralCode: friendCode }) }, {
+        onReply: ({ referral }) => {
+          if (!referral) return
+          if (referral.applied) {
+            forgetReferralCode()
+            setReferralCode('')
+            showToast(`Referral applied: ₹${referral.welcomeDiscount} off your first order of ₹${referral.minOrder} or more.`, 'success', 6000)
+          } else if (referral.message) {
+            showToast(referral.message, 'warning', 6000)
+          }
+        },
+      })
 
       verifiedPhone.current = ''
       setFieldsTo({ ...REGISTER_DEFAULTS, authPhone: '' })
@@ -1172,6 +1189,8 @@ export default memo(function AuthModal({ t, state, user, notice, loginRequest })
           </div>
 
           {farmFields.map(farmField)}
+
+          <ReferralCodeField value={referralCode} onChange={setReferralCode} />
 
           <div className="auth-actions">
             <button type="submit" className="auth-cta" id="regSubmitBtn" disabled={busy === 'register'}>

@@ -372,6 +372,31 @@ function AddressStep({ checkout, actions }) {
   )
 }
 
+// Refer & Earn at checkout: the welcome offer applies by itself; points only
+// when the farmer ticks the box. The amounts come from the server.
+function RewardsBox({ rewards, usePoints, busy, onUsePoints }) {
+  if (!rewards || (!rewards.welcomeDiscount && !rewards.pointsAllowed)) return null
+  return (
+    <section className="co-group co-rewards" aria-labelledby="coRewardsTitle">
+      <h3 id="coRewardsTitle" className="co-group-title"><i className="fa-solid fa-award" aria-hidden="true"></i> Rewards</h3>
+      {rewards.welcomeDiscount > 0 && (
+        <p className="co-reward-line">
+          <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
+          <span>Welcome offer applied</span>
+          <b className="notranslate">-{rupees(rewards.welcomeDiscount)}</b>
+        </p>
+      )}
+      {rewards.pointsAllowed > 0 && (
+        <label className="co-reward-line co-reward-toggle">
+          <input type="checkbox" checked={usePoints} disabled={busy} onChange={event => onUsePoints(event.target.checked)} />
+          <span>{`Use ${rewards.pointsAllowed} of my ${rewards.balance} points`}</span>
+          <b className="notranslate">-{rupees(rewards.pointsAllowed)}</b>
+        </label>
+      )}
+    </section>
+  )
+}
+
 function PaymentStep({ checkout, actions }) {
   const { cart, count, draft } = checkout
   const busy = Boolean(checkout.busy)
@@ -415,6 +440,8 @@ function PaymentStep({ checkout, actions }) {
         {cart.length > 4 && <span className="co-mini-more notranslate">+{cart.length - 4}</span>}
         <span className="co-mini-count">{itemsLabel(count)}</span>
       </div>
+
+      <RewardsBox rewards={checkout.rewards} usePoints={draft.usePoints === true} busy={busy} onUsePoints={actions.setUsePoints} />
 
       <section className="co-group" aria-labelledby="coPayTitle">
         <h3 id="coPayTitle" className="co-sr">Choose payment</h3>
@@ -489,6 +516,8 @@ function SheetFooter({ step, checkout, actions }) {
 
   const paying = step === 'payment'
   const online = draft.payment === 'online'
+  // Only the payment step knows the farmer's rewards (asked from the server).
+  const discount = paying ? Number(checkout.rewards?.discount) || 0 : 0
   let label
   if (busy) label = <Spinner label={BUSY_TEXT[busy]} />
   else if (!paying) label = <><span>Continue to payment</span><i className="fa-solid fa-arrow-right" aria-hidden="true"></i></>
@@ -505,8 +534,14 @@ function SheetFooter({ step, checkout, actions }) {
           <span className="co-part"><span className="notranslate">{taxLabel('SGST', totals.gstRate)}</span> <b>{rupees(totals.sgst)}</b></span>
           <span className="co-dot" aria-hidden="true"></span>
           <span className="co-part"><span>Delivery</span> <b className="cart-free">FREE</b></span>
+          {discount > 0 && (
+            <>
+              <span className="co-dot" aria-hidden="true"></span>
+              <span className="co-part co-part--save"><span>Rewards</span> <b>-{rupees(discount)}</b></span>
+            </>
+          )}
         </p>
-        <p className="co-total-grand"><span>Total</span><strong>{rupees(totals.total)}</strong></p>
+        <p className="co-total-grand"><span>Total</span><strong>{rupees(discount > 0 ? checkout.rewards.payable : totals.total)}</strong></p>
       </div>
       <button
         type="button"

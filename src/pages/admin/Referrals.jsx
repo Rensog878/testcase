@@ -6,13 +6,92 @@ import {
   FileSpreadsheet, ArrowRightLeft, ShieldCheck, UserCheck, PlusCircle
 } from 'lucide-react'
 
+// Statuses a referral moves through (server/referralService.js).
+const STATUS_BADGE = {
+  Pending: { cls: 'badge-yellow', label: '⏳ Waiting for first order' },
+  Completed: { cls: 'badge-green', label: '✅ Completed' },
+  Expired: { cls: 'badge-gray', label: '⌛ Expired' },
+  Rejected: { cls: 'badge-red', label: '🚫 Rejected' },
+  Reversed: { cls: 'badge-red', label: '↩️ Reversed' },
+}
+
+const SETTING_FIELDS = [
+  { key: 'welcomeDiscount', label: 'Welcome discount for the new farmer (₹)', hint: 'Off their first order' },
+  { key: 'referrerPoints', label: 'Points for the referrer', hint: "1 point = ₹1, given when the friend's order is delivered" },
+  { key: 'minOrder', label: 'Minimum first order (₹)', hint: 'Needed for the welcome discount and the reward' },
+  { key: 'redeemMinOrder', label: 'Minimum order to use points (₹)' },
+  { key: 'redeemMaxPercent', label: 'Points can pay up to (%)', hint: '0 to 50' },
+  { key: 'pointsValidMonths', label: 'Points valid for (months)', hint: 'After the last points earned' },
+  { key: 'pendingDays', label: 'Referral expires after (days)', hint: 'If the friend never orders' },
+  { key: 'monthlyCap', label: 'Rewarded referrals per farmer per month' },
+]
+
+function ReferralSettings() {
+  const [form, setForm] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    axios.get('/api/admin/referrals/settings')
+      .then(({ data }) => setForm(data.data))
+      .catch(() => toast.error('Failed to load Refer & Earn settings'))
+  }, [])
+
+  const save = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const { data } = await axios.put('/api/admin/referrals/settings', form)
+      setForm(data.data)
+      toast.success(data.message || 'Settings saved')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!form) return <div className="card" style={{ padding: '24px', color: 'var(--text-muted)' }}>Loading settings...</div>
+
+  return (
+    <form className="card" onSubmit={save} style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 700 }}>
+        <input type="checkbox" checked={form.enabled} onChange={e => setForm({ ...form, enabled: e.target.checked })} />
+        Refer &amp; Earn is on (new codes, welcome discounts and rewards)
+      </label>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+        {SETTING_FIELDS.map(field => (
+          <div className="pform-field" key={field.key}>
+            <label htmlFor={`ref-${field.key}`}>{field.label}</label>
+            <input
+              id={`ref-${field.key}`}
+              type="number"
+              min="0"
+              step="1"
+              required
+              value={form[field.key]}
+              onChange={e => setForm({ ...form, [field.key]: e.target.value === '' ? '' : Number(e.target.value) })}
+            />
+            {field.hint && <small style={{ color: 'var(--text-muted)' }}>{field.hint}</small>}
+          </div>
+        ))}
+      </div>
+      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+        Points already given keep their expiry date. A change applies to orders and deliveries from now on.
+      </p>
+      <div>
+        <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save settings'}</button>
+      </div>
+    </form>
+  )
+}
+
 export default function AdminReferrals() {
   const [referrals, setReferrals] = useState([])
   const [ledgers, setLedgers] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const [activeTab, setActiveTab] = useState('referrals') // 'referrals' | 'points' | 'ledgers'
+  const [activeTab, setActiveTab] = useState('referrals') // 'referrals' | 'points' | 'ledgers' | 'settings'
   const [search, setSearch] = useState('')
 
   // Assign points modal state
@@ -70,6 +149,18 @@ export default function AdminReferrals() {
     } catch (err) {
       console.error('Assign points error:', err)
       toast.error(err.response?.data?.message || 'Failed to assign points')
+    }
+  }
+
+  const reverse = async (r) => {
+    const reason = window.prompt(`Reverse the referral of ${r.referredName}? Points given to ${r.referrerName} are taken back. Reason:`, 'Fake or duplicate account')
+    if (reason === null) return
+    try {
+      const { data } = await axios.post(`/api/admin/referrals/${r.id}/reverse`, { reason })
+      toast.success(data.message || 'Referral reversed')
+      fetchData()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reverse referral')
     }
   }
 
@@ -174,6 +265,13 @@ export default function AdminReferrals() {
           >
             📜 Points Audit Log ({ledgers.length})
           </button>
+          <button
+            className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setActiveTab('settings')}
+            style={{ fontSize: '0.88rem', padding: '8px 16px' }}
+          >
+            ⚙️ Settings
+          </button>
         </div>
 
         <div className="search-box" style={{ minWidth: '240px', position: 'relative' }}>
@@ -202,6 +300,7 @@ export default function AdminReferrals() {
                   <th>Points Awarded</th>
                   <th>Status</th>
                   <th>Referral Date</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -216,19 +315,31 @@ export default function AdminReferrals() {
                     <td>
                       <span className="badge badge-blue">📱 {r.referredPhone}</span>
                     </td>
-                    <td style={{ fontWeight: 800, color: '#f59e0b' }}>+ {r.pointsAwarded || 100} Pts</td>
-                    <td><span className="badge badge-green">✅ {r.status || 'Completed'}</span></td>
+                    <td style={{ fontWeight: 800, color: '#f59e0b' }}>+ {Number(r.pointsAwarded) || 0} Pts</td>
+                    <td>
+                      <span className={`badge ${(STATUS_BADGE[r.status] || STATUS_BADGE.Pending).cls}`} title={r.note || undefined}>
+                        {(STATUS_BADGE[r.status] || { label: r.status }).label}
+                      </span>
+                      {r.note && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>{r.note}</div>}
+                    </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       {new Date(r.createdAt || Date.now()).toLocaleDateString('en-IN', {
                         day: '2-digit', month: 'short', year: 'numeric'
                       })}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {['Pending', 'Completed'].includes(r.status) && (
+                        <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '4px 10px' }} onClick={() => reverse(r)}>
+                          Reverse
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
 
                 {filteredReferrals.length === 0 && (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                    <td colSpan="9" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
                       {loading ? 'Loading referral records...' : 'No referral network records match search.'}
                     </td>
                   </tr>
@@ -330,6 +441,8 @@ export default function AdminReferrals() {
           </div>
         </div>
       )}
+
+      {activeTab === 'settings' && <ReferralSettings />}
 
       {/* ASSIGN / ADJUST POINTS MODAL */}
       {assignModalOpen && (

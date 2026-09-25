@@ -6,6 +6,10 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { LanguageProvider } from './context/LanguageContext.jsx'
 import { Toaster } from 'sonner'
 import './app.css'
+import { captureReferralFromUrl } from './shared/referralLink'
+
+// A friend's share link (?ref=CODE) on any page: kept for signup.
+captureReferralFromUrl()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

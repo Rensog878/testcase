@@ -6759,6 +6759,185 @@ body.sb-home-active {
   border-color: #fca5a5;
   background: #fef2f2;
 }
+/* Refer & Earn card (signed-in farmer, ReferEarn.jsx). */
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(11, 122, 75, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #FFFBEB, #F2FAF5 60%);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-card.is-loading {
+  min-height: 120px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #ffffff;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-title {
+  margin: 0;
+  font: 700 1.05rem/1.3 'Outfit', 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+  color: #0A5C3B;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-sub,
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-points-note {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #4B5B53;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-welcome {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #E2F2E8;
+  color: #0A5C3B;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-points {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid var(--auth-line-soft);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-points-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--auth-green-deep);
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-points-label i {
+  color: var(--auth-green);
+  margin-right: 4px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-points-value {
+  font: 800 1.5rem/1 'Outfit', sans-serif;
+  color: #B45309;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-points-note {
+  grid-column: 1 / -1;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-code-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4B5B53;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-code-value {
+  flex: 1 1 150px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 1.5px dashed #0B7A4B;
+  border-radius: var(--auth-radius);
+  background: #ffffff;
+  font: 800 1.15rem/1 'Outfit', monospace;
+  letter-spacing: 0.08em;
+  color: #0A5C3B;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-copy {
+  width: auto;
+  flex: 1 0 auto;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) a.refer-share,
+:is(body.sb-home-active .sb-home, .sb-portal) a.refer-share:hover {
+  background: #1FA855;
+  color: #ffffff;
+  text-decoration: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-friends .auth-link {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  text-align: left;
+  text-decoration: none;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-friends .auth-link i {
+  margin-left: auto;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 0.85rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-list-name {
+  font-weight: 700;
+  color: #1F2A24;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-list-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 7rem;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-list-date {
+  font-size: 0.76rem;
+  color: #6B7A72;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #F1F5F3;
+  color: #4B5B53;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-badge.is-ok {
+  background: #E2F2E8;
+  color: #0A5C3B;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .refer-badge.is-wait {
+  background: #FEF3C7;
+  color: #92400E;
+}
+:is(body.sb-home-active .sb-home, .sb-portal) .ref-field-toggle .auth-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-card .acct-btn:focus-visible,
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-card .acct-actions a.auth-cta:focus-visible {
   outline: var(--auth-focus);
@@ -8352,6 +8531,41 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
 }
 .sb-portal #checkoutSheet .co-note i {
   margin-top: 3px;
+  color: var(--primary);
+}
+/* Refer & Earn at checkout (RewardsBox). */
+.sb-portal #checkoutSheet .co-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sb-portal #checkoutSheet .co-reward-line {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #F2FAF5;
+  font-size: 0.88rem;
+  color: var(--co-ink);
+}
+.sb-portal #checkoutSheet .co-reward-line > i {
+  color: var(--primary);
+}
+.sb-portal #checkoutSheet .co-reward-line b {
+  margin-left: auto;
+  color: var(--primary);
+}
+.sb-portal #checkoutSheet .co-reward-toggle {
+  cursor: pointer;
+}
+.sb-portal #checkoutSheet .co-reward-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+.sb-portal #checkoutSheet .co-part--save b {
   color: var(--primary);
 }
 

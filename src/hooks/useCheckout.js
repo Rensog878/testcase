@@ -79,7 +79,7 @@ function writeSession(key, value) {
 
 // mode: 'auto' (pick the latest saved address once they load), 'saved',
 // 'edit' (a saved address open in the form) or 'new'.
-const newDraft = user => ({ userId: user?.id || '', mode: 'auto', addressId: '', saveAddress: true, payment: 'cod', fields: initialFields(user) })
+const newDraft = user => ({ userId: user?.id || '', mode: 'auto', addressId: '', saveAddress: true, payment: 'cod', usePoints: false, fields: initialFields(user) })
 function readDraft(user) {
   const saved = readSession(DRAFT_KEY)
   if (!saved?.fields || saved.userId !== (user?.id || '')) return newDraft(user)
@@ -128,6 +128,8 @@ export function CheckoutProvider({ enabled, children }) {
   const [errors, setErrors] = useState({})
   const [busy, setBusyState] = useState('') // '' | save | cod | pay | verify
   const [order, setOrder] = useState(() => readSession(ORDER_KEY))
+  // Refer & Earn: what the server will take off (welcome offer, points).
+  const [rewards, setRewards] = useState(null)
 
   const step = enabled ? stepForHash(location.hash) : null
   // The step on screen - kept while the pop-up slides away - and which way the
@@ -460,6 +462,7 @@ export function CheckoutProvider({ enabled, children }) {
     }
     const setSaveAddress = on => setDraft(d => ({ ...d, saveAddress: on }))
     const setPayment = method => setDraft(d => ({ ...d, payment: method }))
+    const setUsePoints = on => setDraft(d => ({ ...d, usePoints: Boolean(on) }))
 
     // The first field to fix, once a form that was closed has rendered.
     const focusField = name => requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -544,7 +547,7 @@ export function CheckoutProvider({ enabled, children }) {
       if (!details) return
       setBusy('cod')
       try {
-        const { data } = await axios.post('/api/orders', { ...details, items: cartRef.current.map(orderLine) })
+        const { data } = await axios.post('/api/orders', { ...details, items: cartRef.current.map(orderLine), usePoints: draftRef.current.usePoints === true })
         if (!data?.success) throw new Error(data?.message)
         finishOrder(data.data, data.whatsapp)
       } catch (err) {
@@ -569,7 +572,7 @@ export function CheckoutProvider({ enabled, children }) {
       }
       try {
         const items = cartRef.current
-        const { data } = await axios.post('/api/payments/create-order', { items: items.map(orderLine), customer: details })
+        const { data } = await axios.post('/api/payments/create-order', { items: items.map(orderLine), customer: details, usePoints: draftRef.current.usePoints === true })
         if (!data?.success) throw new Error(data?.message || 'Could not start payment')
         const { razorpayOrderId, amount, currency, keyId } = data.data
 
@@ -653,7 +656,7 @@ export function CheckoutProvider({ enabled, children }) {
       loadCart, showGuestCart, addItem, updateQty, removeLine,
       showStep, openBasket, startCheckout, back, closeCheckout, dropStepHash, trackOrder, browseProducts, restoreFocus,
       openSignIn, openAccount, showAccount, closeSignIn, leaveSignInFor, requireSignIn, afterSignIn, signOut,
-      loadAddresses, resetForUser, chooseAddress, addNewAddress, editAddress, setField, setSaveAddress, setPayment,
+      loadAddresses, resetForUser, chooseAddress, addNewAddress, editAddress, setField, setSaveAddress, setPayment, setUsePoints,
       continueToPayment, placeOrder,
     }
   }, [modal])
@@ -767,11 +770,23 @@ export function CheckoutProvider({ enabled, children }) {
     return () => clearTimeout(timer)
   }, [step, order])
 
+  // The payment step asks the server what a signed-in farmer's welcome offer
+  // and points take off this basket; the order itself is priced the same way.
+  const usePoints = draft.usePoints === true
+  useEffect(() => {
+    if (step !== 'payment' || user?.role !== 'farmer' || !cart.length) { setRewards(null); return undefined }
+    let current = true
+    axios.post('/api/checkout/rewards', { items: cart.map(orderLine), usePoints })
+      .then(({ data }) => { if (current) setRewards(data?.data || null) })
+      .catch(() => { if (current) setRewards(null) })
+    return () => { current = false }
+  }, [step, user, cart, usePoints])
+
   const totals = useMemo(() => cartTotals(cart), [cart])
   const basket = useMemo(() => ({ cart, cartReady, count, totals }), [cart, cartReady, count, totals])
   const state = {
     ...basket, step, shown: view.shown, direction: view.direction, modals, authNotice, loginRequest,
-    user, addresses, draft, errors, busy, order,
+    user, addresses, draft, errors, busy, order, rewards,
   }
 
   return createElement(ActionsContext.Provider, { value: actions },

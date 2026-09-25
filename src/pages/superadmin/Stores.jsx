@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
-import { Store, Plus, Search, MapPin, Phone, Mail, UserCheck, Users, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react'
+import { Store, Plus, Search, MapPin, Phone, Mail, UserCheck, Users, Edit2, Trash2, CheckCircle, XCircle, X } from 'lucide-react'
 
 export default function StoresManagement() {
   const [stores, setStores] = useState([])
@@ -132,399 +132,231 @@ export default function StoresManagement() {
   )
 
   return (
-    <div style={{ paddingBottom: '40px' }}>
+    <div className="sa-page">
       {/* Header bar */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
+      <div className="sa-page-head">
         <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            Store Locations & Regional Hubs
-          </h1>
-          <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+          <div className="sa-eyebrow"><Store size={14} /> Branch Network</div>
+          <h1 className="sa-title">Store Locations & Regional Hubs</h1>
+          <p className="sa-subtitle">
             Manage brick-and-mortar stores, assign regional head administrators, and view branch personnel counts.
           </p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#2563eb',
-            color: '#ffffff',
-            padding: '10px 20px',
-            borderRadius: '10px',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)'
-          }}
-        >
-          <Plus size={18} /> Add Store Location
-        </button>
+        <div className="sa-actions">
+          <button onClick={handleOpenAdd} className="sa-btn sa-btn--primary">
+            <Plus size={18} /> Add Store Location
+          </button>
+        </div>
       </div>
 
       {/* Search and filter bar */}
-      <div style={{
-        background: '#ffffff',
-        padding: '16px 20px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        marginBottom: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
-        <Search size={18} color="#94a3b8" />
-        <input
-          type="text"
-          placeholder="Search by store name, location, code, or administrator..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            border: 'none',
-            outline: 'none',
-            width: '100%',
-            fontSize: '0.92rem',
-            background: 'transparent'
-          }}
-        />
+      <div className="sa-toolbar">
+        <label className="sa-search">
+          <Search size={18} />
+          <input
+            type="text"
+            className="sa-input"
+            placeholder="Search by store name, location, code, or administrator..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
+        <span className="sa-badge sa-tone-green">{filteredStores.length} of {stores.length} stores</span>
       </div>
 
       {/* Store Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-        gap: '20px'
-      }}>
-        {filteredStores.map(store => (
-          <div
-            key={store.id}
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '24px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              position: 'relative'
-            }}
-          >
-            <div>
-              {/* Store title & status */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '6px' }}>
-                      {store.code}
-                    </span>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      background: store.status === 'active' ? '#ecfdf5' : '#fef2f2',
-                      color: store.status === 'active' ? '#059669' : '#dc2626'
-                    }}>
+      {filteredStores.length > 0 && (
+        <div className="sa-store-grid">
+          {filteredStores.map(store => (
+            <article key={store.id} className="sa-card sa-store-card">
+              <div className="sa-store-top">
+                <div className="sa-store-icon"><Store size={20} /></div>
+                <div className="sa-store-heading">
+                  <div className="sa-store-tags">
+                    <span className="sa-code">{store.code}</span>
+                    <span className={`sa-badge ${store.status === 'active' ? 'sa-tone-green' : 'sa-tone-rose'}`}>
+                      <span className="sa-dot"></span>
                       {store.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', margin: '8px 0 2px' }}>
-                    {store.name}
-                  </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '0.82rem' }}>
-                    <MapPin size={14} color="#64748b" /> {store.location}
-                  </div>
+                  <h3 className="sa-store-name">{store.name}</h3>
+                  <div className="sa-store-loc"><MapPin size={14} /> {store.location}</div>
                 </div>
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    onClick={() => handleOpenEdit(store)}
-                    title="Edit Store"
-                    style={{ background: '#f1f5f9', border: 'none', padding: '7px', borderRadius: '8px', cursor: 'pointer', color: '#334155' }}
-                  >
+                <div className="sa-store-tools">
+                  <button onClick={() => handleOpenEdit(store)} title="Edit Store" className="sa-icon-btn">
                     <Edit2 size={16} />
                   </button>
-                  <button
-                    onClick={() => handleDelete(store)}
-                    title="Delete Store"
-                    style={{ background: '#fef2f2', border: 'none', padding: '7px', borderRadius: '8px', cursor: 'pointer', color: '#dc2626' }}
-                  >
+                  <button onClick={() => handleDelete(store)} title="Delete Store" className="sa-icon-btn sa-icon-btn--danger">
                     <Trash2 size={16} />
                   </button>
                 </div>
               </div>
 
               {/* Address & Contact */}
-              {store.address && (
-                <p style={{ fontSize: '0.82rem', color: '#475569', margin: '8px 0 12px', background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', lineHeight: 1.4 }}>
-                  {store.address}
-                </p>
+              {store.address && <p className="sa-store-address">{store.address}</p>}
+
+              {(store.phone || store.email) && (
+                <div className="sa-store-contact">
+                  {store.phone && <span><Phone size={14} /> {store.phone}</span>}
+                  {store.email && <span><Mail size={14} /> {store.email}</span>}
+                </div>
               )}
 
-              <div style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
-                {store.phone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Phone size={14} /> {store.phone}
-                  </div>
-                )}
-                {store.email && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Mail size={14} /> {store.email}
-                  </div>
-                )}
-              </div>
-
               {/* Assigned Head Admin */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #edf2f7',
-                borderRadius: '10px',
-                padding: '12px',
-                marginBottom: '16px'
-              }}>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, marginBottom: '4px' }}>
-                  Assigned Store Admin
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#dbeafe', color: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.78rem' }}>
-                    {store.adminName ? store.adminName[0] : '?'}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>
-                      {store.adminName || 'No Admin Assigned'}
-                    </div>
-                    {store.adminId && <div style={{ fontSize: '0.72rem', color: '#64748b' }}>ID: {store.adminId}</div>}
-                  </div>
+              <div className="sa-store-admin">
+                <div className="sa-avatar sa-tone-blue">{store.adminName ? store.adminName[0] : '?'}</div>
+                <div className="sa-row-main">
+                  <div className="sa-hint">Assigned Store Admin</div>
+                  <div className="sa-cell-title">{store.adminName || 'No Admin Assigned'}</div>
+                  {store.adminId && <div className="sa-cell-sub">ID: {store.adminId}</div>}
                 </div>
               </div>
-            </div>
 
-            {/* Staff distribution footer */}
-            <div style={{
-              borderTop: '1px solid #f1f5f9',
-              paddingTop: '14px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '0.78rem',
-              color: '#475569'
-            }}>
-              <div>
-                <strong>{store.staffCount || 0}</strong> Personnel
+              {/* Staff distribution footer */}
+              <div className="sa-store-foot">
+                <div className="sa-store-count"><Users size={15} /> <strong>{store.staffCount || 0}</strong> Personnel</div>
+                <div className="sa-store-mix">
+                  <span title="Admins" className="sa-badge sa-tone-blue">A {store.adminCount || 0}</span>
+                  <span title="Billing" className="sa-badge sa-tone-green">B {store.billingCount || 0}</span>
+                  <span title="Delivery" className="sa-badge sa-tone-amber">D {store.deliveryCount || 0}</span>
+                  <span title="Employee" className="sa-badge sa-tone-violet">E {store.employeeCount || 0}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span title="Admins" style={{ background: '#eff6ff', color: '#1d4ed8', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                  A: {store.adminCount || 0}
-                </span>
-                <span title="Billing" style={{ background: '#f0fdf4', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                  B: {store.billingCount || 0}
-                </span>
-                <span title="Delivery" style={{ background: '#fff7ed', color: '#c2410c', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                  D: {store.deliveryCount || 0}
-                </span>
-                <span title="Employee" style={{ background: '#f5f3ff', color: '#6d28d9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                  E: {store.employeeCount || 0}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      )}
 
       {filteredStores.length === 0 && !loading && (
-        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-          <Store size={44} color="#94a3b8" style={{ marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.2rem', color: '#1e293b', fontWeight: 700 }}>No stores match your search</h3>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Try clearing your search query or add a new store location.</p>
+        <div className="sa-card">
+          <div className="sa-empty">
+            <div className="sa-empty-icon"><Store size={28} /></div>
+            <div className="sa-empty-title">No stores match your search</div>
+            <div className="sa-empty-text">Try clearing your search query or add a new store location.</div>
+            <button onClick={handleOpenAdd} className="sa-btn sa-btn--primary sa-btn--sm"><Plus size={16} /> Add Store Location</button>
+          </div>
         </div>
       )}
 
       {/* Add / Edit Store Modal */}
       {isModalOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '540px',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              padding: '20px 24px',
-              borderBottom: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: '#f8fafc'
-            }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>
-                {editingStore ? 'Edit Store Location' : 'Add New Store Location'}
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#64748b' }}
-              >
-                ✕
+        <div className="sa-modal-overlay">
+          <div className="sa-modal" role="dialog" aria-modal="true">
+            <div className="sa-modal-head">
+              <div>
+                <div className="sa-eyebrow">{editingStore ? 'Update branch' : 'New branch'}</div>
+                <h2 className="sa-card-title">{editingStore ? 'Edit Store Location' : 'Add New Store Location'}</h2>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="sa-icon-btn" aria-label="Close">
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Store Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Madurai Regional Hub"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Store Code
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. MDU-01"
-                    value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
+            <form onSubmit={handleSave} className="sa-modal-form">
+              <div className="sa-modal-body">
+                <div className="sa-form-grid">
+                  <div className="sa-field">
+                    <label className="sa-label">Store Name *</label>
+                    <input
+                      type="text"
+                      required
+                      className="sa-input"
+                      placeholder="e.g. Madurai Regional Hub"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="sa-field">
+                    <label className="sa-label">Store Code</label>
+                    <input
+                      type="text"
+                      className="sa-input"
+                      placeholder="e.g. MDU-01"
+                      value={formData.code}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+
+                  <div className="sa-field sa-span-2">
+                    <label className="sa-label">City / Location *</label>
+                    <input
+                      type="text"
+                      required
+                      className="sa-input"
+                      placeholder="e.g. Madurai, Coimbatore, Tiruppur"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="sa-field sa-span-2">
+                    <label className="sa-label">Full Physical Address</label>
+                    <textarea
+                      rows={2}
+                      className="sa-textarea"
+                      placeholder="Street address, landmarks, pincode..."
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="sa-field">
+                    <label className="sa-label">Contact Phone</label>
+                    <input
+                      type="text"
+                      className="sa-input"
+                      placeholder="e.g. 0452-2500100"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="sa-field">
+                    <label className="sa-label">Contact Email</label>
+                    <input
+                      type="email"
+                      className="sa-input"
+                      placeholder="store@sathyambio.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="sa-field">
+                    <label className="sa-label">Assign Head Admin</label>
+                    <select
+                      className="sa-select"
+                      style={{ width: '100%' }}
+                      value={formData.adminId}
+                      onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
+                    >
+                      <option value="">-- No Admin Assigned --</option>
+                      {admins.map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.phone || a.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sa-field">
+                    <label className="sa-label">Branch Status</label>
+                    <select
+                      className="sa-select"
+                      style={{ width: '100%' }}
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  City / Location *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Madurai, Coimbatore, Tiruppur"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Full Physical Address
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Street address, landmarks, pincode..."
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', resize: 'vertical' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Contact Phone
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 0452-2500100"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Contact Email
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="store@sathyambio.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Assign Head Admin
-                  </label>
-                  <select
-                    value={formData.adminId}
-                    onChange={(e) => setFormData({ ...formData, adminId: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff' }}
-                  >
-                    <option value="">-- No Admin Assigned --</option>
-                    {admins.map(a => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} ({a.phone || a.email})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Branch Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff' }}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  style={{ padding: '10px 18px', background: '#f1f5f9', color: '#475569', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
-                >
+              <div className="sa-modal-foot">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="sa-btn sa-btn--ghost">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{
-                    padding: '10px 22px',
-                    background: '#2563eb',
-                    color: '#ffffff',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
+                <button type="submit" disabled={saving} className="sa-btn sa-btn--primary">
                   {saving ? 'Saving...' : (editingStore ? 'Update Store' : 'Create Store')}
                 </button>
               </div>

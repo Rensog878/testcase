@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
-import { Menu, LayoutDashboard, Store, Users, ShieldCheck, Activity, ShieldAlert, Sparkles, BarChart3 } from 'lucide-react'
+import { Menu, LayoutDashboard, Store, Users, ShieldCheck, Activity, ShieldAlert, Sparkles, BarChart3, ChevronRight } from 'lucide-react'
+import '../pages/superadmin/superadmin.css'
 
 const SUPERADMIN_NAV = [
   {
@@ -44,37 +45,32 @@ export default function SuperAdminLayout() {
         onClose={() => setSidebarOpen(false)}
       />
       <div className="main-content">
-        <header className="topbar" style={{ background: '#0f172a', color: '#f8fafc', borderBottom: '1px solid #1e293b' }}>
-          <div className="topbar-left">
+        <header className="sa-topbar">
+          <div className="sa-topbar-left">
             <button
-              className="hamburger-btn"
+              className="sa-hamburger"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open navigation menu"
-              style={{ background: '#1e293b', color: '#f8fafc', border: 'none' }}
             >
               <Menu size={20} />
             </button>
-            <div className="topbar-heading">
-              <div className="topbar-title" style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {current ? current.label : 'Control Center'}
-                <span style={{ fontSize: '0.7rem', padding: '2px 8px', background: '#3b82f6', color: '#fff', borderRadius: '12px', fontWeight: 600 }}>ROOT</span>
-              </div>
-              <div className="topbar-subtitle" style={{ color: '#94a3b8' }}>
-                Super Admin · Sathyam Bio Multi-Store Enterprise Management & Surveillance
-              </div>
+            <div>
+              <div className="sa-crumbs">Super Admin <ChevronRight size={12} /> Enterprise Console</div>
+              <div className="sa-topbar-title">{current ? current.label : 'Control Center'}</div>
             </div>
           </div>
-          <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontWeight: 600, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }}></span>
-              Audit Surveillance Live
+          <div className="sa-topbar-right">
+            <span className="sa-live" title="Audit Surveillance Live">
+              <span className="sa-live-dot" aria-hidden="true"></span>
+              <span className="sa-live-text">Audit Surveillance Live</span>
             </span>
-            <span className="badge" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontWeight: 700, letterSpacing: '0.5px' }}>
-              SUPER ADMIN
+            <span className="sa-role-pill">
+              <span className="sa-role-avatar"><ShieldAlert size={14} /></span>
+              <span className="sa-role-text">Super Admin</span>
             </span>
           </div>
         </header>
-        <main className="page-content" style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+        <main className="page-content sa-content">
           <Outlet />
         </main>
       </div>

@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import PasswordChecklist from '../../components/PasswordChecklist'
 import PasswordError, { passwordBoxStyle, passwordErrorFrom } from '../../components/PasswordError'
 import { isPasswordValid } from '../../utils/passwordRules'
-import { Users, Plus, Search, Filter, ShieldCheck, MapPin, UserCheck, Key, Edit2, Trash2, CheckCircle, XCircle, ArrowRight } from 'lucide-react'
+import { Users, Plus, Search, Filter, ShieldCheck, MapPin, UserCheck, Key, Edit2, Trash2, CheckCircle, XCircle, ArrowRight, X } from 'lucide-react'
 
 export default function PersonnelManagement() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -199,274 +199,148 @@ export default function PersonnelManagement() {
     return true
   })
 
-  const getRoleBadgeStyle = (role) => {
-    switch (role) {
-      case 'superadmin':
-        return { background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', color: '#fff' }
-      case 'admin':
-        return { background: '#fee2e2', color: '#dc2626' }
-      case 'billing':
-        return { background: '#ccfbf1', color: '#0f766e' }
-      case 'delivery':
-        return { background: '#ffedd5', color: '#c2410c' }
-      case 'employee':
-        return { background: '#f3e8ff', color: '#7e22ce' }
-      default:
-        return { background: '#f1f5f9', color: '#475569' }
-    }
-  }
+  // Role colours (presentation only).
+  const roleTone = (role) => ({
+    superadmin: 'sa-tone-violet',
+    admin: 'sa-tone-rose',
+    billing: 'sa-tone-teal',
+    delivery: 'sa-tone-amber',
+    employee: 'sa-tone-blue',
+  }[role] || 'sa-tone-slate')
 
   return (
-    <div style={{ paddingBottom: '40px' }}>
+    <div className="sa-page">
       {/* Header bar */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
+      <div className="sa-page-head">
         <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            Personnel & Multi-Store Hierarchy
-          </h1>
-          <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+          <div className="sa-eyebrow"><Users size={14} /> Access & Hierarchy</div>
+          <h1 className="sa-title">Personnel & Multi-Store Hierarchy</h1>
+          <p className="sa-subtitle">
             Create and supervise Admins, Billing staff, Delivery agents, and ERP Employees. Each person is scoped to a Store Location and reports to that store's Admin.
           </p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#2563eb',
-            color: '#ffffff',
-            padding: '10px 20px',
-            borderRadius: '10px',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)'
-          }}
-        >
-          <Plus size={18} /> Add New Personnel
-        </button>
+        <div className="sa-actions">
+          <button onClick={handleOpenAdd} className="sa-btn sa-btn--primary">
+            <Plus size={18} /> Add New Personnel
+          </button>
+        </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div style={{
-        background: '#ffffff',
-        padding: '16px 20px',
-        borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        marginBottom: '24px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '16px',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '240px' }}>
-          <Search size={18} color="#94a3b8" />
+      <div className="sa-toolbar">
+        <label className="sa-search">
+          <Search size={18} />
           <input
             type="text"
+            className="sa-input"
             placeholder="Search by name, phone, email, or store location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              border: 'none',
-              outline: 'none',
-              width: '100%',
-              fontSize: '0.92rem',
-              background: 'transparent'
-            }}
           />
-        </div>
+        </label>
 
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Role Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Role:</span>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              style={{
-                padding: '7px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.85rem',
-                background: '#f8fafc',
-                color: '#1e293b',
-                fontWeight: 500
-              }}
-            >
-              <option value="all">All Roles</option>
-              <option value="admin">Store Admins</option>
-              <option value="billing">Billing Staff</option>
-              <option value="delivery">Delivery Agents</option>
-              <option value="employee">Employees</option>
-              <option value="superadmin">Super Admin</option>
-            </select>
-          </div>
+        {/* Role Filter */}
+        <label className="sa-inline-label">
+          Role
+          <select className="sa-select" value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
+            <option value="all">All Roles</option>
+            <option value="admin">Store Admins</option>
+            <option value="billing">Billing Staff</option>
+            <option value="delivery">Delivery Agents</option>
+            <option value="employee">Employees</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </label>
 
-          {/* Store Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Store:</span>
-            <select
-              value={selectedStore}
-              onChange={(e) => setSelectedStore(e.target.value)}
-              style={{
-                padding: '7px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.85rem',
-                background: '#f8fafc',
-                color: '#1e293b',
-                fontWeight: 500
-              }}
-            >
-              <option value="all">All Store Locations</option>
-              {stores.map(s => (
-                <option key={s.id} value={s.id}>{s.name} ({s.location})</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        {/* Store Filter */}
+        <label className="sa-inline-label">
+          Store
+          <select className="sa-select" value={selectedStore} onChange={(e) => setSelectedStore(e.target.value)}>
+            <option value="all">All Store Locations</option>
+            {stores.map(s => (
+              <option key={s.id} value={s.id}>{s.name} ({s.location})</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {/* Users Table */}
-      <div style={{
-        background: '#ffffff',
-        borderRadius: '16px',
-        border: '1px solid #e2e8f0',
-        overflow: 'hidden',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+      <section className="sa-card" style={{ overflow: 'hidden' }}>
+        <div className="sa-card-head">
+          <div>
+            <h2 className="sa-card-title">Team directory</h2>
+            <div className="sa-card-sub">{filteredUsers.length} of {users.length} people</div>
+          </div>
+        </div>
+        <div className="sa-table-wrap">
+          <table className="sa-table">
             <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                <th style={{ padding: '14px 20px' }}>Personnel</th>
-                <th style={{ padding: '14px 20px' }}>Role</th>
-                <th style={{ padding: '14px 20px' }}>Store Location</th>
-                <th style={{ padding: '14px 20px' }}>Hierarchy (Reports To)</th>
-                <th style={{ padding: '14px 20px' }}>Portal Permissions</th>
-                <th style={{ padding: '14px 20px' }}>Status</th>
-                <th style={{ padding: '14px 20px', textAlign: 'right' }}>Actions</th>
+              <tr>
+                <th>Personnel</th>
+                <th>Role</th>
+                <th>Store Location</th>
+                <th>Hierarchy (Reports To)</th>
+                <th>Portal Permissions</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map(u => (
-                <tr
-                  key={u.id}
-                  style={{
-                    borderBottom: '1px solid #f1f5f9',
-                    transition: 'background 0.15s ease'
-                  }}
-                >
+                <tr key={u.id}>
                   {/* Name & Contact */}
-                  <td style={{ padding: '14px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        background: '#e0e7ff',
-                        color: '#3730a3',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: '0.88rem',
-                        flexShrink: 0
-                      }}>
-                        {u.name ? u.name[0] : 'U'}
-                      </div>
+                  <td>
+                    <div className="sa-cell-person">
+                      <div className={`sa-avatar ${roleTone(u.role)}`}>{u.name ? u.name[0] : 'U'}</div>
                       <div>
-                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{u.name}</div>
-                        <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                          {u.phone || u.email || 'No contact'}
-                        </div>
+                        <div className="sa-cell-title">{u.name}</div>
+                        <div className="sa-cell-sub">{u.phone || u.email || 'No contact'}</div>
                       </div>
                     </div>
                   </td>
 
                   {/* Role */}
-                  <td style={{ padding: '14px 20px' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '3px 10px',
-                      borderRadius: '6px',
-                      fontWeight: 700,
-                      fontSize: '0.74rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.3px',
-                      ...getRoleBadgeStyle(u.role)
-                    }}>
-                      {u.role}
-                    </span>
+                  <td>
+                    <span className={`sa-badge sa-badge--caps ${roleTone(u.role)}`}>{u.role}</span>
                   </td>
 
                   {/* Store Location */}
-                  <td style={{ padding: '14px 20px' }}>
+                  <td>
                     {u.storeName ? (
                       <div>
-                        <div style={{ fontWeight: 600, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <MapPin size={13} color="#2563eb" /> {u.storeName}
+                        <div className="sa-cell-title" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <MapPin size={13} /> {u.storeName}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', paddingLeft: '17px' }}>
-                          {u.storeLocation || 'Tamil Nadu'}
-                        </div>
+                        <div className="sa-cell-sub" style={{ paddingLeft: '18px' }}>{u.storeLocation || 'Tamil Nadu'}</div>
                       </div>
                     ) : (
-                      <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.82rem' }}>
+                      <span className="sa-italic">
                         {u.role === 'superadmin' ? 'Global (All Stores)' : 'Unassigned'}
                       </span>
                     )}
                   </td>
 
                   {/* Hierarchy (Reports To) */}
-                  <td style={{ padding: '14px 20px' }}>
+                  <td>
                     {u.role === 'superadmin' ? (
-                      <span style={{ fontSize: '0.78rem', color: '#8b5cf6', fontWeight: 600 }}>Root Authority</span>
+                      <span className="sa-badge sa-tone-violet">Root Authority</span>
                     ) : u.role === 'admin' ? (
-                      <span style={{ fontSize: '0.78rem', color: '#3b82f6', fontWeight: 600 }}>Reports to Super Admin</span>
+                      <span className="sa-badge sa-tone-blue">Reports to Super Admin</span>
                     ) : u.assignedAdminName ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <UserCheck size={14} color="#10b981" />
-                        <span style={{ fontWeight: 600, color: '#334155' }}>{u.assignedAdminName}</span>
-                      </div>
+                      <span className="sa-cell-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <UserCheck size={14} color="#0b7a4b" /> {u.assignedAdminName}
+                      </span>
                     ) : (
-                      <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.8rem' }}>Store Head</span>
+                      <span className="sa-italic">Store Head</span>
                     )}
                   </td>
 
                   {/* Portal Permissions */}
-                  <td style={{ padding: '14px 20px' }}>
+                  <td>
                     {u.role === 'superadmin' ? (
-                      <span style={{ fontSize: '0.75rem', background: '#e0e7ff', color: '#4338ca', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
-                        All Modules (Root)
-                      </span>
+                      <span className="sa-badge sa-tone-violet">All Modules (Root)</span>
                     ) : (
-                      <Link
-                        to={`/superadmin/permissions?userId=${u.id}`}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          textDecoration: 'none',
-                          fontSize: '0.76rem',
-                          fontWeight: 600,
-                          background: '#f8fafc',
-                          color: '#2563eb',
-                          border: '1px solid #cbd5e1',
-                          padding: '4px 10px',
-                          borderRadius: '6px'
-                        }}
-                      >
+                      <Link to={`/superadmin/permissions?userId=${u.id}`} className="sa-btn sa-btn--ghost sa-btn--sm">
                         <ShieldCheck size={13} />
                         {u.permissions?.length ? `${u.permissions.length} modules visible` : 'Default visibility'}
                         <ArrowRight size={12} />
@@ -475,34 +349,20 @@ export default function PersonnelManagement() {
                   </td>
 
                   {/* Status */}
-                  <td style={{ padding: '14px 20px' }}>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      background: (u.status || 'active') === 'active' ? '#ecfdf5' : '#fef2f2',
-                      color: (u.status || 'active') === 'active' ? '#059669' : '#dc2626'
-                    }}>
+                  <td>
+                    <span className={`sa-badge ${(u.status || 'active') === 'active' ? 'sa-tone-green' : 'sa-tone-rose'}`}>
+                      <span className="sa-dot"></span>
                       {(u.status || 'active') === 'active' ? 'Active' : 'Disabled'}
                     </span>
                   </td>
 
                   {/* Actions */}
-                  <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                      <button
-                        onClick={() => handleOpenEdit(u)}
-                        title="Edit User"
-                        style={{ background: '#f1f5f9', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer', color: '#334155' }}
-                      >
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <button onClick={() => handleOpenEdit(u)} title="Edit User" className="sa-icon-btn">
                         <Edit2 size={15} />
                       </button>
-                      <Link
-                        to={`/superadmin/permissions?userId=${u.id}`}
-                        title="Configure Visible Features"
-                        style={{ background: '#eff6ff', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer', color: '#2563eb', display: 'flex', alignItems: 'center' }}
-                      >
+                      <Link to={`/superadmin/permissions?userId=${u.id}`} title="Configure Visible Features" className="sa-icon-btn">
                         <ShieldCheck size={15} />
                       </Link>
                     </div>
@@ -514,235 +374,174 @@ export default function PersonnelManagement() {
         </div>
 
         {filteredUsers.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: '50px 20px', color: '#94a3b8' }}>
-            No personnel found matching criteria.
+          <div className="sa-empty">
+            <div className="sa-empty-icon"><Users size={26} /></div>
+            <div className="sa-empty-title">No personnel found matching criteria.</div>
+            <div className="sa-empty-text">Try another role, store or search term.</div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Add / Edit Personnel Modal */}
       {isModalOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '560px',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-            overflow: 'hidden',
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <div style={{
-              padding: '18px 24px',
-              borderBottom: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: '#f8fafc'
-            }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>
-                {editingUser ? 'Edit Personnel' : 'Add New Personnel'}
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#64748b' }}
-              >
-                ✕
+        <div className="sa-modal-overlay">
+          <div className="sa-modal" role="dialog" aria-modal="true">
+            <div className="sa-modal-head">
+              <div>
+                <div className="sa-eyebrow">{editingUser ? 'Update account' : 'New account'}</div>
+                <h2 className="sa-card-title">{editingUser ? 'Edit Personnel' : 'Add New Personnel'}</h2>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="sa-icon-btn" aria-label="Close">
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Role Selection */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Assign Role *
-                </label>
-                <select
-                  disabled={editingUser?.role === 'superadmin'}
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff', fontWeight: 600 }}
-                >
-                  <option value="admin">Store Admin (Location Manager)</option>
-                  <option value="billing">Billing Staff (POS Counter)</option>
-                  <option value="delivery">Delivery Personnel</option>
-                  <option value="employee">ERP Employee (Operations)</option>
-                </select>
-              </div>
-
-              {/* Full Name */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ramesh Kumar"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                />
-              </div>
-
-              {/* Mobile & Email */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Mobile Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="10-digit mobile"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="name@sathyambio.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label htmlFor="personnelPassword" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  {editingUser ? 'New Password (leave empty to keep current)' : 'Login Password *'}
-                </label>
-                <input
-                  id="personnelPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder={editingUser ? 'Enter new password or leave blank' : 'Enter account password'}
-                  value={formData.password}
-                  onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPasswordError('') }}
-                  aria-invalid={passwordError ? 'true' : undefined}
-                  aria-describedby={passwordError ? 'personnelPassword-error' : undefined}
-                  style={passwordBoxStyle({ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }, passwordError)}
-                />
-                <PasswordError id="personnelPassword" message={passwordError} />
-                {(formData.password || !editingUser) && <PasswordChecklist password={formData.password} role={formData.role} phone={formData.phone} />}
-              </div>
-
-              {/* Store Location Assignment */}
-              <div style={{
-                background: '#f8fafc',
-                padding: '16px',
-                borderRadius: '10px',
-                border: '1px solid #e2e8f0',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
-              }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>
-                    Represented Store Location *
-                  </label>
-                  <select
-                    value={formData.storeId}
-                    onChange={(e) => handleStoreChange(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff' }}
-                  >
-                    <option value="">-- Select Store Branch --</option>
-                    {stores.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.location})</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Hierarchy: Belongs to specific store admin */}
-                {formData.role !== 'admin' && formData.role !== 'superadmin' && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>
-                      Reporting Admin (Belongs to Location Head)
-                    </label>
+            <form onSubmit={handleSave} className="sa-modal-form">
+              <div className="sa-modal-body">
+                <div className="sa-form-grid">
+                  {/* Role Selection */}
+                  <div className="sa-field sa-span-2">
+                    <label className="sa-label">Assign Role *</label>
                     <select
-                      value={formData.assignedAdminId}
-                      onChange={(e) => handleAdminChange(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff' }}
+                      className="sa-select"
+                      style={{ width: '100%' }}
+                      disabled={editingUser?.role === 'superadmin'}
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     >
-                      <option value="">-- Select Location Admin --</option>
-                      {admins.map(a => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} ({a.storeName || a.storeLocation || 'Store Head'})
-                        </option>
-                      ))}
+                      <option value="admin">Store Admin (Location Manager)</option>
+                      <option value="billing">Billing Staff (POS Counter)</option>
+                      <option value="delivery">Delivery Personnel</option>
+                      <option value="employee">ERP Employee (Operations)</option>
                     </select>
                   </div>
-                )}
+
+                  {/* Full Name */}
+                  <div className="sa-field sa-span-2">
+                    <label className="sa-label">Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      className="sa-input"
+                      placeholder="e.g. Ramesh Kumar"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Mobile & Email */}
+                  <div className="sa-field">
+                    <label className="sa-label">Mobile Number *</label>
+                    <input
+                      type="text"
+                      required
+                      className="sa-input"
+                      placeholder="10-digit mobile"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="sa-field">
+                    <label className="sa-label">Email Address</label>
+                    <input
+                      type="email"
+                      className="sa-input"
+                      placeholder="name@sathyambio.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div className="sa-field sa-span-2">
+                    <label htmlFor="personnelPassword" className="sa-label">
+                      {editingUser ? 'New Password (leave empty to keep current)' : 'Login Password *'}
+                    </label>
+                    <input
+                      id="personnelPassword"
+                      type="password"
+                      className="sa-input"
+                      autoComplete="new-password"
+                      placeholder={editingUser ? 'Enter new password or leave blank' : 'Enter account password'}
+                      value={formData.password}
+                      onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPasswordError('') }}
+                      aria-invalid={passwordError ? 'true' : undefined}
+                      aria-describedby={passwordError ? 'personnelPassword-error' : undefined}
+                      style={passwordBoxStyle({}, passwordError)}
+                    />
+                    <PasswordError id="personnelPassword" message={passwordError} />
+                    {(formData.password || !editingUser) && <PasswordChecklist password={formData.password} role={formData.role} phone={formData.phone} />}
+                  </div>
+
+                  {/* Store Location Assignment */}
+                  <div className="sa-span-2 sa-form-panel">
+                    <div className="sa-field">
+                      <label className="sa-label">Represented Store Location *</label>
+                      <select
+                        className="sa-select"
+                        style={{ width: '100%' }}
+                        value={formData.storeId}
+                        onChange={(e) => handleStoreChange(e.target.value)}
+                      >
+                        <option value="">-- Select Store Branch --</option>
+                        {stores.map(s => (
+                          <option key={s.id} value={s.id}>{s.name} ({s.location})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Hierarchy: Belongs to specific store admin */}
+                    {formData.role !== 'admin' && formData.role !== 'superadmin' && (
+                      <div className="sa-field">
+                        <label className="sa-label">Reporting Admin (Belongs to Location Head)</label>
+                        <select
+                          className="sa-select"
+                          style={{ width: '100%' }}
+                          value={formData.assignedAdminId}
+                          onChange={(e) => handleAdminChange(e.target.value)}
+                        >
+                          <option value="">-- Select Location Admin --</option>
+                          {admins.map(a => (
+                            <option key={a.id} value={a.id}>
+                              {a.name} ({a.storeName || a.storeLocation || 'Store Head'})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Department & Status */}
+                  <div className="sa-field">
+                    <label className="sa-label">Department / Tag</label>
+                    <input
+                      type="text"
+                      className="sa-input"
+                      placeholder="e.g. Counter Sales, Dispatch, Agronomy"
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    />
+                  </div>
+                  <div className="sa-field">
+                    <label className="sa-label">Account Status</label>
+                    <select
+                      className="sa-select"
+                      style={{ width: '100%' }}
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Disabled</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              {/* Department & Status */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Department / Tag
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Counter Sales, Dispatch, Agronomy"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Account Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff' }}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Disabled</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  style={{ padding: '10px 18px', background: '#f1f5f9', color: '#475569', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
-                >
+              <div className="sa-modal-foot">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="sa-btn sa-btn--ghost">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{
-                    padding: '10px 22px',
-                    background: '#2563eb',
-                    color: '#ffffff',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
+                <button type="submit" disabled={saving} className="sa-btn sa-btn--primary">
                   {saving ? 'Saving...' : (editingUser ? 'Update Personnel' : 'Create Personnel')}
                 </button>
               </div>

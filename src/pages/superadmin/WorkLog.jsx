@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
-import { Activity, RefreshCw, Search, Filter, MapPin, Eye, Clock, Download, Calendar, CheckCircle, AlertTriangle, Info } from 'lucide-react'
+import { Activity, RefreshCw, Search, Filter, MapPin, Eye, Clock, Download, Calendar, CheckCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 export default function WorkLogAudit() {
   const [logs, setLogs] = useState([])
@@ -105,172 +105,93 @@ export default function WorkLogAudit() {
     toast.success('Work log export downloaded!')
   }
 
-  const getActionColor = (action = '') => {
-    if (action.includes('DELETE')) return { bg: '#fee2e2', color: '#b91c1c' }
-    if (action.includes('CREATE') || action.includes('LOGIN')) return { bg: '#dcfce7', color: '#15803d' }
-    if (action.includes('PERMISSION')) return { bg: '#f3e8ff', color: '#7e22ce' }
-    return { bg: '#e0e7ff', color: '#3730a3' }
+  // Action badge colour (presentation only).
+  const actionTone = (action = '') => {
+    if (action.includes('DELETE')) return 'sa-tone-rose'
+    if (action.includes('CREATE') || action.includes('LOGIN')) return 'sa-tone-green'
+    if (action.includes('PERMISSION')) return 'sa-tone-violet'
+    return 'sa-tone-blue'
   }
 
   return (
-    <div style={{ paddingBottom: '40px' }}>
+    <div className="sa-page">
       {/* Header bar */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
+      <div className="sa-page-head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              Surveillance Work Log & Activity Monitor
-            </h1>
-            <span style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
-              {total} Total Events
-            </span>
-          </div>
-          <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+          <div className="sa-eyebrow"><Activity size={14} /> Audit & Surveillance</div>
+          <h1 className="sa-title">
+            Surveillance Work Log & Activity Monitor
+            <span className="sa-badge sa-tone-green">{total} Total Events</span>
+          </h1>
+          <p className="sa-subtitle">
             Real-time surveillance monitoring of all actions, settings changes, option toggles, invoices, and operations across every store branch.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div className="sa-actions">
           {/* Live Auto Refresh Toggle */}
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              background: autoRefresh ? '#f0fdf4' : '#f8fafc',
-              color: autoRefresh ? '#166534' : '#64748b',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
+            className={`sa-btn sa-btn--ghost sa-live-toggle${autoRefresh ? ' is-on' : ''}`}
           >
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: autoRefresh ? '#22c55e' : '#94a3b8',
-              boxShadow: autoRefresh ? '0 0 6px #22c55e' : 'none'
-            }} />
+            <span className="sa-live-toggle-dot" />
             {autoRefresh ? 'Live Monitoring Active' : 'Live Paused'}
           </button>
 
           {/* Manual Refresh */}
-          <button
-            onClick={() => fetchLogs()}
-            disabled={loading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#334155',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+          <button onClick={() => fetchLogs()} disabled={loading} className="sa-btn sa-btn--ghost">
+            <RefreshCw size={14} className={loading ? 'sa-spin' : ''} /> Refresh
           </button>
 
           {/* Export CSV */}
-          <button
-            onClick={exportCSV}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#2563eb',
-              color: '#ffffff',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
+          <button onClick={exportCSV} className="sa-btn sa-btn--primary">
             <Download size={14} /> Export CSV
           </button>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div style={{
-        background: '#ffffff',
-        padding: '16px 20px',
-        borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        marginBottom: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '14px'
-      }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '10px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            flex: 1,
-            background: '#f8fafc',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1'
-          }}>
-            <Search size={16} color="#94a3b8" />
+      <div className="sa-toolbar sa-log-toolbar">
+        <form onSubmit={handleSearchSubmit} className="sa-log-search">
+          <label className="sa-search">
+            <Search size={16} />
             <input
               type="text"
+              className="sa-input"
               placeholder="Search in log descriptions, user names, entity IDs, or store names..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: '0.88rem' }}
             />
-          </div>
-          <button
-            type="submit"
-            style={{ padding: '8px 18px', background: '#334155', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-          >
-            Filter
+          </label>
+          <button type="submit" className="sa-btn sa-btn--dark">
+            <Filter size={14} /> Filter
           </button>
         </form>
 
         {/* Multi-criteria Dropdowns */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="sa-log-filters">
           {/* Store Location */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>Store:</span>
+          <label className="sa-inline-label">
+            Store
             <select
+              className="sa-select"
               value={filters.storeId}
               onChange={(e) => setFilters({ ...filters, storeId: e.target.value, page: 1 })}
-              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#ffffff' }}
             >
               <option value="all">All Stores</option>
               {stores.map(s => (
                 <option key={s.id} value={s.id}>{s.name} ({s.location})</option>
               ))}
             </select>
-          </div>
+          </label>
 
           {/* Role */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>Role:</span>
+          <label className="sa-inline-label">
+            Role
             <select
+              className="sa-select"
               value={filters.role}
               onChange={(e) => setFilters({ ...filters, role: e.target.value, page: 1 })}
-              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#ffffff' }}
             >
               <option value="all">All Roles</option>
               <option value="admin">Store Admin</option>
@@ -279,15 +200,15 @@ export default function WorkLogAudit() {
               <option value="employee">Employee</option>
               <option value="superadmin">Super Admin</option>
             </select>
-          </div>
+          </label>
 
           {/* Module */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>Module:</span>
+          <label className="sa-inline-label">
+            Module
             <select
+              className="sa-select"
               value={filters.module}
               onChange={(e) => setFilters({ ...filters, module: e.target.value, page: 1 })}
-              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#ffffff' }}
             >
               <option value="all">All Modules</option>
               <option value="PRODUCTS">Products Master</option>
@@ -300,15 +221,15 @@ export default function WorkLogAudit() {
               <option value="STORES">Store Locations</option>
               <option value="AUTH">Sign-ins & Auth</option>
             </select>
-          </div>
+          </label>
 
           {/* Action */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>Action:</span>
+          <label className="sa-inline-label">
+            Action
             <select
+              className="sa-select"
               value={filters.action}
               onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
-              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', background: '#ffffff' }}
             >
               <option value="all">All Actions</option>
               <option value="CREATE_PRODUCT">Create Product</option>
@@ -321,228 +242,130 @@ export default function WorkLogAudit() {
               <option value="PERMISSION_CHANGE">Permission Change</option>
               <option value="USER_LOGIN">User Login</option>
             </select>
-          </div>
+          </label>
         </div>
       </div>
 
       {/* Work Log Activity Table */}
-      <div style={{
-        background: '#ffffff',
-        borderRadius: '16px',
-        border: '1px solid #e2e8f0',
-        overflow: 'hidden',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.86rem' }}>
+      <section className="sa-card" style={{ overflow: 'hidden' }}>
+        <div className="sa-table-wrap">
+          <table className="sa-table sa-log-table">
             <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                <th style={{ padding: '14px 18px', width: '170px' }}>Timestamp</th>
-                <th style={{ padding: '14px 18px' }}>User / Role</th>
-                <th style={{ padding: '14px 18px' }}>Store Branch</th>
-                <th style={{ padding: '14px 18px' }}>Action & Module</th>
-                <th style={{ padding: '14px 18px' }}>Monitored Event Description</th>
-                <th style={{ padding: '14px 18px', textAlign: 'right' }}>Audit Diff</th>
+              <tr>
+                <th style={{ width: '150px' }}>Timestamp</th>
+                <th>User / Role</th>
+                <th>Store Branch</th>
+                <th>Action & Module</th>
+                <th>Monitored Event Description</th>
+                <th style={{ textAlign: 'right' }}>Audit Diff</th>
               </tr>
             </thead>
             <tbody>
-              {logs.map(log => {
-                const badge = getActionColor(log.action)
-                return (
-                  <tr
-                    key={log.id}
-                    style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      transition: 'background 0.1s ease'
-                    }}
-                  >
-                    {/* Timestamp */}
-                    <td style={{ padding: '12px 18px', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                      <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.82rem' }}>
-                        {new Date(log.timestamp).toLocaleDateString()}
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        {new Date(log.timestamp).toLocaleTimeString()}
-                      </div>
-                    </td>
+              {logs.map(log => (
+                <tr key={log.id}>
+                  {/* Timestamp */}
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <div className="sa-cell-title">{new Date(log.timestamp).toLocaleDateString()}</div>
+                    <div className="sa-cell-sub"><Clock size={11} /> {new Date(log.timestamp).toLocaleTimeString()}</div>
+                  </td>
 
-                    {/* User & Role */}
-                    <td style={{ padding: '12px 18px', verticalAlign: 'top' }}>
-                      <div style={{ fontWeight: 700, color: '#1e293b' }}>{log.userName}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                        <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: '#f1f5f9', color: '#475569' }}>
-                          {log.userRole}
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ID: {log.userId}</span>
-                      </div>
-                    </td>
+                  {/* User & Role */}
+                  <td>
+                    <div className="sa-cell-title">{log.userName}</div>
+                    <div className="sa-log-user-meta">
+                      <span className="sa-badge sa-badge--caps">{log.userRole}</span>
+                      <span className="sa-cell-sub">ID: {log.userId}</span>
+                    </div>
+                  </td>
 
-                    {/* Store Location */}
-                    <td style={{ padding: '12px 18px', verticalAlign: 'top' }}>
-                      {log.storeName ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#334155', fontWeight: 600, fontSize: '0.82rem' }}>
-                          <MapPin size={13} color="#2563eb" /> {log.storeName}
-                        </div>
-                      ) : (
-                        <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.8rem' }}>HQ / Global</span>
-                      )}
-                    </td>
-
-                    {/* Action & Module */}
-                    <td style={{ padding: '12px 18px', verticalAlign: 'top' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                        letterSpacing: '0.3px',
-                        background: badge.bg,
-                        color: badge.color
-                      }}>
-                        {log.action}
+                  {/* Store Location */}
+                  <td>
+                    {log.storeName ? (
+                      <span className="sa-cell-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        <MapPin size={13} /> {log.storeName}
                       </span>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '3px', fontWeight: 600 }}>
-                        {log.module}
-                      </div>
-                    </td>
+                    ) : (
+                      <span className="sa-italic">HQ / Global</span>
+                    )}
+                  </td>
 
-                    {/* Description */}
-                    <td style={{ padding: '12px 18px', verticalAlign: 'top', color: '#334155', lineHeight: 1.4 }}>
-                      <div style={{ fontWeight: 500 }}>{log.description}</div>
-                      {log.entityId && (
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
-                          Entity: <code>{log.entityId}</code>
-                        </div>
-                      )}
-                    </td>
+                  {/* Action & Module */}
+                  <td>
+                    <span className={`sa-badge ${actionTone(log.action)}`}>{log.action}</span>
+                    <div className="sa-cell-sub" style={{ fontWeight: 700 }}>{log.module}</div>
+                  </td>
 
-                    {/* Inspect Diff Button */}
-                    <td style={{ padding: '12px 18px', verticalAlign: 'top', textAlign: 'right' }}>
-                      <button
-                        onClick={() => setSelectedLog(log)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #cbd5e1',
-                          background: '#f8fafc',
-                          color: '#2563eb',
-                          fontSize: '0.76rem',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Eye size={13} /> Inspect Diff
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
+                  {/* Description */}
+                  <td className="sa-log-desc">
+                    <div>{log.description}</div>
+                    {log.entityId && (
+                      <div className="sa-cell-sub">Entity: <span className="sa-code">{log.entityId}</span></div>
+                    )}
+                  </td>
+
+                  {/* Inspect Diff Button */}
+                  <td style={{ textAlign: 'right' }}>
+                    <button onClick={() => setSelectedLog(log)} className="sa-btn sa-btn--ghost sa-btn--sm">
+                      <Eye size={13} /> Inspect Diff
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
 
         {logs.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
-            <Activity size={40} style={{ marginBottom: '10px' }} />
-            <div style={{ fontSize: '1rem', fontWeight: 600, color: '#475569' }}>No audit events found</div>
-            <div style={{ fontSize: '0.85rem' }}>Change your filters or perform actions to see surveillance logs here.</div>
+          <div className="sa-empty">
+            <div className="sa-empty-icon"><Activity size={26} /></div>
+            <div className="sa-empty-title">No audit events found</div>
+            <div className="sa-empty-text">Change your filters or perform actions to see surveillance logs here.</div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Inspect Diff Modal */}
       {selectedLog && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '650px',
-            maxHeight: '85vh',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              padding: '16px 20px',
-              background: '#0f172a',
-              color: '#ffffff',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+        <div className="sa-modal-overlay">
+          <div className="sa-modal sa-modal--wide" role="dialog" aria-modal="true">
+            <div className="sa-modal-head">
               <div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
-                  Event Audit Surveillance Inspector
-                </div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>
-                  {selectedLog.action} · {selectedLog.module}
-                </div>
+                <div className="sa-eyebrow">Event Audit Surveillance Inspector</div>
+                <h2 className="sa-card-title">
+                  <span className={`sa-badge ${actionTone(selectedLog.action)}`}>{selectedLog.action}</span>
+                  {selectedLog.module}
+                </h2>
               </div>
-              <button
-                onClick={() => setSelectedLog(null)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}
-              >
-                ✕
+              <button onClick={() => setSelectedLog(null)} className="sa-icon-btn" aria-label="Close">
+                <X size={18} />
               </button>
             </div>
 
-            <div style={{ padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="sa-modal-body sa-log-inspect">
               {/* Event Metadata */}
-              <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.82rem' }}>
-                <div><strong>Actor:</strong> {selectedLog.userName} ({selectedLog.userRole})</div>
-                <div><strong>Store:</strong> {selectedLog.storeName || 'HQ / Global'}</div>
-                <div><strong>Timestamp:</strong> {new Date(selectedLog.timestamp).toLocaleString()}</div>
-                <div><strong>Client IP:</strong> {selectedLog.ip || '127.0.0.1'}</div>
+              <div className="sa-log-meta-grid">
+                <div><span className="sa-hint">Actor</span><strong>{selectedLog.userName} ({selectedLog.userRole})</strong></div>
+                <div><span className="sa-hint">Store</span><strong>{selectedLog.storeName || 'HQ / Global'}</strong></div>
+                <div><span className="sa-hint">Timestamp</span><strong>{new Date(selectedLog.timestamp).toLocaleString()}</strong></div>
+                <div><span className="sa-hint">Client IP</span><strong>{selectedLog.ip || '127.0.0.1'}</strong></div>
               </div>
 
-              <div>
-                <strong style={{ fontSize: '0.88rem', color: '#1e293b' }}>Description:</strong>
-                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#475569', background: '#f1f5f9', padding: '10px 12px', borderRadius: '8px' }}>
-                  {selectedLog.description}
-                </p>
+              <div className="sa-field">
+                <span className="sa-label">Description</span>
+                <p className="sa-store-address">{selectedLog.description}</p>
               </div>
 
               {/* Exact Option / Diff Details */}
-              <div>
-                <strong style={{ fontSize: '0.88rem', color: '#1e293b' }}>
-                  Exact Modified Options & Changed Values:
-                </strong>
-                <pre style={{
-                  marginTop: '8px',
-                  background: '#0f172a',
-                  color: '#38bdf8',
-                  padding: '16px',
-                  borderRadius: '10px',
-                  fontSize: '0.8rem',
-                  overflowX: 'auto',
-                  maxHeight: '260px',
-                  fontFamily: 'monospace'
-                }}>
+              <div className="sa-field">
+                <span className="sa-label">Exact Modified Options & Changed Values</span>
+                <pre className="sa-pre" style={{ maxHeight: '300px' }}>
                   {JSON.stringify(selectedLog.details || {}, null, 2)}
                 </pre>
               </div>
             </div>
 
-            <div style={{ padding: '14px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'right' }}>
-              <button
-                onClick={() => setSelectedLog(null)}
-                style={{ padding: '8px 18px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}
-              >
+            <div className="sa-modal-foot">
+              <button onClick={() => setSelectedLog(null)} className="sa-btn sa-btn--primary">
                 Close Inspector
               </button>
             </div>

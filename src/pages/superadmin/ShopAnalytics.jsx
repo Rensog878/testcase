@@ -314,83 +314,25 @@ export default function ShopAnalytics() {
   }, [stores, data?.storeBreakdown])
 
   return (
-    <div style={{ paddingBottom: '40px', minWidth: 0 }}>
+    <div className="sa-page" style={{ minWidth: 0 }}>
       {/* Page Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
+      <div className="sa-page-head">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-              All Shops Overview & Analytics
-            </h1>
-            <span style={{
-              fontSize: '0.72rem',
-              padding: '3px 10px',
-              background: '#eff6ff',
-              border: '1px solid #bfdbfe',
-              color: '#2563eb',
-              borderRadius: '20px',
-              fontWeight: 700,
-              letterSpacing: '0.5px'
-            }}>
-              ENTERPRISE METRICS
-            </span>
-          </div>
-          <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+          <div className="sa-eyebrow"><TrendingUp size={14} /> Enterprise Metrics</div>
+          <h1 className="sa-title">All Shops Overview & Analytics</h1>
+          <p className="sa-subtitle">
             Consolidated real-time billing performance, GST tax collections, and financial ledgers across all retail outlets.
           </p>
         </div>
 
         {/* Global Export & Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '9px 15px',
-              background: '#ffffff',
-              color: '#334155',
-              border: '1px solid #cbd5e1',
-              borderRadius: '10px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              transition: 'all 0.15s'
-            }}
-          >
-            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+        <div className="sa-actions">
+          <button onClick={fetchData} disabled={loading} className="sa-btn sa-btn--ghost">
+            <RefreshCw size={15} className={loading ? 'sa-spin' : ''} />
             Refresh
           </button>
 
-          <button
-            onClick={exportFullExcelReport}
-            disabled={exporting || loading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '9px 18px',
-              background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
-              fontWeight: 700,
-              cursor: exporting ? 'not-allowed' : 'pointer',
-              boxShadow: '0 3px 10px rgba(16, 185, 129, 0.3)',
-              transition: 'all 0.2s'
-            }}
-          >
+          <button onClick={exportFullExcelReport} disabled={exporting || loading} className="sa-btn sa-btn--primary">
             <FileSpreadsheet size={17} />
             {exporting ? 'Generating Excel...' : 'Export Complete Excel'}
           </button>
@@ -398,38 +340,11 @@ export default function ShopAnalytics() {
       </div>
 
       {/* Filter Toolbar */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '14px',
-        padding: '16px 20px',
-        marginBottom: '24px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px'
-      }}>
+      <div className="sa-toolbar sa-an-toolbar">
         {/* Store Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Store size={18} color="#2563eb" />
-          <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>Store Outlet:</span>
-          <select
-            value={selectedStore}
-            onChange={(e) => setSelectedStore(e.target.value)}
-            style={{
-              background: '#ffffff',
-              color: '#0f172a',
-              border: '1px solid #cbd5e1',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              fontSize: '0.88rem',
-              fontWeight: 500,
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
+        <label className="sa-inline-label">
+          <Store size={16} /> Store Outlet
+          <select className="sa-select" value={selectedStore} onChange={(e) => setSelectedStore(e.target.value)}>
             <option value="all">All Shops & Outlets ({availableStores.length})</option>
             {availableStores.map(st => (
               <option key={st.id} value={st.id}>
@@ -437,397 +352,215 @@ export default function ShopAnalytics() {
               </option>
             ))}
           </select>
-        </div>
+        </label>
 
         {/* Date Presets */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <Calendar size={17} color="#7c3aed" />
-          <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>Period:</span>
-          {[
-            { id: 'all', label: 'All Time' },
-            { id: 'today', label: 'Today' },
-            { id: '7days', label: 'Last 7 Days' },
-            { id: '30days', label: 'Last 30 Days' },
-            { id: 'thisMonth', label: 'This Month' },
-            { id: 'custom', label: 'Custom' },
-          ].map(p => (
-            <button
-              key={p.id}
-              onClick={() => setDateRangePreset(p.id)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                background: dateRangePreset === p.id ? '#2563eb' : '#f1f5f9',
-                color: dateRangePreset === p.id ? '#ffffff' : '#475569',
-                boxShadow: dateRangePreset === p.id ? '0 2px 6px rgba(37,99,235,0.25)' : 'none',
-                transition: 'all 0.15s'
-              }}
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className="sa-an-period">
+          <span className="sa-inline-label"><Calendar size={16} /> Period</span>
+          <div className="sa-seg">
+            {[
+              { id: 'all', label: 'All Time' },
+              { id: 'today', label: 'Today' },
+              { id: '7days', label: 'Last 7 Days' },
+              { id: '30days', label: 'Last 30 Days' },
+              { id: 'thisMonth', label: 'This Month' },
+              { id: 'custom', label: 'Custom' },
+            ].map(p => (
+              <button
+                key={p.id}
+                onClick={() => setDateRangePreset(p.id)}
+                className={`sa-seg-btn${dateRangePreset === p.id ? ' is-active' : ''}`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
 
           {/* Custom Date Pickers */}
           {dateRangePreset === 'custom' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
-              <input
-                type="date"
-                value={customFrom}
-                onChange={(e) => setCustomFrom(e.target.value)}
-                style={{
-                  background: '#ffffff',
-                  color: '#0f172a',
-                  border: '1px solid #cbd5e1',
-                  padding: '5px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.82rem'
-                }}
-              />
-              <span style={{ color: '#64748b', fontSize: '0.8rem' }}>to</span>
-              <input
-                type="date"
-                value={customTo}
-                onChange={(e) => setCustomTo(e.target.value)}
-                style={{
-                  background: '#ffffff',
-                  color: '#0f172a',
-                  border: '1px solid #cbd5e1',
-                  padding: '5px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.82rem'
-                }}
-              />
+            <div className="sa-an-dates">
+              <input type="date" className="sa-input" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+              <span className="sa-muted">to</span>
+              <input type="date" className="sa-input" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
             </div>
           )}
         </div>
       </div>
 
       {/* KPI Summary Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
+      <div className="sa-stats sa-an-kpis">
         {/* Card 1: Gross Sales */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '14px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-          borderLeft: '4px solid #4f46e5'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Total Gross Sales
-            </span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <IndianRupee size={18} color="#4f46e5" />
-            </div>
+        <div className="sa-stat sa-tone-green">
+          <div className="sa-stat-top">
+            <div className="sa-stat-icon"><IndianRupee size={20} /></div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {fmtRs(kpis.totalGrossSales)}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-            Across {kpis.totalActiveStores || 0} active store locations
+          <div>
+            <div className="sa-stat-label">Total Gross Sales</div>
+            <div className="sa-stat-value">{fmtRs(kpis.totalGrossSales)}</div>
+            <div className="sa-stat-sub">Across {kpis.totalActiveStores || 0} active store locations</div>
           </div>
         </div>
 
         {/* Card 2: Total Bills */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '14px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-          borderLeft: '4px solid #059669'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Total Bills Issued
-            </span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Receipt size={18} color="#059669" />
-            </div>
+        <div className="sa-stat sa-tone-teal">
+          <div className="sa-stat-top">
+            <div className="sa-stat-icon"><Receipt size={20} /></div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {fmtNum(kpis.totalInvoiceCount)}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-            Numbered <code style={{ color: '#059669', fontWeight: 700 }}>SAM &lt;CODE&gt; &lt;NO&gt;</code>
+          <div>
+            <div className="sa-stat-label">Total Bills Issued</div>
+            <div className="sa-stat-value">{fmtNum(kpis.totalInvoiceCount)}</div>
+            <div className="sa-stat-sub">Numbered <span className="sa-code">SAM &lt;CODE&gt; &lt;NO&gt;</span></div>
           </div>
         </div>
 
         {/* Card 3: GST Collected */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '14px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-          borderLeft: '4px solid #7c3aed'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              GST Tax Collected
-            </span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Coins size={18} color="#7c3aed" />
-            </div>
+        <div className="sa-stat sa-tone-violet">
+          <div className="sa-stat-top">
+            <div className="sa-stat-icon"><Coins size={20} /></div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {fmtRs(kpis.totalGstCollected)}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-            CGST + SGST / IGST tax component
+          <div>
+            <div className="sa-stat-label">GST Tax Collected</div>
+            <div className="sa-stat-value">{fmtRs(kpis.totalGstCollected)}</div>
+            <div className="sa-stat-sub">CGST + SGST / IGST tax component</div>
           </div>
         </div>
 
         {/* Card 4: Average Bill Size */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '14px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-          borderLeft: '4px solid #0284c7'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Average Bill Value (AOV)
-            </span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={18} color="#0284c7" />
-            </div>
+        <div className="sa-stat sa-tone-blue">
+          <div className="sa-stat-top">
+            <div className="sa-stat-icon"><TrendingUp size={20} /></div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {fmtRs(kpis.avgBillValue)}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-            Mean revenue per customer bill
+          <div>
+            <div className="sa-stat-label">Average Bill Value (AOV)</div>
+            <div className="sa-stat-value">{fmtRs(kpis.avgBillValue)}</div>
+            <div className="sa-stat-sub">Mean revenue per customer bill</div>
           </div>
         </div>
 
         {/* Card 5: Top Store */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '14px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-          borderLeft: '4px solid #d97706'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Top Store Outlier
-            </span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Building2 size={18} color="#d97706" />
+        <div className="sa-stat sa-tone-amber">
+          <div className="sa-stat-top">
+            <div className="sa-stat-icon"><Building2 size={20} /></div>
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div className="sa-stat-label">Top Store Outlier</div>
+            <div className="sa-stat-value sa-stat-value--sm sa-an-ellipsis">{kpis.topStore?.name || 'No Data'}</div>
+            <div className="sa-stat-sub" style={{ color: 'var(--sa-amber)' }}>
+              {kpis.topStore ? `${fmtRs(kpis.topStore.grossSales)} (${kpis.topStore.code})` : '—'}
             </div>
-          </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {kpis.topStore?.name || 'No Data'}
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#b45309', marginTop: '4px', fontWeight: 700 }}>
-            {kpis.topStore ? `${fmtRs(kpis.topStore.grossSales)} (${kpis.topStore.code})` : '—'}
           </div>
         </div>
       </div>
 
       {/* Payment Mix Distribution Section */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '16px',
-        padding: '20px 24px',
-        marginBottom: '24px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
-      }}>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Wallet size={19} color="#2563eb" />
-          Enterprise Payment Collection Breakdown
+      <section className="sa-card">
+        <div className="sa-card-head">
+          <h2 className="sa-card-title"><Wallet size={19} /> Enterprise Payment Collection Breakdown</h2>
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
-          {[
-            { label: 'Cash at Counter', amount: kpis.paymentMix?.cash || 0, icon: <Coins size={16} color="#059669" />, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
-            { label: 'UPI / QR Payments', amount: kpis.paymentMix?.upi || 0, icon: <Smartphone size={16} color="#2563eb" />, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
-            { label: 'Farmer Credit Book', amount: kpis.paymentMix?.credit || 0, icon: <CreditCard size={16} color="#d97706" />, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-            { label: 'Bank / NEFT Transfer', amount: kpis.paymentMix?.bankTransfer || 0, icon: <Building2 size={16} color="#7c3aed" />, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-          ].map(m => {
-            const pct = kpis.totalGrossSales > 0 ? Math.round((m.amount / kpis.totalGrossSales) * 100) : 0
-            return (
-              <div key={m.label} style={{ background: '#f8fafc', borderRadius: '12px', padding: '16px', border: `1px solid ${m.border}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: m.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {m.icon}
-                    </div>
-                    <span>{m.label}</span>
+        <div className="sa-card-body">
+          <div className="sa-an-mix">
+            {[
+              { label: 'Cash at Counter', amount: kpis.paymentMix?.cash || 0, icon: <Coins size={16} />, tone: 'sa-tone-green' },
+              { label: 'UPI / QR Payments', amount: kpis.paymentMix?.upi || 0, icon: <Smartphone size={16} />, tone: 'sa-tone-blue' },
+              { label: 'Farmer Credit Book', amount: kpis.paymentMix?.credit || 0, icon: <CreditCard size={16} />, tone: 'sa-tone-amber' },
+              { label: 'Bank / NEFT Transfer', amount: kpis.paymentMix?.bankTransfer || 0, icon: <Building2 size={16} />, tone: 'sa-tone-violet' },
+            ].map(m => {
+              const pct = kpis.totalGrossSales > 0 ? Math.round((m.amount / kpis.totalGrossSales) * 100) : 0
+              return (
+                <div key={m.label} className={`sa-an-mix-item ${m.tone}`}>
+                  <div className="sa-an-mix-top">
+                    <span className="sa-an-mix-label">
+                      <span className="sa-feed-icon" style={{ width: '30px', height: '30px', borderRadius: '9px' }}>{m.icon}</span>
+                      {m.label}
+                    </span>
+                    <span className="sa-an-mix-pct">{pct}%</span>
                   </div>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: m.color }}>{pct}%</span>
+                  <div className="sa-an-mix-value">{fmtRs(m.amount)}</div>
+                  <div className="sa-progress"><span style={{ width: `${pct}%` }}></span></div>
                 </div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>
-                  {fmtRs(m.amount)}
-                </div>
-                <div style={{ width: '100%', height: '5px', background: '#e2e8f0', borderRadius: '3px', marginTop: '10px', overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', background: m.color, borderRadius: '3px' }} />
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Store Breakdown Table */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '16px',
-        padding: '22px',
-        marginBottom: '24px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-      }}>
+      <section className="sa-card" style={{ overflow: 'hidden' }}>
         {/* Table Header Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+        <div className="sa-card-head">
           <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Store size={20} color="#2563eb" />
-              Store Performance Ledger ({filteredStores.length} Stores)
-            </div>
-            <p style={{ color: '#64748b', fontSize: '0.84rem', margin: '3px 0 0 0' }}>
-              Store-by-store sales revenue, GST collections, payment methods, and operational status.
-            </p>
+            <h2 className="sa-card-title"><Store size={19} /> Store Performance Ledger ({filteredStores.length} Stores)</h2>
+            <div className="sa-card-sub">Store-by-store sales revenue, GST collections, payment methods, and operational status.</div>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Search Input */}
-            <div style={{ position: 'relative' }}>
-              <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input
-                type="text"
-                placeholder="Search store name, code, lead..."
-                value={storeSearchQuery}
-                onChange={(e) => setStoreSearchQuery(e.target.value)}
-                style={{
-                  background: '#f8fafc',
-                  color: '#0f172a',
-                  border: '1px solid #cbd5e1',
-                  padding: '8px 12px 8px 34px',
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  width: '260px'
-                }}
-              />
-            </div>
-          </div>
+          <label className="sa-search" style={{ flex: '0 1 280px' }}>
+            <Search size={15} />
+            <input
+              type="text"
+              className="sa-input"
+              placeholder="Search store name, code, lead..."
+              value={storeSearchQuery}
+              onChange={(e) => setStoreSearchQuery(e.target.value)}
+            />
+          </label>
         </div>
 
         {/* Responsive Table */}
-        <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.86rem' }}>
+        <div className="sa-table-wrap">
+          <table className="sa-table">
             <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>Store Details</th>
-                <th style={{ padding: '12px 16px', cursor: 'pointer', fontWeight: 700 }} onClick={() => handleSort('code')}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    Code <ArrowUpDown size={13} />
-                  </div>
+              <tr>
+                <th>Store Details</th>
+                <th className="is-sortable" onClick={() => handleSort('code')}>
+                  <span className="sa-th-sort">Code <ArrowUpDown size={12} /></span>
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>Location</th>
-                <th style={{ padding: '12px 16px', cursor: 'pointer', fontWeight: 700 }} onClick={() => handleSort('staffCount')}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    Staff <ArrowUpDown size={13} />
-                  </div>
+                <th>Location</th>
+                <th className="is-sortable" onClick={() => handleSort('staffCount')}>
+                  <span className="sa-th-sort">Staff <ArrowUpDown size={12} /></span>
                 </th>
-                <th style={{ padding: '12px 16px', cursor: 'pointer', fontWeight: 700 }} onClick={() => handleSort('totalBills')}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    Bills <ArrowUpDown size={13} />
-                  </div>
+                <th className="is-sortable" onClick={() => handleSort('totalBills')}>
+                  <span className="sa-th-sort">Bills <ArrowUpDown size={12} /></span>
                 </th>
-                <th style={{ padding: '12px 16px', cursor: 'pointer', fontWeight: 700 }} onClick={() => handleSort('grossSales')}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    Gross Sales <ArrowUpDown size={13} />
-                  </div>
+                <th className="is-sortable" onClick={() => handleSort('grossSales')}>
+                  <span className="sa-th-sort">Gross Sales <ArrowUpDown size={12} /></span>
                 </th>
-                <th style={{ padding: '12px 16px', cursor: 'pointer', fontWeight: 700 }} onClick={() => handleSort('totalGst')}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    GST Tax <ArrowUpDown size={13} />
-                  </div>
+                <th className="is-sortable" onClick={() => handleSort('totalGst')}>
+                  <span className="sa-th-sort">GST Tax <ArrowUpDown size={12} /></span>
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>Cash</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>UPI</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>Credit</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>Status</th>
+                <th>Cash</th>
+                <th>UPI</th>
+                <th>Credit</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {filteredStores.length === 0 ? (
                 <tr>
-                  <td colSpan="11" style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                    No store data found matching the selected filters.
+                  <td colSpan="11">
+                    <div className="sa-empty" style={{ padding: '32px 16px' }}>
+                      <div className="sa-empty-icon"><Store size={24} /></div>
+                      <div className="sa-empty-text">No store data found matching the selected filters.</div>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filteredStores.map(st => (
-                  <tr key={st.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff', transition: 'background 0.1s' }}>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{st.name}</div>
-                      <div style={{ fontSize: '0.76rem', color: '#64748b' }}>Lead: {st.adminName}</div>
+                  <tr key={st.id}>
+                    <td>
+                      <div className="sa-cell-title">{st.name}</div>
+                      <div className="sa-cell-sub">Lead: {st.adminName}</div>
                     </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        padding: '3px 8px',
-                        background: '#eff6ff',
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '6px',
-                        fontFamily: 'monospace',
-                        color: '#1d4ed8',
-                        fontSize: '0.82rem',
-                        fontWeight: 700
-                      }}>
-                        {st.code}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#334155' }}>
-                      {st.location || '—'}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#334155', fontWeight: 600 }}>
-                      {st.staffCount}
-                    </td>
-                    <td style={{ padding: '14px 16px', fontWeight: 700, color: '#0f172a' }}>
-                      {fmtNum(st.totalBills)}
-                    </td>
-                    <td style={{ padding: '14px 16px', fontWeight: 800, color: '#059669' }}>
-                      {fmtRs(st.grossSales)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#7c3aed', fontWeight: 600 }}>
-                      {fmtRs(st.totalGst)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#475569' }}>
-                      {fmtRs(st.cash)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#475569' }}>
-                      {fmtRs(st.upi)}
-                    </td>
-                    <td style={{ padding: '14px 16px', color: '#d97706', fontWeight: 600 }}>
-                      {fmtRs(st.credit)}
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: '20px',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        background: st.status === 'active' ? '#dcfce7' : '#fee2e2',
-                        color: st.status === 'active' ? '#15803d' : '#b91c1c'
-                      }}>
+                    <td><span className="sa-code">{st.code}</span></td>
+                    <td>{st.location || '—'}</td>
+                    <td className="is-strong">{st.staffCount}</td>
+                    <td className="is-strong">{fmtNum(st.totalBills)}</td>
+                    <td className="is-strong" style={{ color: 'var(--sa-accent)' }}>{fmtRs(st.grossSales)}</td>
+                    <td style={{ color: 'var(--sa-violet)', fontWeight: 600 }}>{fmtRs(st.totalGst)}</td>
+                    <td>{fmtRs(st.cash)}</td>
+                    <td>{fmtRs(st.upi)}</td>
+                    <td style={{ color: 'var(--sa-amber)', fontWeight: 600 }}>{fmtRs(st.credit)}</td>
+                    <td>
+                      <span className={`sa-badge ${st.status === 'active' ? 'sa-tone-green' : 'sa-tone-rose'}`}>
+                        <span className="sa-dot"></span>
                         {st.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
@@ -837,165 +570,93 @@ export default function ShopAnalytics() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
       {/* Two Column Section: Top Products & Invoices Registry */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+      <div className="sa-grid-2">
         {/* Top Selling Products */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          padding: '22px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-        }}>
-          <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Package size={19} color="#7c3aed" />
-            Top Selling Products Network-Wide
+        <section className="sa-card" style={{ overflow: 'hidden' }}>
+          <div className="sa-card-head">
+            <h2 className="sa-card-title"><Package size={19} /> Top Selling Products Network-Wide</h2>
           </div>
 
-          <div style={{ overflowY: 'auto', maxHeight: '350px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+          <div className="sa-table-wrap" style={{ maxHeight: '380px', overflowY: 'auto' }}>
+            <table className="sa-table">
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.76rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Product</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}>Units Sold</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700 }}>Revenue (₹)</th>
+                <tr>
+                  <th>Product</th>
+                  <th style={{ textAlign: 'center' }}>Units Sold</th>
+                  <th className="is-num">Revenue (₹)</th>
                 </tr>
               </thead>
               <tbody>
                 {(data?.topProducts || []).length === 0 ? (
                   <tr>
-                    <td colSpan="3" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No product data recorded yet.</td>
+                    <td colSpan="3"><div className="sa-empty" style={{ padding: '24px' }}><div className="sa-empty-text">No product data recorded yet.</div></div></td>
                   </tr>
                 ) : (
                   (data?.topProducts || []).map((p, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
-                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '0.75rem', width: '22px', height: '22px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontWeight: 700 }}>
-                            {idx + 1}
-                          </span>
-                          <span>{p.name}</span>
+                    <tr key={idx}>
+                      <td>
+                        <div className="sa-cell-person">
+                          <span className={`sa-an-rank${idx < 3 ? ' is-top' : ''}`}>{idx + 1}</span>
+                          <span className="sa-cell-title">{p.name}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center', color: '#334155', fontWeight: 600 }}>
-                        {fmtNum(p.unitsSold)}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#059669' }}>
-                        {fmtRs(p.revenue)}
-                      </td>
+                      <td className="is-strong" style={{ textAlign: 'center' }}>{fmtNum(p.unitsSold)}</td>
+                      <td className="is-num is-strong" style={{ color: 'var(--sa-accent)' }}>{fmtRs(p.revenue)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
         {/* Invoice Summary with Excel Export */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          padding: '22px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Receipt size={19} color="#059669" />
-              Recent SAM Invoices ({filteredInvoices.length})
-            </div>
-            <button
-              onClick={exportInvoicesExcel}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                background: '#ecfdf5',
-                color: '#059669',
-                border: '1px solid #a7f3d0',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s'
-              }}
-            >
+        <section className="sa-card" style={{ overflow: 'hidden' }}>
+          <div className="sa-card-head">
+            <h2 className="sa-card-title"><Receipt size={19} /> Recent SAM Invoices ({filteredInvoices.length})</h2>
+            <button onClick={exportInvoicesExcel} className="sa-btn sa-btn--ghost sa-btn--sm">
               <Download size={14} />
               Export Invoices XLSX
             </button>
           </div>
 
           {/* Quick Invoice Search */}
-          <div style={{ marginBottom: '12px' }}>
-            <input
-              type="text"
-              placeholder="Search SAM invoice number, customer..."
-              value={invoiceSearchQuery}
-              onChange={(e) => setInvoiceSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                background: '#f8fafc',
-                color: '#0f172a',
-                border: '1px solid #cbd5e1',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
+          <div style={{ padding: '14px 24px 0' }}>
+            <label className="sa-search">
+              <Search size={15} />
+              <input
+                type="text"
+                className="sa-input"
+                placeholder="Search SAM invoice number, customer..."
+                value={invoiceSearchQuery}
+                onChange={(e) => setInvoiceSearchQuery(e.target.value)}
+              />
+            </label>
           </div>
 
-          <div style={{ overflowY: 'auto', maxHeight: '310px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+          <div className="sa-table-wrap" style={{ maxHeight: '330px', overflowY: 'auto', marginTop: '12px' }}>
+            <table className="sa-table">
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.76rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700 }}>Invoice No</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700 }}>Store</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700 }}>Customer</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700 }}>Total (₹)</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>Mode</th>
+                <tr>
+                  <th>Invoice No</th>
+                  <th>Store</th>
+                  <th>Customer</th>
+                  <th className="is-num">Total (₹)</th>
+                  <th style={{ textAlign: 'center' }}>Mode</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInvoices.slice(0, 20).map((inv, idx) => (
-                  <tr key={inv.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{
-                        fontFamily: 'monospace',
-                        fontWeight: 700,
-                        color: '#0369a1',
-                        background: '#f0f9ff',
-                        padding: '3px 7px',
-                        borderRadius: '6px',
-                        border: '1px solid #bae6fd',
-                        fontSize: '0.78rem'
-                      }}>
-                        {inv.invoiceNo}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#334155', fontWeight: 600 }}>
-                      {inv.storeCode || '—'}
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#64748b' }}>
-                      {inv.customerName || 'Walk-in'}
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#059669' }}>
-                      {fmtRs(inv.grandTotal)}
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                      <span style={{
-                        fontSize: '0.72rem',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        fontWeight: 600,
-                        background: inv.paymentMode?.toLowerCase().includes('credit') ? '#fffbeb' : '#f1f5f9',
-                        color: inv.paymentMode?.toLowerCase().includes('credit') ? '#b45309' : '#475569',
-                        border: inv.paymentMode?.toLowerCase().includes('credit') ? '1px solid #fde68a' : '1px solid #e2e8f0'
-                      }}>
+                  <tr key={inv.id || idx}>
+                    <td><span className="sa-code">{inv.invoiceNo}</span></td>
+                    <td className="is-strong">{inv.storeCode || '—'}</td>
+                    <td className="sa-muted">{inv.customerName || 'Walk-in'}</td>
+                    <td className="is-num is-strong" style={{ color: 'var(--sa-accent)' }}>{fmtRs(inv.grandTotal)}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className={`sa-badge ${inv.paymentMode?.toLowerCase().includes('credit') ? 'sa-tone-amber' : 'sa-tone-slate'}`}>
                         {inv.paymentMode || 'Cash'}
                       </span>
                     </td>
@@ -1004,7 +665,7 @@ export default function ShopAnalytics() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

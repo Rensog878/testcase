@@ -51,7 +51,7 @@ export default function InvoiceHistory() {
         <div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><History size={24} /> Invoice &amp; Credit Note History</h1>
           <p style={{ color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Review, inspect, and reprint official Sathyam Bio GST e-Invoices
+            Review, inspect, and reprint official Sathyam Agro Clinic GST e-Invoices
           </p>
         </div>
         <button className="btn btn-outline btn-sm" onClick={loadInvoices} disabled={loading}>

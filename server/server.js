@@ -3003,7 +3003,7 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       customerPhone: cleanText(customerPhone || buyerDetails?.phone, 20),
       // The seller's GSTIN and bank account are ours, never the request's.
       sellerDetails: {
-        name: 'Sathyam Bio',
+        name: 'Sathyam Agro Clinic',
         line1: 'No.130, Muppar street,',
         line2: 'Balamurugan Kovil road,',
         line3: 'Vadipatti',
@@ -3011,7 +3011,7 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
         unit: 'Unit 1',
         pincode: '625218',
         gstin: '33BAAPS3641C1Z6',
-        pan: 'BAAPS3641C'
+        pan: 'AFBFS8329C'
       },
       buyerDetails: buyerDetails || {
         name: cleanText(customerName, 80) || 'Walk-in Customer',
@@ -3028,9 +3028,9 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       despatchDetails: despatchDetails || {},
       transportDetails: transportDetails || {},
       bankDetails: {
-        bankName: 'HDFC Bank (India)',
-        acNo: '50200112291146',
-        branchIfsc: 'Thirunagar, Madurai & HDFC0009046'
+        bankName: 'ICICI Bank',
+        acNo: '466805500061',
+        branchIfsc: 'Madurai Simmakkal & ICIC0004668'
       },
       paymentMode: cleanPaymentMode,
       paymentTerms: cleanText(paymentTerms, 60),

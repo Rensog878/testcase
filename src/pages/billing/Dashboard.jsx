@@ -507,7 +507,7 @@ export default function BillingDashboard() {
       <div className="page-header" style={{ marginBottom: 20 }}>
         <div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <ReceiptText size={24} /> Sathyam Bio POS Billing &amp; e-Invoice Engine
+            <ReceiptText size={24} /> Sathyam Agro Clinic POS Billing &amp; e-Invoice Engine
           </h1>
           <p style={{ color: 'var(--text-muted)', margin: '4px 0 0' }}>
             Official GSTIN: <strong>33BAAPS3641C1Z6</strong> · State: Tamil Nadu (33) · Vadipatti Unit 1

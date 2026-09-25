@@ -166,7 +166,7 @@ export default function ExactGstInvoice({ invoice, onClose, onPrint }) {
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>GST Tax Invoice - Sathyam Bio</title>
+<title>GST Tax Invoice - Sathyam Agro Clinic</title>
 <style>${INVOICE_CSS}</style>
 </head>
 <body>${invoiceHtml}</body>
@@ -201,7 +201,7 @@ export default function ExactGstInvoice({ invoice, onClose, onPrint }) {
 
   // Seller Details
   const seller = inv.sellerDetails || {
-    name: 'Sathyam Bio',
+    name: 'Sathyam Agro Clinic',
     line1: 'No.130, Muppar street,',
     line2: 'Balamurugan Kovil road,',
     line3: 'Vadipatti',
@@ -209,7 +209,7 @@ export default function ExactGstInvoice({ invoice, onClose, onPrint }) {
     unit: 'Unit 1',
     pincode: '625218',
     gstin: '33BAAPS3641C1Z6',
-    pan: 'BAAPS3641C'
+    pan: 'AFBFS8329C'
   }
 
   // Consignee Details (Ship To)
@@ -257,9 +257,9 @@ export default function ExactGstInvoice({ invoice, onClose, onPrint }) {
 
   // Bank Details
   const bank = inv.bankDetails || {
-    bankName: 'HDFC Bank (India)',
-    acNo: '50200112291146',
-    branchIfsc: 'Thirunagar, Madurai & HDFC0009046'
+    bankName: 'ICICI Bank',
+    acNo: '466805500061',
+    branchIfsc: 'Madurai Simmakkal & ICIC0004668'
   }
 
   // Items processing

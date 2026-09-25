@@ -88,11 +88,11 @@ export const CropGrid = memo(function CropGrid({ cms }) {
 })
 
 const CERTIFICATIONS = [
-  { image: 'photo-1586281380349-632531db7ed4', alt: 'ICAR Certified', label: 'ICAR Approved' },
-  { image: 'photo-1560472354-b33ff0c44a43', alt: 'ISO 9001', label: 'ISO 9001:2015' },
-  { image: 'photo-1587614382346-4ec70e388b28', alt: 'Organic India', label: 'Organic India' },
-  { image: 'photo-1571019613454-1cb2f99b2d8b', alt: 'GreenTech Award', label: 'GreenTech 2025' },
-  { image: 'photo-1559757148-5c350d0d3c56', alt: 'APEDA', label: 'APEDA Member' },
+  { image: 'photo-1586281380349-632531db7ed4', alt: 'ICAR Certified', label: 'ICAR Approved', icon: 'fa-flask', caption: 'Research-backed formulas' },
+  { image: 'photo-1560472354-b33ff0c44a43', alt: 'ISO 9001', label: 'ISO 9001:2015', icon: 'fa-certificate', caption: 'Certified quality system' },
+  { image: 'photo-1587614382346-4ec70e388b28', alt: 'Organic India', label: 'Organic India', icon: 'fa-leaf', caption: 'Organic farming inputs' },
+  { image: 'photo-1571019613454-1cb2f99b2d8b', alt: 'GreenTech Award', label: 'GreenTech 2025', icon: 'fa-award', caption: 'Innovation award winner' },
+  { image: 'photo-1559757148-5c350d0d3c56', alt: 'APEDA', label: 'APEDA Member', icon: 'fa-earth-asia', caption: 'Registered export member' },
 ]
 
 // Titles, labels and logos can be changed in the admin CMS.
@@ -107,8 +107,13 @@ export const Certifications = memo(function Certifications({ settings }) {
         <div className="cert-logos-row">
           {CERTIFICATIONS.map((item, index) => {
             const label = settings[`certification${index + 1}Label`]
+            const customImage = settings[`certification${index + 1}Image`]
+            // The shipped images are placeholder stock photos: desktop shows an icon badge instead
+            // (Font Awesome, because the store's all:revert reset strips lucide SVG geometry).
+            const isStock = !customImage || customImage.includes(item.image)
             return (
-              <div className="cert-logo-card" key={item.image}>
+              <div className={`cert-logo-card${isStock ? ' is-stock' : ''}`} key={item.image}>
+                <span className="cert-badge" aria-hidden="true"><i className={`fa-solid ${item.icon}`} /></span>
                 <img
                   id={`certification${index + 1}Image`}
                   src={settings[`certification${index + 1}Image`] || unsplash(item.image, 120)}
@@ -116,7 +121,10 @@ export const Certifications = memo(function Certifications({ settings }) {
                   loading="lazy"
                   decoding="async"
                 />
-                <span id={`certification${index + 1}Label`}>{label || item.label}</span>
+                <span className="cert-text">
+                  <span id={`certification${index + 1}Label`}>{label || item.label}</span>
+                  {isStock && <small className="cert-caption">{item.caption}</small>}
+                </span>
               </div>
             )
           })}

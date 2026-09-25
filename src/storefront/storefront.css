@@ -419,6 +419,10 @@ body.sb-home-active {
   border-radius: 10px;
   filter: grayscale(0.2);
 }
+:is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-badge,
+:is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-caption {
+  display: none;
+}
 :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card span {
   font-size: 0.8rem;
   font-weight: 700;
@@ -12242,5 +12246,123 @@ body.poster-open .sb-portal .call-fab {
 @media print {
   .sb-portal .call-fab {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   CERTIFICATIONS 2026 (>=1025px) - trust badges
+   Icon tile + label + caption, laid out as a row of horizontal cards. When the
+   admin CMS still holds the placeholder stock photo (.is-stock) the photo is
+   swapped for an icon badge; a real uploaded logo keeps its image. Phones and
+   tablets keep the CERTIFICATIONS STRIP rules above untouched.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-strip {
+    padding: 56px 0 60px;
+    border: 0;
+    background:
+      radial-gradient(60% 120% at 50% 0%, rgba(11, 122, 75, 0.06), transparent 70%),
+      var(--bg-card, #ffffff);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-strip-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 32px;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    color: var(--primary-dark);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-strip-header::before,
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-strip-header::after {
+    content: "";
+    width: 48px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(11, 122, 75, 0.45));
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-strip-header::after {
+    transform: scaleX(-1);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logos-row {
+    gap: 20px;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    padding: 18px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(11, 122, 75, 0.12);
+    background: linear-gradient(180deg, #ffffff 0%, #FBFDFB 100%);
+    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 4px 14px rgba(20, 35, 28, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(11, 122, 75, 0.3);
+    background: linear-gradient(180deg, #ffffff 0%, #F4FAF6 100%);
+    box-shadow: 0 2px 4px rgba(20, 35, 28, 0.04), 0 14px 32px rgba(11, 122, 75, 0.12);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card img {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    border-radius: 14px;
+    filter: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card.is-stock img {
+    display: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card.is-stock .cert-badge {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    color: var(--primary, #0B7A4B);
+    background: linear-gradient(145deg, #E8F5EE 0%, #D3EDDF 100%);
+    box-shadow: inset 0 0 0 1px rgba(11, 122, 75, 0.12);
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-badge i {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card.is-stock:hover .cert-badge {
+    color: #ffffff;
+    background: linear-gradient(145deg, #0E8A55 0%, #0B6B42 100%);
+    transform: rotate(-4deg) scale(1.04);
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    text-align: left;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-text > span {
+    font: 700 0.95rem/1.3 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    color: var(--text-main, #14231C);
+    text-align: left;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-caption {
+    display: block;
+    font: 500 0.78rem/1.35 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    color: var(--text-muted);
+  }
+}
+@media (min-width: 1025px) and (prefers-reduced-motion: reduce) {
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card,
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card .cert-badge {
+    transition: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card:hover,
+  :is(body.sb-home-active .sb-home, .sb-portal) .cert-logo-card:hover .cert-badge {
+    transform: none;
   }
 }

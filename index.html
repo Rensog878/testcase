@@ -26,10 +26,12 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400..800&family=Noto+Sans+Kannada:wght@400..800&family=Noto+Sans+Telugu:wght@400..800&family=Noto+Sans+Devanagari:wght@400..800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400..800&family=Noto+Sans+Kannada:wght@400..800&family=Noto+Sans+Telugu:wght@400..800&family=Noto+Sans+Devanagari:wght@400..800&display=swap"></noscript>
 
-  <!-- Font Awesome: the icon set used by the storefront and the bottom bar -->
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+  <!-- Font Awesome: the icon set used by the storefront and the bottom bar.
+       Self-hosted subset of 6.5.1 holding only the icons the code uses
+       (scripts/fa-subset.py; faSubset.test.js fails when a new icon is missing):
+       ~15 kB of fonts instead of ~290 kB, and no extra server to connect to. -->
+  <link rel="preload" as="style" href="/assets/fa/fa-subset.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/assets/fa/fa-subset.css"></noscript>
   <!-- The store's photos (hero, categories, crops) come from Unsplash's CDN. -->
   <link rel="preconnect" href="https://images.unsplash.com">
 

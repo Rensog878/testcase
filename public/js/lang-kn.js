@@ -69,6 +69,18 @@ window.SB_LANG_KN = {
   },
 
   text: {
+    // Phone category chips use the plural (Catalog.jsx plural()).
+    'Fertilizers': 'ರಸಗೊಬ್ಬರಗಳು',
+    'Adjuvants': 'ಸಹಾಯಕ ಮಿಶ್ರಣಗಳು',
+    // Home hero expert button, catalogue form filter, certification captions.
+    'Talk to an Expert': 'ತಜ್ಞರೊಂದಿಗೆ ಮಾತನಾಡಿ',
+    'All forms': 'ಎಲ್ಲಾ ರೂಪಗಳು',
+    'Research-backed formulas': 'ಸಂಶೋಧನೆ ಆಧಾರಿತ ಸೂತ್ರಗಳು',
+    'Certified quality system': 'ಪ್ರಮಾಣೀಕೃತ ಗುಣಮಟ್ಟ ವ್ಯವಸ್ಥೆ',
+    'Organic farming inputs': 'ಸಾವಯವ ಕೃಷಿ ಒಳಸುರಿಗಳು',
+    'Innovation award winner': 'ನಾವೀನ್ಯತೆ ಪ್ರಶಸ್ತಿ ವಿಜೇತ',
+    'Registered export member': 'ನೋಂದಾಯಿತ ರಫ್ತು ಸದಸ್ಯ',
+    'Form': 'ರೂಪ',
     // Catalog filter names, home testimonials, default CMS ticker banner
     'Fertilizer': 'ರಸಗೊಬ್ಬರ',
     'Adjuvant': 'ಸಹಾಯಕ ಮಿಶ್ರಣ',
@@ -1160,6 +1172,8 @@ window.SB_LANG_KN = {
   },
 
   patterns: [
+    // Pack sizes on product cards: "1 Litre", "5 Litres".
+    [/^([\d.]+) Litres?$/, '$1 ಲೀಟರ್'],
     [/^Step (\d) of (\d)$/, 'ಹಂತ $1 / $2'],
     [/^(\d+) items?$/, '$1 ಉತ್ಪನ್ನಗಳು'],
     [/^(\d+) Products$/, '$1 ಉತ್ಪನ್ನಗಳು'],

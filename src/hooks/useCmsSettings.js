@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
+import { preferTranslation } from '../shared/cmsDefaults'
 
 /**
  * Live site content from MongoDB, for the farmer-facing pages.
@@ -30,7 +31,7 @@ function readLocalCms() {
 /**
  * The same piece of content is stored under two different names, because the
  * database seed (server/db.js INITIAL_CMS) and the admin editor
- * (pages/admin/CMS.jsx DEFAULT_CONTENT) were written against different key
+ * (shared/cmsDefaults.js DEFAULT_CONTENT) were written against different key
  * names. `contactPhone` is the canonical one on the server side — WhatsApp
  * order notifications already read it (server/orderNotifications.js) — so a
  * read has to check both rather than silently ignoring content that is
@@ -56,6 +57,10 @@ function rawValue(cms, key) {
  * Resolve one piece of site text.
  *
  * Precedence: admin's CMS value -> the translated string -> nothing.
+ * Exception: a value still word for word the CMS's built-in English default
+ * (saving the CMS page stores the defaults) is not an admin's choice, so a
+ * page in Tamil, Hindi, Kannada or Telugu shows its translation there
+ * (shared/cmsDefaults.js preferTranslation).
  *
  * The fallback is passed in already translated (t('hero_title')), so a farmer
  * reading Tamil keeps Tamil until an admin deliberately types an override.
@@ -63,7 +68,7 @@ function rawValue(cms, key) {
  * for a single-value CMS field: only an explicit edit replaces a translation.
  */
 export function cmsText(cms, key, translated) {
-  return rawValue(cms, key) || translated
+  return preferTranslation(key, rawValue(cms, key), translated)
 }
 
 /**

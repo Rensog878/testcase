@@ -2404,7 +2404,7 @@ body.sb-home-active {
     letter-spacing: 0.8px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-title {
-    font-size: clamp(2.25rem, 3vw, 3rem) !important;
+    font-size: var(--hero-title-size, clamp(2.25rem, 3vw, 3rem)) !important;
     letter-spacing: -0.5px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-desc {
@@ -4130,7 +4130,7 @@ body.sb-home-active {
     margin-bottom: 3px !important;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #categoriesSection .bento-title {
-    font-size: 0.92rem !important;
+    font-size: var(--cat-title-size, 0.92rem) !important;
     line-height: 1.2 !important;
     margin-bottom: 0 !important;
   }
@@ -13437,5 +13437,32 @@ body.poster-open .sb-portal .call-fab {
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:hover .product-img-box img,
   .all-products-page .agro-product-card:hover .card-image-box img {
     transform: none;
+  }
+}
+
+/* ==========================================================================
+   INDIAN LANGUAGES ON THE 2026 DESKTOP SECTIONS (>=1025px)
+   Tamil and Kannada words run long: the hero headline's 14ch cap put Tamil on
+   five lines, and one-word category names ("நூற்புழுக்கொல்லிகள்") broke
+   mid-word in the compact bento cards.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 .bento-title {
+    max-width: none;
+    --hero-title-size: clamp(1.75rem, 2.3vw, 2.35rem);
+    line-height: 1.25;
+  }
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) #categoriesSection .cat-card:is(:nth-child(2), :nth-child(3), :nth-child(4), :nth-child(5)) .bento-title {
+    font-size: 1.05rem;
+    overflow-wrap: normal;
+  }
+}
+
+/* Phones: Tamil/Kannada category names are single long words
+   ("பூஞ்சைக்கொல்லிகள்") and broke mid-word in the 2-column cards. */
+@media (max-width: 768px) {
+  html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) :is(body.sb-home-active .sb-home, .sb-portal) #categoriesSection .bento-title {
+    --cat-title-size: 0.8rem;
+    overflow-wrap: normal;
   }
 }

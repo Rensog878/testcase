@@ -79,7 +79,19 @@ window.SB_LANG_TA = {
   },
 
   text: {
+    // Phone category chips use the plural (Catalog.jsx plural()).
+    'Fertilizers': 'உரங்கள்',
+    'Adjuvants': 'துணைக் கலவைகள்',
+    // Home hero expert button, catalogue form filter, certification captions.
+    'Talk to an Expert': 'நிபுணரிடம் பேசுங்கள்',
+    'All forms': 'அனைத்து வடிவங்கள்',
+    'Research-backed formulas': 'ஆராய்ச்சி ஆதரவு சூத்திரங்கள்',
+    'Certified quality system': 'சான்றளிக்கப்பட்ட தர அமைப்பு',
+    'Organic farming inputs': 'இயற்கை விவசாய இடுபொருட்கள்',
+    'Innovation award winner': 'புதுமை விருது வென்றவர்',
+    'Registered export member': 'பதிவுசெய்த ஏற்றுமதி உறுப்பினர்',
     // Catalog filter names, home testimonials, default CMS ticker banner
+    'Form': 'வடிவம்',
     'Fertilizer': 'உரம்',
     'Adjuvant': 'துணைக் கலவை',
     'Corn': 'சோளம்',
@@ -1194,6 +1206,8 @@ window.SB_LANG_TA = {
   },
 
   patterns: [
+    // Pack sizes on product cards: "1 Litre", "5 Litres".
+    [/^([\d.]+) Litres?$/, '$1 லிட்டர்'],
     [/^Step (\d) of (\d)$/, 'படி $1 / $2'],
     [/^(\d+) items?$/, '$1 பொருட்கள்'],
     [/^(\d+) Products$/, '$1 பொருட்கள்'],

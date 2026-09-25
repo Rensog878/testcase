@@ -69,6 +69,18 @@ window.SB_LANG_HI = {
   },
 
   text: {
+    // Phone category chips use the plural (Catalog.jsx plural()).
+    'Fertilizers': 'उर्वरक',
+    'Adjuvants': 'सहायक मिश्रण',
+    // Home hero expert button, catalogue form filter, certification captions.
+    'Talk to an Expert': 'विशेषज्ञ से बात करें',
+    'All forms': 'सभी रूप',
+    'Research-backed formulas': 'शोध-आधारित फ़ॉर्मूले',
+    'Certified quality system': 'प्रमाणित गुणवत्ता प्रणाली',
+    'Organic farming inputs': 'जैविक खेती आदान',
+    'Innovation award winner': 'नवाचार पुरस्कार विजेता',
+    'Registered export member': 'पंजीकृत निर्यात सदस्य',
+    'Form': 'रूप',
     // Catalog filter names, home testimonials, default CMS ticker banner
     'Fertilizer': 'उर्वरक',
     'Adjuvant': 'सहायक मिश्रण',
@@ -1160,6 +1172,8 @@ window.SB_LANG_HI = {
   },
 
   patterns: [
+    // Pack sizes on product cards: "1 Litre", "5 Litres".
+    [/^([\d.]+) Litres?$/, '$1 लीटर'],
     [/^Step (\d) of (\d)$/, 'चरण $1 / $2'],
     [/^(\d+) items?$/, '$1 उत्पाद'],
     [/^(\d+) Products$/, '$1 उत्पाद'],

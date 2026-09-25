@@ -69,6 +69,18 @@ window.SB_LANG_TE = {
   },
 
   text: {
+    // Phone category chips use the plural (Catalog.jsx plural()).
+    'Fertilizers': 'ఎరువులు',
+    'Adjuvants': 'సహాయక మిశ్రమాలు',
+    // Home hero expert button, catalogue form filter, certification captions.
+    'Talk to an Expert': 'నిపుణుడితో మాట్లాడండి',
+    'All forms': 'అన్ని రూపాలు',
+    'Research-backed formulas': 'పరిశోధన ఆధారిత సూత్రాలు',
+    'Certified quality system': 'ధృవీకరించబడిన నాణ్యత వ్యవస్థ',
+    'Organic farming inputs': 'సేంద్రీయ వ్యవసాయ ఉత్పాదకాలు',
+    'Innovation award winner': 'ఆవిష్కరణ అవార్డు విజేత',
+    'Registered export member': 'నమోదిత ఎగుమతి సభ్యుడు',
+    'Form': 'రూపం',
     // Catalog filter names, home testimonials, default CMS ticker banner
     'Fertilizer': 'ఎరువు',
     'Adjuvant': 'సహాయక మిశ్రమం',
@@ -1160,6 +1172,8 @@ window.SB_LANG_TE = {
   },
 
   patterns: [
+    // Pack sizes on product cards: "1 Litre", "5 Litres".
+    [/^([\d.]+) Litres?$/, '$1 లీటర్'],
     [/^Step (\d) of (\d)$/, 'దశ $1 / $2'],
     [/^(\d+) items?$/, '$1 ఉత్పత్తులు'],
     [/^(\d+) Products$/, '$1 ఉత్పత్తులు'],

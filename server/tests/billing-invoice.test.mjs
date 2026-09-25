@@ -112,7 +112,7 @@ test('the request cannot set the round-off, date in the future, store or seller 
   assert.equal(saved.grandTotal, 118);
   assert.equal(saved.storeId, 'ST-1');
   assert.equal(saved.invoiceNo, 'SAM MDU 1');
-  assert.equal(saved.sellerDetails.gstin, '33BAAPS3641C1Z6');
+  assert.equal(saved.sellerDetails.gstin, '33AFBFS8329C1Z6');
   assert.notEqual(saved.bankDetails.acNo, '000');
 });
 

@@ -44,7 +44,7 @@ export default function BillingLayout() {
             <div>
               <div className="topbar-title">Dashboard</div>
               <div className="topbar-subtitle">
-                {user?.storeName ? `Store: ${user.storeName} · GST POS Terminal` : 'GST Invoice Generation — GSTIN: 33BAAPS3641C1Z6'}
+                {user?.storeName ? `Store: ${user.storeName} · GST POS Terminal` : 'GST Invoice Generation — GSTIN: 33AFBFS8329C1Z6'}
               </div>
             </div>
           </div>

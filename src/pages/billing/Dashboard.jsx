@@ -510,7 +510,7 @@ export default function BillingDashboard() {
             <ReceiptText size={24} /> Sathyam Agro Clinic POS Billing &amp; e-Invoice Engine
           </h1>
           <p style={{ color: 'var(--text-muted)', margin: '4px 0 0' }}>
-            Official GSTIN: <strong>33BAAPS3641C1Z6</strong> · State: Tamil Nadu (33) · Vadipatti Unit 1
+            Official GSTIN: <strong>33AFBFS8329C1Z6</strong> · State: Tamil Nadu (33) · Ellis Nagar, Madurai
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>

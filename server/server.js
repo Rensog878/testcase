@@ -3004,13 +3004,13 @@ app.post('/api/billing/invoice', requireAuth('billing', 'admin'), requireModule(
       // The seller's GSTIN and bank account are ours, never the request's.
       sellerDetails: {
         name: 'Sathyam Agro Clinic',
-        line1: 'No.130, Muppar street,',
-        line2: 'Balamurugan Kovil road,',
-        line3: 'Vadipatti',
-        line4: 'Madurai - 625218.',
-        unit: 'Unit 1',
-        pincode: '625218',
-        gstin: '33BAAPS3641C1Z6',
+        line1: 'No.12, Ghouse Enclave,',
+        line2: '70 ft Road, Ellis Nagar,',
+        line3: 'Madurai - 625016.',
+        line4: '',
+        unit: '',
+        pincode: '625016',
+        gstin: '33AFBFS8329C1Z6',
         pan: 'AFBFS8329C'
       },
       buyerDetails: buyerDetails || {

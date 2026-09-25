@@ -2404,7 +2404,7 @@ body.sb-home-active {
     letter-spacing: 0.8px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-title {
-    font-size: clamp(2.5rem, 3.5vw, 3.5rem) !important;
+    font-size: clamp(2.25rem, 3vw, 3rem) !important;
     letter-spacing: -0.5px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card.bento-span-2.bento-row-2 .bento-desc {
@@ -10257,7 +10257,7 @@ html.sb-loc-lock {
   /* ==== HOME HEADER: two rows ============================================
      Storefront.jsx wraps the four chrome components in two shells:
        .sb-utility-shell  TickerBar + Topbar  -> one 36px dark strip
-       .sb-header-shell   Header + NavBar     -> one 68px floating bar
+       .sb-header-shell   Header + NavBar     -> one 76px floating bar
      The inner boxes are flattened with `display: contents`, so logo, nav,
      search and actions become flex items of a single row and are ordered
      here. Below 1025px the shells themselves are `display: contents` (rule
@@ -10272,7 +10272,7 @@ html.sb-loc-lock {
      Grid: the bar's content box equals the page .container's content box
      (1320 max, 32px gutters, 40 from 1440). The card overhangs it by
      --sb-card-pad each side, so the logo sits on the page's left edge.
-     At rest: 36 + 12 + 68 = 116px (was 188). Pinned: 12 + 68 = 80px. */
+     At rest: 36 + 12 + 76 = 124px (was 188). Pinned: 12 + 76 = 88px. */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(.sb-utility-shell, .sb-header-shell) {
     --sb-gutter: var(--space-8);
     --sb-card-pad: 20px;
@@ -10509,7 +10509,7 @@ html.sb-loc-lock {
     gap: 12px;
     box-sizing: border-box;
     width: calc(min(100%, 1320px) - 2 * var(--sb-gutter) + 2 * var(--sb-card-pad));
-    height: 68px;
+    height: 76px;
     margin: 12px auto 0;
     /* -1px pays for the border, so the content box still lands on the grid. */
     padding: 0 calc(var(--sb-card-pad) - 1px);
@@ -10555,8 +10555,8 @@ html.sb-loc-lock {
     gap: 10px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .logo-icon {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 11px;
     background: linear-gradient(145deg, #0e8a55, #075a38);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 6px rgba(7, 90, 56, 0.25);
@@ -10569,6 +10569,10 @@ html.sb-loc-lock {
     font-size: 1.12rem;
     line-height: 1.1;
     letter-spacing: -0.02em;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .brand-wordmark {
+    height: 38px;
+    width: auto;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .logo-sub {
     margin-top: 3px;
@@ -10604,12 +10608,12 @@ html.sb-loc-lock {
     align-items: center;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-header-shell .nav-mega-trigger {
-    height: 40px;
+    height: 42px;
     gap: 6px;
     padding: 0 12px;
     border-radius: 10px;
     color: var(--sb-ink);
-    font-size: 0.875rem;
+    font-size: 0.94rem;
     font-weight: 600;
     letter-spacing: -0.005em;
     white-space: nowrap;
@@ -10708,7 +10712,7 @@ html.sb-loc-lock {
     /* Room for ~10 characters of query beside the mic and search circles. */
     min-width: 170px;
     max-width: none;
-    height: 44px;
+    height: 48px;
     margin: 0 4px 0 12px;
     padding: 4px;
     border: 0;
@@ -12549,7 +12553,7 @@ body.poster-open .sb-portal .call-fab {
 @media (min-width: 1025px) {
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-grid-4 {
     margin-top: 16px;
-    grid-template-rows: repeat(2, minmax(250px, 1fr));
+    grid-template-rows: repeat(2, minmax(215px, 1fr));
     gap: 20px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card {
@@ -12569,15 +12573,15 @@ body.poster-open .sb-portal .call-fab {
     transform: scale(1.05);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-overlay {
-    padding: 32px;
+    padding: 26px 28px;
     background: linear-gradient(180deg, rgba(4, 28, 19, 0) 25%, rgba(4, 28, 19, 0.55) 62%, rgba(4, 28, 19, 0.88) 100%);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 {
-    min-height: 540px;
+    min-height: 470px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 .bento-overlay {
     justify-content: center;
-    padding: 56px;
+    padding: 44px 48px;
     background:
       linear-gradient(90deg, rgba(4, 28, 19, 0.86) 0%, rgba(4, 28, 19, 0.62) 42%, rgba(4, 28, 19, 0.08) 78%),
       linear-gradient(0deg, rgba(4, 28, 19, 0.55) 0%, transparent 45%);
@@ -12604,21 +12608,21 @@ body.poster-open .sb-portal .call-fab {
     text-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-row-2 .bento-desc {
-    max-width: 34rem;
-    margin-bottom: 30px;
-    font-size: 1.1rem;
+    max-width: 32rem;
+    margin-bottom: 26px;
+    font-size: 1.02rem;
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.84);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2) .bento-title {
     margin-bottom: 6px;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     letter-spacing: -0.02em;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .hero-bento .bento-card:not(.bento-row-2) .bento-desc {
     max-width: 30rem;
     margin-bottom: 0;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.82);
   }
 
@@ -12627,10 +12631,10 @@ body.poster-open .sb-portal .call-fab {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    height: 52px;
-    padding: 0 26px;
+    height: 48px;
+    padding: 0 22px;
     border-radius: 999px;
-    font: 700 1rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    font: 700 0.95rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
     text-decoration: none;
     transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   }
@@ -12678,8 +12682,8 @@ body.poster-open .sb-portal .call-fab {
     z-index: 3;
     display: grid;
     place-items: center;
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     font: 900 1rem/1 "Font Awesome 6 Free";
     color: #ffffff;

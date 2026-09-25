@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useLanguage } from '../../context/LanguageContext'
 import { fillInput, speechLang, useVoiceInput, voiceSupported } from '../voice'
 
@@ -8,21 +9,20 @@ import { fillInput, speechLang, useVoiceInput, voiceSupported } from '../voice'
 // Its container needs the .has-voice class (room on the right; storefront.css 7n).
 export default function VoiceButton({ htmlFor, mode = 'text', disabled }) {
   const { lang } = useLanguage()
-  const { listening, toggle } = useVoiceInput({
-    lang: speechLang(mode, lang),
-    onResult: heard => {
-      const el = document.getElementById(htmlFor)
-      if (!el) return
-      const text = el.tagName === 'TEXTAREA' && el.value.trim() ? `${el.value.trimEnd()} ${heard}` : heard
-      fillInput(el, text)
-    },
-  })
+  // What the field held when listening began: live words replace only themselves.
+  const baseRef = useRef('')
+  const put = heard => {
+    const el = document.getElementById(htmlFor)
+    if (!el) return
+    fillInput(el, el.tagName === 'TEXTAREA' && baseRef.current.trim() ? `${baseRef.current.trimEnd()} ${heard}` : heard)
+  }
+  const { listening, toggle } = useVoiceInput({ lang: speechLang(mode, lang), onInterim: put, onResult: put })
   if (!voiceSupported) return null
   return (
     <button
       type="button"
       className={`sb-voice-btn${listening ? ' is-listening' : ''}`}
-      onClick={toggle}
+      onClick={() => { if (!listening) baseRef.current = document.getElementById(htmlFor)?.value || ''; toggle() }}
       disabled={disabled}
       aria-pressed={listening}
       aria-label={listening ? 'Stop voice typing' : 'Speak to type'}

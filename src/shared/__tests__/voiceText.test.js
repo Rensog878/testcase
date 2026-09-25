@@ -16,4 +16,8 @@ test('names follow the site language; addresses and searches stay English', () =
   assert.equal(speechLang('text', 'ta'), 'ta-IN');
   assert.equal(speechLang('text', 'en'), 'en-IN');
   assert.equal(speechLang('latin', 'ta'), 'en-IN');
+  assert.equal(speechLang('text', 'hi'), 'hi-IN');
+  assert.equal(speechLang('text', 'kn'), 'kn-IN');
+  assert.equal(speechLang('text', 'te'), 'te-IN');
+  assert.equal(speechLang('text', 'ml'), 'en-IN', 'no pack for it yet');
 });

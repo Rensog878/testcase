@@ -1,13 +1,24 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStoreActions } from '../useStoreActions'
-import { EN_KEYS } from '../i18n'
+import { EN_KEYS, TEXT_PACKS } from '../i18n'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { useCms } from '../../context/CmsContext'
 import { useBasket } from '../../hooks/useCheckout'
 import { CATEGORIES, CROPS, DISEASES, rupees } from '../data'
-import { useVoiceInput, voiceSupported } from '../voice'
+import { speechLang, useVoiceInput, voiceSupported } from '../voice'
+import { showToast } from '../toast'
+import { catalogueVocabulary, spokenToCatalogQuery } from '../../shared/voiceSearchTerms'
+
+// Said when a spoken search has no crop, pest or product word in it.
+const VOICE_NOT_FOUND = {
+  en: 'no matching crop or product. Try a crop and a pest, e.g. "paddy blast".',
+  ta: 'பொருந்தும் பயிர் அல்லது மருந்து இல்லை. பயிர் மற்றும் நோயைச் சொல்லுங்கள், எ.கா. "நெல் குலை நோய்".',
+  hi: 'कोई फसल या उत्पाद नहीं मिला। फसल और रोग बोलें, जैसे "धान झुलसा"।',
+  kn: 'ಹೊಂದುವ ಬೆಳೆ ಅಥವಾ ಉತ್ಪನ್ನ ಸಿಗಲಿಲ್ಲ. ಬೆಳೆ ಮತ್ತು ರೋಗ ಹೇಳಿ, ಉದಾ. "ಭತ್ತ ಬೆಂಕಿ ರೋಗ".',
+  te: 'సరిపోయే పంట లేదా ఉత్పత్తి దొరకలేదు. పంట మరియు తెగులు చెప్పండి, ఉదా. "వరి అగ్గి తెగులు".',
+}
 import { cropList } from '../../shared/profileFieldRules'
 import LanguageQuickSwitch from './LanguageQuickSwitch'
 import HomeLogoLink from '../../components/home/HomeLogoLink'
@@ -111,12 +122,21 @@ export const Header = memo(function Header(props) {
   // LanguageQuickSwitch exists for.
   const onSelectLanguage = offPage ? setLang : undefined
 
-  // Voice search: always English, because products are matched on their
-  // English names, descriptions and ingredients (Catalog.jsx).
+  // Voice search in the shopper's own language. Products are in English, so
+  // spoken Tamil (Hindi, Kannada, Telugu) crop, pest and category words are
+  // turned into the English ones products carry (voiceSearchTerms.js):
+  // "நெல் குலை நோய்" searches "Rice Blast". Product names said in English
+  // are kept as heard.
+  const vocabulary = useMemo(() => catalogueVocabulary([CROPS, DISEASES, CATEGORIES, ['Fertilizer', 'Seeds', 'Adjuvant', 'Nematode', 'Borer', 'Worm', 'Rot', 'Wilt', 'Mildew', 'Spot', 'Chilli', 'Onion', 'Brinjal', 'Groundnut', 'Turmeric', 'Citrus', 'Mango', 'Vegetables', 'Arecanut', 'Tapioca', 'Tubers', 'Gel', 'Powder', 'Liquid', 'Granules']]), [])
   const voice = useVoiceInput({
-    lang: 'en-IN',
+    lang: speechLang('text', appliedLang),
     onResult: heard => {
-      setFilter('search', heard)
+      const { query, understood } = spokenToCatalogQuery(heard, appliedLang, TEXT_PACKS[appliedLang]?.text, vocabulary)
+      if (!understood || !query) {
+        showToast(`${heard} - ${VOICE_NOT_FOUND[appliedLang] || VOICE_NOT_FOUND.en}`, 'info')
+        return
+      }
+      setFilter('search', query)
       scrollToCatalog()
     },
   })

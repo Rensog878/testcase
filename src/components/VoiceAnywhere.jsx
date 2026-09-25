@@ -41,12 +41,20 @@ export default function VoiceAnywhere() {
   targetRef.current = target
 
   const mode = target?.mode
+  // What the field held when listening began, so live words replace only
+  // themselves and a textarea keeps what was written before.
+  const baseRef = useRef('')
+  const withBase = (el, heard) => (el instanceof HTMLTextAreaElement && baseRef.current.trim() ? `${baseRef.current.trimEnd()} ${heard}` : heard)
   const { listening, toggle } = useVoiceInput({
     lang: speechLang(mode || 'latin', lang),
+    onInterim: sofar => {
+      const el = targetRef.current?.el
+      if (el && el.isConnected) fillInput(el, withBase(el, sofar))
+    },
     onResult: heard => {
       const el = targetRef.current?.el
       if (!el || !el.isConnected) return
-      fillInput(el, el instanceof HTMLTextAreaElement && el.value.trim() ? `${el.value.trimEnd()} ${heard}` : heard)
+      fillInput(el, withBase(el, heard))
     },
   })
   const listeningRef = useRef(listening)
@@ -132,7 +140,7 @@ export default function VoiceAnywhere() {
       // Keeps the field focused (and the phone keyboard open) through the tap.
       onPointerDown={event => event.preventDefault()}
       onMouseDown={event => event.preventDefault()}
-      onClick={toggle}
+      onClick={() => { if (!listening) baseRef.current = target.el.value || ''; toggle() }}
       aria-pressed={listening}
       aria-label={listening ? 'Stop voice typing' : 'Speak to type'}
       title={listening ? 'Listening... tap to stop' : 'Speak to type'}

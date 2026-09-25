@@ -39,13 +39,17 @@ const ERRORS = {
 // One recognition at a time on the page: starting another stops this one.
 let active = null
 
-// useVoiceInput({ lang, onResult }) -> { listening, toggle }. onResult gets the
-// final transcript once the speaker stops.
-export function useVoiceInput({ lang, onResult }) {
+// useVoiceInput({ lang, onResult, onInterim }) -> { listening, toggle }.
+// onResult gets the final transcript once the speaker stops. onInterim, when
+// given, gets the words so far while they are still speaking, so the field
+// fills in live instead of all at once at the end.
+export function useVoiceInput({ lang, onResult, onInterim }) {
   const [listening, setListening] = useState(false)
   const recRef = useRef(null)
   const resultRef = useRef(onResult)
   resultRef.current = onResult
+  const interimRef = useRef(onInterim)
+  interimRef.current = onInterim
 
   useEffect(() => () => { recRef.current?.abort() }, [])
 
@@ -56,12 +60,17 @@ export function useVoiceInput({ lang, onResult }) {
     if (active && active !== recRef) active.current?.abort()
     const rec = new Recognition()
     rec.lang = lang
-    rec.interimResults = false
+    rec.interimResults = Boolean(interimRef.current)
     rec.continuous = false
     rec.maxAlternatives = 1
     let heard = ''
     rec.onresult = event => {
-      heard = [...event.results].map(result => result[0].transcript).join(' ').trim()
+      const all = [...event.results]
+      heard = all.filter(result => result.isFinal).map(result => result[0].transcript).join(' ').trim()
+      const sofar = all.map(result => result[0].transcript).join(' ').trim()
+      if (interimRef.current && sofar) interimRef.current(sofar)
+      // Some phones never mark the last phrase final before `end`.
+      rec.lastHeard = sofar
     }
     rec.onerror = event => {
       if (event.error === 'aborted') return
@@ -71,7 +80,8 @@ export function useVoiceInput({ lang, onResult }) {
       setListening(false)
       if (active === recRef) active = null
       if (recRef.current === rec) recRef.current = null
-      if (heard) resultRef.current(heard)
+      const final = heard || rec.lastHeard || ''
+      if (final) resultRef.current(final)
     }
     recRef.current = rec
     active = recRef

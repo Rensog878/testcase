@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react'
 import { useStore } from '../StoreContext'
 import { CATEGORIES, CROPS, DISEASES, productImage, useFallbackImage } from '../data'
-import { matchesCrop, matchesCategory, matchesDisease, topSelling, liveCategories } from '../../utils/catalogUtils'
+import { matchesCrop, matchesCategory, matchesDisease, matchesSearch, topSelling, liveCategories } from '../../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../../shared/productForm'
 import { hasPrice } from '../../shared/comingSoon'
@@ -182,17 +182,18 @@ export const Catalog = memo(function Catalog({ t, filters, products, catalogOpti
   // (server catalogOptions.physicalForms; src/shared/productForm.js).
   const formOptions = catalogOptions?.physicalForms?.length ? catalogOptions.physicalForms : PRODUCT_FORMS
 
+  // Crop words, so "Rice Blast" also finds products made for all crops.
+  const cropWords = useMemo(() => new Set((catalogOptions?.crops || CROPS)
+    .flatMap(c => String(c?.name || c?.id || c).toLowerCase().split(/[^a-z]+/))
+    .filter(w => w.length > 2 && w !== 'all' && w !== 'crops')), [catalogOptions?.crops])
   const filtered = useMemo(() => products.filter(p => {
     const matchCrop = matchesCrop(p.crops, filters.crop)
     const matchDisease = matchesDisease(p.diseases, filters.disease)
     const matchCategory = matchesCategory(p.category, filters.category)
     const matchForm = matchesForm(p, filters.form, formOptions)
-    const matchSearch = searchQuery === ''
-      || String(p.name || '').toLowerCase().includes(searchQuery)
-      || String(p.description || '').toLowerCase().includes(searchQuery)
-      || String(p.activeIngredient || '').toLowerCase().includes(searchQuery)
+    const matchSearch = matchesSearch(p, searchQuery, cropWords)
     return matchCrop && matchDisease && matchCategory && matchForm && matchSearch
-  }), [products, filters.crop, filters.disease, filters.category, filters.form, formOptions, searchQuery])
+  }), [products, filters.crop, filters.disease, filters.category, filters.form, formOptions, searchQuery, cropWords])
 
   const activeFilterCount = [filters.crop !== 'all', filters.disease !== 'all', filters.category !== 'All', (filters.form || 'all') !== 'all', searchQuery !== ''].filter(Boolean).length
   const counts = useMemo(() => formCounts(products, formOptions), [products, formOptions])

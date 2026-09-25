@@ -258,3 +258,25 @@ export function liveCategories(products, preferred = []) {
     .map(g => ({ ...g, name: preferred.find(p => matchesCategory(g.name, p) && matchesCategory(p, g.name)) || g.name }))
     .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name))
 }
+
+/**
+ * The catalogue search box. Every word typed or spoken must appear somewhere in
+ * the product: name, description, active ingredient, crops, pests/diseases or
+ * category. So "Cotton Whitefly" (what voice search in Tamil turns
+ * "பருத்தி வெள்ளை ஈ" into) finds whitefly products for cotton, and a single
+ * word works as it always did.
+ */
+export function matchesSearch(product, query, cropWords) {
+  const words = String(query || '').toLowerCase().split(/\s+/).filter(Boolean)
+  if (!words.length) return true
+  // A product for "All Crops" counts for any crop word ("Rice Blast" finds the
+  // all-crops blast product). cropWords: lower-case words of the crop list.
+  const forAllCrops = (Array.isArray(product?.crops) ? product.crops : [product?.crops]).some(c => /all\s*crops?/i.test(String(c || '')))
+  const isCrop = word => Boolean(cropWords && (cropWords.has ? cropWords.has(word) : cropWords.includes(word)))
+  const list = value => (Array.isArray(value) ? value.join(' ') : String(value || ''))
+  const haystack = [
+    product?.name, product?.description, product?.activeIngredient,
+    list(product?.crops), list(product?.diseases), product?.category,
+  ].map(v => String(v || '').toLowerCase()).join(' | ')
+  return words.every(word => haystack.includes(word) || (forAllCrops && isCrop(word)))
+}

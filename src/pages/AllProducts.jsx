@@ -937,11 +937,14 @@ export default function AllProducts() {
                     </div>
 
                     {/* Star Rating Badge */}
-                    <div className="card-rating-badge">
-                      <span>{prod.rating} ★</span>
-                      <span className="rating-divider">|</span>
-                      <span>{prod.reviewsCount ?? 0}</span>
-                    </div>
+                    {/* Only real reviews: a "★ | 0" badge told farmers nothing. */}
+                    {Number(prod.reviewsCount) > 0 && (
+                      <div className="card-rating-badge">
+                        <span>{prod.rating} ★</span>
+                        <span className="rating-divider">|</span>
+                        <span>{prod.reviewsCount}</span>
+                      </div>
+                    )}
 
                     {/* High Demand banner if present */}
                     {prod.tagBadge ? (
@@ -1115,11 +1118,14 @@ export default function AllProducts() {
                       />
                     </div>
 
-                    <div className="card-rating-badge">
-                      <span>{prod.rating} ★</span>
-                      <span className="rating-divider">|</span>
-                      <span>{prod.reviewsCount ?? 0}</span>
-                    </div>
+                    {/* Only real reviews: a "★ | 0" badge told farmers nothing. */}
+                    {Number(prod.reviewsCount) > 0 && (
+                      <div className="card-rating-badge">
+                        <span>{prod.rating} ★</span>
+                        <span className="rating-divider">|</span>
+                        <span>{prod.reviewsCount}</span>
+                      </div>
+                    )}
 
                     {user && prod.targetUserId === user.id ? (
                       <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -1268,11 +1274,14 @@ export default function AllProducts() {
                     />
                   </div>
 
-                  <div className="card-rating-badge">
-                    <span>{prod.rating} ★</span>
-                    <span className="rating-divider">|</span>
-                    <span>{prod.reviewsCount ?? 0}</span>
-                  </div>
+                  {/* Only real reviews: a "★ | 0" badge told farmers nothing. */}
+                  {Number(prod.reviewsCount) > 0 && (
+                    <div className="card-rating-badge">
+                      <span>{prod.rating} ★</span>
+                      <span className="rating-divider">|</span>
+                      <span>{prod.reviewsCount}</span>
+                    </div>
+                  )}
 
                   {prod.tagBadge ? (
                     <div className="card-high-demand-banner">{prod.tagBadge}</div>
@@ -1490,11 +1499,14 @@ export default function AllProducts() {
                       />
                     </div>
 
-                    <div className="card-rating-badge">
-                      <span>{prod.rating} ★</span>
-                      <span className="rating-divider">|</span>
-                      <span>{prod.reviewsCount ?? 0}</span>
-                    </div>
+                    {/* Only real reviews: a "★ | 0" badge told farmers nothing. */}
+                    {Number(prod.reviewsCount) > 0 && (
+                      <div className="card-rating-badge">
+                        <span>{prod.rating} ★</span>
+                        <span className="rating-divider">|</span>
+                        <span>{prod.reviewsCount}</span>
+                      </div>
+                    )}
 
                     {user && prod.targetUserId === user.id ? (
                       <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, marginBottom: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>

@@ -13565,3 +13565,39 @@ body.poster-open .sb-portal .call-fab {
     box-shadow: 0 6px 14px -8px rgba(11, 122, 75, 0.7);
   }
 }
+
+/* /products cards below desktop: the discount tag sat behind the image
+   ("15% OFF" was cut off). Same floating pill and framed image as desktop. */
+@media (max-width: 1024px) {
+  .all-products-page .agro-product-card .discount-tag {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #E5484D, #C62A2F);
+    color: #ffffff;
+    font-weight: 800;
+  }
+  .all-products-page .agro-product-card .wishlist-heart-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 3px 10px -4px rgba(20, 35, 28, 0.3);
+  }
+  .all-products-page .agro-product-card .card-image-box {
+    border-radius: 12px;
+    background: radial-gradient(120% 90% at 50% 20%, #F7FBF8 0%, #E8F3EC 100%);
+  }
+  .all-products-page .agro-product-card .card-image-box img {
+    mix-blend-mode: multiply;
+  }
+}

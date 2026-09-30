@@ -417,7 +417,7 @@ export default function AdminEnquiries() {
                         }}
                       >
                         {STATUS_OPTIONS.map(opt => (
-                          <option key={opt.value} value={opt.value} style={{ background: '#0d1f17', color: opt.color }}>
+                          <option key={opt.value} value={opt.value} style={{ color: opt.color }}>
                             {opt.label}
                           </option>
                         ))}

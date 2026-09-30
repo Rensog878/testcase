@@ -7975,6 +7975,19 @@ html.sb-scroll-lock.sb-scroll-lock-gutter {
   background-repeat: no-repeat;
   background-position: right 14px center;
 }
+/* Desktop: the shared dropdown panel (src/dropdowns.css). */
+@media (min-width: 1025px) {
+  @supports (appearance: base-select) {
+    .sb-portal #checkoutSheet select.co-input,
+    .sb-portal #checkoutSheet select.co-input::picker(select) {
+      appearance: base-select;
+    }
+    .sb-portal #checkoutSheet select.co-input {
+      padding-right: 14px;
+      background-image: none;
+    }
+  }
+}
 .sb-portal #checkoutSheet .co-input:focus {
   outline: none;
   border-color: var(--co-green);
@@ -13394,6 +13407,20 @@ body.poster-open .sb-portal .call-fab {
     border-color: var(--primary);
     background-color: #ffffff;
     box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.14);
+  }
+  /* The open list: src/dropdowns.css. This rule's appearance: none is more
+     specific than the shared one, so opt in here; the chevron moves into
+     the picker icon. */
+  @supports (appearance: base-select) {
+    :is(body.sb-home-active .sb-home, .sb-portal) #catalog .filter-select,
+    :is(body.sb-home-active .sb-home, .sb-portal) #catalog .filter-select::picker(select) {
+      appearance: base-select;
+    }
+    :is(body.sb-home-active .sb-home, .sb-portal) #catalog .filter-select {
+      display: flex;
+      padding-right: 14px;
+      background-image: none;
+    }
   }
   :is(body.sb-home-active .sb-home, .sb-portal) #catalog .filter-reset-inline {
     height: 44px;

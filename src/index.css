@@ -10047,6 +10047,11 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
 .pform-grid-2,
 .pform-grid-3 { gap: 20px; align-items: start; }
 .pform-grid-3 > .pform-field + .pform-field { margin-top: 0; }
+/* Side by side, the second field's stacking gap pushed it 20px below its
+   neighbour (HSN / GST rate). The grid gap already spaces the columns. */
+@media (min-width: 1025px) {
+  .pform-grid-2 > .pform-field + .pform-field { margin-top: 0; }
+}
 .pform-field.pform-grid-2 > div {
   display: flex;
   flex-direction: column;

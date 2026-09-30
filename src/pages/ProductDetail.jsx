@@ -10,29 +10,12 @@ import { cmsText } from '../hooks/useCmsSettings'
 import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
 import { WHATSAPP_EXPERT_URL } from '../storefront/data'
 import { packMrp, packPrice } from '../shared/packPricing'
-
-const getYouTubeId = (url) => {
-  if (!url) return null
-  const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-  return match ? match[1] : null
-}
-
-const isHtml5Video = (url) => {
-  if (!url) return false
-  return url.startsWith('/api/upload') || url.startsWith('data:video') || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)
-}
+import { getYouTubeId, isHtml5Video } from '../shared/video'
+import { cacheWishlistIds, cacheWishlistItem, wishlistIdsFrom, wishlistVisitorId } from '../shared/wishlist'
 
 // Signed-in customers are identified by their token on the server. Guests get
 // a random, unguessable visitor id so nobody can read another person's list.
-const getWishlistIdentity = () => {
-  let visitorId = localStorage.getItem('sathya_wishlist_visitor') || ''
-  if (!/^visitor-[A-Za-z0-9-]{16,80}$/.test(visitorId)) {
-    const random = crypto.randomUUID?.() || Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('')
-    visitorId = `visitor-${random}`
-    localStorage.setItem('sathya_wishlist_visitor', visitorId)
-  }
-  return { visitorId }
-}
+const getWishlistIdentity = () => ({ visitorId: wishlistVisitorId() })
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -69,7 +52,9 @@ export default function ProductDetail() {
       try {
         const wishlistParams = new URLSearchParams(getWishlistIdentity())
         const wishlist = await axios.get(`/api/wishlist?${wishlistParams}`)
-        setWishlisted((wishlist.data.data || []).some(item => item.productId === productId))
+        const ids = wishlistIdsFrom(wishlist.data.data)
+        cacheWishlistIds(ids)
+        setWishlisted(ids.includes(productId))
       } catch (wishlistError) {
         console.warn('Could not load wishlist state:', wishlistError)
       }
@@ -179,6 +164,7 @@ export default function ProductDetail() {
     setWishlisted(next)
     try {
       await axios.post('/api/wishlist', { productId: product.id || product._id, productName: product.name, ...identity, saved: next })
+      cacheWishlistItem(product.id || product._id, next)
     } catch {
       setWishlisted(!next)
     }

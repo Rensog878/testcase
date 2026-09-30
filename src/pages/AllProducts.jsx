@@ -14,6 +14,7 @@ import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
 import { WHATSAPP_EXPERT_URL } from '../storefront/data'
 import { hasPrice } from '../shared/comingSoon'
 import { packMrp, packPrice } from '../shared/packPricing'
+import { cacheWishlistIds, cacheWishlistItem, cachedWishlistIds, wishlistIdsFrom, wishlistVisitorId } from '../shared/wishlist'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../shared/productForm'
@@ -137,13 +138,21 @@ export default function AllProducts() {
   // Selected pack sizes for products: { [productId]: sizeString }
   const [selectedSizes, setSelectedSizes] = useState({})
   // Wishlist set of product IDs
-  const [wishlist, setWishlist] = useState(() => {
-    try {
-      return new Set(JSON.parse(localStorage.getItem('sathya_wishlist_ids') || '[]'))
-    } catch {
-      return new Set()
-    }
-  })
+  const [wishlist, setWishlist] = useState(() => new Set(cachedWishlistIds()))
+  // The cache draws the hearts at once; the server's list (which also holds
+  // hearts set on a product page or another device) then replaces it.
+  useEffect(() => {
+    let cancelled = false
+    axios.get(`/api/wishlist?${new URLSearchParams({ visitorId: wishlistVisitorId() })}`)
+      .then(({ data }) => {
+        if (cancelled || !data?.success) return
+        const ids = wishlistIdsFrom(data.data)
+        cacheWishlistIds(ids)
+        setWishlist(new Set(ids))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user?.id])
 
   // The store's one basket (hooks/useCheckout.js): shared with every page and
   // opened as the floating checkout.
@@ -188,41 +197,29 @@ export default function AllProducts() {
     setSearchQuery(searchParams.get('search') || '')
   }, [searchParams])
 
-  const getWishlistIdentity = () => {
-    let visitorId = localStorage.getItem('sathya_wishlist_visitor') || ''
-    if (!/^visitor-[A-Za-z0-9-]{16,80}$/.test(visitorId)) {
-      const random = crypto.randomUUID?.() || Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('')
-      visitorId = `visitor-${random}`
-      localStorage.setItem('sathya_wishlist_visitor', visitorId)
-    }
-    let storedUser = null
-    try { storedUser = JSON.parse(localStorage.getItem('sathya_user') || 'null') } catch { storedUser = null }
-    const token = storedUser?.token || localStorage.getItem('sathya_token')
-    return token ? { headers: { Authorization: `Bearer ${token}` } } : { data: { visitorId } }
-  }
-
-  // Keep the card state and the server-backed Wishlist page in sync.
+  // Keep the card state and the server-backed Wishlist page in sync. The
+  // sign-in token (added to every request by AuthContext) wins over the
+  // guest id on the server.
   const toggleWishlist = async (productId, productName) => {
     const saved = !wishlist.has(productId)
     setWishlist(prev => {
       const next = new Set(prev)
       if (saved) next.add(productId)
       else next.delete(productId)
-      localStorage.setItem('sathya_wishlist_ids', JSON.stringify(Array.from(next)))
       return next
     })
+    cacheWishlistItem(productId, saved)
     try {
-      const identity = getWishlistIdentity()
-      await axios.post('/api/wishlist', { productId, productName, saved, ...(identity.data || {}) }, { headers: identity.headers })
+      await axios.post('/api/wishlist', { productId, productName, saved, visitorId: wishlistVisitorId() })
       showToast(saved ? `Added "${productName}" to Wishlist ❤️` : `Removed "${productName}" from Wishlist`)
     } catch {
       setWishlist(prev => {
         const next = new Set(prev)
         if (saved) next.delete(productId)
         else next.add(productId)
-        localStorage.setItem('sathya_wishlist_ids', JSON.stringify(Array.from(next)))
         return next
       })
+      cacheWishlistItem(productId, !saved)
       showToast('Could not update Wishlist. Please try again.')
     }
   }

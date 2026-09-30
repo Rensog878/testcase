@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { downloadCsv } from '../../shared/csv'
 import { Activity, RefreshCw, Search, Filter, MapPin, Eye, Clock, Download, Calendar, CheckCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 export default function WorkLogAudit() {
@@ -85,23 +86,16 @@ export default function WorkLogAudit() {
     }
     const headers = ['Timestamp', 'User', 'Role', 'Store', 'Module', 'Action', 'Description', 'IP']
     const rows = logs.map(l => [
-      `"${new Date(l.timestamp).toISOString()}"`,
-      `"${l.userName || ''}"`,
-      `"${l.userRole || ''}"`,
-      `"${l.storeName || ''}"`,
-      `"${l.module || ''}"`,
-      `"${l.action || ''}"`,
-      `"${(l.description || '').replace(/"/g, '""')}"`,
-      `"${l.ip || ''}"`
+      new Date(l.timestamp).toISOString(),
+      l.userName,
+      l.userRole,
+      l.storeName,
+      l.module,
+      l.action,
+      l.description,
+      l.ip
     ])
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `sathyam_work_logs_${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    downloadCsv(`sathyam_work_logs_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows])
     toast.success('Work log export downloaded!')
   }
 

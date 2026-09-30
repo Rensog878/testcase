@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { cacheWishlistIds, wishlistIdsFrom } from '../shared/wishlist'
 
 export default function Wishlist() {
   const { user } = useAuth()
@@ -16,7 +17,10 @@ export default function Wishlist() {
       return
     }
     const params = user ? '' : `?${new URLSearchParams({ visitorId })}`
-    axios.get(`/api/wishlist${params}`).then(({ data }) => setItems(data.data || [])).catch(() => setItems([]))
+    axios.get(`/api/wishlist${params}`).then(({ data }) => {
+      setItems(data.data || [])
+      cacheWishlistIds(wishlistIdsFrom(data.data))
+    }).catch(() => setItems([]))
   }, [user?.id, visitorId])
 
   return (

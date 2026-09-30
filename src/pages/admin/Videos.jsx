@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { getYouTubeId } from '../../shared/video'
 import {
   Plus, Edit2, Trash2, X, Search, Youtube,
   ExternalLink, Video, Upload, CheckCircle2, Film
@@ -50,12 +51,6 @@ export default function AdminVideos() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const getYouTubeId = (url) => {
-    if (!url) return null
-    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-    return match ? match[1] : null
   }
 
   const isUploadedVideo = (url) => {

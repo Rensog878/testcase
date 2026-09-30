@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { downloadCsv } from '../../shared/csv'
 import {
   Search, Filter, RefreshCw, Download, Phone, MapPin,
   Sprout, Calendar, Clock, AlertCircle, CheckCircle2,
@@ -164,27 +165,18 @@ export default function AdminEnquiries() {
     const headers = ['#', 'Enquiry ID', 'Farmer Name', 'Mobile Phone', 'Location', 'Crop', 'Enquiry Type', 'Status', 'Date & Time', 'Message']
     const rows = filteredAndSorted.map((e, idx) => [
       idx + 1,
-      `"${e.id || ''}"`,
-      `"${(e.name || '').replace(/"/g, '""')}"`,
-      `"${e.phone || ''}"`,
-      `"${(e.location || '').replace(/"/g, '""')}"`,
-      `"${(e.crop || '').replace(/"/g, '""')}"`,
-      `"${(e.type || '').replace(/"/g, '""')}"`,
-      `"${e.status || 'Not Seen'}"`,
-      `"${new Date(e.createdAt).toLocaleString('en-IN')}"`,
-      `"${(e.message || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
+      e.id,
+      e.name,
+      e.phone,
+      e.location,
+      e.crop,
+      e.type,
+      e.status || 'Not Seen',
+      new Date(e.createdAt).toLocaleString('en-IN'),
+      String(e.message || '').replace(/\n/g, ' ')
     ])
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `Farmer_Enquiries_${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    downloadCsv(`Farmer_Enquiries_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows])
 
     toast.success(`Exported ${filteredAndSorted.length} enquiries to Excel format! 📊`)
   }

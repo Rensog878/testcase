@@ -5,6 +5,7 @@ import {
   ShoppingCart, BookOpen, ExternalLink, Sprout, ChevronRight, Film, Video
 } from 'lucide-react'
 import axios from 'axios'
+import { getYouTubeId, isHtml5Video } from '../shared/video'
 
 // One blog article. Styles: index.css, "BLOG PAGES" - the home page's fonts
 // (Outfit headings, Plus Jakarta Sans text) at the home page's sizes.
@@ -54,17 +55,6 @@ export default function BlogDetail() {
     fetchBlog()
     return () => { cancelled = true }
   }, [id])
-
-  const getYouTubeId = (url) => {
-    if (!url) return null
-    const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-    return match ? match[1] : null
-  }
-
-  const isHtml5Video = (url) => {
-    if (!url) return false
-    return url.startsWith('/api/upload') || url.startsWith('data:video') || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)
-  }
 
   const handleShare = () => {
     if (navigator.share) {

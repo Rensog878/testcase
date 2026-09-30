@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
+import { downloadCsv } from '../../shared/csv'
 
 // ─── Colour palette ────────────────────────────────────────────────────────────
 const STATUS_COLORS = {
@@ -29,20 +30,13 @@ function exportCSV(orders, period, channelMode) {
     o.phone,
     o.district,
     o.state,
-    '"' + String(o.items || '').replace(/"/g,'""') + '"',
+    o.items || '',
     o.total,
     o.paymentStatus,
     o.paymentMethod || 'Online',
     o.deliveryStatus,
   ])
-  const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
-  a.download = `sathyabio-analytics-${channelMode || 'all'}-${period}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+  downloadCsv(`sathyabio-analytics-${channelMode || 'all'}-${period}.csv`, [headers, ...rows])
 }
 
 // ─── Tiny bar chart ────────────────────────────────────────────────────────────

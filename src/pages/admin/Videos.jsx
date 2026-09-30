@@ -35,12 +35,6 @@ export default function AdminVideos() {
     fetchVideos()
   }, [])
 
-  const authHeader = () => {
-    const user = JSON.parse(localStorage.getItem('sathya_user') || '{}')
-    const token = user.token || localStorage.getItem('sathya_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
   const fetchVideos = async () => {
     setLoading(true)
     try {
@@ -115,8 +109,6 @@ export default function AdminVideos() {
             filename: file.name,
             contentType: file.type,
             data: reader.result
-          }, {
-            headers: authHeader()
           })
           setUploadProgress(100)
           if (data.success && data.url) {
@@ -165,13 +157,13 @@ export default function AdminVideos() {
 
     try {
       if (isEditing) {
-        const { data } = await axios.put(`/api/videos/${isEditing}`, payload, { headers: authHeader() })
+        const { data } = await axios.put(`/api/videos/${isEditing}`, payload)
         if (data.success) {
           toast.success('Video updated successfully!')
           setVideos(prev => prev.map(v => (v._id === isEditing || v.id === isEditing) ? data.data : v))
         }
       } else {
-        const { data } = await axios.post('/api/videos', payload, { headers: authHeader() })
+        const { data } = await axios.post('/api/videos', payload)
         if (data.success) {
           toast.success('Video added successfully! Ready to link in products and blogs.')
           setVideos(prev => [data.data, ...prev])
@@ -186,7 +178,7 @@ export default function AdminVideos() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this video?')) return
     try {
-      await axios.delete(`/api/videos/${id}`, { headers: authHeader() })
+      await axios.delete(`/api/videos/${id}`)
       toast.success('Video deleted')
       setVideos(prev => prev.filter(v => v._id !== id && v.id !== id))
     } catch {

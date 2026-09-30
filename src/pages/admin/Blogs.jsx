@@ -45,7 +45,7 @@ export default function AdminBlogs() {
     setLoading(true)
     try {
       const [bRes, pRes, vRes] = await Promise.all([
-        axios.get('/api/blogs', { headers: authHeader() }),
+        axios.get('/api/blogs'),
         axios.get('/api/products'),
         axios.get('/api/videos')
       ])
@@ -57,12 +57,6 @@ export default function AdminBlogs() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const authHeader = () => {
-    const user = JSON.parse(localStorage.getItem('sathya_user') || '{}')
-    const token = user.token || localStorage.getItem('sathya_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
   const openCreate = () => {
@@ -130,13 +124,13 @@ export default function AdminBlogs() {
 
     try {
       if (isEditing) {
-        const { data } = await axios.put(`/api/blogs/${isEditing}`, payload, { headers: authHeader() })
+        const { data } = await axios.put(`/api/blogs/${isEditing}`, payload)
         if (data.success) {
           toast.success('Blog updated!')
           setBlogs(prev => prev.map(b => (b._id === isEditing || b.id === isEditing) ? data.data : b))
         }
       } else {
-        const { data } = await axios.post('/api/blogs', payload, { headers: authHeader() })
+        const { data } = await axios.post('/api/blogs', payload)
         if (data.success) {
           toast.success('Blog published!')
           setBlogs(prev => [data.data, ...prev])
@@ -151,7 +145,7 @@ export default function AdminBlogs() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this blog article permanently?')) return
     try {
-      await axios.delete(`/api/blogs/${id}`, { headers: authHeader() })
+      await axios.delete(`/api/blogs/${id}`)
       toast.success('Blog deleted')
       setBlogs(prev => prev.filter(b => b._id !== id && b.id !== id))
     } catch {
@@ -162,7 +156,7 @@ export default function AdminBlogs() {
   const handleTogglePublish = async (blog) => {
     const id = blog._id || blog.id
     try {
-      const { data } = await axios.put(`/api/blogs/${id}`, { ...blog, published: !blog.published }, { headers: authHeader() })
+      const { data } = await axios.put(`/api/blogs/${id}`, { ...blog, published: !blog.published })
       if (data.success) {
         setBlogs(prev => prev.map(b => (b._id === id || b.id === id) ? data.data : b))
         toast.success(!blog.published ? 'Blog published!' : 'Blog unpublished')
@@ -179,7 +173,7 @@ export default function AdminBlogs() {
     fd.append('file', file)
     setUploading(true)
     try {
-      const { data } = await axios.post('/api/upload', fd, { headers: { ...authHeader(), 'Content-Type': 'multipart/form-data' } })
+      const { data } = await axios.post('/api/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       if (data.url) {
         setForm(f => ({ ...f, coverImage: data.url }))
         toast.success('Image uploaded!')

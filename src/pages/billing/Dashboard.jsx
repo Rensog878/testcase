@@ -107,12 +107,6 @@ export default function BillingDashboard() {
   const [invoiceHistory, setInvoiceHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
 
-  const authHeader = () => {
-    const user = JSON.parse(localStorage.getItem('sathya_user') || '{}')
-    const token = user.token || localStorage.getItem('sathya_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
   // Load Products & Invoices
   useEffect(() => {
     axios.get('/api/products')
@@ -180,7 +174,7 @@ export default function BillingDashboard() {
 
   const loadTodayStats = async () => {
     try {
-      const { data } = await axios.get('/api/billing/invoices', { headers: authHeader() })
+      const { data } = await axios.get('/api/billing/invoices')
       if (data.success) {
         const today = new Date().toDateString()
         const todayInvoices = (data.data || []).filter(inv =>
@@ -198,7 +192,7 @@ export default function BillingDashboard() {
   const loadInvoiceHistory = async () => {
     setHistoryLoading(true)
     try {
-      const { data } = await axios.get('/api/billing/invoices', { headers: authHeader() })
+      const { data } = await axios.get('/api/billing/invoices')
       if (data.success) setInvoiceHistory((data.data || []).slice(0, 30))
     } catch {
       // ignore
@@ -450,7 +444,7 @@ export default function BillingDashboard() {
     const payload = constructCurrentInvoicePayload()
 
     try {
-      const { data } = await axios.post('/api/billing/invoice', payload, { headers: authHeader() })
+      const { data } = await axios.post('/api/billing/invoice', payload)
       if (!data.success) throw new Error(data.message || 'Could not create invoice')
 
       // Record coupon usage
@@ -463,7 +457,7 @@ export default function BillingDashboard() {
           orderId: data.invoice.id,
           discountAmount: couponDiscountAmount,
           orderTotal: roundedGrandTotal
-        }, { headers: authHeader() }).catch(() => {})
+        }).catch(() => {})
       }
 
       toast.success('GST Invoice generated successfully! 🧾')

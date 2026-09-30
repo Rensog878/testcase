@@ -37,36 +37,8 @@ function whatsAppNumber(phone) {
 export async function sendOrderConfirmation(order, { resend = false } = {}) {
   if (!order?.id) return 'skipped';
   if (!orderWhatsAppEnabled()) return 'disabled';
-
-  const claimed = await db.claimOrderNotification(order.id, 'orderConfirmation', {
-    resend,
-    maxAttempts: MAX_AUTOMATIC_ATTEMPTS,
-  });
-  if (!claimed) return 'skipped';
-
-  const phone = whatsAppNumber(order.customerPhone);
-  if (!phone) {
-    await db.recordOrderNotification(order.id, 'orderConfirmation', 'failed', 'No valid mobile number on the order');
-    return 'failed';
-  }
-
-  try {
-    const cms = await db.getCMS().catch(() => ({}));
-    const siteUrl = publicSiteUrl();
-    const text = buildOrderConfirmationMessage(order, {
-      trackUrl: siteUrl ? `${siteUrl}/orders` : '',
-      supportPhone: cms?.phone || cms?.contactPhone,
-    });
-
-    const { sender } = await sendWhatsAppText(phone, text);
-    await db.recordOrderNotification(order.id, 'orderConfirmation', 'sent', '', { sender });
-    console.log(`📲 Order confirmation for ${order.id} sent to +91 ${phone} via ${sender}`);
-    return 'sent';
-  } catch (err) {
-    console.error(`❌ Order confirmation for ${order.id} failed:`, err.message);
-    await db.recordOrderNotification(order.id, 'orderConfirmation', 'failed', err.message).catch(() => {});
-    return 'failed';
-  }
+  return deliverOrderMessage(order, 'orderConfirmation', 'Order confirmation', { resend, maxAttempts: MAX_AUTOMATIC_ATTEMPTS },
+    links => buildOrderConfirmationMessage(order, links));
 }
 
 export async function sendDeliveryStatusUpdate(order, newStatus) {
@@ -74,36 +46,47 @@ export async function sendDeliveryStatusUpdate(order, newStatus) {
   const validStatuses = ['Dispatched', 'Out for Delivery', 'Delivered'];
   if (!validStatuses.includes(newStatus)) return 'skipped';
 
-  const kind = `delivery_${newStatus.replace(/\s+/g, '')}`;
-  const claimed = await db.claimOrderNotification(order.id, kind, { maxAttempts: 3 });
+  const kind = `delivery_${newStatus.replace(/s+/g, '')}`;
+  return deliverOrderMessage(order, kind, `Delivery status update (${newStatus})`, { maxAttempts: 3 },
+    links => buildDeliveryStatusMessage(order, newStatus, links));
+}
+
+// The steps both customer messages share: claim the send (so it goes at most
+// once), check the number, build the text with the tracking link and support
+// phone, send it, and record the outcome on the order.
+async function deliverOrderMessage(order, kind, label, claimOptions, build) {
+  const claimed = await db.claimOrderNotification(order.id, kind, claimOptions);
   if (!claimed) return 'skipped';
 
   const phone = whatsAppNumber(order.customerPhone);
   if (!phone) {
-    await db.recordOrderNotification(order.id, kind, 'failed', 'No valid mobile number on order');
+    await db.recordOrderNotification(order.id, kind, 'failed', 'No valid mobile number on the order');
     return 'failed';
   }
 
   try {
     const cms = await db.getCMS().catch(() => ({}));
     const siteUrl = publicSiteUrl();
-    const text = buildDeliveryStatusMessage(order, newStatus, {
+    const text = build({
       trackUrl: siteUrl ? `${siteUrl}/orders` : '',
       supportPhone: cms?.phone || cms?.contactPhone,
     });
-    if (!text) return 'skipped';
+    if (!text) {
+      // Nothing to say for this order; release the claim instead of leaving it "sending".
+      await db.recordOrderNotification(order.id, kind, 'skipped').catch(() => {});
+      return 'skipped';
+    }
 
     const { sender } = await sendWhatsAppText(phone, text);
     await db.recordOrderNotification(order.id, kind, 'sent', '', { sender });
-    console.log(`📲 Delivery status update (${newStatus}) for ${order.id} sent to +91 ${phone} via ${sender}`);
+    console.log(`📲 ${label} for ${order.id} sent to +91 ${phone} via ${sender}`);
     return 'sent';
   } catch (err) {
-    console.error(`❌ Delivery status update (${newStatus}) for ${order.id} failed:`, err.message);
+    console.error(`❌ ${label} for ${order.id} failed:`, err.message);
     await db.recordOrderNotification(order.id, kind, 'failed', err.message).catch(() => {});
     return 'failed';
   }
 }
-
 
 function staffAlertNumbers() {
   const numbers = String(process.env.ORDER_ALERT_PHONES || '').split(',').map(whatsAppNumber).filter(Boolean);

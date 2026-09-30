@@ -56,18 +56,12 @@ export default function AdminOrders() {
   const [agents, setAgents] = useState([])
   const [assigningId, setAssigningId] = useState(null)
 
-  const authHeader = () => {
-    const user = JSON.parse(localStorage.getItem('sathya_user') || '{}')
-    const token = user.token || localStorage.getItem('sathya_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
   const fetchData = async () => {
     setLoading(true)
     try {
       const [ordersRes, invoicesRes] = await Promise.all([
         axios.get('/api/orders').catch(() => ({ data: { data: [] } })),
-        axios.get('/api/billing/invoices', { headers: authHeader() }).catch(() => ({ data: { data: [] } }))
+        axios.get('/api/billing/invoices').catch(() => ({ data: { data: [] } }))
       ])
       setOrders(ordersRes.data?.data || [])
       setInvoices(invoicesRes.data?.data || [])

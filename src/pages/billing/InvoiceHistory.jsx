@@ -11,15 +11,9 @@ export default function InvoiceHistory() {
   const [paymentFilter, setPaymentFilter] = useState('ALL')
   const [selectedInvoice, setSelectedInvoice] = useState(null)
 
-  const authHeader = () => {
-    const user = JSON.parse(localStorage.getItem('sathya_user') || '{}')
-    const token = user.token || localStorage.getItem('sathya_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
   const loadInvoices = () => {
     setLoading(true)
-    axios.get('/api/billing/invoices', { headers: authHeader() })
+    axios.get('/api/billing/invoices')
       .then(({ data }) => {
         if (data.success) setInvoices(data.data || [])
       })

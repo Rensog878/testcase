@@ -2,6 +2,19 @@
 export const SUPPORT_PHONE = '+91-8778613372'
 
 /**
+ * An Indian mobile as its 10 digits, or null. The same rule as normalizePhone()
+ * in server/server.js, so the checkout refuses exactly what the server refuses:
+ * "98765 43210" and "+91 98765 43210" pass; "0 98765 43210" and "12345 67890"
+ * do not.
+ */
+export function normalizeIndianMobile(value) {
+  const digits = String(value ?? '').replace(/\D/g, '')
+  if (/^[6-9]\d{9}$/.test(digits)) return digits
+  if (/^91[6-9]\d{9}$/.test(digits)) return digits.slice(2)
+  return null
+}
+
+/**
  * A tel: link for the shop's number as the admin typed it in the CMS:
  * "+91 94432 10987" -> "tel:+919443210987", "94432 10987" -> "tel:+919443210987",
  * "1800-425-9999" -> "tel:18004259999" (toll-free numbers are dialled as is).

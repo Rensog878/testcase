@@ -87,6 +87,9 @@ test('address label and number: a custom name up to 30 characters, an Indian mob
   assert.equal(detailProblems({ ...completeFields, addressLabel: '   ' }).addressLabel, 'required');
   assert.equal(detailProblems({ ...completeFields, addressPhone: '12345 67890' }).addressPhone, 'phone', 'must start 6-9, as the server checks');
   assert.equal(detailProblems({ ...completeFields, addressPhone: '+91 94430 11223' }).addressPhone, undefined);
+  // A leading 0 is refused here because the server refuses it too.
+  assert.equal(detailProblems({ ...completeFields, addressPhone: '0 94430 11223' }).addressPhone, 'phone');
+  assert.equal(customerDetails({ ...completeFields, addressPhone: '+91 94430 11223' }).addressDetails.phone, '9443011223');
   const long = customerDetails({ ...completeFields, addressLabel: '  Godown near the old rice mill on the canal road  ' });
   assert.equal(long.addressDetails.label.length, 30);
   assert.equal(customerDetails({ ...completeFields, addressLabel: 'Godown' }).addressDetails.label, 'Godown');
@@ -176,4 +179,11 @@ test('an up-to-date basket comes back unchanged (no needless save)', () => {
   const saved = [{ id: 'gel', selectedPack: '1kg', qty: 1, price: 450, originalPrice: 530, gstRate: 5 }];
   assert.equal(withCurrentProducts(saved, [{ id: 'gel', gstRate: 5, packagePrices: { '1kg': 450 }, packageMrps: { '1kg': 530 } }]), saved);
   assert.equal(withCurrentProducts(saved, []), saved);
+});
+
+test('a line without a usable GST rate is taxed at 18%, as the server charges', () => {
+  for (const gstRate of [undefined, null, '', 'abc']) {
+    assert.equal(cartTotals(normalizeCart([{ price: 100, qty: 1, gstRate }])).gst, 18, String(gstRate));
+  }
+  assert.equal(cartTotals(normalizeCart([{ price: 100, qty: 1, gstRate: 0 }])).gst, 0);
 });

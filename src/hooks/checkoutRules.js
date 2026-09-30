@@ -3,6 +3,8 @@
 // React, browser or network code here, so they run under node --test
 // (src/shared/__tests__/checkoutRules.test.js).
 
+import { normalizeIndianMobile } from '../shared/phoneLink.js'
+
 export const GUEST_CART_KEY = 'sathya_cart_guest'
 export const STAFF_HOME = { superadmin: '/superadmin', admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 export const ADDRESS_LABELS = ['Home', 'Office', 'Farm']
@@ -47,7 +49,11 @@ export const itemCount = items => items.reduce((sum, item) => sum + item.qty, 0)
 
 export function cartTotals(items, appliedDiscount = 0) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const rateOf = item => Number(item.gstRate !== undefined ? item.gstRate : 18)
+  // The item's own rate, else 18% - as priceCart() on the server charges it.
+  const rateOf = item => {
+    const rate = Number(item.gstRate)
+    return item.gstRate !== undefined && item.gstRate !== null && item.gstRate !== '' && Number.isFinite(rate) ? rate : 18
+  }
   const gstAmount = items.reduce((sum, item) => sum + (item.price * item.qty * rateOf(item) / 100), 0)
 
   // GST is split equally into CGST and SGST. SGST takes the rupee rounding
@@ -162,10 +168,9 @@ export const REQUIRED_DETAILS = ['addressLabel', 'addressName', 'addressPhone', 
 // The checkout asks only for the address and the person there. The order's
 // contact is the signed-in account (its name and number fill customerName /
 // customerPhone); when the account has none, the person at the address is used.
-const validPhone = value => /^\d{10}$/.test(String(value || '').replace(/\D/g, '').slice(-10))
 export function withContact(fields) {
   const name = String(fields.customerName || '').trim() || String(fields.addressName || '').trim()
-  const phone = validPhone(fields.customerPhone) ? fields.customerPhone : fields.addressPhone || ''
+  const phone = normalizeIndianMobile(fields.customerPhone) ? fields.customerPhone : fields.addressPhone || ''
   return { ...fields, customerName: name, customerPhone: phone }
 }
 
@@ -180,7 +185,7 @@ export function detailProblems(input) {
   if (!filled('addressLabel')) problems.addressLabel = 'required'
   if (!filled('addressName')) problems.addressName = 'required'
   // An Indian mobile, as the server's normalizePhone() accepts it.
-  if (!/^[6-9]\d{9}$/.test(String(fields.addressPhone || '').replace(/\D/g, '').slice(-10))) problems.addressPhone = 'phone'
+  if (!normalizeIndianMobile(fields.addressPhone)) problems.addressPhone = 'phone'
   ;['doorNo', 'street', 'area', 'taluk'].forEach(key => {
     if (!filled(key)) problems[key] = 'required'
   })
@@ -197,7 +202,7 @@ export function customerDetails(fields) {
   const addressDetails = {
     label: String(f.addressLabel || '').trim().slice(0, CUSTOM_LABEL_MAX) || 'Home',
     name: String(f.addressName || '').trim(),
-    phone: String(f.addressPhone || '').replace(/\D/g, '').slice(-10),
+    phone: normalizeIndianMobile(f.addressPhone) || '',
     doorNo: f.doorNo, street: f.street, area: f.area,
     taluk: f.taluk, pincode: f.pincode, district: f.district, state: f.state,
     ...(f.geo && { geo: f.geo }),

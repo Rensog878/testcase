@@ -99,7 +99,6 @@ html:has(> body.sb-home-active) {
   background-color: var(--bg-main);
   color: var(--text-main);
   -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
 }
 
 /* body uses overflow-x: clip, not hidden. With hidden on both html and body,
@@ -108,7 +107,6 @@ html:has(> body.sb-home-active) {
    reached the page and it looked frozen. clip hides sideways overflow without
    creating a scroll container. */
 body.sb-home-active {
-  overflow-x: clip;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -1014,19 +1012,15 @@ body.sb-home-active {
   box-shadow: 0 4px 12px rgba(11, 122, 75, 0.3);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .logo-text {
-  font-size: 1.5rem;
   font-weight: 800;
   color: var(--primary-dark);
-  letter-spacing: -0.5px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .logo-text span {
   color: var(--primary);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .logo-sub {
-  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
   display: block;
   font-weight: 600;
 }
@@ -1135,31 +1129,14 @@ body.sb-home-active {
    change here is paint-only (box-shadow/transform), so nothing reflows.
    ========================================= */
 @media (min-width: 1025px) {
-  :is(body.sb-home-active .sb-home, .sb-portal) .header-main {
-    box-shadow: var(--shadow-md);
-  }
   :is(body.sb-home-active .sb-home, .sb-portal) .logo-icon {
     transition: transform 0.25s var(--ease-out);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .logo-box:hover .logo-icon {
     transform: scale(1.06) rotate(-4deg);
   }
-  :is(body.sb-home-active .sb-home, .sb-portal) .header-search {
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.25s var(--ease-out);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .header-search:focus-within {
-    box-shadow: var(--shadow-md);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .action-item {
-    transition: box-shadow 0.2s ease;
-  }
   :is(body.sb-home-active .sb-home, .sb-portal) .action-item:hover {
-    box-shadow: 0 0 0 8px rgba(11, 122, 75, 0.08);
     border-radius: var(--radius-md);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .navbar {
-    box-shadow: var(--shadow-md);
   }
 }
 
@@ -1380,7 +1357,6 @@ body.sb-home-active {
     transition: transform 0.2s var(--ease-out), box-shadow 0.25s var(--ease-out), background 0.25s ease, border-color 0.2s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .btn:active { transform: translateY(0) scale(0.98); }
-  :is(body.sb-home-active .sb-home, .sb-portal) .btn-primary:hover { box-shadow: 0 14px 32px rgba(11, 122, 75, 0.32); }
   :is(body.sb-home-active .sb-home, .sb-portal) .btn-outline:hover { box-shadow: var(--shadow-sm); }
 
   :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
@@ -1542,29 +1518,7 @@ body.sb-home-active {
    ========================================= */
 @media (min-width: 769px) {
   :is(body.sb-home-active .sb-home, .sb-portal) .product-card {
-    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.25s ease;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .product-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-hover);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .card-content {
-    padding: var(--space-6);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .product-name {
-    font-size: var(--fs-lg);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .current-price {
-    font-size: var(--fs-2xl);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .pack-chip {
-    border-radius: var(--radius-sm);
-    padding: var(--space-1) var(--space-3);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .card-btn-row {
-    gap: var(--space-3);
   }
 }
 
@@ -1582,14 +1536,6 @@ body.sb-home-active {
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-close-btn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
-:is(body.sb-home-active .sb-home, .sb-portal) .cart-header {
-  background: var(--primary-dark);
-  color: white;
-  padding: 18px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 :is(body.sb-home-active .sb-home, .sb-portal) .cart-footer {
   padding: 20px;
   border-top: 1px solid var(--border-light);
@@ -1598,51 +1544,12 @@ body.sb-home-active {
 
 /* MODALS - the overlay itself is under "MODAL OVERLAY SYSTEM" below */
 :is(body.sb-home-active .sb-home, .sb-portal) .modal-card {
-  background: #ffffff;
   border: 1px solid rgba(22, 164, 106, 0.2);
-  border-radius: var(--radius-lg);
-  max-width: 650px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 30px;
-  position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: #F4F3EF;
-  color: var(--text-main);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
 }
 
 /* CHATBOT FLOATING WIDGET */
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  background: var(--primary-dark);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.7rem;
-  box-shadow: 0 8px 24px rgba(20, 83, 45, 0.45);
-  cursor: pointer;
-  z-index: 1500;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
   transform: translateZ(0);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn::after {
@@ -1657,7 +1564,6 @@ body.sb-home-active {
   will-change: transform, opacity;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn:hover {
-  transform: scale(1.08) translateZ(0);
   box-shadow: 0 12px 32px rgba(107, 68, 18, 0.55);
 }
 @keyframes chatPulseGPU {
@@ -1667,33 +1573,13 @@ body.sb-home-active {
 }
 
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
-  position: fixed;
-  bottom: 100px;
-  right: 24px;
-  width: 370px;
-  height: 520px;
-  background: #ffffff;
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.18);
-  z-index: 1499;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
   /* Hidden by default */
-  opacity: 0;
   visibility: hidden;
-  pointer-events: none;
-  transform: translateY(24px) scale(0.96);
   transform-origin: bottom right;
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1), visibility 0.25s ease;
   will-change: transform, opacity;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window.active {
-  opacity: 1;
   visibility: visible;
-  pointer-events: all;
-  transform: translateY(0) scale(1);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chat-header, :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-header {
   background: var(--primary-dark);
@@ -1708,32 +1594,9 @@ body.sb-home-active {
 /* Chatbot body */
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-messages {
   flex: 1;
-  overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #FAF9F6;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chat-msg {
-  padding: 9px 13px;
-  border-radius: 14px;
-  font-size: 0.84rem;
-  line-height: 1.4;
-  max-width: 85%;
   word-wrap: break-word;
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .bot-msg {
-  background: #e2f4ec;
-  color: #1a3d2b;
-  align-self: flex-start;
-  border-bottom-left-radius: 4px;
-}
-:is(body.sb-home-active .sb-home, .sb-portal) .user-msg {
-  background: var(--primary-dark);
-  color: white;
-  align-self: flex-end;
-  border-bottom-right-radius: 4px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chat-quick-chip {
   background: #ffffff;
@@ -1756,16 +1619,10 @@ body.sb-home-active {
 
 /* Chatbot input row */
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-input-row {
-  display: flex;
-  border-top: 1px solid var(--border-light);
   flex-shrink: 0;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-input-row input {
   flex: 1;
-  border: none;
-  outline: none;
-  padding: 12px 14px;
-  font-size: 0.88rem;
   background: #fff;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-input-row button {
@@ -1809,9 +1666,6 @@ body.sb-home-active {
    editing the component.
    ========================================= */
 @media (min-width: 1025px) {
-  :is(body.sb-home-active .sb-home, .sb-portal) .footer-grid {
-    gap: var(--space-16);
-  }
   :is(body.sb-home-active .sb-home, .sb-portal) .footer-col-body a {
     transition: color 0.2s ease, padding-left 0.2s ease;
   }
@@ -2391,12 +2245,7 @@ body.sb-home-active {
    ========================================= */
 @media (min-width: 1025px) {
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-card {
-    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-md);
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .bento-card:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: var(--shadow-lg);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .bento-tag {
     padding: var(--space-1) var(--space-4);
@@ -3299,12 +3148,6 @@ body.sb-home-active {
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
 }
 @media (max-width: 768px) {
-  :is(body.sb-home-active .sb-home, .sb-portal) .mobile-bottom-nav {
-    display: flex;
-  }
-  body.sb-home-active {
-    padding-bottom: 65px;
-  }
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .mobile-nav-item {
   display: flex;
@@ -3470,7 +3313,6 @@ body.sb-home-active {
   :is(body.sb-home-active .sb-home, .sb-portal) .catalog-layout {
     display: grid;
     grid-template-columns: 260px 1fr;
-    gap: var(--space-8);
     align-items: start;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar {
@@ -3480,7 +3322,6 @@ body.sb-home-active {
     box-shadow: var(--shadow-sm);
     padding: var(--space-6);
     position: sticky;
-    top: 96px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .filter-group {
     margin-bottom: var(--space-5);
@@ -3951,26 +3792,13 @@ body.sb-home-active {
   }
 
   /* Safe-Area Padding for Bottom Nav Bar */
-  body.sb-home-active {
-    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
-  }
 
   /* Fixed Native App Bottom Navigation Bar */
   :is(body.sb-home-active .sb-home, .sb-portal) .mobile-bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(60px + env(safe-area-inset-bottom, 0px));
-    background: #ffffff;
-    border-top: 1px solid #E7E5DF;
     display: flex !important;
     justify-content: space-around;
-    align-items: flex-start;
-    padding-top: 6px;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
     z-index: 9990;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     /* Pinned to the viewport on every mobile browser: no transform /
        backface-visibility / will-change here. Those promote the bar to its
        own compositor layer, and Samsung Internet and Android WebViews then
@@ -4011,8 +3839,6 @@ body.sb-home-active {
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .mobile-nav-item .mobile-badge {
     position: absolute;
-    top: -3px;
-    right: calc(50% - 16px);
     background: #ef4444;
     color: white;
     font-size: 0.62rem;
@@ -4025,7 +3851,6 @@ body.sb-home-active {
     align-items: center;
     justify-content: center;
     border: 2px solid #ffffff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   }
 
   /* Compact Hero Bento Grid (No Vertical Bloat) */
@@ -4532,7 +4357,6 @@ body.sb-home-active {
      hidden on phones: it sat over the right column's "Add to Cart" button,
      and the bottom nav's Home already returns to the top. */
   :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-trigger-btn {
-    bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
     right: 12px !important;
     width: 46px !important;
     height: 46px !important;
@@ -4542,11 +4366,9 @@ body.sb-home-active {
     display: none !important;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
-    bottom: 74px !important;
     right: 10px !important;
     left: 10px !important;
     width: calc(100% - 20px) !important;
-    max-height: calc(100vh - 90px) !important;
   }
 
   /* Grids and Section Content */
@@ -4889,7 +4711,6 @@ body.sb-home-active {
     border-radius: 12px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .mobile-nav-item.active::before {
-    content: '';
     position: absolute;
     top: -6px;
     left: 50%;
@@ -4915,17 +4736,8 @@ body.sb-home-active {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(145deg, #16A46A, #096540);
     border: 4px solid #ffffff;
-    box-shadow: 0 6px 16px rgba(9, 101, 64, 0.4);
     transition: transform 0.15s ease;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .mobile-nav-fab-icon i {
-    color: #ffffff;
-    font-size: 1.15rem !important;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .mobile-nav-fab:active .mobile-nav-fab-icon {
-    transform: scale(0.93);
   }
 
   /* ---- Footer: collapsible groups instead of one long column ---- */
@@ -5005,9 +4817,6 @@ body.sb-home-active {
      handling. (The bar used to vanish because "/" showed the storefront in a
      100vh iframe; see App.jsx / index.html.) dvh is used only for sizes, so
      sheets fit the visible screen while the toolbar is showing. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
-    max-height: calc(100dvh - 90px) !important;
-  }
   :is(body.sb-home-active .sb-home, .sb-portal) .catalog-sidebar {
     max-height: 84dvh !important;
   }
@@ -5446,16 +5255,8 @@ body.sb-home-active {
 }
 
 @media (max-width: 768px) {
-  :is(body.sb-home-active .sb-home, .sb-portal) #authModal {
-    --auth-pad: 20px;
-    --auth-pad-top: 20px;
-    --auth-pad-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  }
   :is(body.sb-home-active .sb-home, .sb-portal) #authModal .modal-card.auth-card {
     padding: var(--auth-pad-top) var(--auth-pad) 0 !important;
-    border-radius: 24px 24px 0 0 !important;
-    max-height: 92vh !important;
-    max-height: 92dvh !important;
   }
 }
 
@@ -5507,10 +5308,8 @@ body.sb-home-active {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   min-height: 48px;
   margin-bottom: 12px;
-  padding: 0 60px;
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-icon {
   flex-shrink: 0;
@@ -5542,7 +5341,6 @@ body.sb-home-active {
   color: var(--primary);
 }
 :is(body.sb-home-active .sb-home, .sb-portal) .auth-brand-sub {
-  display: block;
   margin-top: 1px;
   font-size: 0.64rem;
   font-weight: 600;
@@ -10174,9 +9972,6 @@ html.sb-loc-lock {
   }
   /* The search field is the widest thing in the bar: on a storefront this
      size it is the highest-value control on the page. */
-  :is(body.sb-home-active .sb-home, .sb-portal) .header-grid {
-    gap: var(--space-8);
-  }
 
   /* ---- search bar: one seamless pill, not a bordered box with two bolted-
      on buttons -------------------------------------------------------- */
@@ -10185,7 +9980,6 @@ html.sb-loc-lock {
     gap: 4px;
     padding: 4px 4px 4px 6px;
     border: 1px solid var(--border-light);
-    border-radius: 999px;
     background: var(--bg-section, #f3f6f4);
     box-shadow: none;
     overflow: visible;
@@ -10204,7 +9998,6 @@ html.sb-loc-lock {
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .header-search input {
     background: transparent;
-    padding: 10px 4px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .voice-search-btn {
     width: 36px;
@@ -10396,7 +10189,6 @@ html.sb-loc-lock {
     background: #fff;
     color: var(--text-main);
     border-top: 1px solid var(--border-light);
-    box-shadow: var(--shadow-lg);
     padding: var(--space-8) 0;
     z-index: 60;
   }
@@ -10507,7 +10299,6 @@ html.sb-loc-lock {
     display: flex;
     align-items: center;
     gap: 28px;
-    min-height: 38px;
     padding-inline: calc((100% - min(100%, 1320px)) / 2 + var(--sb-gutter));
     /* Solid brand green, derived from --primary-dark so it tracks the token
        instead of drifting from it.
@@ -10585,7 +10376,6 @@ html.sb-loc-lock {
   :is(body.sb-home-active .sb-home, .sb-portal) .sb-utility-shell .ticker-wrap {
     order: 2;
     /* Basis 0: the marquee takes only what the fixed facts leave over. */
-    flex: 1 1 0;
     min-width: 0;
     align-self: stretch;
     display: flex;
@@ -10593,7 +10383,6 @@ html.sb-loc-lock {
     padding: 0;
     border: 0;
     background: transparent;
-    color: inherit;
     font-size: inherit;
     line-height: inherit;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent);
@@ -11248,17 +11037,13 @@ html.sb-loc-lock {
     gap: var(--space-10);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) .sidebar-panel {
-    border-radius: var(--radius-lg);
-    box-shadow: none;
     position: sticky;
-    top: var(--space-6);
     align-self: start;
   }
 
   /* ---- footer ---------------------------------------------------------- */
   :is(body.sb-home-active .sb-home, .sb-portal) .footer-grid {
     display: grid;
-    grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr));
     gap: var(--space-10);
     align-items: start;
   }
@@ -11387,7 +11172,6 @@ html.sb-loc-lock {
     max-width: 560px;
     border-width: 1px;
     border-color: var(--border-light);
-    border-radius: var(--radius-sm);
   }
 
   :is(body.sb-home-active .sb-home, .sb-portal) .header-search input {
@@ -11724,11 +11508,6 @@ html.sb-loc-lock {
   :is(body.sb-home-active .sb-home, .sb-portal) .modal-close:hover {
     transform: none;
     background: #b42318;
-  }
-  :is(body.sb-home-active .sb-home, .sb-portal) .chatbot-window {
-    border-radius: 16px;
-    max-height: calc(100vh - 148px);
-    box-shadow: var(--shadow-lg);
   }
 
   /* The checkout side panel: 440 wide (unchanged), modal radius and the

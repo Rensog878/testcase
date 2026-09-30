@@ -633,7 +633,6 @@ h6 { font-size: 1rem; }
   display: flex;
   min-height: 100vh;
   width: min(1440px, calc(100vw - 48px));
-  background: linear-gradient(180deg, rgba(245, 250, 247, 0.94), rgba(240, 245, 251, 0.96));
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 24px;
   overflow: hidden;
@@ -680,7 +679,6 @@ h6 { font-size: 1rem; }
 .sidebar-logo-text .brand-name {
   font-family: 'Poppins', var(--script-font, sans-serif), sans-serif;
   font-weight: 800;
-  font-size: 1.05rem;
   color: var(--brand-900);
 }
 
@@ -875,14 +873,8 @@ h6 { font-size: 1rem; }
    card-style sections (was one long undifferentiated column of fields).
    ========================================= */
 .pform-shell {
-  width: min(760px, calc(100vw - 32px));
-  max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background: var(--surface-secondary);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
 
@@ -896,10 +888,7 @@ h6 { font-size: 1rem; }
 .pform-header {
   flex: none;
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 22px 26px;
   background: var(--surface-card);
   border-bottom: 1px solid var(--surface-border);
 }
@@ -908,36 +897,20 @@ h6 { font-size: 1rem; }
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text-primary);
 }
 
 .pform-header-icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  background: var(--brand-50);
-  color: var(--brand-700);
   flex: none;
 }
 
-.pform-header p {
-  margin-top: 3px;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
 
 .pform-close {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--surface-border);
-  background: var(--surface-secondary);
   color: var(--text-secondary);
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
@@ -948,24 +921,19 @@ h6 { font-size: 1rem; }
 .pform-body {
   flex: 1;
   overflow-y: auto;
-  padding: 22px 26px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
 .pform-section {
   background: var(--surface-card);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
 }
 
 .pform-section-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
 }
 
 .pform-section-icon {
@@ -979,11 +947,6 @@ h6 { font-size: 1rem; }
   flex: none;
 }
 
-.pform-section-head h3 {
-  font-size: 0.92rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
 
 .pform-section-head span {
   display: block;
@@ -994,7 +957,6 @@ h6 { font-size: 1rem; }
 }
 
 .pform-field { display: flex; flex-direction: column; gap: 6px; }
-.pform-field + .pform-field { margin-top: 14px; }
 
 /* Declared after .pform-field so display:grid wins on elements that combine
    both classes (a field-styled wrapper laid out as a 2/3-up row). */
@@ -1070,16 +1032,9 @@ h6 { font-size: 1rem; }
   cursor: help;
 }
 
-.pform-hint {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
 
 .pform-adder {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
 }
 
 .pform-adder input,
@@ -1098,19 +1053,10 @@ h6 { font-size: 1rem; }
   flex: none;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 13px;
-  border: 1px solid var(--brand-200);
-  border-radius: var(--radius-sm);
-  background: var(--brand-50);
-  color: var(--brand-700);
-  font-size: 0.78rem;
-  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
-.pform-adder button:hover { background: var(--brand-100); }
 
 .pform-multiselect { position: relative; }
 
@@ -1167,20 +1113,13 @@ h6 { font-size: 1rem; }
 .pform-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
 }
 
 .pform-chip {
   display: inline-flex;
   align-items: center;
-  padding: 4px 11px;
   border-radius: var(--radius-full);
-  background: var(--brand-50);
   border: 1px solid var(--brand-200);
-  color: var(--brand-700);
-  font-size: 0.74rem;
-  font-weight: 700;
 }
 
 .pform-advanced {
@@ -1192,12 +1131,7 @@ h6 { font-size: 1rem; }
 .pform-advanced summary {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 20px;
   cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: var(--text-primary);
   list-style: none;
 }
 .pform-advanced summary::-webkit-details-marker { display: none; }
@@ -1218,22 +1152,16 @@ h6 { font-size: 1rem; }
   color: var(--text-muted);
 }
 .pform-advanced-body {
-  padding: 0 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
 .pform-footer {
   flex: none;
   display: flex;
-  gap: 12px;
-  padding: 16px 26px;
   background: var(--surface-card);
   border-top: 1px solid var(--surface-border);
-  box-shadow: 0 -6px 18px rgba(17, 24, 39, 0.05);
 }
-.pform-footer .btn { flex: 1; }
 
 
 @media (max-width: 760px) {
@@ -1245,11 +1173,7 @@ h6 { font-size: 1rem; }
 .product-detail-fields {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 14px;
-  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.58);
 }
 
 .product-detail-fields > label,
@@ -1315,7 +1239,6 @@ h6 { font-size: 1rem; }
   gap: 18px;
 }
 
-.profile-field { display: grid; gap: 7px; }
 .profile-field label { color: var(--text-primary); font-size: 0.82rem; font-weight: 700; }
 .profile-field input,
 .profile-field select,
@@ -1379,21 +1302,16 @@ h6 { font-size: 1rem; }
 .product-detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 6px;
 }
 
 .product-detail-grid > div {
   display: flex;
   flex-direction: column;
-  gap: 7px;
 }
 
 .review-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 5px;
 }
 
 .review-toggle input {
@@ -1903,9 +1821,6 @@ h6 { font-size: 1rem; }
    itself via a more specific selector, so it is unaffected here.
    ========================================= */
 @media (min-width: 1025px) {
-  .topbar {
-    box-shadow: 0 1px 0 rgba(113, 128, 142, 0.08);
-  }
   .page-content {
     padding: var(--space-8);
   }
@@ -1917,12 +1832,6 @@ h6 { font-size: 1rem; }
   }
   .sidebar-logo-icon {
     transition: transform 0.25s var(--ease-out);
-  }
-  .sidebar-logo:hover .sidebar-logo-icon {
-    transform: scale(1.08) rotate(-4deg);
-  }
-  .sidebar-role-badge {
-    box-shadow: var(--shadow-sm);
   }
 }
 
@@ -2349,7 +2258,6 @@ h6 { font-size: 1rem; }
    TABLES
    ========================================= */
 
-.table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--surface-border-subtle); }
 /* /admin/orders cells (were inline styles, so desktop could not widen them). */
 .table-wrap td.order-address-cell { max-width: 220px; font-size: 0.78rem; }
 .table-wrap td.order-items-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2598,9 +2506,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 .modal-xl { max-width: 1100px; }
 
 .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid var(--surface-border-subtle);
 }
@@ -2889,7 +2794,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   gap: 12px;
 }
 
-.page-header-left {}
 .page-header h1 { font-size: 1.6rem; color: var(--text-primary); }
 .page-header p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
 .page-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -3219,9 +3123,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
    little breathing room, not a redesign of what's already good.
    ========================================= */
 @media (min-width: 1025px) {
-  .admin-hero {
-    padding: var(--space-8) var(--space-10);
-  }
   .analytics-grid,
   .dashboard-ops-grid {
     gap: var(--space-8);
@@ -3378,11 +3279,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
    ANIMATIONS
    ========================================= */
 
-@keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideIn  { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes pulse-glow { 0%,100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .animate-fade-in  { animation: fadeIn  0.35s ease; }
 .animate-slide-up { animation: slideUp 0.35s ease; }
@@ -3492,20 +3391,14 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 
 .product-visibility-panel {
   display: grid;
-  grid-template-columns: minmax(160px, 0.8fr) 1.2fr;
-  gap: 16px;
   align-items: center;
 }
-.product-visibility-title { display: block; color: var(--text-primary); font-size: 0.82rem; font-weight: 700; }
-.product-visibility-panel p { margin: 3px 0 0; color: var(--text-muted); font-size: 0.74rem; }
-.product-visibility-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.product-visibility-option { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; padding: 11px 12px; border: 1px solid var(--surface-border); border-radius: var(--radius-sm); background: var(--surface-card); cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast); }
+.product-visibility-title { display: block; }
+.product-visibility-panel p { margin: 3px 0 0; }
+.product-visibility-options { display: grid; grid-template-columns: 1fr 1fr; }
+.product-visibility-option { display: grid; grid-template-columns: auto 1fr; background: var(--surface-card); cursor: pointer; }
 .product-visibility-option:hover { border-color: var(--brand-300); }
-.product-visibility-option.active { border: 1.5px solid var(--brand-500); background: var(--brand-50); }
-.product-visibility-option.offline.active { border-color: var(--orange); background: #fff7ed; }
 .product-visibility-option input { grid-row: span 2; accent-color: var(--brand-600); }
-.product-visibility-option strong { color: var(--text-primary); font-size: 0.8rem; }
-.product-visibility-option span { color: var(--text-muted); font-size: 0.7rem; }
 
 .billing-workspace .card { min-width: 0; }
 .billing-workspace .form-select,
@@ -3519,9 +3412,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
    spacing polish, not a layout rebuild.
    ========================================= */
 @media (min-width: 1025px) {
-  .pos-billing-layout {
-    gap: var(--space-8);
-  }
   .delivery-card-actions {
     gap: var(--space-4);
   }
@@ -3529,7 +3419,6 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
     transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
   }
   .employee-stat:hover {
-    transform: translateY(-3px);
     box-shadow: 0 10px 24px rgba(39, 55, 65, 0.08);
   }
   .employee-overview-grid {
@@ -4021,13 +3910,9 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 @media (max-width: 767px) {
   .bighaat-categories-page {
     position: fixed;
-    top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
     width: 100vw;
-    height: 100dvh;
-    height: 100vh;
     overflow: hidden;
     z-index: 999;
   }
@@ -4168,15 +4053,11 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
   .bighaat-categories-wrapper {
     flex: 1;
     min-height: 0;
-    height: calc(100% - 94px - 60px);
     overflow: hidden;
   }
   .bighaat-split-container {
     height: 100%;
     overflow: hidden;
-  }
-  .bighaat-subcat-pane {
-    padding: 12px 10px 30px 12px;
   }
 }
 
@@ -6709,25 +6590,17 @@ tbody td { padding: 13px 16px; font-size: 0.875rem; color: var(--text-secondary)
 }
 
 .sb-store-logo-text {
-  font-size: 1.5rem;
   font-weight: 800;
-  line-height: 1.2;
   color: #064e3b;
-  letter-spacing: -0.5px;
   white-space: nowrap;
 }
 
-.sb-store-logo-text span {
-  color: #059669;
-}
 
 .sb-store-logo-sub {
   display: block;
-  font-size: 0.7rem;
   font-weight: 600;
   color: #475569;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -9290,7 +9163,6 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   }
 
   .stat-icon.green {
-    background: rgba(11, 122, 75, 0.10);
     color: #0b7a4b;
   }
 
@@ -9662,7 +9534,6 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
     background: #ffffff;
     border: 1px solid rgba(20, 35, 28, 0.07);
     border-radius: 16px;
-    padding: var(--space-5);
     box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 8px 24px -12px rgba(20, 35, 28, 0.12);
   }
 
@@ -9670,11 +9541,6 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
      Dense rows, a quiet sentence-case header, and the scroll kept inside the
      container. .table-wrap already scrolls; the radius/border move to the
      card spec so the table reads as one surface. */
-  .table-wrap {
-    border: 1px solid var(--surface-border);
-    border-radius: 12px;
-    background: #ffffff;
-  }
   .table-wrap thead th {
     height: 40px;
     padding: 0 var(--space-4);
@@ -9897,16 +9763,6 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
 
   /* ---- page headers -----------------------------------------------------
      Title 28/36, subtitle 14 muted (section 8 typography). */
-  .page-header h1,
-  .page-header .page-title {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .page-header p {
-    font-size: 14px;
-    line-height: 20px;
-    color: var(--text-muted);
-  }
 
   /* ---- focus-visible on every primitive ---------------------------------
      2px #0B7A4B at 2px offset. Phase 2 painted the shell; this covers the
@@ -10871,15 +10727,7 @@ html:is([lang="ta"], [lang="kn"], [lang="te"], [lang="hi"]) .mms-title {
   .all-products-page .catalog-products-grid .agro-product-card {
     height: 100%;
   }
-  .all-products-page .agro-product-card .card-pricing-row {
-    margin-top: auto;
-    padding-top: var(--space-3);
-  }
 
-  .all-products-page .agro-product-card {
-    border-radius: 12px;
-    border-color: var(--surface-border);
-  }
 
   /* Section 8 retires hover lifts on cards; the >=769 AGRO PRODUCT CARD layer
      (index.css 5860) sets translateY(-5px) and a large shadow, and that block

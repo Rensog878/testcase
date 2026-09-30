@@ -28,7 +28,7 @@ import {
 } from './referralService.js';
 import { cleanReferralSettings, normalizeReferralCode, maskName, pointsExpiry } from './referrals.js';
 import { splitProfileValues, validateProfileValues } from '../src/shared/profileFieldRules.js';
-import { hashPassword, verifyPassword, signToken, TOKEN_TTL_MS, FARMER_TOKEN_TTL_MS, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
+import { hashPassword, verifyPassword, signToken, tokenTtlFor, safeEqual, passwordProblems, weakPasswordMessage } from './security.js';
 import { cleanGeo, cleanVisitorPing, cleanVisitorDenied, validVisitorId } from './geo.js';
 import {
   HttpError,
@@ -334,8 +334,7 @@ async function issueToken(userId) {
   const record = await db.getUserById(userId, { includePassword: true });
   const sessionId = crypto.randomUUID();
   await db.setUserSessionId(userId, sessionId);
-  const ttl = (record?.role || 'farmer') === 'farmer' ? FARMER_TOKEN_TTL_MS : TOKEN_TTL_MS;
-  return signToken(userId, record?.password, sessionId, ttl);
+  return signToken(userId, record?.password, sessionId, tokenTtlFor(record?.role));
 }
 
 // Checking a password takes a noticeable moment; doing the same work for

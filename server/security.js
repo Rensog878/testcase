@@ -11,8 +11,25 @@ const scrypt = promisify(crypto.scrypt);
 const SCRYPT_KEYLEN = 64;
 const SCRYPT_PREFIX = 'scrypt';
 const TOKEN_PREFIX = 'sb1';
-export const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // staff
-export const FARMER_TOKEN_TTL_MS = 365 * 24 * 60 * 60 * 1000; // farmers stay signed in on their phone
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+export const TOKEN_TTL_MS = 7 * DAY_MS; // default when no role is given
+
+// How long a sign-in lasts, by role. The more an account can reach, the
+// shorter its token lives; farmers stay signed in on their own phone.
+const ROLE_TOKEN_TTL_MS = {
+  farmer: 365 * DAY_MS,
+  delivery: 7 * DAY_MS, // own phone, on the road, sees only assigned orders
+  employee: DAY_MS, // shared shop computers: ends with the shift
+  billing: DAY_MS,
+  admin: DAY_MS,
+  superadmin: 12 * HOUR_MS,
+};
+
+// Accounts without a role are farmers; an unknown role gets the short staff day.
+export function tokenTtlFor(role) {
+  return ROLE_TOKEN_TTL_MS[role || 'farmer'] ?? DAY_MS;
+}
 
 // ================= PASSWORDS =================
 

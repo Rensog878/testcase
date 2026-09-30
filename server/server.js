@@ -59,8 +59,6 @@ app.disable('x-powered-by');
 const ALLOWED_ORIGINS = new Set([
   'https://www.sathyamagromart.com',
   'https://sathyamagromart.com',
-  'https://www.sathyambio.com',
-  'https://sathyambio.com',
   ...[process.env.PUBLIC_SITE_URL, ...(process.env.CORS_ORIGINS || '').split(',')]
     .map((o) => (o || '').trim().replace(/\/+$/, ''))
     .filter(Boolean),

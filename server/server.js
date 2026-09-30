@@ -53,14 +53,47 @@ const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 
 app.disable('x-powered-by');
-app.use(cors());
+// Only our own sites (and local dev servers) may call the API from a browser.
+// Requests without an Origin header (webhooks, curl, same-origin GETs) pass.
+// Extra origins: CORS_ORIGINS=https://a.com,https://b.com in .env.
+const ALLOWED_ORIGINS = new Set([
+  'https://www.sathyamagromart.com',
+  'https://sathyamagromart.com',
+  'https://www.sathyambio.com',
+  'https://sathyambio.com',
+  ...[process.env.PUBLIC_SITE_URL, ...(process.env.CORS_ORIGINS || '').split(',')]
+    .map((o) => (o || '').trim().replace(/\/+$/, ''))
+    .filter(Boolean),
+]);
+const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+app.use(cors({
+  origin: (origin, cb) => cb(null, !origin || ALLOWED_ORIGINS.has(origin) || LOCAL_ORIGIN.test(origin)),
+}));
+
+// Security headers. The API and uploaded files get a locked-down CSP; the SPA
+// pages do not, since they load Razorpay, Google Fonts and Font Awesome CDNs.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
+  if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) {
+    res.setHeader('Content-Security-Policy', "default-src 'none'; media-src 'self'; img-src 'self'; frame-ancestors 'self'");
+  }
+  next();
+});
+
 // The raw bytes are kept for the Razorpay webhook, whose signature covers the
 // exact body sent.
 const captureRawBody = (req, _res, buf) => { req.rawBody = buf; };
 // Admin video uploads arrive as base64 inside JSON, so that ONE route takes a
 // large body. Raising the limit globally, as this first did, let any
 // unauthenticated caller make the server buffer 200MB per request - the
-// cheapest denial of service there is. The route below is admin-only.
+// cheapest denial of service there is. The admin check runs BEFORE the body
+// is read, so an anonymous POST is rejected without buffering anything.
+app.post('/api/upload', requireAuth('admin'));
 app.use('/api/upload', express.json({ limit: '200mb', verify: captureRawBody }));
 app.use(express.json({ limit: '4mb', verify: captureRawBody }));
 

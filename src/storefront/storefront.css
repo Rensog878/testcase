@@ -13082,87 +13082,96 @@ body.poster-open .sb-portal .call-fab {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 @media (min-width: 1025px) {
-  /* ---- shared shell ---- */
+  /* ---- shared shell: edge-to-edge photo on top, a hairline ring, no frame ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card,
   .all-products-page .agro-product-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: 10px;
-    border: 1px solid rgba(11, 122, 75, 0.10);
+    padding: 0;
+    border: 0;
     border-radius: 20px;
     background: #ffffff;
-    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 10px 26px -18px rgba(20, 35, 28, 0.25);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 0 0 1px rgba(20, 35, 28, 0.07), 0 1px 2px rgba(20, 35, 28, 0.04);
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .all-products-page .agro-product-card {
+    padding-bottom: 16px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:hover,
   .all-products-page .agro-product-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(11, 122, 75, 0.28);
-    box-shadow: 0 1px 2px rgba(20, 35, 28, 0.04), 0 24px 44px -20px rgba(6, 64, 43, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 1px rgba(11, 122, 75, 0.22), 0 18px 36px -18px rgba(6, 64, 43, 0.3);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:focus-visible {
     outline: 3px solid var(--primary);
     outline-offset: 3px;
   }
 
-  /* ---- image well ---- */
+  /* ---- image: the product is the hero ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .product-img-box,
   .all-products-page .agro-product-card .card-image-box {
     display: flex;
     align-items: center;
     justify-content: center;
-    aspect-ratio: auto;
-    height: 196px;
+    aspect-ratio: 1 / 0.86;
+    height: auto;
     margin: 0;
-    padding: 18px;
-    border-radius: 14px;
-    background: radial-gradient(120% 90% at 50% 20%, #F7FBF8 0%, #E8F3EC 100%);
+    padding: 22px;
+    border-radius: 0;
+    background: #F3F6F2;
     overflow: hidden;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .product-img-box img,
   .all-products-page .agro-product-card .card-image-box img {
-    max-width: 100%;
+    max-width: 82%;
     max-height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 10px 14px rgba(20, 35, 28, 0.18));
+    filter: drop-shadow(0 12px 16px rgba(20, 35, 28, 0.16));
+    /* Pack shots carry their own pale backdrop; multiply melts it into the well. */
+    mix-blend-mode: multiply;
     transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:hover .product-img-box img,
   .all-products-page .agro-product-card:hover .card-image-box img {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 
-  /* ---- discount pill + wishlist, floating on the image ---- */
+  /* ---- sale badge + wishlist on the photo ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .discount-tag,
   .all-products-page .agro-product-card .discount-tag {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 12px;
+    left: 12px;
     z-index: 2;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #E5484D, #C62A2F);
+    padding: 5px 8px;
+    border-radius: 8px;
+    background: #D93A3F;
     color: #ffffff;
-    font: 800 0.68rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
-    letter-spacing: 0.04em;
-    box-shadow: 0 6px 14px -6px rgba(198, 42, 47, 0.6);
+    font: 700 0.68rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    letter-spacing: 0.02em;
+    box-shadow: none;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .discount-tag:empty,
+  .all-products-page .agro-product-card .discount-tag:empty {
+    display: none;
   }
   .all-products-page .agro-product-card .card-top-bar {
     margin: 0;
   }
   .all-products-page .agro-product-card .wishlist-heart-btn {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 10px;
+    right: 10px;
     z-index: 2;
     display: grid;
     place-items: center;
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 4px 12px -4px rgba(20, 35, 28, 0.25);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 4px 12px -6px rgba(20, 35, 28, 0.3);
   }
 
   /* ---- body ---- */
@@ -13170,14 +13179,22 @@ body.poster-open .sb-portal .call-fab {
     display: flex;
     flex: 1;
     flex-direction: column;
-    padding: 14px 6px 4px;
+    padding: 14px 16px 16px;
+  }
+  /* /products has no body wrapper: its rows take the same 16px inset. */
+  .all-products-page .agro-product-card > :not(.card-top-bar, .card-image-box) {
+    margin-inline: 16px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .product-category-tag {
     margin-bottom: 6px;
-    color: var(--primary);
-    font-size: 0.64rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
+    color: #5B6B63;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pc-badge {
     max-width: 100%;
@@ -13197,32 +13214,44 @@ body.poster-open .sb-portal .call-fab {
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 2.6em;
-    margin: 0 0 4px;
+    margin-top: 0;
+    margin-bottom: 4px;
     color: var(--text-main, #14231C);
-    font: 700 1.05rem/1.3 'Outfit', var(--script-font, sans-serif), sans-serif;
+    font: 600 1rem/1.3 'Outfit', var(--script-font, sans-serif), sans-serif;
     letter-spacing: -0.01em;
+  }
+  .all-products-page .agro-product-card .card-product-title {
+    margin-top: 14px;
   }
   .all-products-page .agro-product-card .card-product-title a {
     color: inherit;
+    font-weight: inherit;
     text-decoration: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .product-tagline,
   .all-products-page .agro-product-card .card-brand-name {
     display: block;
-    margin: 0 0 8px;
+    margin-top: 0;
+    margin-bottom: 12px;
     color: var(--text-muted);
     font-size: 0.78rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  /* Only real ratings: "No verified reviews yet" (the inline-styled row) on
+     every card told shoppers nothing. */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .rating-row {
     margin-bottom: 10px;
     font-size: 0.74rem;
   }
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .rating-row[style] {
+    display: none;
+  }
   .all-products-page .agro-product-card .card-rating-badge {
     align-self: flex-start;
-    margin: 12px 0 8px;
+    margin-top: 14px;
+    margin-bottom: -6px;
     padding: 3px 8px;
     border-radius: 999px;
     background: #EEF7F1;
@@ -13232,76 +13261,99 @@ body.poster-open .sb-portal .call-fab {
   .all-products-page .agro-product-card .card-rating-badge .rating-divider {
     opacity: 0.4;
   }
+  .all-products-page .agro-product-card .card-high-demand-placeholder {
+    display: none;
+  }
+  .all-products-page .agro-product-card .card-high-demand-banner {
+    align-self: flex-start;
+    margin-top: 14px;
+    margin-bottom: -6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+  }
 
-  /* ---- price ---- */
+  /* ---- price: pinned above the controls so rows line up ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .price-row,
   .all-products-page .agro-product-card .card-pricing-row {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    margin: auto 0 10px;
-    padding-top: 4px;
+    margin-top: auto;
+    margin-bottom: 12px;
+    padding-top: 2px;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .current-price,
   .all-products-page .agro-product-card .card-current-price {
     color: var(--text-main, #14231C);
-    font: 800 1.35rem/1 'Outfit', var(--script-font, sans-serif), sans-serif;
+    font: 800 1.3rem/1 'Outfit', var(--script-font, sans-serif), sans-serif;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .original-price,
   .all-products-page .agro-product-card .card-original-price {
-    color: var(--text-muted);
+    color: #8A968F;
     font-size: 0.8rem;
     text-decoration: line-through;
   }
   .all-products-page .agro-product-card .card-savings-pill {
     align-self: flex-start;
-    margin: -4px 0 10px;
+    margin-top: -6px;
+    margin-bottom: 12px;
     padding: 2px 8px;
-    border-radius: 999px;
+    border-radius: 6px;
     background: #FDECEC;
-    color: #C62A2F;
+    color: #B42318;
     font-size: 0.7rem;
     font-weight: 700;
   }
 
-  /* ---- size control ---- */
+  /* ---- sizes: one segmented control ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-sizes-row {
-    flex-wrap: wrap;
-    gap: 6px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    align-self: flex-start;
+    max-width: 100%;
     margin-bottom: 12px;
+    padding: 3px;
+    border-radius: 10px;
+    background: #F1F4F1;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-chip {
-    padding: 4px 10px;
-    border: 1px solid rgba(20, 35, 28, 0.12);
-    border-radius: 999px;
-    background: #ffffff;
-    color: var(--text-main, #14231C);
-    font-size: 0.72rem;
+    flex: none;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #5B6B63;
+    font-size: 0.74rem;
     font-weight: 600;
-    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    box-shadow: none;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-chip:hover {
-    border-color: var(--primary);
+    color: var(--text-main, #14231C);
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-chip.active {
-    border-color: var(--primary);
-    background: #E7F3EC;
+    background: #ffffff;
     color: var(--primary-dark, #075437);
-    box-shadow: inset 0 0 0 1px var(--primary);
+    box-shadow: 0 1px 3px rgba(20, 35, 28, 0.14);
   }
   .all-products-page .agro-product-card .card-size-selector-row {
     margin-bottom: 12px;
   }
   .all-products-page .agro-product-card .card-size-dropdown {
     height: 38px;
-    border-radius: 12px;
-    border-color: rgba(20, 35, 28, 0.12);
-    background-color: #F6F8F6;
+    border-radius: 10px;
+    border-color: transparent;
+    background-color: #F1F4F1;
   }
 
-  /* ---- CTA ---- */
+  /* ---- CTA: soft until hovered, so a row of cards is not a wall of green ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .card-btn-row {
     opacity: 1;
   }
@@ -13312,41 +13364,48 @@ body.poster-open .sb-portal .call-fab {
     justify-content: center;
     gap: 8px;
     width: 100%;
-    height: 44px;
+    height: 42px;
     padding: 0 16px;
     border: 0;
-    border-radius: 999px;
-    background: var(--primary, #0B7A4B);
-    color: #ffffff;
-    font: 700 0.88rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
-    box-shadow: 0 8px 18px -10px rgba(11, 122, 75, 0.7);
-    transition: background 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    background: #E7F3EC;
+    color: var(--primary-dark, #075437);
+    font: 700 0.86rem/1 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    box-shadow: none;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .all-products-page .agro-product-card .card-add-to-cart-btn {
+    width: auto;
+    align-self: stretch;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .card-btn-row .btn:hover,
-  .all-products-page .agro-product-card .card-add-to-cart-btn:hover {
-    background: #075437;
-    box-shadow: 0 12px 24px -10px rgba(11, 122, 75, 0.8);
+  .all-products-page .agro-product-card .card-add-to-cart-btn:hover,
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:hover .card-btn-row .btn,
+  .all-products-page .agro-product-card:hover .card-add-to-cart-btn {
+    background: var(--primary, #0B7A4B);
+    color: #ffffff;
+    box-shadow: 0 10px 20px -12px rgba(11, 122, 75, 0.8);
   }
 
-
-  /* ---- refinements ---- */
-  /* Pack shots carry their own pale backdrop; multiply melts it into the well. */
-  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .product-img-box img,
-  .all-products-page .agro-product-card .card-image-box img {
-    mix-blend-mode: multiply;
+  /* ---- not priced yet: a quiet state, not a loud price ---- */
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:not(:has(.pack-sizes-row)) .discount-tag {
+    background: #FFF4E0;
+    color: #9A5B00;
   }
-  .all-products-page .agro-product-card .card-product-title a {
-    font-weight: inherit;
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:not(:has(.pack-sizes-row)) .current-price {
+    color: #5B6B63;
+    font: 600 0.92rem/1.2 'Plus Jakarta Sans', var(--script-font, sans-serif), sans-serif;
+    letter-spacing: 0;
   }
-  .all-products-page .agro-product-card .card-high-demand-placeholder {
-    display: none;
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:not(:has(.pack-sizes-row)) .card-btn-row .btn {
+    background: #ffffff;
+    color: var(--primary-dark, #075437);
+    box-shadow: inset 0 0 0 1px rgba(11, 122, 75, 0.3);
   }
-  .all-products-page .agro-product-card .card-high-demand-banner {
-    align-self: flex-start;
-    margin: 0 0 6px;
-    padding: 3px 9px;
-    border-radius: 999px;
-    font-size: 0.66rem;
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:not(:has(.pack-sizes-row)):hover .card-btn-row .btn {
+    background: #F3F9F5;
+    color: var(--primary-dark, #075437);
+    box-shadow: inset 0 0 0 1px var(--primary, #0B7A4B);
   }
 
   /* ---- catalogue filter panel ---- */

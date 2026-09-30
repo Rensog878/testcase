@@ -9,6 +9,7 @@ import {
 
 const STATUS_COLORS = {
   Pending: 'yellow',
+  Assigned: 'teal',
   Confirmed: 'blue',
   Dispatched: 'orange',
   'Out for Delivery': 'purple',
@@ -18,7 +19,8 @@ const STATUS_COLORS = {
 // Payment, Fulfillment / Status and Actions are hidden for now; true brings them back.
 const SHOW_FULFILLMENT_COLUMNS = false
 const COLUMN_COUNT = SHOW_FULFILLMENT_COLUMNS ? 10 : 7
-const STATUSES = ['Pending', 'Confirmed', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled']
+// Same list as the server's PUT /api/orders/:id/status (server/server.js).
+const STATUSES = ['Pending', 'Assigned', 'Confirmed', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled']
 
 const WHATSAPP_BADGES = { sent: ['green', 'Sent'], failed: ['red', 'Failed'], sending: ['yellow', 'Sending'] }
 

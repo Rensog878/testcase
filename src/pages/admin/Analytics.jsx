@@ -4,6 +4,7 @@ import axios from 'axios'
 // ─── Colour palette ────────────────────────────────────────────────────────────
 const STATUS_COLORS = {
   Pending:           '#f5c86b',
+  Assigned:          '#2dd4bf',
   Confirmed:         '#5e63ff',
   Dispatched:        '#a78bfa',
   'Out for Delivery': '#60a5fa',
@@ -76,7 +77,7 @@ function BarChart({ trend }) {
 function DonutChart({ mix, total }) {
   if (!mix || mix.length === 0) return <div className="chart-empty">No data</div>
 
-  const statusOrder = ['Delivered','Confirmed','Dispatched','Out for Delivery','Pending','Cancelled']
+  const statusOrder = ['Delivered','Confirmed','Dispatched','Out for Delivery','Assigned','Pending','Cancelled']
   const sorted = [...mix].sort((a, b) => statusOrder.indexOf(a.name) - statusOrder.indexOf(b.name))
 
   let cumulative = 0

@@ -6,6 +6,8 @@
 // is not an admin's choice, so a farmer reading Tamil should get the Tamil
 // translation there, not English (preferTranslation below).
 
+import { SUPPORT_PHONE } from './phoneLink.js'
+
 export const DEFAULT_CONTENT = {
   // ── Hero ──────────────────────────────────────────────────────────────
   heroBannerTag:     "India's #1 Bio-Pesticide Store",
@@ -87,7 +89,7 @@ export const DEFAULT_CONTENT = {
   testimonial3Photo: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=200&q=80',
 
   // ── Contact & Footer ──────────────────────────────────────────────────
-  phone:         '+91-98450-12345',
+  phone:         SUPPORT_PHONE,
   email:         'support@sathyamagromart.com',
   address:       '14, Kavundampalayam, Coimbatore – 641030, Tamil Nadu',
   footerBrand:   "Sathyam Agro Mart is India's leading digital platform for high-efficacy bio-pesticides, crop protection chemicals, and soil health fertilizers.",

@@ -10,6 +10,7 @@ import { parseImageList } from '../../shared/productImages.js'
 import { duplicateNameGroups, findSameNamedProduct, productNameKey } from '../../shared/productName.js'
 import { PRODUCT_FORMS, productForm } from '../../shared/productForm.js'
 import { cropList, joinCrops, CROP_CHOICES } from '../../shared/profileFieldRules'
+import { packUnits } from '../../shared/packPricing'
 
 const PFORM_SECTIONS = [
   { id: 'pform-basic', label: 'Basic details', hint: 'Title, category, badge' },
@@ -338,13 +339,6 @@ export default function AdminProducts() {
     }
     return true
   })
-
-  const packUnits = pack => {
-    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
-    if (!match) return 1
-    const value = Number(match[1])
-    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
-  }
 
   const openAddModal = () => {
     setIsEditing(null)

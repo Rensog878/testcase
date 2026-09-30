@@ -1411,8 +1411,9 @@ function packUnits(pack) {
   return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value;
 }
 
-// Mirrors packagePrice() in src/pages/ProductDetail.jsx, so the server charges
-// exactly the price the product page showed.
+// Mirrors packPrice() in src/shared/packPricing.js (used by every store page),
+// so the server charges exactly the price the store showed. Its test,
+// src/shared/__tests__/packPricing.test.js, holds cases from this function.
 function unitPriceFor(product, pack) {
   const explicit = product.packagePrices?.[pack] || product.packPrices?.[pack];
   if (explicit !== undefined) return Number(explicit);

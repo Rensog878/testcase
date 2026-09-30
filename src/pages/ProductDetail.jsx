@@ -9,6 +9,7 @@ import { useCms } from '../context/CmsContext'
 import { cmsText } from '../hooks/useCmsSettings'
 import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
 import { WHATSAPP_EXPERT_URL } from '../storefront/data'
+import { packMrp, packPrice } from '../shared/packPricing'
 
 const getYouTubeId = (url) => {
   if (!url) return null
@@ -149,28 +150,8 @@ export default function ProductDetail() {
   const averageRating = reviews.length ? (reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length).toFixed(1) : null
   const packSizes = [...new Set((product.packSizes || []).map(s => typeof s === 'object' ? s.size : s))]
   const basePack = product.selectedPack || packSizes[0]
-  const packUnits = pack => {
-    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
-    if (!match) return 1
-    const value = Number(match[1])
-    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
-  }
-
-  const packagePrice = pack => {
-    const explicit = product.packagePrices?.[pack] || product.packPrices?.[pack]
-    if (explicit !== undefined) return Number(explicit)
-    if (!basePack || !pack) return Number(product.price || 0)
-    return Math.round(Number(product.price || 0) * (packUnits(pack) / packUnits(basePack)))
-  }
-
-  const packageMrp = pack => {
-    const explicit = product.packageMrps?.[pack] || product.packMrps?.[pack]
-    if (explicit !== undefined) return Number(explicit)
-    const price = packagePrice(pack)
-    const basePrice = Number(product.price || 1)
-    const baseMrp = Number(product.originalPrice || product.mrp || product.price)
-    return baseMrp ? Math.round(baseMrp * (price / basePrice)) : price
-  }
+  const packagePrice = pack => packPrice(product, pack, basePack)
+  const packageMrp = pack => packMrp(product, pack, packagePrice(pack))
 
   const selectedPrice = packagePrice(selectedPack)
   const selectedOriginalPrice = packageMrp(selectedPack)

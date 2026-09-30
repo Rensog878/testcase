@@ -13,6 +13,7 @@ import { cmsText } from '../hooks/useCmsSettings'
 import { SUPPORT_PHONE, telHref } from '../shared/phoneLink'
 import { WHATSAPP_EXPERT_URL } from '../storefront/data'
 import { hasPrice } from '../shared/comingSoon'
+import { packMrp, packPrice } from '../shared/packPricing'
 import { dedupeCropLabels, isSameCrop, matchesCrop, matchesCategory, matchesDisease, normalizeCrop, topSelling } from '../utils/catalogUtils'
 import { ALL_CROPS, cropList } from '../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../shared/productForm'
@@ -589,13 +590,6 @@ export default function AllProducts() {
     }
   }
 
-  const packUnits = pack => {
-    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
-    if (!match) return 1
-    const value = Number(match[1])
-    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
-  }
-
   // Get active size info for a product with custom pack prices
   const getProductActiveSize = (product) => {
     const packSizes = Array.isArray(product.packSizes) && product.packSizes.length > 0
@@ -604,22 +598,8 @@ export default function AllProducts() {
     
     const selectedSizeName = selectedSizes[product.id] || product.selectedSize || product.selectedPack || packSizes[0] || 'Standard'
     
-    let price = product.packagePrices?.[selectedSizeName] || product.packPrices?.[selectedSizeName]
-    let orig = product.packageMrps?.[selectedSizeName] || product.packMrps?.[selectedSizeName]
-    
-    if (price === undefined) {
-      const basePack = product.selectedPack || packSizes[0]
-      if (basePack && selectedSizeName && packUnits(basePack) > 0) {
-        price = Math.round(Number(product.price || 0) * (packUnits(selectedSizeName) / packUnits(basePack)))
-      } else {
-        price = Number(product.price || 0)
-      }
-    }
-    if (orig === undefined) {
-      const basePrice = Number(product.price || 1)
-      const baseOrig = Number(product.originalPrice || product.mrp || product.price)
-      orig = baseOrig ? Math.round(baseOrig * (price / basePrice)) : price
-    }
+    const price = packPrice(product, selectedSizeName, product.selectedPack || packSizes[0])
+    const orig = packMrp(product, selectedSizeName, price)
 
     const finalPrice = Number(price) || 0
     const finalOrig = Number(orig) || 0

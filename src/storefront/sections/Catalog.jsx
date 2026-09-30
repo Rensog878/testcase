@@ -5,6 +5,7 @@ import { matchesCrop, matchesCategory, matchesDisease, matchesSearch, topSelling
 import { ALL_CROPS, cropList } from '../../shared/profileFieldRules'
 import { PRODUCT_FORMS, formCounts, matchesForm, productForm } from '../../shared/productForm'
 import { hasPrice } from '../../shared/comingSoon'
+import { packMrp, packPrice } from '../../shared/packPricing'
 
 // The phone chips and the category dropdown list the categories the live
 // products are in (liveCategories); these emoji lead the chips we know.
@@ -35,30 +36,8 @@ const ProductCard = memo(function ProductCard({ product: p, user, t, variant }) 
     : catalog ? DEFAULT_PACKS : []
   const [selectedPack, setSelectedPack] = useState(p.selectedPack || packs[0] || '')
 
-  const packUnits = pack => {
-    const match = String(pack || '').toLowerCase().match(/([\d.]+)\s*(kg|g|litre|liter|l|ml)/)
-    if (!match) return 1
-    const value = Number(match[1])
-    return ['kg', 'litre', 'liter', 'l'].includes(match[2]) ? value * 1000 : value
-  }
-
-  const getPackPrice = pack => {
-    let price = p.packagePrices?.[pack] || p.packPrices?.[pack]
-    if (price !== undefined) return Number(price)
-    const basePack = p.selectedPack || packs[0]
-    if (basePack && pack && packUnits(basePack) > 0) {
-      return Math.round(Number(p.price || 0) * (packUnits(pack) / packUnits(basePack)))
-    }
-    return Number(p.price || 0)
-  }
-
-  const getPackMrp = (pack, packPrice) => {
-    let mrp = p.packageMrps?.[pack] || p.packMrps?.[pack]
-    if (mrp !== undefined) return Number(mrp)
-    const basePrice = Number(p.price || 1)
-    const baseMrp = Number(p.originalPrice || p.mrp || p.price)
-    return baseMrp ? Math.round(baseMrp * (packPrice / basePrice)) : packPrice
-  }
+  const getPackPrice = pack => packPrice(p, pack, p.selectedPack || packs[0])
+  const getPackMrp = (pack, price) => packMrp(p, pack, price)
 
   const priced = hasPrice(p)
   const currentPrice = getPackPrice(selectedPack)

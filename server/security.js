@@ -71,8 +71,8 @@ export function safeEqual(a, b) {
 }
 
 // ================= PASSWORD RULES =================
-// Mirrored in src/utils/passwordRules.js and public/js/app.js, which show the
-// same checklist while people type. Keep all three in step.
+// Mirrored in src/utils/passwordRules.js, which shows the same checklist while
+// people type. Keep the two in step.
 
 const COMMON_PASSWORDS = new Set([
   'password', 'password1', 'password12', 'password123', 'passw0rd', 'admin123', 'admin1234', 'welcome1',

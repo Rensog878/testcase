@@ -4,8 +4,6 @@
 // (src/shared/__tests__/checkoutRules.test.js).
 
 export const GUEST_CART_KEY = 'sathya_cart_guest'
-// Must match the server's calculation in priceCart() (server/server.js).
-export const GST_RATE = 0.18
 export const STAFF_HOME = { superadmin: '/superadmin', admin: '/admin', employee: '/employee', delivery: '/delivery', billing: '/billing' }
 export const ADDRESS_LABELS = ['Home', 'Office', 'Farm']
 // A label the customer types instead ("Godown", "Uncle's house"). The server

@@ -177,7 +177,6 @@ window.SB_LANG_TA = {
     'trusted since 2013': '2013 முதல் நம்பிக்கை',
 
     // Shop by category
-    'Explore crop protection chemicals, bio-stimulants, and soil nutrients': 'பயிர் பாதுகாப்பு மருந்துகள், உயிர் ஊக்கிகள் மற்றும் மண் சத்துகளைப் பாருங்கள்',
     'Crop Disease Defense': 'பயிர் நோய்த் தடுப்பு',
     'Fungicides': 'பூஞ்சைக்கொல்லிகள்',
     'Cure Blast, Blight, Powdery Mildew & Rust': 'குலை நோய், கருகல், சாம்பல் நோய் & துரு நோயைக் கட்டுப்படுத்தும்',
@@ -523,7 +522,6 @@ window.SB_LANG_TA = {
     // Passwordless sign-in: one number, one WhatsApp code. A number we already
     // know is signed straight in; a new one is asked for its details here.
     // The three progress labels share a phone's width, so they stay short.
-    'Mobile': 'மொபைல்',
     'WhatsApp code': 'குறியீடு',
     'Your details': 'விவரங்கள்',
     'Enter your WhatsApp number and we will send you a 6-digit code': 'உங்கள் வாட்ஸ்அப் எண்ணை உள்ளிடுங்கள்; 6 இலக்கக் குறியீட்டை அனுப்புவோம்',
@@ -559,7 +557,6 @@ window.SB_LANG_TA = {
     'This account has been disabled. Please contact support': 'இந்தக் கணக்கு முடக்கப்பட்டுள்ளது. ஆதரவு குழுவைத் தொடர்பு கொள்ளுங்கள்',
 
     // Checks shown under the sign-in and new farmer fields
-    'Please enter your name': 'உங்கள் பெயரை உள்ளிடுங்கள்',
     'Please enter your name, not a number': 'எண் அல்ல, உங்கள் பெயரை உள்ளிடுங்கள்',
     'Mobile number is required': 'மொபைல் எண் தேவை',
     'An Indian mobile number must start with 6, 7, 8 or 9': 'இந்திய மொபைல் எண் 6, 7, 8 அல்லது 9 இல் தொடங்க வேண்டும்',
@@ -875,9 +872,7 @@ window.SB_LANG_TA = {
     'Tell us what you need. Our team will call you back': 'உங்களுக்குத் தேவையானதைத் தெரிவிக்கவும். எங்கள் குழு உங்களைத் திரும்ப அழைக்கும்',
     'Close': 'மூடு',
     'Name': 'பெயர்',
-    'Mobile Number': 'மொபைல் எண்',
     'Location / City': 'இடம் / நகரம்',
-    'Crop': 'பயிர்',
     'e.g. Cotton': 'எ.கா. பருத்தி',
     // "Coming soon" placeholders that replace not-yet-built store features
     'Order tracking — coming soon': 'ஆர்டர் கண்காணிப்பு — விரைவில்',
@@ -930,7 +925,6 @@ window.SB_LANG_TA = {
     'Select state': 'மாநிலத்தைத் தேர்ந்தெடுங்கள்',
     'Office': 'அலுவலகம்',
     'Farm': 'பண்ணை',
-    'Other': 'மற்றவை',
     'Save this address for future orders': 'அடுத்த ஆர்டர்களுக்கு இந்த முகவரியைச் சேமி',
     'Continue to payment': 'பணம் செலுத்தத் தொடரவும்',
     'Choose payment': 'பணம் செலுத்தும் முறை',
@@ -1044,7 +1038,6 @@ window.SB_LANG_TA = {
     'Delivery OTP (share only with the delivery agent': 'டெலிவரி OTP (டெலிவரி நபரிடம் மட்டும் பகிருங்கள்',
     'To be updated': 'விரைவில் புதுப்பிக்கப்படும்',
     'Crop inputs': 'பயிர் இடுபொருட்கள்',
-    'Product': 'பொருள்',
     'Pending': 'நிலுவையில்',
     'Assigned': 'ஒதுக்கப்பட்டது',
     'Confirmed': 'உறுதியானது',

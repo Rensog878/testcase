@@ -11,7 +11,8 @@ const scrypt = promisify(crypto.scrypt);
 const SCRYPT_KEYLEN = 64;
 const SCRYPT_PREFIX = 'scrypt';
 const TOKEN_PREFIX = 'sb1';
-export const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // staff
+export const FARMER_TOKEN_TTL_MS = 365 * 24 * 60 * 60 * 1000; // farmers stay signed in on their phone
 
 // ================= PASSWORDS =================
 
@@ -119,9 +120,9 @@ export function passwordFingerprint(storedPassword) {
 // sessionId ties the token to one login. Issuing a new one (every login,
 // server.js's issueToken) and storing it on the user record retires every
 // older token immediately: one signed-in session per account, on any device.
-export function signToken(userId, storedPassword, sessionId) {
+export function signToken(userId, storedPassword, sessionId, ttlMs = TOKEN_TTL_MS) {
   const now = Date.now();
-  const claims = { sub: userId, pv: passwordFingerprint(storedPassword), sid: sessionId, iat: now, exp: now + TOKEN_TTL_MS };
+  const claims = { sub: userId, pv: passwordFingerprint(storedPassword), sid: sessionId, iat: now, exp: now + ttlMs };
   const body = `${TOKEN_PREFIX}.${Buffer.from(JSON.stringify(claims)).toString('base64url')}`;
   return `${body}.${sign(body)}`;
 }

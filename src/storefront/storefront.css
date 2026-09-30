@@ -13308,10 +13308,23 @@ body.poster-open .sb-portal .call-fab {
     font-weight: 700;
   }
 
+  /* Home cards: the price sits under the name so prices line up across a
+     row; the sizes and the button are pinned together at the bottom, so a
+     size list that wraps (Tamil "5 லிட்டர்") takes the spare space instead.
+     /products keeps its own order (a size dropdown, no wrap). */
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .price-row {
+    margin-top: 0;
+  }
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-sizes-row,
+  :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card:not(:has(.pack-sizes-row)) .card-btn-row {
+    margin-top: auto;
+  }
+
   /* ---- sizes: one segmented control ---- */
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-sizes-row {
     display: flex;
-    flex-wrap: nowrap;
+    /* Wraps rather than scrolls: long sizes ("5 லிட்டர்") stay visible. */
+    flex-wrap: wrap;
     gap: 2px;
     align-self: flex-start;
     max-width: 100%;
@@ -13319,8 +13332,6 @@ body.poster-open .sb-portal .call-fab {
     padding: 3px;
     border-radius: 10px;
     background: #F1F4F1;
-    overflow-x: auto;
-    scrollbar-width: none;
   }
   :is(body.sb-home-active .sb-home, .sb-portal) :is(#catalog, #relatedProductsSection) .product-card .pack-chip {
     flex: none;
@@ -13678,6 +13689,11 @@ body.poster-open .sb-portal .call-fab {
   }
   .all-products-page .agro-product-card .card-image-box img {
     mix-blend-mode: multiply;
+  }
+  /* Price, sizes and button sit at the bottom, so a card without a form
+     line ("Powder") still lines up with its neighbours. */
+  .all-products-page .agro-product-card .card-pricing-row {
+    margin-top: auto;
   }
 }
 
